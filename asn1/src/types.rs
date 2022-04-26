@@ -1,4 +1,4 @@
-use bit_vec::BitVec;
+use bitvec::prelude::*;
 use std::vec::Vec;
 use chrono::prelude::*;
 use chrono::{Duration};
@@ -12,7 +12,7 @@ pub type BIT_STRING = BitVec;
 pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OBJECT_IDENTIFIER = Vec<u32>;
-pub type ObjectDescriptor = String; // See: https://hermanradtke.com/2015/05/06/creating-a-rust-function-that-accepts-string-or-str.html/
+pub type ObjectDescriptor = String;
 // type EXTERNAL = // TODO:
 pub type REAL = f64;
 pub type ENUMERATED = i64;
