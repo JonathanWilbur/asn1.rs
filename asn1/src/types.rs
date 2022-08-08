@@ -1,9 +1,8 @@
-use bitvec::prelude::*;
 use std::vec::Vec;
-use chrono::prelude::*;
 use chrono::Duration;
 
 pub type Bytes = Vec<u8>;
+pub type OPTIONAL<T> = Option<T>;
 
 #[derive(Clone, Copy)]
 pub enum TagClass {
@@ -36,7 +35,7 @@ pub enum ExternalIdentification {
 
 pub struct External {
     pub identification: ExternalIdentification,
-    pub data_value_descriptor: ObjectDescriptor,
+    pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
     pub data_value: OCTET_STRING,
 }
 
@@ -66,10 +65,35 @@ pub struct InstanceOf <'a> {
     pub value: &'a ASN1Value<'a>,
 }
 
+pub struct UTCOffset {
+    pub hour: i8,
+    pub minute: u8,
+}
+
+pub struct DurationFractionalPart {
+    pub number_of_digits: u8,
+    pub fractional_value: u32,
+}
+
+// Defined in ITU X.680, Section 38.4.4.2.
+pub struct DURATION_EQUIVALENT {
+    pub years: u32,
+    pub months: u32,
+    pub weeks: u32,
+    pub days: u32,
+    pub hours: u32,
+    pub minutes: u32,
+    pub seconds: u32,
+    pub fractional_part: Option<DurationFractionalPart>,
+}
+
 // type END_OF_CONTENT = None;
 pub type BOOLEAN = bool;
 pub type INTEGER = i64;
-pub type BIT_STRING = BitVec;
+pub struct BIT_STRING {
+    pub bytes: Vec<u8>,
+    pub trailing_bits: u8,
+}
 pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OBJECT_IDENTIFIER = Vec<u32>;
@@ -91,44 +115,52 @@ pub type PrintableString = String;
 pub type T61String = Bytes;
 pub type VideotexString = Bytes;
 pub type IA5String = String;
-pub type UTCTime = DateTime<Utc>;
-pub type GeneralizedTime = DateTime<Utc>;
+// pub type UTCTime = DateTime<Utc>;
+pub struct UTCTime {
+    pub year: u8, // Yes, u8, not u16: it is left to the application to determine which century the two-digit year identifies.
+    pub month: u8,
+    pub day: u8,
+    pub hour: u8,
+    pub minute: u8,
+    pub second: Option<u8>,
+    pub utc_offset: Option<UTCOffset>,
+}
+pub struct GeneralizedTime {
+    pub date: DATE,
+    pub hour: u8,
+    pub minute: Option<u8>,
+    pub second: Option<u8>,
+    pub fraction: Option<u16>,
+    pub utc_offset: Option<UTCOffset>,
+}
 pub type GraphicString = String;
 pub type VisibleString = String;
 pub type GeneralString = String;
 pub type UniversalString = String;
 pub type CHARACTER_STRING = CharacterString;
 pub type BMPString = String;
-pub type DATE = Date<Utc>;
-pub type TIME_OF_DAY = DateTime<Utc>; // The "Date" part is ignored.
-pub type DATE_TIME = DateTime<Utc>;
+
+pub struct DATE {
+    pub year: u16,
+    pub month: u8,
+    pub day: u8,
+}
+
+pub struct TIME_OF_DAY {
+    pub hour: u8,
+    pub minute: u8,
+    pub second: u8,
+}
+
+pub struct DATE_TIME {
+    pub date: DATE,
+    pub time: TIME_OF_DAY,
+}
+
 pub type DURATION = Duration;
 pub type OID_IRI = String;
 pub type RELATIVE_OID_IRI = String;
 pub type INSTANCE_OF <'a> = InstanceOf<'a>;
-
-// BitStringValue
-// BooleanValue
-// CharacterStringValue
-// ChoiceValue
-// EmbeddedPDVValue
-// EnumeratedValue
-// ExternalValue
-// InstanceOfValue
-// IntegerValue
-// IRIValue
-// NullValue
-// ObjectIdentifierValue
-// OctetStringValue
-// RealValue
-// RelativeIRIValue
-// RelativeOIDValue
-// SequenceValue
-// SequenceOfValue
-// SetValue
-// SetOfValue
-// PrefixedValue
-// TimeValue
 
 pub struct TaggedASN1Value <'a> {
     pub tag_class: TagClass,
@@ -137,12 +169,20 @@ pub struct TaggedASN1Value <'a> {
     pub value: ASN1Value<'a>,
 }
 
+// Actually, I think this is unnecessary, because the tagged alternatives will
+// be of type `TaggedASN1Value`.
+// pub struct ChoiceValue <'a> {
+//     pub name: String,
+//     pub value: ASN1Value<'a>,
+// }
+
 pub enum ASN1Value <'a> {
     // BuiltInValue
     BitStringValue (BIT_STRING),
     BooleanValue (BOOLEAN),
     CharacterStringValue (CHARACTER_STRING),
     ChoiceValue (&'a ASN1Value<'a>),
+    // ChoiceValue (&'a ChoiceValue<'a>),
     EmbeddedPDVValue (EMBEDDED_PDV),
     EnumeratedValue (ENUMERATED),
     ExternalValue (EXTERNAL),

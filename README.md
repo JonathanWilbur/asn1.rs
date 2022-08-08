@@ -238,10 +238,39 @@ which control how these elements are encoded.
 
 ## 
 
-- `asn1`
+
 - `parser`
 - `ber`
 - `der`
 - `cer`
 - `per`
 - `bacnet`
+- `gser` (https://datatracker.ietf.org/doc/html/rfc3641)
+
+## TODO
+
+- [ ] `asn1`
+  - [ ] Comparison functions for all time types
+  - [ ] Comparison functions for context switching types
+  - [ ] Comparison function for elements
+  - [ ] Clone
+  - [ ] Debug
+  - [ ] ASN1Value to ASN.1 String
+  - [ ] Duration to Milliseconds
+  - [ ] Conversion of all time types to integers
+  - [ ] NumericString to integer
+  - [ ] Object Identifier to dot-delimited string
+  - [ ] Object Identifier to ASN.1 string
+  - [ ] Object Identifier extend with relative OID
+  - [ ] Object Identifier ends with relative OID
+  - [ ] Object Identifier compare
+  - [ ] Object Identifier sort
+  - [ ] Object Identifier from string
+  - [ ] Object Identifier compare with string
+  - [ ] Constructors
+  - [ ] ASN.1 value comparison?
+  - [ ] ASN.1 Universal type names
+  - [ ] Hash trait for `ASN1Value`
+- [ ] `x690`
+  - [ ] Deconstruct
+  - [ ] Hash trait for `X690Element`
