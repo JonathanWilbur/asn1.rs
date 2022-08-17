@@ -1,5 +1,6 @@
 use std::io::{Write, Result, Error, ErrorKind, IoSlice, Read};
 use std::mem::{size_of};
+use std::fmt::Display;
 use asn1::types::{
     Bytes,
     ByteSlice,
@@ -759,11 +760,28 @@ where W : Write {
 // TODO: Add check for infinite recursion
 pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
     let mut tag_class: TagClass = TagClass::UNIVERSAL;
-    let mut constructed: bool = false;
     let mut tag_number: TagNumber = 0;
     let mut encoded_value: X690Encoding = X690Encoding::IMPLICIT(vec![]);
-
     match value {
+        ASN1Value::TaggedValue(v) => {
+            tag_class = v.tag_class;
+            tag_number = v.tag_number;
+            if v.explicit {
+                match create_x690_cst(&v.value) {
+                    Ok(cst) => {
+                        encoded_value = X690Encoding::EXPLICIT(Box::new(cst.root));
+                    }
+                    Err(e) => return Err(e),
+                };
+            } else {
+                match create_x690_cst(&v.value) {
+                    Ok(cst) => {
+                        encoded_value = cst.root.value;
+                    }
+                    Err(e) => return Err(e),
+                };
+            }
+        },
         ASN1Value::BooleanValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN;
             let mut value_bytes: Vec<u8> = Vec::new();
@@ -966,7 +984,9 @@ pub fn write_x690_node <W> (output: &mut W, node: &X690Element) -> Result<usize>
     let tag_class = node.tag_class;
     let tag_number = node.tag_number;
     let mut constructed: bool = false;
-    if let X690Encoding::Constructed(already_encoded_bytes) = &node.value {
+    if let X690Encoding::Constructed(_) = &node.value {
+        constructed = true;
+    } else if let X690Encoding::EXPLICIT(_) = &node.value {
         constructed = true;
     }
     let len = node.value.len();
@@ -1083,6 +1103,7 @@ pub fn ber_decode_length (bytes: ByteSlice) -> Result<(usize, X690Length)> {
     Ok((bytes_read, X690Length::Definite(len)))
 }
 
+// Get the CST of BER-encoded data.
 pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
     let tag_encoding_length: usize;
     let tag_class: TagClass;
@@ -1357,7 +1378,7 @@ mod tests {
         assert_eq!(result, 3);
         assert!(output.starts_with(&[
             X690_TAG_CLASS_APPLICATION
-            | 0b0010_0000 // Constructed
+            | 0b0000_0000 // Primitive
             | 5,
             0x01, // Length = 5
             0x00, // FALSE
