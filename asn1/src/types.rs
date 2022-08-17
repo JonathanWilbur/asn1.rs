@@ -4,7 +4,7 @@ use chrono::Duration;
 pub type Bytes = Vec<u8>;
 pub type OPTIONAL<T> = Option<T>;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum TagClass {
     UNIVERSAL,
     APPLICATION,
@@ -180,7 +180,6 @@ pub enum ASN1Value <'a> {
     // BuiltInValue
     BitStringValue (BIT_STRING),
     BooleanValue (BOOLEAN),
-    CharacterStringValue (CHARACTER_STRING),
     ChoiceValue (&'a ASN1Value<'a>),
     // ChoiceValue (&'a ChoiceValue<'a>),
     EmbeddedPDVValue (EMBEDDED_PDV),
@@ -199,6 +198,22 @@ pub enum ASN1Value <'a> {
     SequenceOfValue (SEQUENCE_OF<'a>),
     SetValue (SET<'a>),
     SetOfValue (SET_OF<'a>),
+    // CharacterStringValue
+    UnrestrictedCharacterStringValue (CHARACTER_STRING),
+    // RestrictedCharacterStringType
+    BMPString (BMPString),
+	GeneralString (GeneralString),
+	GraphicString (GraphicString),
+	IA5String (IA5String),
+	ISO646String (VisibleString), // Same as VisibleString.
+	NumericString (NumericString),
+	PrintableString (PrintableString),
+	TeletexString (T61String), // Same as TeletexString.
+	T61String (T61String),
+	UniversalString (UniversalString),
+	UTF8String (UTF8String),
+	VideotexString (VideotexString),
+	VisibleString (VisibleString),
     // PrefixedValue (&'a ASN1Value<'a>),
     TaggedValue (&'a TaggedASN1Value<'a>),
     TimeValue (TIME),

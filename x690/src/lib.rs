@@ -1,4 +1,3 @@
-use core::slice::SlicePattern;
 use std::io::{Write, Result, Error, ErrorKind, IoSlice, Read};
 use std::mem::{size_of};
 use asn1::types::{
@@ -17,6 +16,7 @@ use asn1::types::{
     ASN1Value,
     TagClass,
     TagNumber,
+    PresentationContextSwitchingTypeIdentification,
     ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT,
     ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
     ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
@@ -56,7 +56,7 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
     ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
     ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
-    TaggedASN1Value,
+    TaggedASN1Value, EmbeddedPDV, CharacterString,
 };
 use num::Zero;
 
@@ -85,29 +85,30 @@ pub const X690_REAL_EXPONENT_FORMAT_3_OCTET: u8 = 0b0000_0010;
 pub const X690_REAL_EXPONENT_FORMAT_VAR_OCTET: u8 = 0b0000_0011;
 // const IEEE_754_DPFP_SIGN_MASK
 
-
-pub enum X690Encoding <'a> {
+#[derive(Clone, Debug)]
+pub enum X690Encoding {
     IMPLICIT(Bytes), // the value bytes
-    EXPLICIT(&'a X690Element<'a>), // the inner TLV tuple
-    Constructed(Vec<&'a X690Element<'a>>), // an array of inner TLV tuples
+    EXPLICIT(Box<X690Element>), // the inner TLV tuple
+    Constructed(Vec<X690Element>), // an array of inner TLV tuples
     AlreadyEncoded(Bytes), // the already-encoded TLV
 }
 
-pub struct X690Element <'a> {
+#[derive(Clone, Debug)]
+pub struct X690Element {
     pub name: Option<String>,
     pub tag_class: TagClass,
     pub tag_number: TagNumber,
-    pub value: X690Encoding<'a>,
+    pub value: X690Encoding,
     last_calculated_length: Option<usize>, // Maybe not pub
 }
 
-impl X690Encoding <'_> {
+impl X690Encoding {
     pub fn len (&self) -> usize {
         let ret = match self {
             X690Encoding::IMPLICIT(value_bytes) => value_bytes.len(),
             X690Encoding::EXPLICIT(inner) => inner.len(),
             X690Encoding::Constructed(components) => {
-                let sum: usize = 0;
+                let mut sum: usize = 0;
                 for c in components {
                     sum += c.len();
                 }
@@ -125,8 +126,8 @@ impl X690Encoding <'_> {
     // TODO: is_empty()
 }
 
-impl X690Element<'_> {
-    pub fn new (tag_class: TagClass, tag_number: TagNumber, value: X690Encoding) -> X690Element<'_> {
+impl X690Element {
+    pub fn new (tag_class: TagClass, tag_number: TagNumber, value: X690Encoding) -> X690Element {
         X690Element {
             name: None,
             tag_class,
@@ -144,7 +145,7 @@ impl X690Element<'_> {
                 let value_length = self.value.len();
                 let length_length: usize = get_written_x690_length_length(value_length);
                 let ret = tag_length + length_length + value_length;
-                self.last_calculated_length = Some(ret);
+                // self.last_calculated_length = Some(ret);
                 ret
             },
         }
@@ -178,8 +179,8 @@ fn get_x690_tag_and_length_length (bytes: &Bytes) -> usize {
 }
 
 // This is a struct with a single field for the sake of extensibility.
-pub struct X690ConcreteSyntaxTree <'a> {
-    pub root: X690Element<'a>,
+pub struct X690ConcreteSyntaxTree {
+    pub root: X690Element,
 }
 
 fn base_128_len (num: u32) -> usize {
@@ -388,7 +389,7 @@ pub fn x690_write_object_descriptor_value <W> (output: &mut W, value: &ObjectDes
 pub fn x690_write_external_value <W> (output: &mut W, value: &EXTERNAL) -> Result<usize>
 where W : Write {
     let mut inner_elements: Vec<X690Element> = Vec::new();
-    match value.identification {
+    match &value.identification {
         ExternalIdentification::syntax(oid) => {
             let mut bytes: Bytes = Vec::new();
             match x690_write_object_identifier_value(&mut bytes, &oid) {
@@ -404,7 +405,7 @@ where W : Write {
         },
         ExternalIdentification::presentation_context_id(pci) => {
             let mut bytes: Bytes = Vec::new();
-            match x690_write_integer_value(&mut bytes, pci) {
+            match x690_write_integer_value(&mut bytes, *pci) {
                 Err(e) => return Err(e),
                 _ => (),
             };
@@ -440,7 +441,7 @@ where W : Write {
             inner_elements.push(indirect_ref_element);
         },
     };
-    match value.data_value_descriptor {
+    match &value.data_value_descriptor {
         Some(dvd) => {
             let mut bytes: Bytes = Vec::new();
             match x690_write_object_descriptor_value(&mut bytes, &dvd) {
@@ -469,7 +470,7 @@ where W : Write {
     inner_elements.push(data_value_element);
     let mut bytes_written: usize = 0;
     for component in inner_elements {
-        match write_x690_node(&mut output, &component) {
+        match write_x690_node(output, &component) {
             Ok(length) => {
                 bytes_written += length;
             }
@@ -543,23 +544,213 @@ pub fn x690_write_real_value <W> (output: &mut W, value: REAL) -> Result<usize>
     };
 }
 
-// pub fn x690_write_sequence_value <W> (output: &mut W, value: &SEQUENCE) -> Result<usize>
-//     where W : Write {
-    
-// }
+pub fn x690_context_switching_identification_to_cst (id: &PresentationContextSwitchingTypeIdentification) -> Result<X690Element> {
+    match id {
+        PresentationContextSwitchingTypeIdentification::syntaxes(syntaxes) => {
+            let mut abstract_value_bytes: Bytes = Vec::new();
+            let mut transfer_value_bytes: Bytes = Vec::new();
+            match x690_write_object_identifier_value(&mut abstract_value_bytes, &syntaxes.r#abstract) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            match x690_write_object_identifier_value(&mut transfer_value_bytes, &syntaxes.transfer) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            let mut syntaxes_elements: Vec<X690Element> = Vec::new();
+            syntaxes_elements.push(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::IMPLICIT(abstract_value_bytes),
+            ));
+            syntaxes_elements.push(X690Element::new(
+                TagClass::CONTEXT,
+                1,
+                X690Encoding::IMPLICIT(transfer_value_bytes),
+            ));
+            let element = X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::Constructed(syntaxes_elements),
+            );
+            return Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::EXPLICIT(Box::new(element)),
+            ));
+        },
+        PresentationContextSwitchingTypeIdentification::syntax(oid) => {
+            let mut bytes: Bytes = Vec::new();
+            match x690_write_object_identifier_value(&mut bytes, &oid) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            let element = X690Element::new(
+                TagClass::CONTEXT,
+                1,
+                X690Encoding::IMPLICIT(bytes),
+            );
+            return Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::EXPLICIT(Box::new(element)),
+            ));
+        },
+        PresentationContextSwitchingTypeIdentification::presentation_context_id(pci) => {
+            let mut bytes: Bytes = Vec::new();
+            match x690_write_integer_value(&mut bytes, *pci) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            let element = X690Element::new(
+                TagClass::CONTEXT,
+                2,
+                X690Encoding::IMPLICIT(bytes),
+            );
+            return Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::EXPLICIT(Box::new(element)),
+            ));
+        },
+        PresentationContextSwitchingTypeIdentification::context_negotiation(cn) => {
+            let mut pci_bytes: Bytes = Vec::new();
+            match x690_write_integer_value(&mut pci_bytes, cn.presentation_context_id) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            let pci_element = X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::IMPLICIT(pci_bytes),
+            );
+            let mut transfer_syntax_bytes: Bytes = Vec::new();
+            match x690_write_object_identifier_value(&mut transfer_syntax_bytes, &cn.transfer_syntax) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            let transfer_syntax_element = X690Element::new(
+                TagClass::CONTEXT,
+                1,
+                X690Encoding::IMPLICIT(transfer_syntax_bytes),
+            );
+            let cn_elements: Vec<X690Element> = vec![ pci_element, transfer_syntax_element ];
+            let element = X690Element::new(
+                TagClass::CONTEXT,
+                3,
+                X690Encoding::Constructed(cn_elements),
+            );
+            return Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::EXPLICIT(Box::new(element)),
+            ));
+        },
+        PresentationContextSwitchingTypeIdentification::transfer_syntax(ts) => {
+            let mut bytes: Bytes = Vec::new();
+            match x690_write_object_identifier_value(&mut bytes, &ts) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            let element = X690Element::new(
+                TagClass::CONTEXT,
+                4,
+                X690Encoding::IMPLICIT(bytes),
+            );
+            return Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::EXPLICIT(Box::new(element)),
+            ));
+        },
+        PresentationContextSwitchingTypeIdentification::fixed => {
+            let element = X690Element::new(
+                TagClass::CONTEXT,
+                5,
+                X690Encoding::IMPLICIT(Vec::new()),
+            );
+            return Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                X690Encoding::EXPLICIT(Box::new(element)),
+            ));
+        },
+    }
+}
+
+pub fn x690_write_embedded_pdv_value <W> (output: &mut W, value: &EmbeddedPDV) -> Result<usize>
+where W : Write {
+    let id = x690_context_switching_identification_to_cst(&value.identification);
+    if let Err(e) = id {
+        return Err(e);
+    }
+    let id_element = id.unwrap();
+    let mut data_value_bytes: Bytes = Vec::new();
+    match x690_write_octet_string_value(&mut data_value_bytes, &value.data_value) {
+        Err(e) => return Err(e),
+        _ => (),
+    };
+    let data_value_element = X690Element::new(
+        TagClass::CONTEXT,
+        1,
+        X690Encoding::IMPLICIT(data_value_bytes),
+    );
+    let inner_elements: Vec<X690Element> = vec![ id_element, data_value_element ];
+    let mut bytes_written: usize = 0;
+    for component in inner_elements {
+        match write_x690_node(output, &component) {
+            Ok(length) => {
+                bytes_written += length;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(bytes_written)
+}
+
+// This is almost the same for EmbeddedPDV.
+pub fn x690_write_character_string_value <W> (output: &mut W, value: &CharacterString) -> Result<usize>
+where W : Write {
+    let id = x690_context_switching_identification_to_cst(&value.identification);
+    if let Err(e) = id {
+        return Err(e);
+    }
+    let id_element = id.unwrap();
+    let mut data_value_bytes: Bytes = Vec::new();
+    match x690_write_octet_string_value(&mut data_value_bytes, &value.string_value) {
+        Err(e) => return Err(e),
+        _ => (),
+    };
+    let data_value_element = X690Element::new(
+        TagClass::CONTEXT,
+        1,
+        X690Encoding::IMPLICIT(data_value_bytes),
+    );
+    let inner_elements: Vec<X690Element> = vec![ id_element, data_value_element ];
+    let mut bytes_written: usize = 0;
+    for component in inner_elements {
+        match write_x690_node(output, &component) {
+            Ok(length) => {
+                bytes_written += length;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(bytes_written)
+}
+
 
 // TODO: Add check for infinite recursion
-pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> {
+pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
     let mut tag_class: TagClass = TagClass::UNIVERSAL;
     let mut constructed: bool = false;
     let mut tag_number: TagNumber = 0;
     let mut encoded_value: X690Encoding = X690Encoding::IMPLICIT(vec![]);
 
     match value {
-        // TODO: Encode other types.
         ASN1Value::BooleanValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN;
-            let value_bytes: Vec<u8> = Vec::new();
+            let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_boolean_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
@@ -569,7 +760,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         // TODO: Handle a BIGINT type
         ASN1Value::IntegerValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_INTEGER;
-            let value_bytes: Vec<u8> = Vec::new();
+            let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_integer_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
@@ -578,7 +769,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::BitStringValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING;
-            let value_bytes: Vec<u8> = Vec::new();
+            let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_bit_string_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
@@ -587,7 +778,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::OctetStringValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING;
-            let value_bytes: Vec<u8> = Vec::new();
+            let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_octet_string_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
@@ -600,17 +791,16 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::ObjectIdentifierValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER;
-            let value_bytes: Vec<u8> = Vec::new();
+            let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_object_identifier_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
             }
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
-        // TODO: Make new variants for each restricted string type
         ASN1Value::ExternalValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL;
-            let value_bytes: Vec<u8> = Vec::new();
+            let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_external_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
@@ -619,8 +809,8 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::RealValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_REAL;
-            let value_bytes: Vec<u8> = Vec::new();
-            match x690_write_real_value(&mut value_bytes, v) {
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_real_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
             }
@@ -628,24 +818,32 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::EnumeratedValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED;
-            let value_bytes: Vec<u8> = Vec::new();
+            let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_integer_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
             }
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
-        // TODO: EmbeddedPDV
+        ASN1Value::EmbeddedPDVValue(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_embedded_pdv_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            }
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
         // TODO: UTF8String
         // TODO: RelativeOID
         // TODO: Time
         ASN1Value::SequenceValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE;
-            let inner_values: Vec<&X690Element<'a>> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::new();
             for inner_value in v {
                 match create_x690_cst_node(inner_value) {
                     Ok(inner_node) => {
-                        inner_values.push(&inner_node);
+                        inner_values.push(inner_node);
                     }
                     Err(e) => return Err(e),
                 };
@@ -654,11 +852,11 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::SequenceOfValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF;
-            let inner_values: Vec<&X690Element<'a>> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::new();
             for inner_value in v {
                 match create_x690_cst_node(inner_value) {
                     Ok(inner_node) => {
-                        inner_values.push(&inner_node);
+                        inner_values.push(inner_node);
                     }
                     Err(e) => return Err(e),
                 };
@@ -667,11 +865,11 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::SetValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SET;
-            let inner_values: Vec<&X690Element<'a>> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::new();
             for inner_value in v {
                 match create_x690_cst_node(inner_value) {
                     Ok(inner_node) => {
-                        inner_values.push(&inner_node);
+                        inner_values.push(inner_node);
                     }
                     Err(e) => return Err(e),
                 };
@@ -680,11 +878,11 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         ASN1Value::SetOfValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SET_OF;
-            let inner_values: Vec<&X690Element<'a>> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::new();
             for inner_value in v {
                 match create_x690_cst_node(inner_value) {
                     Ok(inner_node) => {
-                        inner_values.push(&inner_node);
+                        inner_values.push(inner_node);
                     }
                     Err(e) => return Err(e),
                 };
@@ -693,6 +891,15 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
         },
         // TODO: UTCTime
         // TODO: GeneralizedTime
+        ASN1Value::UnrestrictedCharacterStringValue(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_character_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            }
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
         _ => (), // TODO: Return ERROR.
     };
 
@@ -700,7 +907,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element<'a>> 
 }
 
 // TODO: Use this in ::new()
-pub fn create_x690_cst <'a> (value: &ASN1Value) -> Result<X690ConcreteSyntaxTree<'a>> {
+pub fn create_x690_cst <'a> (value: &ASN1Value) -> Result<X690ConcreteSyntaxTree> {
     match create_x690_cst_node(value) {
         Ok(root_node) => Ok(X690ConcreteSyntaxTree{
             root: root_node,
@@ -720,7 +927,7 @@ fn write_x690_encoding <W> (output: &mut W, encoding: &X690Encoding) -> Result<u
         X690Encoding::IMPLICIT(value_bytes) => output.write(value_bytes.as_slice()),
         X690Encoding::EXPLICIT(inner) => write_x690_node(output, inner),
         X690Encoding::Constructed(components) => {
-            let sum: usize = 0;
+            let mut sum: usize = 0;
             for c in components {
                 match write_x690_node(output, c) {
                     Ok(bytes_written) => {
@@ -737,17 +944,17 @@ fn write_x690_encoding <W> (output: &mut W, encoding: &X690Encoding) -> Result<u
 
 pub fn write_x690_node <W> (output: &mut W, node: &X690Element) -> Result<usize>
     where W : Write {
-    if let X690Encoding::AlreadyEncoded(already_encoded_bytes) = node.value {
+    if let X690Encoding::AlreadyEncoded(already_encoded_bytes) = &node.value {
         return output.write(already_encoded_bytes.as_slice());
     }
     let tag_class = node.tag_class;
     let tag_number = node.tag_number;
     let mut constructed: bool = false;
-    if let X690Encoding::Constructed(already_encoded_bytes) = node.value {
+    if let X690Encoding::Constructed(already_encoded_bytes) = &node.value {
         constructed = true;
     }
-    let len = node.len();
-    let bytes_written: usize = 0;
+    let len = node.value.len();
+    let mut bytes_written: usize = 0;
     match x690_write_tag(output, tag_class, constructed, tag_number) {
         Ok(wrote) => {
             bytes_written += wrote;
@@ -830,9 +1037,9 @@ mod tests {
     //     assert_eq!(output[1], 0b0100_1000);
     // }
 
-    use asn1::types::{ASN1Value, TagClass, TaggedASN1Value, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN};
+    use asn1::types::{ASN1Value, TagClass, TaggedASN1Value, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE};
 
-    use crate::{X690_TAG_CLASS_APPLICATION, X690_TAG_CLASS_CONTEXT};
+    use crate::{X690_TAG_CLASS_APPLICATION, X690_TAG_CLASS_CONTEXT, X690Element, write_x690_node, X690_TAG_CLASS_UNIVERSAL};
 
     #[test]
     fn test_x690_write_octet_string_value () {
@@ -937,6 +1144,44 @@ mod tests {
             | 5,
             0x01, // Length = 5
             0x00, // FALSE
+        ]));
+    }
+
+    #[test]
+    fn test_constructed_encoding () {
+        let asn1_data = X690Element::new(
+            TagClass::UNIVERSAL,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            crate::X690Encoding::Constructed(vec![
+                X690Element::new(
+                    TagClass::UNIVERSAL,
+                    ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
+                    crate::X690Encoding::IMPLICIT(vec![ 0xFF ]),
+                ),
+                X690Element::new(
+                    TagClass::UNIVERSAL,
+                    crate::ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
+                    crate::X690Encoding::IMPLICIT(vec![ 0x01, 0x03 ]),
+                ),
+            ]),
+        );
+        let mut output = Vec::new();
+        match write_x690_node(&mut output, &asn1_data) {
+            Ok(bytes_written) => {},
+            Err(e) => panic!("{}", e),
+        }
+        assert!(output.starts_with(&[
+            X690_TAG_CLASS_UNIVERSAL
+            | 0b0010_0000 // Constructed
+            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            0x07,
+            0x01,
+            0x01,
+            0xFF,
+            0x02,
+            0x02,
+            0x01,
+            0x03,
         ]));
     }
 }
