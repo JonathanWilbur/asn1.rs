@@ -1019,7 +1019,7 @@ mod tests {
         X690_TAG_CLASS_CONTEXT,
         X690Element,
         write_x690_node,
-        X690_TAG_CLASS_UNIVERSAL,
+        X690_TAG_CLASS_UNIVERSAL, ber_encode,
     };
 
     #[test]
@@ -1180,7 +1180,9 @@ mod tests {
         );
         let mut output = Vec::new();
         match write_x690_node(&mut output, &asn1_data) {
-            Ok(bytes_written) => {},
+            Ok(bytes_written) => {
+                assert_eq!(bytes_written, 9);
+            },
             Err(e) => panic!("{}", e),
         }
         assert!(output.starts_with(&[
@@ -1195,6 +1197,34 @@ mod tests {
             0x02,
             0x01,
             0x03,
+        ]));
+    }
+
+    #[test]
+    fn test_ber_encode_2 () {
+
+        let asn1_data = ASN1Value::SequenceValue(vec![
+            ASN1Value::BooleanValue(true),
+            ASN1Value::IntegerValue(127),
+        ]);
+        let mut output = Vec::new();
+        match ber_encode(&mut output, &asn1_data) {
+            Ok(bytes_written) => {
+                assert_eq!(bytes_written, 8);
+            },
+            Err(e) => panic!("{}", e),
+        }
+        assert!(output.starts_with(&[
+            X690_TAG_CLASS_UNIVERSAL
+            | 0b0010_0000 // Constructed
+            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            0x06,
+            0x01,
+            0x01,
+            0xFF,
+            0x02,
+            0x01,
+            0x7F,
         ]));
     }
 }
