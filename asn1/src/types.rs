@@ -2,9 +2,10 @@ use std::vec::Vec;
 use chrono::Duration;
 
 pub type Bytes = Vec<u8>;
+pub type ByteSlice<'a> = &'a[u8];
 pub type OPTIONAL<T> = Option<T>;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TagClass {
     UNIVERSAL,
     APPLICATION,
@@ -12,6 +13,10 @@ pub enum TagClass {
     PRIVATE,
 }
 
+// Based on an analysis of thousands of ASN.1 modules, no tag number ever
+// exceeds this maximum. The largest tag number found in any ASN.1 specification
+// is 12787. This fits within 14 bits, which means that, for X.690 encodings,
+// it would be acceptable to only tolerate two bytes of long-length tag numbers.
 pub type TagNumber = u16;
 
 pub struct IdentificationSyntaxes {

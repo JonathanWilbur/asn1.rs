@@ -2,6 +2,7 @@ use std::io::{Write, Result, Error, ErrorKind, IoSlice, Read};
 use std::mem::{size_of};
 use asn1::types::{
     Bytes,
+    ByteSlice,
     OPTIONAL,
     BOOLEAN,
     INTEGER,
@@ -86,11 +87,26 @@ pub const X690_REAL_EXPONENT_FORMAT_VAR_OCTET: u8 = 0b0000_0011;
 // const IEEE_754_DPFP_SIGN_MASK
 
 #[derive(Clone, Debug)]
+pub enum X690Length {
+    Definite(usize),
+    Indefinite,
+}
+
+#[derive(Clone, Debug)]
 pub enum X690Encoding {
+    // TODO: Convert to ByteSlice
     IMPLICIT(Bytes), // the value bytes
     EXPLICIT(Box<X690Element>), // the inner TLV tuple
     Constructed(Vec<X690Element>), // an array of inner TLV tuples
+    // TODO: Convert to ByteSlice.
     AlreadyEncoded(Bytes), // the already-encoded TLV
+}
+
+#[derive(Clone, Debug)]
+pub struct X690Tag {
+    pub tag_class: TagClass,
+    pub constructed: bool,
+    pub tag_number: TagNumber,
 }
 
 #[derive(Clone, Debug)]
@@ -985,6 +1001,194 @@ pub fn ber_encode <W> (output: &mut W, value: &ASN1Value) -> Result<usize>
     write_x690_node(output, &cst.root)
 }
 
+pub fn ber_decode_tag (bytes: ByteSlice) -> Result<(usize, X690Tag)> {
+    if bytes.len() == 0 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let mut bytes_read = 1;
+    let tag_class = match (bytes[0] & 0b1100_0000) >> 6 {
+        0 => TagClass::UNIVERSAL,
+        1 => TagClass::CONTEXT,
+        2 => TagClass::PRIVATE,
+        3 => TagClass::APPLICATION,
+        _ => panic!("Impossible tag class"),
+    };
+    let constructed = (bytes[0] & 0b0010_0000) > 0;
+    let mut tag_number: TagNumber = 0;
+
+    if (bytes[0] & 0b00011111) == 0b00011111 { // If it is a long tag...
+        for byte in bytes[1..].into_iter() {
+            let final_byte: bool = ((*byte) & 0b1000_0000) == 0;
+            if (tag_number > 0) && !final_byte { // tag_number > 0 means we've already processed one byte.
+                // Tag encoded on more than 14 bits / two bytes.
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            let seven_bits = ((*byte) & 0b0111_1111) as u16;
+            if !final_byte && (seven_bits == 0) {
+                // You cannot encode a long tag with padding bytes.
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            tag_number <<= 7;
+            tag_number += seven_bits;
+            bytes_read += 1;
+            if final_byte {
+                break;   
+            }
+        }
+        if tag_number <= 31 { // TODO: Review this number / comparison.
+            // This could have been encoded in short form.
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+    } else {
+        tag_number = (bytes[0] & 0b00011111) as TagNumber;
+    }
+
+    let tag = X690Tag{tag_class, constructed, tag_number};
+    Ok((bytes_read, tag))
+}
+
+pub fn ber_decode_length (bytes: ByteSlice) -> Result<(usize, X690Length)> {
+    if bytes.len() == 0 {
+        // Truncated.
+        return Err(Error::new(ErrorKind::InvalidData, "qwer")); // TODO: Find a better error type.
+    }
+    if bytes[0] < 0b1000_0000 { // Equivalent to ((b[0] & 0b1000_0000) == 0)
+        return Ok((1, X690Length::Definite(bytes[0] as usize)));
+    }
+    if bytes[0] == 0b1000_0000 {
+        return Ok((1, X690Length::Indefinite));
+    }
+    // Otherwise, it is long definite form.
+    let length_length = (bytes[0] & 0b0111_1111) as usize;
+    if length_length > size_of::<usize>() {
+        // Length too big.
+        return Err(Error::new(ErrorKind::InvalidData, "tyui")); // TODO: Find a better error type.
+    }
+    if (bytes.len() - 1) < length_length {
+        // Insufficient bytes to read the length.
+        return Err(Error::new(ErrorKind::InvalidData, "rutdfg")); // TODO: Find a better error type. 
+    }
+    let bytes_read = 1 + length_length;
+    let len: usize = match length_length {
+        1 => bytes[1] as usize,
+        2 => u16::from_be_bytes([ bytes[1], bytes[2] ]) as usize,
+        3 => u32::from_be_bytes([ 0, bytes[1], bytes[2], bytes[3] ]) as usize,
+        4 => u32::from_be_bytes([ bytes[1], bytes[2], bytes[3], bytes[4] ]) as usize,
+        5 => u64::from_be_bytes([ 0, 0, 0, bytes[1], bytes[2], bytes[3], bytes[4], bytes[5] ]) as usize,
+        6 => u64::from_be_bytes([ 0, 0, bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6] ]) as usize,
+        7 => u64::from_be_bytes([ 0, bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7] ]) as usize,
+        8 => u64::from_be_bytes([ bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8] ]) as usize,
+        _ => 0, // This should never happen.
+    };
+    Ok((bytes_read, X690Length::Definite(len)))
+}
+
+pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
+    let tag_encoding_length: usize;
+    let tag_class: TagClass;
+    let constructed: bool;
+    let tag_number: TagNumber;
+    match ber_decode_tag(bytes) {
+        Ok((len, tag)) => { // REVIEW: Is this idiomatic?
+            tag_encoding_length = len;
+            tag_class = tag.tag_class;
+            constructed = tag.constructed;
+            tag_number = tag.tag_number;
+        },
+        Err(e) => return Err(e),
+    };
+    let mut bytes_read: usize = tag_encoding_length;
+    let value_length;
+    match ber_decode_length(&bytes[bytes_read..]) {
+        Ok((len_len, len)) => {
+            bytes_read += len_len;
+            value_length = len;
+        },
+        Err(e) => return Err(e),
+    };
+    match value_length {
+        X690Length::Definite(len) => {
+            if (bytes.len() - bytes_read) < len {
+                // Truncated.
+                return Err(Error::new(ErrorKind::InvalidData, "eoriyjhe")); // TODO: Find a better error type. 
+            }
+            if !constructed {
+                let el = X690Element::new(
+                    tag_class,
+                    tag_number,
+                    X690Encoding::IMPLICIT(Vec::from(&bytes[bytes_read..bytes_read+len])), // TODO: Indefinite too
+                );
+                bytes_read += len;
+                return Ok((bytes_read, el));
+            }
+            /* This is a small optimization. The smallest an X.690-encoded ASN.1
+            value can be is two bytes. Therefore, the most elements that could
+            possibly be encoded is (value_length / 2). (>> 1 has the effect of
+            dividing by two, but more efficiently. */
+            let estimated_children_count = len >> 1;
+            let mut children: Vec<X690Element> = Vec::with_capacity(estimated_children_count);
+            // let mut value_bytes_read: usize = bytes_read;
+            let end_of_tag_and_length = bytes_read;
+            while bytes_read < (end_of_tag_and_length + len) {
+                match ber_cst(&bytes[bytes_read..]) {
+                    Ok((el_len, el)) => {
+                        if el_len == 0 {
+                            break;
+                        }
+                        bytes_read += el_len;
+                        children.push(el);
+                    },
+                    Err(e) => return Err(Error::new(ErrorKind::InvalidData, "asdf")),
+                };
+            };
+            let el = X690Element::new(
+                tag_class,
+                tag_number,
+                X690Encoding::Constructed(children),
+            );
+            // bytes_read += len;
+            Ok((bytes_read, el))
+        },
+        X690Length::Indefinite => {
+            if !constructed {
+                // Indefinite length must be constructed.
+                return Err(Error::from(ErrorKind::InvalidData)); // TODO: Find a better error type. 
+            }
+            /* We don't know how many child elements this element must have, but
+            it is a good guess (optimization) to assume that there is at least
+            one. */
+            let mut children: Vec<X690Element> = Vec::with_capacity(1);
+            let mut value_bytes_read: usize = 0;
+            while value_bytes_read < bytes.len() {
+                match ber_cst(&bytes[bytes_read+value_bytes_read..]) {
+                    Ok((el_len, el)) => {
+                        if el_len == 0 {
+                            break;
+                        }
+                        value_bytes_read += el_len;
+                        if 
+                            el.tag_class == TagClass::UNIVERSAL
+                            && (el.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT)
+                        {
+                            // We do NOT append the EOC element. It is treated like it does not exist.
+                            break;
+                        }
+                        children.push(el);
+                    },
+                    Err(e) => return Err(e),
+                };
+            };
+            bytes_read += value_bytes_read;
+            let el = X690Element::new(
+                tag_class,
+                tag_number,
+                X690Encoding::Constructed(children),
+            );
+            Ok((bytes_read, el))
+        },
+    }
+}
+
 // BitStringValue
 // CharacterStringValue
 // EmbeddedPDVValue
@@ -1019,7 +1223,7 @@ mod tests {
         X690_TAG_CLASS_CONTEXT,
         X690Element,
         write_x690_node,
-        X690_TAG_CLASS_UNIVERSAL, ber_encode,
+        X690_TAG_CLASS_UNIVERSAL, ber_encode, ber_cst, X690Encoding,
     };
 
     #[test]
@@ -1202,7 +1406,6 @@ mod tests {
 
     #[test]
     fn test_ber_encode_2 () {
-
         let asn1_data = ASN1Value::SequenceValue(vec![
             ASN1Value::BooleanValue(true),
             ASN1Value::IntegerValue(127),
@@ -1226,6 +1429,74 @@ mod tests {
             0x01,
             0x7F,
         ]));
+    }
+
+    #[test]
+    fn test_ber_decode_definite_short () {
+        let encoded_data: Vec<u8> = vec![
+            X690_TAG_CLASS_UNIVERSAL
+            | 0b0010_0000 // Constructed
+            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            0x06,
+            0x01,
+            0x01,
+            0xFF,
+            0x02,
+            0x01,
+            0x7F,
+        ];
+        match ber_cst(encoded_data.as_slice()) {
+            Ok((bytes_read, el)) => {
+                assert_eq!(bytes_read, 8);
+                assert_eq!(el.tag_class, TagClass::UNIVERSAL);
+                assert_eq!(el.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE);
+                if let X690Encoding::Constructed(children) = el.value {
+                    assert_eq!(children.len(), 2);
+                    assert_eq!(children[0].tag_class, TagClass::UNIVERSAL);
+                    assert_eq!(children[1].tag_class, TagClass::UNIVERSAL);
+                    assert_eq!(children[0].tag_number, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN);
+                    assert_eq!(children[1].tag_number, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER);
+                } else {
+                    panic!("Decoded non-constructed.");
+                }
+            },
+            Err(e) => panic!("{}", e),
+        };
+    }
+
+    #[test]
+    fn test_ber_decode_indefinite () {
+        let encoded_data: Vec<u8> = vec![
+            X690_TAG_CLASS_UNIVERSAL
+            | 0b0010_0000 // Constructed
+            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            0x80, // Indefinite length
+            0x01,
+            0x01,
+            0xFF,
+            0x02,
+            0x01,
+            0x7F,
+            0x00, // End of content
+            0x00,
+        ];
+        match ber_cst(encoded_data.as_slice()) {
+            Ok((bytes_read, el)) => {
+                assert_eq!(bytes_read, 10);
+                assert_eq!(el.tag_class, TagClass::UNIVERSAL);
+                assert_eq!(el.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE);
+                if let X690Encoding::Constructed(children) = el.value {
+                    assert_eq!(children.len(), 2);
+                    assert_eq!(children[0].tag_class, TagClass::UNIVERSAL);
+                    assert_eq!(children[1].tag_class, TagClass::UNIVERSAL);
+                    assert_eq!(children[0].tag_number, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN);
+                    assert_eq!(children[1].tag_number, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER);
+                } else {
+                    panic!("Decoded non-constructed.");
+                }
+            },
+            Err(e) => panic!("{}", e),
+        };
     }
 }
 
