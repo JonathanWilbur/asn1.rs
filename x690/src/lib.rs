@@ -1005,6 +1005,23 @@ pub fn ber_encode <W> (output: &mut W, value: &ASN1Value) -> Result<usize>
 #[cfg(test)]
 mod tests {
 
+    use asn1::types::{
+        ASN1Value,
+        TagClass,
+        TaggedASN1Value,
+        ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
+        ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
+        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE
+    };
+
+    use crate::{
+        X690_TAG_CLASS_APPLICATION,
+        X690_TAG_CLASS_CONTEXT,
+        X690Element,
+        write_x690_node,
+        X690_TAG_CLASS_UNIVERSAL,
+    };
+
     #[test]
     fn test_x690_write_boolean_value () {
         let mut output: Vec<u8> = Vec::new();
@@ -1036,10 +1053,6 @@ mod tests {
     //     assert_eq!(output[0], 3);
     //     assert_eq!(output[1], 0b0100_1000);
     // }
-
-    use asn1::types::{ASN1Value, TagClass, TaggedASN1Value, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE};
-
-    use crate::{X690_TAG_CLASS_APPLICATION, X690_TAG_CLASS_CONTEXT, X690Element, write_x690_node, X690_TAG_CLASS_UNIVERSAL};
 
     #[test]
     fn test_x690_write_octet_string_value () {
@@ -1160,7 +1173,7 @@ mod tests {
                 ),
                 X690Element::new(
                     TagClass::UNIVERSAL,
-                    crate::ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
+                    ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
                     crate::X690Encoding::IMPLICIT(vec![ 0x01, 0x03 ]),
                 ),
             ]),
