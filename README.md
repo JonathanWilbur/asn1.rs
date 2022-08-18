@@ -271,6 +271,8 @@ which control how these elements are encoded.
   - [ ] ASN.1 value comparison?
   - [ ] ASN.1 Universal type names
   - [ ] Hash trait for `ASN1Value`
+  - [ ] Date/time constants (months, leap year, etc.)
 - [ ] `x690`
   - [ ] Deconstruct
   - [ ] Hash trait for `X690Element`
+  - [ ] Print `asn1parse` output;

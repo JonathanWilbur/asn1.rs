@@ -1,6 +1,7 @@
+use core::slice::SlicePattern;
 use std::io::{Write, Result, Error, ErrorKind, IoSlice, Read};
-use std::mem::{size_of};
-use std::fmt::Display;
+use std::mem::size_of;
+use std::fmt::format;
 use asn1::types::{
     Bytes,
     ByteSlice,
@@ -15,6 +16,16 @@ use asn1::types::{
     REAL,
     ExternalIdentification,
     SEQUENCE,
+    UTCTime,
+    GeneralizedTime,
+    GeneralString,
+    BMPString,
+    UniversalString,
+    CHARACTER_STRING,
+    DATE,
+    DATE_TIME,
+    DURATION,
+    TIME_OF_DAY,
     ASN1Value,
     TagClass,
     TagNumber,
@@ -58,7 +69,8 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
     ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
     ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
-    TaggedASN1Value, EmbeddedPDV, CharacterString,
+    TaggedASN1Value, EmbeddedPDV, CharacterString, UTF8String, RELATIVE_OID, TIME, External,
+    MAX_IA5_STRING_CHAR_CODE, DURATION_EQUIVALENT,
 };
 use num::Zero;
 
@@ -381,17 +393,16 @@ pub fn x690_write_object_identifier_value <W> (output: &mut W, value: &OBJECT_ID
     let mut bytes_written = 0;
     match output.write(&[ byte0 as u8 ]) {
         Err(e) => return Err(e),
-        _ => {
-            bytes_written += 1;
-        }
-    }
+        _ => (),
+    };
+    bytes_written += 1;
     for arc in value[2..].iter() {
         match write_base_128(output, *arc) {
             Err(e) => { return Err(e) },
             Ok(wrote_bytes) => {
                 bytes_written += wrote_bytes;
             }
-        }
+        };
     }
     Ok(bytes_written)
 }
@@ -725,6 +736,192 @@ where W : Write {
     Ok(bytes_written)
 }
 
+pub fn x690_write_utf8_string_value <W> (output: &mut W, value: &UTF8String) -> Result<usize>
+where W : Write {
+    output.write(value.as_bytes())
+}
+
+pub fn x690_write_relative_oid_value <W> (output: &mut W, value: &RELATIVE_OID) -> Result<usize>
+where W : Write {
+    let mut bytes_written: usize = 0;
+    for arc in value.iter() {
+        match write_base_128(output, *arc) {
+            Err(e) => { return Err(e) },
+            Ok(wrote_bytes) => {
+                bytes_written += wrote_bytes;
+            }
+        };
+    }
+    Ok(bytes_written)
+}
+
+// TODO: Validate
+pub fn x690_write_time_value <W> (output: &mut W, value: &TIME) -> Result<usize>
+where W : Write {
+    output.write(value.as_bytes())
+}
+
+pub fn x690_write_utc_time_value <W> (output: &mut W, value: &UTCTime) -> Result<usize>
+where W : Write {
+    if
+        value.year > 99
+        || value.month > 12
+        || value.month == 0
+        || value.day > 31
+        || value.day == 0
+        || value.hour > 23
+        || value.minute > 59
+    {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let str_form = format!(
+        "{:02}{:02}{:02}{:02}{:02}",
+        value.year % 100,
+        value.month,
+        value.day,
+        value.hour,
+        value.minute,
+    );
+    match output.write(str_form.as_bytes()) {
+        Err(e) => return Err(e),
+        _ => (),
+    };
+    let mut bytes_written: usize = 10;
+    match value.second {
+        Some(sec) => {
+            if sec > 59 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            match output.write(format!("{:02}", sec).as_bytes()) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            bytes_written += 2;
+        },
+        _ => (),
+    };
+    match value.utc_offset {
+        Some(offset) => {
+            if offset.hour > 23 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            if offset.minute > 59 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            match output.write(format!("{:+03}{:02}", offset.hour, offset.minute).as_bytes()) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            bytes_written += 5;
+        },
+        _ => (),
+    };
+    Ok(bytes_written)
+}
+
+pub fn x690_write_generalized_time_value <W> (output: &mut W, value: &GeneralizedTime) -> Result<usize>
+where W : Write {
+    if
+        value.date.month > 12
+        || value.date.month == 0
+        || value.date.day > 31
+        || value.date.day == 0
+        || value.hour > 23
+    {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let str_form = format!(
+        "{:04}{:02}{:02}{:02}",
+        value.date.year % 10000,
+        value.date.month,
+        value.date.day,
+        value.hour,
+    );
+    match output.write(str_form.as_bytes()) {
+        Err(e) => return Err(e),
+        _ => (),
+    };
+    let mut bytes_written: usize = 10;
+    match value.minute {
+        Some(min) => {
+            if min > 59 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            match output.write(format!("{:02}", min).as_bytes()) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            bytes_written += 2;
+            match value.second {
+                Some(sec) => {
+                    if sec > 59 {
+                        return Err(Error::from(ErrorKind::InvalidData));
+                    }
+                    match output.write(format!("{:02}", sec).as_bytes()) {
+                        Err(e) => return Err(e),
+                        _ => (),
+                    };
+                    bytes_written += 2;
+                    match value.fraction {
+                        Some(ms) => {
+                            if ms > 999 {
+                                return Err(Error::from(ErrorKind::InvalidData));
+                            }
+                            match output.write(format!(".{:03}", ms).as_bytes()) {
+                                Err(e) => return Err(e),
+                                _ => (),
+                            };
+                            bytes_written += 4;
+                        },
+                        _ => (),
+                    };
+
+                },
+                _ => (),
+            };
+        },
+        _ => (),
+    };
+    match value.utc_offset {
+        Some(offset) => {
+            if offset.hour > 23 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            if offset.minute > 59 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            match output.write(format!("{:+03}{:02}", offset.hour, offset.minute).as_bytes()) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            bytes_written += 5;
+        },
+        None => {
+            match output.write("Z".as_bytes()) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            bytes_written += 1;
+        },
+    };
+    Ok(bytes_written)
+}
+
+pub fn x690_write_universal_string_value <W> (output: &mut W, value: &UniversalString) -> Result<usize>
+where W : Write {
+    let bytes: Vec<u8> = value
+        .chars()
+        .map(|c| c as u32)
+        .flat_map(|c| [
+            ((c & 0xFF000000) >> 24) as u8,
+            ((c & 0x00FF0000) >> 16) as u8,
+            ((c & 0x0000FF00) >> 8) as u8,
+            (c & 0x000000FF) as u8,
+        ])
+        .collect();
+    output.write(bytes.as_slice())
+}
+
 // This is almost the same for EmbeddedPDV.
 pub fn x690_write_character_string_value <W> (output: &mut W, value: &CharacterString) -> Result<usize>
 where W : Write {
@@ -756,6 +953,132 @@ where W : Write {
     Ok(bytes_written)
 }
 
+pub fn x690_write_bmp_string_value <W> (output: &mut W, value: &UniversalString) -> Result<usize>
+where W : Write {
+    let bytes: Vec<u8> = value
+        .chars()
+        .map(|c| c as u32)
+        .flat_map(|c| [
+            // ((c & 0xFF000000) >> 24) as u8,
+            // ((c & 0x00FF0000) >> 16) as u8,
+            ((c & 0x0000FF00) >> 8) as u8,
+            (c & 0x000000FF) as u8,
+        ])
+        .collect();
+    output.write(bytes.as_slice())
+}
+
+// This does not do any validation.
+#[inline]
+pub fn x690_write_string_value <W> (output: &mut W, value: &String) -> Result<usize>
+where W : Write {
+    output.write(value.as_bytes())
+}
+
+pub fn x690_write_date_value <W> (output: &mut W, value: &DATE) -> Result<usize>
+where W : Write {
+    if
+        value.month > 12
+        || value.month == 0
+        || value.day > 31
+        || value.day == 0
+    {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let str_form = format!(
+        "{:04}-{:02}-{:02}",
+        value.year % 10000,
+        value.month,
+        value.day,
+    );
+    output.write(str_form.as_bytes())
+}
+
+pub fn x690_write_time_of_day_value <W> (output: &mut W, value: &TIME_OF_DAY) -> Result<usize>
+where W : Write {
+    if
+        value.hour > 23
+        || value.minute > 59
+        || value.second > 59
+    {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let str_form = format!(
+        "{:02}:{:02}:{:02}",
+        value.hour,
+        value.minute,
+        value.second,
+    );
+    output.write(str_form.as_bytes())
+}
+
+pub fn x690_write_date_time_value <W> (output: &mut W, value: &DATE_TIME) -> Result<usize>
+where W : Write {
+    if
+        value.date.year > 9999
+        || value.date.month > 12
+        || value.date.month == 0
+        || value.date.day > 31
+        || value.date.day == 0
+        || value.time.hour > 23
+        || value.time.minute > 59
+        || value.time.second > 59
+    {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let str_form = format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
+        value.time.hour,
+        value.time.minute,
+        value.time.second,
+    );
+    output.write(str_form.as_bytes())
+}
+
+pub fn x690_write_duration_value <W> (output: &mut W, value: &DURATION_EQUIVALENT) -> Result<usize>
+where W : Write {
+    let mut parts: Vec<String> = vec![ String::from("P") ];
+    if value.years > 0 {
+        parts.push(format!("{}Y", value.years));
+    }
+    if value.months > 0 {
+        parts.push(format!("{}M", value.months));
+    }
+    if value.weeks > 0 {
+        parts.push(format!("{}W", value.weeks));
+    }
+    if value.days > 0 {
+        parts.push(format!("{}D", value.days));
+    }
+    if value.hours > 0 {
+        parts.push(format!("{}H", value.hours));
+    }
+    if value.minutes > 0 {
+        parts.push(format!("{}M", value.minutes));
+    }
+    if value.seconds > 0 {
+        parts.push(format!("{}S", value.seconds));
+    }
+    // TODO: This definitely needs some testing.
+    if let Some(frac) = value.fractional_part {
+        let last_part = parts.last_mut();
+        match last_part {
+            Some(part) => {
+                let last_char = part.pop();
+                match last_char {
+                    Some(c) => {
+                        parts.push(format!(".{:>width$}{}", frac.fractional_value, c, width=frac.number_of_digits));
+                    },
+                    None => return Err(Error::from(ErrorKind::InvalidData)),
+                }
+            },
+            None => {
+                parts.push(format!("0.{:>width$}S", frac.fractional_value, width=frac.number_of_digits));
+            },
+        };
+    }
+    output.write(str_form.as_bytes())
+}
 
 // TODO: Add check for infinite recursion
 pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
@@ -788,7 +1111,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_boolean_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         // TODO: Handle a BIGINT type
@@ -798,7 +1121,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_integer_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         ASN1Value::BitStringValue(v) => {
@@ -807,7 +1130,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_bit_string_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         ASN1Value::OctetStringValue(v) => {
@@ -816,7 +1139,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_octet_string_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         ASN1Value::NullValue => {
@@ -829,7 +1152,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_object_identifier_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         ASN1Value::ExternalValue(v) => {
@@ -838,7 +1161,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_external_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         ASN1Value::RealValue(v) => {
@@ -847,7 +1170,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_real_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         ASN1Value::EnumeratedValue(v) => {
@@ -856,7 +1179,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_integer_value(&mut value_bytes, *v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
         ASN1Value::EmbeddedPDVValue(v) => {
@@ -865,12 +1188,36 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             match x690_write_embedded_pdv_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
-        // TODO: UTF8String
-        // TODO: RelativeOID
-        // TODO: Time
+        ASN1Value::UTF8String(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_utf8_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::RelativeOIDValue(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_relative_oid_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::TimeValue(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_TIME;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_time_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
         ASN1Value::SequenceValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE;
             let mut inner_values: Vec<X690Element> = Vec::new();
@@ -923,18 +1270,268 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             }
             encoded_value = X690Encoding::Constructed(inner_values);
         },
-        // TODO: UTCTime
-        // TODO: GeneralizedTime
+        ASN1Value::UTCTime(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_utc_time_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::GeneralizedTime(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_generalized_time_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::UniversalString(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_universal_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
         ASN1Value::UnrestrictedCharacterStringValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING;
             let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_character_string_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
-            }
+            };
             encoded_value = X690Encoding::IMPLICIT(value_bytes);
         },
-        _ => (), // TODO: Return ERROR.
+        ASN1Value::BMPString(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_bmp_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::InstanceOfValue(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL;
+            let type_id = ASN1Value::ObjectIdentifierValue(v.type_id);
+            let value = ASN1Value::TaggedValue(
+                &TaggedASN1Value {
+                    tag_class: TagClass::CONTEXT,
+                    tag_number: 0,
+                    explicit: true,
+                    value: *v.value,
+                },
+            );
+            let type_id_element = match create_x690_cst(&type_id) {
+                Err(e) => return Err(e),
+                Ok(cst) => cst.root,
+            };
+            let value_element = match create_x690_cst(&value) {
+                Err(e) => return Err(e),
+                Ok(cst) => cst.root,
+            };
+            encoded_value = X690Encoding::Constructed(vec![
+                type_id_element,
+                value_element,
+            ]);
+        },
+        ASN1Value::IRIValue(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::RelativeIRIValue(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::GeneralString(v) => {
+            if !v.is_ascii() { // GeneralString must be below or at 0x7F.
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::IA5String(v) => {
+            for c in v.chars() {
+                if c > MAX_IA5_STRING_CHAR_CODE {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::GraphicString(v) => {
+            for c in v.chars() {
+                if !c.is_ascii_graphic() && (c != ' ') {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::ISO646String(v) => {
+            if !v.is_ascii() { // VisibleString / ISO646String must be below 0x7F.
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            for c in v.chars() {
+                if c == '\x7F' { // DELETE not allowed.
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::VisibleString(v) => {
+            if !v.is_ascii() { // VisibleString / ISO646String must be below 0x7F.
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            for c in v.chars() {
+                if c == '\x7F' { // DELETE not allowed.
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::NumericString(v) => {
+            for c in v.chars() {
+                if !c.is_ascii_digit() && c != ' ' { // SPACE is allowed in NumericString.
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::PrintableString(v) => {
+            for c in v.chars() {
+                let code = c as u32;
+                if c.is_ascii_alphanumeric()
+                    || (c >= '\x27' && c < '0' && c != '*') // '()+,-./ BUT NOT *
+                    || c == ' '
+                    || c == ':'
+                    || c == '='
+                    || c == '?' {
+                    continue;
+                }
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::TeletexString(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match value_bytes.write(v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::T61String(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match value_bytes.write(v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::VideotexString(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match value_bytes.write(v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::DATE(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DATE;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_date_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::TIME_OF_DAY(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_time_of_day_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::DATE_TIME(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_date_time_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::DURATION(v) => {
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DURATION;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_duration_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::ChoiceValue(v) => {
+            return create_x690_cst_node(v);
+        },
     };
 
     Ok(X690Element::new(tag_class, tag_number, encoded_value))
@@ -1209,23 +1806,6 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
         },
     }
 }
-
-// BitStringValue
-// CharacterStringValue
-// EmbeddedPDVValue
-// EnumeratedValue
-// ExternalValue
-// InstanceOfValue
-// IRIValue
-// RealValue
-// RelativeIRIValue
-// RelativeOIDValue
-// SequenceValue
-// SequenceOfValue
-// SetValue
-// SetOfValue
-// PrefixedValue
-// TimeValue
 
 #[cfg(test)]
 mod tests {

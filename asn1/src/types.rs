@@ -1,5 +1,4 @@
 use std::vec::Vec;
-use chrono::Duration;
 
 pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a[u8];
@@ -162,7 +161,7 @@ pub struct DATE_TIME {
     pub time: TIME_OF_DAY,
 }
 
-pub type DURATION = Duration;
+pub type DURATION = DURATION_EQUIVALENT;
 pub type OID_IRI = String;
 pub type RELATIVE_OID_IRI = String;
 pub type INSTANCE_OF <'a> = InstanceOf<'a>;
@@ -222,6 +221,12 @@ pub enum ASN1Value <'a> {
     // PrefixedValue (&'a ASN1Value<'a>),
     TaggedValue (&'a TaggedASN1Value<'a>),
     TimeValue (TIME),
+    UTCTime (UTCTime),
+    GeneralizedTime (GeneralizedTime),
+    DATE (DATE),
+    TIME_OF_DAY (TIME_OF_DAY),
+    DATE_TIME (DATE_TIME),
+    DURATION (DURATION),
 }
 
 pub const ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT: TagNumber = 0;
@@ -263,3 +268,5 @@ pub const ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME: TagNumber = 33;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_DURATION: TagNumber = 34;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI: TagNumber = 35;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI: TagNumber = 36;
+
+pub const MAX_IA5_STRING_CHAR_CODE: char = 0x0000_00FF as char;
