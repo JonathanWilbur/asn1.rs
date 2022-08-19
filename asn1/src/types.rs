@@ -1,4 +1,4 @@
-use std::vec::Vec;
+use std::{vec::Vec, sync::Arc};
 
 pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a[u8];
@@ -66,7 +66,7 @@ pub struct CharacterString {
 
 pub struct InstanceOf <'a> {
     pub type_id: OBJECT_IDENTIFIER,
-    pub value: &'a ASN1Value<'a>,
+    pub value: Arc<ASN1Value<'a>>,
 }
 
 pub struct UTCOffset {
@@ -170,7 +170,7 @@ pub struct TaggedASN1Value <'a> {
     pub tag_class: TagClass,
     pub tag_number: TagNumber,
     pub explicit: bool,
-    pub value: ASN1Value<'a>,
+    pub value: Arc<ASN1Value<'a>>,
 }
 
 // Actually, I think this is unnecessary, because the tagged alternatives will
@@ -227,6 +227,11 @@ pub enum ASN1Value <'a> {
     TIME_OF_DAY (TIME_OF_DAY),
     DATE_TIME (DATE_TIME),
     DURATION (DURATION),
+
+    /* This is a type that stores the value bytes of values that were encoded
+    with an implicit tag and decoded as ANY. Since we cannot know what the
+    actual encoded ASN.1 value was, we just have to store raw bytes. */
+    UnknownBytes (Arc<Bytes>),
 }
 
 pub const ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT: TagNumber = 0;

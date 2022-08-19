@@ -272,7 +272,17 @@ which control how these elements are encoded.
   - [ ] ASN.1 Universal type names
   - [ ] Hash trait for `ASN1Value`
   - [ ] Date/time constants (months, leap year, etc.)
+  - [ ] Use `Arc` instead of `Box`?
+  - [ ] Function for combining bitstrings
 - [ ] `x690`
   - [ ] Deconstruct
   - [ ] Hash trait for `X690Element`
   - [ ] Print `asn1parse` output;
+
+From https://doc.rust-lang.org/std/sync/struct.Arc.html:
+
+```
+Rc<T> is a safe default, because the compiler will catch any attempt to send an
+Rc<T> between threads. However, a library might choose Arc<T> in order to give
+library consumers more flexibility.
+```

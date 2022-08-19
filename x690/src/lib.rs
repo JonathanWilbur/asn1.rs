@@ -1,7 +1,7 @@
-use core::slice::SlicePattern;
 use std::io::{Write, Result, Error, ErrorKind, IoSlice, Read};
 use std::mem::size_of;
 use std::fmt::format;
+use std::sync::Arc;
 use asn1::types::{
     Bytes,
     ByteSlice,
@@ -387,7 +387,7 @@ pub fn x690_write_object_identifier_value <W> (output: &mut W, value: &OBJECT_ID
     if value.len() < 2 {
         return Err(Error::from(ErrorKind::InvalidData));
     }
-    let node0 = value[0] ;
+    let node0 = value[0];
     let node1 = value[1];
     let byte0 = (node0 * 40) + node1;
     let mut bytes_written = 0;
@@ -800,7 +800,7 @@ where W : Write {
         },
         _ => (),
     };
-    match value.utc_offset {
+    match &value.utc_offset {
         Some(offset) => {
             if offset.hour > 23 {
                 return Err(Error::from(ErrorKind::InvalidData));
@@ -882,7 +882,7 @@ where W : Write {
         },
         _ => (),
     };
-    match value.utc_offset {
+    match &value.utc_offset {
         Some(offset) => {
             if offset.hour > 23 {
                 return Err(Error::from(ErrorKind::InvalidData));
@@ -1028,6 +1028,9 @@ where W : Write {
     }
     let str_form = format!(
         "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
+        value.date.year,
+        value.date.month,
+        value.date.day,
         value.time.hour,
         value.time.minute,
         value.time.second,
@@ -1060,23 +1063,24 @@ where W : Write {
         parts.push(format!("{}S", value.seconds));
     }
     // TODO: This definitely needs some testing.
-    if let Some(frac) = value.fractional_part {
+    if let Some(frac) = &value.fractional_part {
         let last_part = parts.last_mut();
         match last_part {
             Some(part) => {
                 let last_char = part.pop();
                 match last_char {
                     Some(c) => {
-                        parts.push(format!(".{:>width$}{}", frac.fractional_value, c, width=frac.number_of_digits));
+                        parts.push(format!(".{:>width$}{}", frac.fractional_value, c, width=frac.number_of_digits as usize));
                     },
                     None => return Err(Error::from(ErrorKind::InvalidData)),
                 }
             },
             None => {
-                parts.push(format!("0.{:>width$}S", frac.fractional_value, width=frac.number_of_digits));
+                parts.push(format!("0.{:>width$}S", frac.fractional_value, width=frac.number_of_digits as usize));
             },
         };
     }
+    let str_form = parts.join("");
     output.write(str_form.as_bytes())
 }
 
@@ -1084,8 +1088,12 @@ where W : Write {
 pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
     let mut tag_class: TagClass = TagClass::UNIVERSAL;
     let mut tag_number: TagNumber = 0;
-    let mut encoded_value: X690Encoding = X690Encoding::IMPLICIT(vec![]);
+    let encoded_value: X690Encoding;
     match value {
+        ASN1Value::UnknownBytes(v) => {
+            // TODO: Review
+            encoded_value = X690Encoding::IMPLICIT((*v.clone()).clone());
+        },
         ASN1Value::TaggedValue(v) => {
             tag_class = v.tag_class;
             tag_number = v.tag_number;
@@ -1317,15 +1325,14 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
         },
         ASN1Value::InstanceOfValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL;
-            let type_id = ASN1Value::ObjectIdentifierValue(v.type_id);
-            let value = ASN1Value::TaggedValue(
-                &TaggedASN1Value {
-                    tag_class: TagClass::CONTEXT,
-                    tag_number: 0,
-                    explicit: true,
-                    value: *v.value,
-                },
-            );
+            let type_id = ASN1Value::ObjectIdentifierValue(v.type_id.clone());
+            let val = TaggedASN1Value {
+                tag_class: TagClass::CONTEXT,
+                tag_number: 0,
+                explicit: true,
+                value: v.value.clone(),
+            };
+            let value = ASN1Value::TaggedValue(&val);
             let type_id_element = match create_x690_cst(&type_id) {
                 Err(e) => return Err(e),
                 Ok(cst) => cst.root,
@@ -1810,22 +1817,7 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
 #[cfg(test)]
 mod tests {
 
-    use asn1::types::{
-        ASN1Value,
-        TagClass,
-        TaggedASN1Value,
-        ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
-        ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
-        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE
-    };
-
-    use crate::{
-        X690_TAG_CLASS_APPLICATION,
-        X690_TAG_CLASS_CONTEXT,
-        X690Element,
-        write_x690_node,
-        X690_TAG_CLASS_UNIVERSAL, ber_encode, ber_cst, X690Encoding,
-    };
+    use super::*;
 
     #[test]
     fn test_x690_write_boolean_value () {
@@ -1896,12 +1888,13 @@ mod tests {
     #[test]
     fn test_ber_encode () {
         let mut output: Vec<u8> = Vec::new();
-        let value: ASN1Value = ASN1Value::TaggedValue(&TaggedASN1Value{
+        let val = TaggedASN1Value{
             tag_class: TagClass::APPLICATION,
             explicit: true,
             tag_number: 5,
-            value: ASN1Value::BooleanValue(true),
-        });
+            value: Arc::new(ASN1Value::BooleanValue(true)),
+        };
+        let value: ASN1Value = ASN1Value::TaggedValue(&val);
         let result = crate::ber_encode(&mut output, &value).unwrap();
         assert_eq!(result, output.len());
         assert_eq!(result, 5);
@@ -1909,18 +1902,20 @@ mod tests {
 
     #[test]
     fn test_ber_encode_deep_tagging_1 () {
-        let mut output: Vec<u8> = Vec::new();
-        let value: ASN1Value = ASN1Value::TaggedValue(&TaggedASN1Value{
+        let inner_val = TaggedASN1Value{
+            tag_class: TagClass::CONTEXT,
+            explicit: true,
+            tag_number: 7,
+            value: Arc::from(ASN1Value::BooleanValue(false)),
+        };
+        let outer_val = TaggedASN1Value{
             tag_class: TagClass::APPLICATION,
             explicit: true,
             tag_number: 5,
-            value: ASN1Value::TaggedValue(&TaggedASN1Value{
-                tag_class: TagClass::CONTEXT,
-                explicit: true,
-                tag_number: 7,
-                value: ASN1Value::BooleanValue(false),
-            }),
-        });
+            value: Arc::from(ASN1Value::TaggedValue(&inner_val)),
+        };
+        let mut output: Vec<u8> = Vec::new();
+        let value: ASN1Value = ASN1Value::TaggedValue(&outer_val);
         let result = crate::ber_encode(&mut output, &value).unwrap();
         assert_eq!(result, output.len());
         assert_eq!(result, 7);
@@ -1942,17 +1937,19 @@ mod tests {
     #[test]
     fn test_ber_encode_deep_tagging_2 () {
         let mut output: Vec<u8> = Vec::new();
-        let value: ASN1Value = ASN1Value::TaggedValue(&TaggedASN1Value{
+        let inner_val = TaggedASN1Value{
+            tag_class: TagClass::CONTEXT,
+            explicit: false,
+            tag_number: 7,
+            value: Arc::new(ASN1Value::BooleanValue(false)),
+        };
+        let outer_val = TaggedASN1Value{
             tag_class: TagClass::APPLICATION,
             explicit: false,
             tag_number: 5,
-            value: ASN1Value::TaggedValue(&TaggedASN1Value{
-                tag_class: TagClass::CONTEXT,
-                explicit: false,
-                tag_number: 7,
-                value: ASN1Value::BooleanValue(false),
-            }),
-        });
+            value: Arc::new(ASN1Value::TaggedValue(&inner_val)),
+        };
+        let value: ASN1Value = ASN1Value::TaggedValue(&outer_val);
         let result = crate::ber_encode(&mut output, &value).unwrap();
         assert_eq!(result, output.len());
         assert_eq!(result, 3);
