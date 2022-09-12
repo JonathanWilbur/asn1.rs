@@ -2,6 +2,8 @@
 
 // pub mod crate::types::*;
 pub mod types;
+pub mod bitstring;
+pub mod duration;
 
 #[cfg(test)]
 mod tests {

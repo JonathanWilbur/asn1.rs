@@ -82,6 +82,8 @@ pub const X690_SPECIAL_REAL_PLUS_INFINITY: u8 = 0b1000_0000;
 pub const X690_SPECIAL_REAL_MINUS_INFINITY: u8 = 0b1000_0001;
 pub const X690_SPECIAL_REAL_NOT_A_NUMBER: u8 = 0b1000_0010;
 pub const X690_SPECIAL_REAL_MINUS_ZERO: u8 = 0b1000_0011;
+pub const X690_REAL_SPECIAL: u8 = 0b0100_0000;
+pub const X690_REAL_BASE10: u8 = 0b0000_0000;
 pub const X690_REAL_BINARY: u8 = 0b1000_0000;
 pub const X690_REAL_POSITIVE: u8 = 0b0000_0000;
 pub const X690_REAL_NEGATIVE: u8 = 0b0100_0000;
@@ -97,6 +99,9 @@ pub const X690_REAL_EXPONENT_FORMAT_1_OCTET: u8 = 0b0000_0000;
 pub const X690_REAL_EXPONENT_FORMAT_2_OCTET: u8 = 0b0000_0001;
 pub const X690_REAL_EXPONENT_FORMAT_3_OCTET: u8 = 0b0000_0010;
 pub const X690_REAL_EXPONENT_FORMAT_VAR_OCTET: u8 = 0b0000_0011;
+pub const X690_REAL_NR1: u8 = 1;
+pub const X690_REAL_NR2: u8 = 2;
+pub const X690_REAL_NR3: u8 = 3;
 // const IEEE_754_DPFP_SIGN_MASK
 
 #[derive(Clone, Debug)]
@@ -1454,7 +1459,6 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
         },
         ASN1Value::PrintableString(v) => {
             for c in v.chars() {
-                let code = c as u32;
                 if c.is_ascii_alphanumeric()
                     || (c >= '\x27' && c < '0' && c != '*') // '()+,-./ BUT NOT *
                     || c == ' '
@@ -1531,6 +1535,20 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DURATION;
             let mut value_bytes: Vec<u8> = Vec::new();
             match x690_write_duration_value(&mut value_bytes, v) {
+                Err(e) => return Err(e),
+                _ => (),
+            };
+            encoded_value = X690Encoding::IMPLICIT(value_bytes);
+        },
+        ASN1Value::ObjectDescriptor(v) => {
+            for c in v.chars() {
+                if !c.is_ascii_graphic() && (c != ' ') {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+            }
+            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING;
+            let mut value_bytes: Vec<u8> = Vec::new();
+            match x690_write_string_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
             };
@@ -1810,6 +1828,45 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
                 X690Encoding::Constructed(children),
             );
             Ok((bytes_read, el))
+        },
+    }
+}
+
+// TODO: This needs testing.
+pub fn deconstruct (el: X690Element) -> Result<X690Element> {
+    match el.value {
+        X690Encoding::IMPLICIT(_) => Ok(el),
+        X690Encoding::EXPLICIT(_) => return Err(Error::new(ErrorKind::InvalidData, "asdf")),
+        X690Encoding::AlreadyEncoded(bytes) => {
+            match ber_cst(&bytes) {
+                Ok((read, cst)) => {
+                    return deconstruct(cst);
+                },
+                Err(e) => return Err(e),
+            }
+        },
+        X690Encoding::Constructed(children) => {
+            let mut deconstructed_value: Bytes = Vec::new();
+            for child in children {
+                if child.tag_class != el.tag_class || child.tag_number != el.tag_number {
+                    return Err(Error::new(ErrorKind::InvalidData, "asdf")); 
+                }
+                match deconstruct(child) {
+                    Ok(deconstructed_child) => {
+                        if let X690Encoding::IMPLICIT(sub) = deconstructed_child.value {
+                            deconstructed_value.extend(sub);
+                        } else {
+                            return Err(Error::new(ErrorKind::InvalidData, "asdf")); 
+                        }
+                    },
+                    Err(e) => return Err(e),
+                }
+            }
+            Ok(X690Element::new(
+                el.tag_class,
+                el.tag_number,
+                X690Encoding::IMPLICIT(deconstructed_value),
+            ))
         },
     }
 }

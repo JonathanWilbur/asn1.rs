@@ -253,6 +253,7 @@ which control how these elements are encoded.
   - [ ] Comparison functions for all time types
   - [ ] Comparison functions for context switching types
   - [ ] Comparison function for elements
+  - [ ] Weak comparison
   - [ ] Clone
   - [ ] Debug
   - [ ] ASN1Value to ASN.1 String

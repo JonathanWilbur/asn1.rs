@@ -101,7 +101,7 @@ pub struct BIT_STRING {
 pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OBJECT_IDENTIFIER = Vec<u32>;
-pub type ObjectDescriptor = String;
+pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
 pub type EXTERNAL = External;
 pub type REAL = f64;
 pub type ENUMERATED = i64;
@@ -194,6 +194,7 @@ pub enum ASN1Value <'a> {
     IRIValue (OID_IRI),
     NullValue,
     ObjectIdentifierValue (OBJECT_IDENTIFIER),
+    ObjectDescriptor (ObjectDescriptor),
     OctetStringValue (OCTET_STRING),
     RealValue (REAL),
     RelativeIRIValue (RELATIVE_OID_IRI),
