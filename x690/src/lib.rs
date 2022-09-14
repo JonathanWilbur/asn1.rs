@@ -1337,7 +1337,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
                 explicit: true,
                 value: v.value.clone(),
             };
-            let value = ASN1Value::TaggedValue(&val);
+            let value = ASN1Value::TaggedValue(val);
             let type_id_element = match create_x690_cst(&type_id) {
                 Err(e) => return Err(e),
                 Ok(cst) => cst.root,
@@ -1383,7 +1383,7 @@ pub fn create_x690_cst_node <'a> (value: &ASN1Value) -> Result<X690Element> {
         },
         ASN1Value::IA5String(v) => {
             for c in v.chars() {
-                if c > MAX_IA5_STRING_CHAR_CODE {
+                if c > MAX_IA5_STRING_CHAR_CODE as char {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
@@ -1951,7 +1951,7 @@ mod tests {
             tag_number: 5,
             value: Arc::new(ASN1Value::BooleanValue(true)),
         };
-        let value: ASN1Value = ASN1Value::TaggedValue(&val);
+        let value: ASN1Value = ASN1Value::TaggedValue(val);
         let result = crate::ber_encode(&mut output, &value).unwrap();
         assert_eq!(result, output.len());
         assert_eq!(result, 5);
@@ -1969,10 +1969,10 @@ mod tests {
             tag_class: TagClass::APPLICATION,
             explicit: true,
             tag_number: 5,
-            value: Arc::from(ASN1Value::TaggedValue(&inner_val)),
+            value: Arc::from(ASN1Value::TaggedValue(inner_val)),
         };
         let mut output: Vec<u8> = Vec::new();
-        let value: ASN1Value = ASN1Value::TaggedValue(&outer_val);
+        let value: ASN1Value = ASN1Value::TaggedValue(outer_val);
         let result = crate::ber_encode(&mut output, &value).unwrap();
         assert_eq!(result, output.len());
         assert_eq!(result, 7);
@@ -2004,9 +2004,9 @@ mod tests {
             tag_class: TagClass::APPLICATION,
             explicit: false,
             tag_number: 5,
-            value: Arc::new(ASN1Value::TaggedValue(&inner_val)),
+            value: Arc::new(ASN1Value::TaggedValue(inner_val)),
         };
-        let value: ASN1Value = ASN1Value::TaggedValue(&outer_val);
+        let value: ASN1Value = ASN1Value::TaggedValue(outer_val);
         let result = crate::ber_encode(&mut output, &value).unwrap();
         assert_eq!(result, output.len());
         assert_eq!(result, 3);

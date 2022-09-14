@@ -64,9 +64,9 @@ pub struct CharacterString {
     pub string_value: OCTET_STRING,
 }
 
-pub struct InstanceOf <'a> {
+pub struct InstanceOf {
     pub type_id: OBJECT_IDENTIFIER,
-    pub value: Arc<ASN1Value<'a>>,
+    pub value: Arc<ASN1Value>,
 }
 
 pub struct UTCOffset {
@@ -110,10 +110,10 @@ pub type UTF8String = String;
 pub type RELATIVE_OID = Vec<u32>;
 pub type TIME = String;
 // type Reserved15 = None;
-pub type SEQUENCE <'a> = Vec<ASN1Value<'a>>;
-pub type SEQUENCE_OF <'a> = Vec<ASN1Value<'a>>;
-pub type SET <'a> = Vec<ASN1Value<'a>>;
-pub type SET_OF <'a> = Vec<ASN1Value<'a>>;
+pub type SEQUENCE = Vec<ASN1Value>;
+pub type SEQUENCE_OF = Vec<ASN1Value>;
+pub type SET = Vec<ASN1Value>;
+pub type SET_OF = Vec<ASN1Value>;
 pub type NumericString = String;
 pub type PrintableString = String;
 pub type T61String = Bytes;
@@ -164,13 +164,13 @@ pub struct DATE_TIME {
 pub type DURATION = DURATION_EQUIVALENT;
 pub type OID_IRI = String;
 pub type RELATIVE_OID_IRI = String;
-pub type INSTANCE_OF <'a> = InstanceOf<'a>;
+pub type INSTANCE_OF = InstanceOf;
 
-pub struct TaggedASN1Value <'a> {
+pub struct TaggedASN1Value {
     pub tag_class: TagClass,
     pub tag_number: TagNumber,
     pub explicit: bool,
-    pub value: Arc<ASN1Value<'a>>,
+    pub value: Arc<ASN1Value>,
 }
 
 // Actually, I think this is unnecessary, because the tagged alternatives will
@@ -180,16 +180,16 @@ pub struct TaggedASN1Value <'a> {
 //     pub value: ASN1Value<'a>,
 // }
 
-pub enum ASN1Value <'a> {
+pub enum ASN1Value {
     // BuiltInValue
     BitStringValue (BIT_STRING),
     BooleanValue (BOOLEAN),
-    ChoiceValue (&'a ASN1Value<'a>),
+    ChoiceValue (Box<ASN1Value>),
     // ChoiceValue (&'a ChoiceValue<'a>),
     EmbeddedPDVValue (EMBEDDED_PDV),
     EnumeratedValue (ENUMERATED),
     ExternalValue (EXTERNAL),
-    InstanceOfValue (INSTANCE_OF<'a>),
+    InstanceOfValue (INSTANCE_OF),
     IntegerValue (INTEGER),
     IRIValue (OID_IRI),
     NullValue,
@@ -199,10 +199,10 @@ pub enum ASN1Value <'a> {
     RealValue (REAL),
     RelativeIRIValue (RELATIVE_OID_IRI),
     RelativeOIDValue (RELATIVE_OID),
-    SequenceValue (SEQUENCE<'a>),
-    SequenceOfValue (SEQUENCE_OF<'a>),
-    SetValue (SET<'a>),
-    SetOfValue (SET_OF<'a>),
+    SequenceValue (SEQUENCE),
+    SequenceOfValue (SEQUENCE_OF),
+    SetValue (SET),
+    SetOfValue (SET_OF),
     // CharacterStringValue
     UnrestrictedCharacterStringValue (CHARACTER_STRING),
     // RestrictedCharacterStringType
@@ -220,7 +220,7 @@ pub enum ASN1Value <'a> {
 	VideotexString (VideotexString),
 	VisibleString (VisibleString),
     // PrefixedValue (&'a ASN1Value<'a>),
-    TaggedValue (&'a TaggedASN1Value<'a>),
+    TaggedValue (TaggedASN1Value),
     TimeValue (TIME),
     UTCTime (UTCTime),
     GeneralizedTime (GeneralizedTime),
@@ -275,4 +275,4 @@ pub const ASN1_UNIVERSAL_TAG_NUMBER_DURATION: TagNumber = 34;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI: TagNumber = 35;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI: TagNumber = 36;
 
-pub const MAX_IA5_STRING_CHAR_CODE: char = 0x0000_00FF as char;
+pub const MAX_IA5_STRING_CHAR_CODE: u8 = 0x0000_00FF;
