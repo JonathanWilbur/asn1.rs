@@ -1,5 +1,6 @@
 use std::io::{Write, Result, Error, ErrorKind};
 use std::str::FromStr;
+use std::cmp::min;
 use asn1::types::{
     BOOLEAN,
     INTEGER,
@@ -74,11 +75,11 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME,
     ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
     ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
+    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI, GeneralizedTime,
 };
 use asn1::bitstring::join_bit_strings;
 use bitvec::macros::internal::funty::Fundamental;
-use x690::{
+use crate::{
     ber_cst,
     X690Encoding,
     X690Element,
@@ -107,8 +108,8 @@ use x690::{
 // BIT STRING is constructed in a such a way that the octets of each subelement
 // cannot simply be concatenated. As such, this function deconstructed a
 // constructed BIT STRING to obtain a single BIT STRING.
-pub fn deconstruct_bit_string (el: X690Element) -> Result<BIT_STRING> {
-    match el.value {
+pub fn deconstruct_bit_string (el: &X690Element) -> Result<BIT_STRING> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => {
             match ber_decode_bit_string_value(bytes.as_slice()) {
                 Ok(decoded) => return Ok(decoded),
@@ -119,7 +120,7 @@ pub fn deconstruct_bit_string (el: X690Element) -> Result<BIT_STRING> {
         X690Encoding::AlreadyEncoded(bytes) => {
             match ber_cst(&bytes) {
                 Ok((_, cst)) => {
-                    return deconstruct_bit_string(cst);
+                    return deconstruct_bit_string(&cst);
                 },
                 Err(e) => return Err(e),
             }
@@ -130,7 +131,7 @@ pub fn deconstruct_bit_string (el: X690Element) -> Result<BIT_STRING> {
                 if child.tag_class != el.tag_class || child.tag_number != el.tag_number {
                     return Err(Error::new(ErrorKind::InvalidData, "asdf")); 
                 }
-                match deconstruct_bit_string(child) {
+                match deconstruct_bit_string(&child) {
                     Ok(deconstructed_child) => {
                         substituent_bit_strings.push(deconstructed_child);
                     },
@@ -413,26 +414,51 @@ pub fn ber_decode_utc_time_value (value_bytes: ByteSlice) -> Result<UTCTime> {
         Ok(r) => r,
         Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
     };
-    // TODO: Validate month, day, hour, minute, second.
     let mut ret = UTCTime::new();
     ret.year = match u8::from_str(&s[0..2]) {
         Ok(u) => u,
         Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
     };
     ret.month = match u8::from_str(&s[2..4]) {
-        Ok(u) => u,
+        Ok(u) => {
+            if u == 0 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            if u > 12 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
         Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
     };
     ret.day = match u8::from_str(&s[4..6]) {
-        Ok(u) => u,
+        Ok(u) => {
+            if u == 0 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            if u > 31 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
         Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
     };
     ret.hour = match u8::from_str(&s[6..8]) {
-        Ok(u) => u,
+        Ok(u) => {
+            if u > 23 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
         Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
     };
     ret.minute = match u8::from_str(&s[8..10]) {
-        Ok(u) => u,
+        Ok(u) => {
+            if u > 59 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
         Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
     };
     if (len > 12) && value_bytes[10].is_ascii_digit() {
@@ -441,7 +467,12 @@ pub fn ber_decode_utc_time_value (value_bytes: ByteSlice) -> Result<UTCTime> {
             return Err(Error::from(ErrorKind::InvalidData));
         }
         ret.second = match u8::from_str(&s[10..12]) {
-            Ok(u) => Some(u),
+            Ok(u) => {
+                if u > 59 {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                Some(u)
+            },
             Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
         };
     }
@@ -455,11 +486,21 @@ pub fn ber_decode_utc_time_value (value_bytes: ByteSlice) -> Result<UTCTime> {
             }
         }
         let offset_hour = match i8::from_str(&s[len-4..len-2]) {
-            Ok(u) => u,
+            Ok(u) => {
+                if u > 12 {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                u
+            },
             Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
         };
         let offset_minute = match u8::from_str(&s[len-2..len]) {
-            Ok(u) => u,
+            Ok(u) => {
+                if u > 59 {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                u
+            },
             Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
         };
         ret.utc_offset = Some(UTCOffset {
@@ -471,9 +512,159 @@ pub fn ber_decode_utc_time_value (value_bytes: ByteSlice) -> Result<UTCTime> {
 }
 
 // FIXME:
-// pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> Result<GeneralizedTime> {
+pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> Result<GeneralizedTime> {
+    let len = value_bytes.len();
+    if len < 10 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    // There is technically no limit on how big a GeneralizedTime can be, but
+    // we have to set a reasonable limit here.
+    if len > 32 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    for byte in value_bytes[0..10].iter() {
+        if !byte.is_ascii_digit() {
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+    }
+    let s = match String::from_utf8(value_bytes.to_vec()) {
+        Ok(r) => r,
+        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    let mut date = DATE::new();
+    let mut ret = GeneralizedTime::new();
+    date.year = match u16::from_str(&s[0..4]) {
+        Ok(u) => u,
+        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    date.month = match u8::from_str(&s[4..6]) {
+        Ok(u) => {
+            if u == 0 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            if u > 12 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
+        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    date.day = match u8::from_str(&s[6..8]) {
+        Ok(u) => {
+            if u == 0 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            if u > 31 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
+        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    ret.hour = match u8::from_str(&s[8..10]) {
+        Ok(u) => {
+            if u > 23 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
+        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    if (len > 12) && value_bytes[10].is_ascii_digit() {
+        if !value_bytes[11].is_ascii_digit() {
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+        ret.minute = match u8::from_str(&s[10..12]) {
+            Ok(u) => {
+                if u > 59 {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                Some(u)
+            },
+            Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        };
+    }
 
-// }
+    if let Some(_) = ret.minute {
+        // Normal "if"s cannot be combined with "if let"s.
+        if (len > 14) && value_bytes[12].is_ascii_digit() {
+            // Seconds component is present.
+            if !value_bytes[13].is_ascii_digit() {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            ret.second = match u8::from_str(&s[12..14]) {
+                Ok(u) => {
+                    if u > 59 {
+                        return Err(Error::from(ErrorKind::InvalidData));
+                    }
+                    Some(u)
+                },
+                Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+            };
+        }
+    }
+
+    if let Some(_) = ret.second {
+        if (len >= 16) && ((value_bytes[14] as char == '.') || (value_bytes[14] as char == ',')) {
+            // let frac_byte = value_bytes[15];
+            let mut i = 15;
+            while i < len && value_bytes[i].is_ascii_digit() {
+                i += 1;
+            }
+            let end = min(i, 19); // We can only tolerate four digits of precision.
+            // FIXME: Pad with zeroes or whatever to make units consistent.
+            ret.fraction = match u16::from_str(&s[12..end]) {
+                Ok(u) => {
+                    if u > 9999 {
+                        return Err(Error::from(ErrorKind::InvalidData));
+                    }
+                    Some(u)
+                },
+                Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+            };
+        }
+    }
+
+    if value_bytes[len - 1] as char == 'Z' {
+        // ret.utc = true; // This is the default.
+        return Ok(ret); // UTCTime
+    }
+
+    if (value_bytes[len - 5] as char != '+') && (value_bytes[len - 5] as char != '-') {
+        ret.utc = false;
+        return Ok(ret); // Local Time
+    }
+
+    // For the rest of this function, we are parsing the UTC Offset.
+    for byte in value_bytes[len-4..len].iter() {
+        if !byte.is_ascii_digit() {
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+    }
+    let offset_hour = match i8::from_str(&s[len-4..len-2]) {
+        Ok(u) => {
+            if u > 12 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
+        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    let offset_minute = match u8::from_str(&s[len-2..len]) {
+        Ok(u) => {
+            if u > 59 {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            u
+        },
+        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    ret.utc_offset = Some(UTCOffset {
+        hour: if value_bytes[len - 5] as char == '-' { -1 * offset_hour } else { offset_hour },
+        minute: offset_minute,
+    });
+    Ok(ret)
+}
 
 pub fn ber_decode_graphic_string_value (value_bytes: ByteSlice) -> Result<GraphicString> {
     for byte in value_bytes {
@@ -738,30 +929,30 @@ pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> Result<DURATION> {
     Ok(ret)
 }
 
-pub fn ber_decode_boolean (el: X690Element) -> Result<BOOLEAN> {
-    match el.value {
+pub fn ber_decode_boolean (el: &X690Element) -> Result<BOOLEAN> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_boolean_value(bytes.as_slice()),
         _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
-pub fn ber_decode_integer (el: X690Element) -> Result<INTEGER> {
-    match el.value {
+pub fn ber_decode_integer (el: &X690Element) -> Result<INTEGER> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_integer_value(bytes.as_slice()),
         _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
-pub fn ber_decode_bit_string (el: X690Element) -> Result<BIT_STRING> {
-    deconstruct_bit_string(el)
+pub fn ber_decode_bit_string (el: &X690Element) -> Result<BIT_STRING> {
+    deconstruct_bit_string(&el)
 }
 
-pub fn ber_decode_octet_string (el: X690Element) -> Result<OCTET_STRING> {
+pub fn ber_decode_octet_string (el: &X690Element) -> Result<OCTET_STRING> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => Ok(bytes),
+            match &deconstructed.value {
+                X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
         },
@@ -769,8 +960,8 @@ pub fn ber_decode_octet_string (el: X690Element) -> Result<OCTET_STRING> {
     }
 }
 
-pub fn ber_decode_null (el: X690Element) -> Result<ASN1Value> {
-    match el.value {
+pub fn ber_decode_null (el: &X690Element) -> Result<ASN1Value> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => {
             if bytes.len() != 0 {
                 return Err(Error::from(ErrorKind::InvalidData))
@@ -781,8 +972,8 @@ pub fn ber_decode_null (el: X690Element) -> Result<ASN1Value> {
     }
 }
 
-pub fn ber_decode_object_identifier (el: X690Element) -> Result<OBJECT_IDENTIFIER> {
-    match el.value {
+pub fn ber_decode_object_identifier (el: &X690Element) -> Result<OBJECT_IDENTIFIER> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) =>
             match ber_decode_object_identifier_value(bytes.as_slice()) {
                 Ok(decoded) => Ok(decoded),
@@ -792,8 +983,8 @@ pub fn ber_decode_object_identifier (el: X690Element) -> Result<OBJECT_IDENTIFIE
     }
 }
 
-pub fn ber_decode_real (el: X690Element) -> Result<REAL> {
-    match el.value {
+pub fn ber_decode_real (el: &X690Element) -> Result<REAL> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) =>
             match ber_decode_real_value(bytes.as_slice()) {
                 Ok(decoded) => Ok(decoded),
@@ -803,8 +994,8 @@ pub fn ber_decode_real (el: X690Element) -> Result<REAL> {
     }
 }
 
-pub fn ber_decode_relative_oid (el: X690Element) -> Result<RELATIVE_OID> {
-    match el.value {
+pub fn ber_decode_relative_oid (el: &X690Element) -> Result<RELATIVE_OID> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) =>
             match ber_decode_relative_oid_value(bytes.as_slice()) {
                 Ok(decoded) => Ok(decoded),
@@ -814,12 +1005,12 @@ pub fn ber_decode_relative_oid (el: X690Element) -> Result<RELATIVE_OID> {
     }
 }
 
-pub fn ber_decode_sequence (el: X690Element) -> Result<SEQUENCE> {
-    match el.value {
+pub fn ber_decode_sequence (el: &X690Element) -> Result<SEQUENCE> {
+    match &el.value {
         X690Encoding::Constructed(components) => {
             let mut values: Vec<ASN1Value> = Vec::new();
             for component in components {
-                match ber_decode_any(component) {
+                match ber_decode_any(&component) {
                     Ok(v) => values.push(v),
                     Err(e) => return Err(e),
                 }
@@ -830,12 +1021,12 @@ pub fn ber_decode_sequence (el: X690Element) -> Result<SEQUENCE> {
     }
 }
 
-pub fn ber_decode_set (el: X690Element) -> Result<SET> {
-    match el.value {
+pub fn ber_decode_set (el: &X690Element) -> Result<SET> {
+    match &el.value {
         X690Encoding::Constructed(components) => {
             let mut values: Vec<ASN1Value> = Vec::new();
             for component in components {
-                match ber_decode_any(component) {
+                match ber_decode_any(&component) {
                     Ok(v) => values.push(v),
                     Err(e) => return Err(e),
                 }
@@ -846,11 +1037,11 @@ pub fn ber_decode_set (el: X690Element) -> Result<SET> {
     }
 }
 
-pub fn ber_decode_object_descriptor (el: X690Element) -> Result<ObjectDescriptor> {
+pub fn ber_decode_object_descriptor (el: &X690Element) -> Result<ObjectDescriptor> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -859,12 +1050,12 @@ pub fn ber_decode_object_descriptor (el: X690Element) -> Result<ObjectDescriptor
     }
 }
 
-pub fn ber_decode_utf8_string (el: X690Element) -> Result<UTF8String> {
+pub fn ber_decode_utf8_string (el: &X690Element) -> Result<UTF8String> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes) {
+            match &deconstructed.value {
+                X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
                     Ok(x) => Ok(x),
                     Err(_) => Err(Error::from(ErrorKind::InvalidData)),
                 },
@@ -875,11 +1066,11 @@ pub fn ber_decode_utf8_string (el: X690Element) -> Result<UTF8String> {
     }
 }
 
-pub fn ber_decode_numeric_string (el: X690Element) -> Result<NumericString> {
+pub fn ber_decode_numeric_string (el: &X690Element) -> Result<NumericString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_numeric_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -888,11 +1079,11 @@ pub fn ber_decode_numeric_string (el: X690Element) -> Result<NumericString> {
     }
 }
 
-pub fn ber_decode_printable_string (el: X690Element) -> Result<PrintableString> {
+pub fn ber_decode_printable_string (el: &X690Element) -> Result<PrintableString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_printable_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -901,12 +1092,12 @@ pub fn ber_decode_printable_string (el: X690Element) -> Result<PrintableString> 
     }
 }
 
-pub fn ber_decode_t61_string (el: X690Element) -> Result<T61String> {
+pub fn ber_decode_t61_string (el: &X690Element) -> Result<T61String> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => Ok(bytes),
+            match &deconstructed.value {
+                X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
         },
@@ -914,12 +1105,12 @@ pub fn ber_decode_t61_string (el: X690Element) -> Result<T61String> {
     }
 }
 
-pub fn ber_decode_videotex_string (el: X690Element) -> Result<VideotexString> {
+pub fn ber_decode_videotex_string (el: &X690Element) -> Result<VideotexString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => Ok(bytes),
+            match &deconstructed.value {
+                X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
         },
@@ -927,11 +1118,11 @@ pub fn ber_decode_videotex_string (el: X690Element) -> Result<VideotexString> {
     }
 }
 
-pub fn ber_decode_ia5_string (el: X690Element) -> Result<IA5String> {
+pub fn ber_decode_ia5_string (el: &X690Element) -> Result<IA5String> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_ia5_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -940,11 +1131,11 @@ pub fn ber_decode_ia5_string (el: X690Element) -> Result<IA5String> {
     }
 }
 
-pub fn ber_decode_graphic_string (el: X690Element) -> Result<GraphicString> {
+pub fn ber_decode_graphic_string (el: &X690Element) -> Result<GraphicString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -953,11 +1144,11 @@ pub fn ber_decode_graphic_string (el: X690Element) -> Result<GraphicString> {
     }
 }
 
-pub fn ber_decode_visible_string (el: X690Element) -> Result<VisibleString> {
+pub fn ber_decode_visible_string (el: &X690Element) -> Result<VisibleString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_visible_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -966,11 +1157,11 @@ pub fn ber_decode_visible_string (el: X690Element) -> Result<VisibleString> {
     }
 }
 
-pub fn ber_decode_general_string (el: X690Element) -> Result<GeneralString> {
+pub fn ber_decode_general_string (el: &X690Element) -> Result<GeneralString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_general_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -979,11 +1170,11 @@ pub fn ber_decode_general_string (el: X690Element) -> Result<GeneralString> {
     }
 }
 
-pub fn ber_decode_universal_string (el: X690Element) -> Result<UniversalString> {
+pub fn ber_decode_universal_string (el: &X690Element) -> Result<UniversalString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_universal_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -992,11 +1183,11 @@ pub fn ber_decode_universal_string (el: X690Element) -> Result<UniversalString> 
     }
 }
 
-pub fn ber_decode_bmp_string (el: X690Element) -> Result<BMPString> {
+pub fn ber_decode_bmp_string (el: &X690Element) -> Result<BMPString> {
     let deconstruction = deconstruct(el);
     match deconstruction {
         Ok(deconstructed) => {
-            match deconstructed.value {
+            match &deconstructed.value {
                 X690Encoding::IMPLICIT(bytes) => ber_decode_bmp_string_value(bytes.as_slice()),
                 _ => Err(Error::from(ErrorKind::InvalidData)),
             }
@@ -1005,37 +1196,37 @@ pub fn ber_decode_bmp_string (el: X690Element) -> Result<BMPString> {
     }
 }
 
-pub fn ber_decode_date (el: X690Element) -> Result<DATE> {
-    match el.value {
+pub fn ber_decode_date (el: &X690Element) -> Result<DATE> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_date_value(bytes.as_slice()),
         _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
-pub fn ber_decode_time_of_day (el: X690Element) -> Result<TIME_OF_DAY> {
-    match el.value {
+pub fn ber_decode_time_of_day (el: &X690Element) -> Result<TIME_OF_DAY> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_time_of_day_value(bytes.as_slice()),
         _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
-pub fn ber_decode_date_time (el: X690Element) -> Result<DATE_TIME> {
-    match el.value {
+pub fn ber_decode_date_time (el: &X690Element) -> Result<DATE_TIME> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_date_time_value(bytes.as_slice()),
         _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
-pub fn ber_decode_duration (el: X690Element) -> Result<DURATION> {
-    match el.value {
+pub fn ber_decode_duration (el: &X690Element) -> Result<DURATION> {
+    match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_duration_value(bytes.as_slice()),
         _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
-pub fn ber_decode_oid_iri (el: X690Element) -> Result<OID_IRI> {
-    match el.value {
-        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes) {
+pub fn ber_decode_oid_iri (el: &X690Element) -> Result<OID_IRI> {
+    match &el.value {
+        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
             Ok(x) => Ok(x),
             Err(_) => Err(Error::from(ErrorKind::InvalidData)),
         },
@@ -1043,9 +1234,9 @@ pub fn ber_decode_oid_iri (el: X690Element) -> Result<OID_IRI> {
     }
 }
 
-pub fn ber_decode_relative_oid_iri (el: X690Element) -> Result<OID_IRI> {
-    match el.value {
-        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes) {
+pub fn ber_decode_relative_oid_iri (el: &X690Element) -> Result<OID_IRI> {
+    match &el.value {
+        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
             Ok(x) => Ok(x),
             Err(_) => Err(Error::from(ErrorKind::InvalidData)),
         },
@@ -1053,9 +1244,9 @@ pub fn ber_decode_relative_oid_iri (el: X690Element) -> Result<OID_IRI> {
     }
 }
 
-pub fn ber_decode_time (el: X690Element) -> Result<TIME> {
-    match el.value {
-        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes) {
+pub fn ber_decode_time (el: &X690Element) -> Result<TIME> {
+    match &el.value {
+        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
             Ok(x) => Ok(x),
             Err(_) => Err(Error::from(ErrorKind::InvalidData)),
         },
@@ -1063,18 +1254,18 @@ pub fn ber_decode_time (el: X690Element) -> Result<TIME> {
     }
 }
 
-pub fn ber_decode_any (el: X690Element) -> Result<ASN1Value> {
+pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
     if el.tag_class != TagClass::UNIVERSAL {
         return Err(Error::from(ErrorKind::InvalidData));
     }
 
-    if let X690Encoding::AlreadyEncoded(encoding) = el.value {
+    if let X690Encoding::AlreadyEncoded(encoding) = &el.value {
         match ber_cst(&encoding) {
             Ok((bytes_read, encoded_el)) => {
                 if bytes_read != encoding.len() {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
-                return ber_decode_any(encoded_el);
+                return ber_decode_any(&encoded_el);
             }
             Err(e) => return Err(e),
         }
@@ -1247,7 +1438,8 @@ pub fn ber_decode_any (el: X690Element) -> Result<ASN1Value> {
 mod tests {
 
     use super::*;
-    use x690::{X690Encoding, X690_TAG_CLASS_UNIVERSAL, ber_cst};
+    use super::{X690Encoding, ber_cst};
+    use crate::X690_TAG_CLASS_UNIVERSAL;
 
     // pub struct AlgorithmIdentifier {
     //     pub algorithm: OBJECT_IDENTIFIER,

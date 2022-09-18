@@ -4,7 +4,7 @@ pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a[u8];
 pub type OPTIONAL<T> = Option<T>;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TagClass {
     UNIVERSAL,
     APPLICATION,
@@ -131,6 +131,7 @@ pub struct UTCTime {
 }
 pub struct GeneralizedTime {
     pub date: DATE,
+    pub utc: bool, // If GT ends with "Z"
     pub hour: u8,
     pub minute: Option<u8>,
     pub second: Option<u8>,
@@ -165,6 +166,23 @@ pub type DURATION = DURATION_EQUIVALENT;
 pub type OID_IRI = String;
 pub type RELATIVE_OID_IRI = String;
 pub type INSTANCE_OF = InstanceOf;
+
+#[derive(Hash, Eq, PartialEq)]
+pub struct Tag {
+    pub tag_class: TagClass,
+    pub tag_number: TagNumber,
+}
+
+impl Tag {
+
+    pub fn new (tag_class: TagClass, tag_number: TagNumber) -> Self {
+        Tag {
+            tag_class,
+            tag_number,
+        }
+    }
+
+}
 
 pub struct TaggedASN1Value {
     pub tag_class: TagClass,

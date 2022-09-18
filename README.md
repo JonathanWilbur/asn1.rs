@@ -275,6 +275,12 @@ which control how these elements are encoded.
   - [ ] Date/time constants (months, leap year, etc.)
   - [ ] Use `Arc` instead of `Box`?
   - [ ] Function for combining bitstrings
+  - [ ] `oid!` macro
+  - [ ] `bits!` macro
+  - [ ] `octs!` macro
+  - [ ] `real!` macro
+  - [ ] `external!` macro
+  - [ ] `embedded_pdv!` macro
 - [ ] `x690`
   - [ ] Deconstruct
   - [ ] Hash trait for `X690Element`

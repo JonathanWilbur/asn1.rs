@@ -74,6 +74,9 @@ use asn1::types::{
 };
 use num::Zero;
 
+pub mod ber;
+pub mod parsing;
+
 pub const X690_TAG_CLASS_UNIVERSAL: u8 = 0b0000_0000;
 pub const X690_TAG_CLASS_APPLICATION: u8 = 0b0100_0000;
 pub const X690_TAG_CLASS_CONTEXT: u8 = 0b1000_0000;
@@ -1833,14 +1836,14 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
 }
 
 // TODO: This needs testing.
-pub fn deconstruct (el: X690Element) -> Result<X690Element> {
-    match el.value {
-        X690Encoding::IMPLICIT(_) => Ok(el),
+pub fn deconstruct (el: &X690Element) -> Result<X690Element> {
+    match &el.value {
+        X690Encoding::IMPLICIT(_) => Ok(el.clone()),
         X690Encoding::EXPLICIT(_) => return Err(Error::new(ErrorKind::InvalidData, "asdf")),
         X690Encoding::AlreadyEncoded(bytes) => {
             match ber_cst(&bytes) {
-                Ok((read, cst)) => {
-                    return deconstruct(cst);
+                Ok((_, cst)) => {
+                    return deconstruct(&cst);
                 },
                 Err(e) => return Err(e),
             }
@@ -1851,7 +1854,7 @@ pub fn deconstruct (el: X690Element) -> Result<X690Element> {
                 if child.tag_class != el.tag_class || child.tag_number != el.tag_number {
                     return Err(Error::new(ErrorKind::InvalidData, "asdf")); 
                 }
-                match deconstruct(child) {
+                match deconstruct(&child) {
                     Ok(deconstructed_child) => {
                         if let X690Encoding::IMPLICIT(sub) = deconstructed_child.value {
                             deconstructed_value.extend(sub);

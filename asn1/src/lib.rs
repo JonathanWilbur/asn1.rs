@@ -2,7 +2,11 @@
 
 pub mod types;
 pub mod bitstring;
+pub mod construction;
+pub mod date;
 pub mod duration;
+pub mod gentime;
+pub mod time_of_day;
 pub mod utctime;
 
 #[cfg(test)]
