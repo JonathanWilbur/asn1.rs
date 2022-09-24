@@ -4,7 +4,7 @@ pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a[u8];
 pub type OPTIONAL<T> = Option<T>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord)]
 pub enum TagClass {
     UNIVERSAL,
     APPLICATION,
@@ -37,10 +37,17 @@ pub enum ExternalIdentification {
     // fixed,
 }
 
+// See ITU Recommendation X.690, Section 8.18.
+pub enum ExternalEncoding {
+    single_ASN1_type (Box<ASN1Value>),
+    octet_aligned (OCTET_STRING),
+    arbitrary (BIT_STRING),
+}
+
 pub struct External {
     pub identification: ExternalIdentification,
     pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
-    pub data_value: OCTET_STRING,
+    pub data_value: ExternalEncoding,
 }
 
 pub enum PresentationContextSwitchingTypeIdentification {
@@ -167,7 +174,7 @@ pub type OID_IRI = String;
 pub type RELATIVE_OID_IRI = String;
 pub type INSTANCE_OF = InstanceOf;
 
-#[derive(Hash, Eq, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
 pub struct Tag {
     pub tag_class: TagClass,
     pub tag_number: TagNumber,

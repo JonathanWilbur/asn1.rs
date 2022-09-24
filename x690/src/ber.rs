@@ -1,4 +1,5 @@
 use std::io::{Write, Result, Error, ErrorKind};
+use std::ops::Deref;
 use std::str::FromStr;
 use std::cmp::min;
 use asn1::types::{
@@ -13,6 +14,7 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
     ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
     RELATIVE_OID,
+    EXTERNAL,
     REAL,
     OCTET_STRING,
     SEQUENCE,
@@ -75,10 +77,22 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME,
     ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
     ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI, GeneralizedTime,
+    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
+    ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
+    ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
+    ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
+    GeneralizedTime, OPTIONAL,
+    ExternalEncoding,
+    ExternalIdentification,
+    ContextNegotiation,
+    EMBEDDED_PDV,
+    PresentationContextSwitchingTypeIdentification,
+    IdentificationSyntaxes,
+    CHARACTER_STRING,
 };
+use asn1::construction::{ComponentSpec, TagSelector};
+
 use asn1::bitstring::join_bit_strings;
-use bitvec::macros::internal::funty::Fundamental;
 use crate::{
     ber_cst,
     X690Encoding,
@@ -104,6 +118,7 @@ use crate::{
     X690_REAL_BASE_16,
     deconstruct,
 };
+use crate::parsing::{_parse_sequence};
 
 // BIT STRING is constructed in a such a way that the octets of each subelement
 // cannot simply be concatenated. As such, this function deconstructed a
@@ -344,9 +359,9 @@ pub fn ber_decode_real_value (value_bytes: ByteSlice) -> Result<REAL> {
                 },
                 _ => return Err(Error::from(ErrorKind::InvalidData)), // This should never happen.
             }
-            let unsigned_value = mantissa.as_f64()
-                * (2u8.pow(scale.into())).as_f64()
-                * ((base as f64).powi(exponent)).as_f64();
+            let unsigned_value = (mantissa as f64)
+                * (2u8.pow(scale.into())) as f64
+                * ((base as f64).powi(exponent)) as f64;
             if negative {
                 return Ok(-1.0 * unsigned_value);
             } else {
@@ -948,15 +963,10 @@ pub fn ber_decode_bit_string (el: &X690Element) -> Result<BIT_STRING> {
 }
 
 pub fn ber_decode_octet_string (el: &X690Element) -> Result<OCTET_STRING> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
@@ -983,6 +993,146 @@ pub fn ber_decode_object_identifier (el: &X690Element) -> Result<OBJECT_IDENTIFI
     }
 }
 
+// [UNIVERSAL 8] IMPLICIT SEQUENCE {
+//     direct-reference        OBJECT IDENTIFIER OPTIONAL,
+//     indirect-reference      INTEGER OPTIONAL,
+//     data-value-descriptor   ObjectDescriptor OPTIONAL,
+//     encoding CHOICE {
+//         single-ASN1-type    [0] ABSTRACT-SYNTAX.&Type,
+//         octet-aligned       [1] IMPLICIT OCTET STRING,
+//         arbitrary           [2] IMPLICIT BIT STRING } }
+const _RCTL1_FOR_EXTERNAL: &[ComponentSpec; 4] = &[
+    ComponentSpec::new(
+        "direct-reference",
+        true,
+        TagSelector::tag((TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER)),
+        None,
+        None,
+    ),
+    ComponentSpec::new(
+        "indirect-reference",
+        true,
+        TagSelector::tag((TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER)),
+        None,
+        None,
+    ),
+    ComponentSpec::new(
+        "data-value-descriptor",
+        true,
+        TagSelector::tag((TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR)),
+        None,
+        None,
+    ),
+    ComponentSpec::new(
+        "encoding",
+        false,
+        TagSelector::or(&[
+            &TagSelector::tag((TagClass::CONTEXT, 0)),
+            &TagSelector::tag((TagClass::CONTEXT, 1)),
+            &TagSelector::tag((TagClass::CONTEXT, 2)),
+        ]),
+        None,
+        None,
+    ),
+];
+const _EAL_FOR_EXTERNAL: &[ComponentSpec; 0] = &[];
+const _RCTL2_FOR_EXTERNAL: &[ComponentSpec; 0] = &[];
+
+pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
+    let elements = match &el.value {
+        X690Encoding::Constructed(children) => children,
+        _ => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    if elements.len() > 4 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    if elements.len() < 1 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let el_refs = elements.iter().collect::<Vec<&X690Element>>();
+    let (components, unrecognized) = _parse_sequence(
+        el_refs.as_slice(),
+        _RCTL1_FOR_EXTERNAL.as_slice(),
+        _EAL_FOR_EXTERNAL.as_slice(),
+        _RCTL2_FOR_EXTERNAL.as_slice(),
+    ).unwrap();
+    if unrecognized.len() > 0 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let dir_ref: OPTIONAL<OBJECT_IDENTIFIER> = match components.get("direct-reference") {
+        Some(c) => {
+            match ber_decode_object_identifier(c) {
+                Ok(v) => Some(v),
+                Err(e) => return Err(e),
+            }
+        },
+        None => None,
+    };
+    let indir_ref: OPTIONAL<INTEGER> = match components.get("indirect-reference") {
+        Some(c) => {
+            match ber_decode_integer(c) {
+                Ok(v) => Some(v),
+                Err(e) => return Err(e),
+            }
+        },
+        None => None,
+    };
+    let dvd: OPTIONAL<ObjectDescriptor> = match components.get("data-value-descriptor") {
+        Some(c) => {
+            match ber_decode_object_descriptor(c) {
+                Ok(v) => Some(v),
+                Err(e) => return Err(e),
+            }
+        },
+        None => None,
+    };
+    let encoding: ExternalEncoding = match components.get("encoding") {
+        Some(c) => {
+            if c.tag_class != TagClass::CONTEXT {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            match c.tag_number {
+                0 => {
+                    if let X690Encoding::EXPLICIT(inner) = &c.value {
+                        let v = ber_decode_any(inner.deref())?;
+                        ExternalEncoding::single_ASN1_type(Box::new(v))
+                    } else {
+                        return Err(Error::from(ErrorKind::InvalidData));
+                    }
+                },
+                1 => {
+                    let v = ber_decode_octet_string(c)?;
+                    ExternalEncoding::octet_aligned(v)
+                },
+                2 => {
+                    let v = ber_decode_bit_string(c)?;
+                    ExternalEncoding::arbitrary(v)
+                },
+                _ => return Err(Error::from(ErrorKind::InvalidData)),
+            }
+        },
+        None => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    let identification: ExternalIdentification;
+    if dir_ref.is_some() && indir_ref.is_some() {
+        identification = ExternalIdentification::context_negotiation(ContextNegotiation {
+            transfer_syntax: dir_ref.unwrap(),
+            presentation_context_id: indir_ref.unwrap(),
+        });
+    } else if dir_ref.is_some() {
+        identification = ExternalIdentification::syntax(dir_ref.unwrap());
+    } else if indir_ref.is_some() {
+        identification = ExternalIdentification::presentation_context_id(indir_ref.unwrap());
+    } else {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    Ok(EXTERNAL {
+        identification,
+        data_value_descriptor: dvd,
+        data_value: encoding,
+    })
+}
+
 pub fn ber_decode_real (el: &X690Element) -> Result<REAL> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) =>
@@ -992,6 +1142,125 @@ pub fn ber_decode_real (el: &X690Element) -> Result<REAL> {
             },
         _ => Err(Error::from(ErrorKind::InvalidData)),
     }
+}
+
+/*
+    An `EmbeddedPDV` is a constructed data type, defined in
+    the [International Telecommunications Union](https://www.itu.int)'s
+    [X.680](https://www.itu.int/rec/T-REC-X.680/en).
+    The specification defines `EmbeddedPDV` as:
+
+    `EmbeddedPDV ::= [UNIVERSAL 11] IMPLICIT SEQUENCE {
+        identification CHOICE {
+            syntaxes SEQUENCE {
+                abstract OBJECT IDENTIFIER,
+                transfer OBJECT IDENTIFIER },
+            syntax OBJECT IDENTIFIER,
+            presentation-context-id INTEGER,
+            context-negotiation SEQUENCE {
+                presentation-context-id INTEGER,
+                transfer-syntax OBJECT IDENTIFIER },
+            transfer-syntax OBJECT IDENTIFIER,
+            fixed NULL },
+        data-value-descriptor ObjectDescriptor OPTIONAL,
+        data-value OCTET STRING }
+    (WITH COMPONENTS { ... , data-value-descriptor ABSENT })`
+*/
+pub fn ber_decode_presentation_context_switching_type_id (el: &X690Element) -> Result<PresentationContextSwitchingTypeIdentification> {
+    if el.tag_class != TagClass::CONTEXT {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    match el.tag_number {
+        0 => { // syntaxes
+            if let X690Encoding::Constructed(children) = &el.value {
+                if children.len() != 2 {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                let r#abstract = ber_decode_object_identifier(&children[0])?;
+                let transfer = ber_decode_object_identifier(&children[1])?;
+                Ok(PresentationContextSwitchingTypeIdentification::syntaxes(IdentificationSyntaxes {
+                    r#abstract,
+                    transfer,
+                }))
+            } else {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+        },
+        1 => { // syntax
+            let v = ber_decode_object_identifier(el)?;
+            Ok(PresentationContextSwitchingTypeIdentification::syntax(v))
+        },
+        2 => { // presentation-context-id
+            let v = ber_decode_integer(el)?;
+            Ok(PresentationContextSwitchingTypeIdentification::presentation_context_id(v))
+        },
+        3 => { // context-negotiation
+            if let X690Encoding::Constructed(children) = &el.value {
+                if children.len() != 2 {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                let presentation_context_id = ber_decode_integer(&children[0])?;
+                let transfer_syntax = ber_decode_object_identifier(&children[1])?;
+                Ok(PresentationContextSwitchingTypeIdentification::context_negotiation(ContextNegotiation {
+                    presentation_context_id,
+                    transfer_syntax,
+                }))
+            } else {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+        },
+        4 => { // transfer-syntax
+            let v = ber_decode_object_identifier(el)?;
+            Ok(PresentationContextSwitchingTypeIdentification::transfer_syntax(v))
+        },
+        5 => { // fixed
+            ber_decode_null(el)?;
+            Ok(PresentationContextSwitchingTypeIdentification::fixed)
+        },
+        _ => return Err(Error::from(ErrorKind::InvalidData)),
+    }
+}
+
+pub fn ber_decode_embedded_pdv (el: &X690Element) -> Result<EMBEDDED_PDV> {
+    let elements = match &el.value {
+        X690Encoding::Constructed(children) => children,
+        _ => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    if elements.len() != 2 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let identification: PresentationContextSwitchingTypeIdentification;
+    if let X690Encoding::EXPLICIT(inner) = &elements[0].value {
+        identification = ber_decode_presentation_context_switching_type_id(&inner)?;
+    } else {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let data_value: OCTET_STRING = ber_decode_octet_string(&elements[1])?;
+    Ok(EMBEDDED_PDV {
+        identification,
+        data_value,
+    })
+}
+
+pub fn ber_decode_character_string (el: &X690Element) -> Result<CHARACTER_STRING> {
+    let elements = match &el.value {
+        X690Encoding::Constructed(children) => children,
+        _ => return Err(Error::from(ErrorKind::InvalidData)),
+    };
+    if elements.len() != 2 {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let identification: PresentationContextSwitchingTypeIdentification;
+    if let X690Encoding::EXPLICIT(inner) = &elements[0].value {
+        identification = ber_decode_presentation_context_switching_type_id(&inner)?;
+    } else {
+        return Err(Error::from(ErrorKind::InvalidData));
+    }
+    let string_value: OCTET_STRING = ber_decode_octet_string(&elements[1])?;
+    Ok(CHARACTER_STRING {
+        identification,
+        string_value,
+    })
 }
 
 pub fn ber_decode_relative_oid (el: &X690Element) -> Result<RELATIVE_OID> {
@@ -1038,161 +1307,117 @@ pub fn ber_decode_set (el: &X690Element) -> Result<SET> {
 }
 
 pub fn ber_decode_object_descriptor (el: &X690Element) -> Result<ObjectDescriptor> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_utf8_string (el: &X690Element) -> Result<UTF8String> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
-                    Ok(x) => Ok(x),
-                    Err(_) => Err(Error::from(ErrorKind::InvalidData)),
-                },
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
+            Ok(x) => Ok(x),
+            Err(_) => Err(Error::from(ErrorKind::InvalidData)),
         },
-        Err(e) => Err(e),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_numeric_string (el: &X690Element) -> Result<NumericString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_numeric_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_numeric_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_printable_string (el: &X690Element) -> Result<PrintableString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_printable_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_printable_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_t61_string (el: &X690Element) -> Result<T61String> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_videotex_string (el: &X690Element) -> Result<VideotexString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_ia5_string (el: &X690Element) -> Result<IA5String> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_ia5_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_ia5_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
+    }
+}
+
+pub fn ber_decode_utc_time (el: &X690Element) -> Result<UTCTime> {
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_utc_time_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
+    }
+}
+
+pub fn ber_decode_generalized_time (el: &X690Element) -> Result<GeneralizedTime> {
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_generalized_time_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_graphic_string (el: &X690Element) -> Result<GraphicString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_visible_string (el: &X690Element) -> Result<VisibleString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_visible_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_visible_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_general_string (el: &X690Element) -> Result<GeneralString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_general_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_general_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_universal_string (el: &X690Element) -> Result<UniversalString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_universal_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_universal_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
 pub fn ber_decode_bmp_string (el: &X690Element) -> Result<BMPString> {
-    let deconstruction = deconstruct(el);
-    match deconstruction {
-        Ok(deconstructed) => {
-            match &deconstructed.value {
-                X690Encoding::IMPLICIT(bytes) => ber_decode_bmp_string_value(bytes.as_slice()),
-                _ => Err(Error::from(ErrorKind::InvalidData)),
-            }
-        },
-        Err(e) => Err(e),
+    let deconstruction = deconstruct(el)?;
+    match deconstruction.value {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_bmp_string_value(bytes.as_slice()),
+        _ => Err(Error::from(ErrorKind::InvalidData)),
     }
 }
 
@@ -1272,9 +1497,7 @@ pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
     }
 
     match el.tag_number {
-        ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => {
-            return Err(Error::from(ErrorKind::InvalidData)); 
-        },
+        ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => Err(Error::from(ErrorKind::InvalidData)),
         ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => match ber_decode_boolean(el) {
             Ok(v) => Ok(ASN1Value::BooleanValue(v)),
             Err(e) => Err(e),
@@ -1300,11 +1523,10 @@ pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
             Ok(v) => Ok(ASN1Value::ObjectDescriptor(v)),
             Err(e) => Err(e),
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => {
-        //     match el.value {
-
-        //     }
-        // },
+        ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => match ber_decode_external(el) {
+            Ok(v) => Ok(ASN1Value::ExternalValue(v)),
+            Err(e) => Err(e),
+        },
         ASN1_UNIVERSAL_TAG_NUMBER_REAL => match ber_decode_real(el) {
             Ok(v) => Ok(ASN1Value::RealValue(v)),
             Err(e) => Err(e),
@@ -1313,11 +1535,10 @@ pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
             Ok(v) => Ok(ASN1Value::EnumeratedValue(v)),
             Err(e) => Err(e),
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => {
-        //     match el.value {
-
-        //     }
-        // },
+        ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => match ber_decode_embedded_pdv(el) {
+            Ok(v) => Ok(ASN1Value::EmbeddedPDVValue(v)),
+            Err(e) => Err(e),
+        },
         ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING => match ber_decode_utf8_string(el) {
             Ok(v) => Ok(ASN1Value::UTF8String(v)),
             Err(e) => Err(e),
@@ -1330,27 +1551,17 @@ pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
             Ok(v) => Ok(ASN1Value::TimeValue(v)),
             Err(e) => Err(e),
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_RESERVED_15 => {
-        //     match el.value {
-
-        //     }
-        // },
+        // ASN1_UNIVERSAL_TAG_NUMBER_RESERVED_15 => ()
         ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE => match ber_decode_sequence(el) {
             Ok(v) => Ok(ASN1Value::SequenceValue(v)),
             Err(e) => Err(e),
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF => match ber_decode_sequence(el) {
-        //     Ok(v) => Ok(ASN1Value::SequenceOfValue(v)),
-        //     Err(e) => Err(e),
-        // },
+        // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF => ()
         ASN1_UNIVERSAL_TAG_NUMBER_SET => match ber_decode_set(el) {
             Ok(v) => Ok(ASN1Value::SetValue(v)),
             Err(e) => Err(e),
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_SET_OF => match ber_decode_set(el) {
-        //     Ok(v) => Ok(ASN1Value::SetValue(v)),
-        //     Err(e) => Err(e),
-        // },
+        // ASN1_UNIVERSAL_TAG_NUMBER_SET_OF => ()
         ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING => match ber_decode_numeric_string(el) {
             Ok(v) => Ok(ASN1Value::NumericString(v)),
             Err(e) => Err(e),
@@ -1397,11 +1608,10 @@ pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
             Ok(v) => Ok(ASN1Value::UniversalString(v)),
             Err(e) => Err(e),
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => {
-        //     match el.value {
-
-        //     }
-        // },
+        ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => match ber_decode_character_string(el) {
+            Ok(v) => Ok(ASN1Value::UnrestrictedCharacterStringValue(v)),
+            Err(e) => Err(e),
+        },
         ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING => match ber_decode_bmp_string(el) {
             Ok(v) => Ok(ASN1Value::BMPString(v)),
             Err(e) => Err(e),

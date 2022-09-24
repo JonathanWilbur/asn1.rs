@@ -1,11 +1,8 @@
-use std::io::{Write, Result, Error, ErrorKind, IoSlice, Read};
+use std::io::{Write, Result, Error, ErrorKind};
 use std::mem::size_of;
-use std::fmt::format;
-use std::sync::Arc;
 use asn1::types::{
     Bytes,
     ByteSlice,
-    OPTIONAL,
     BOOLEAN,
     INTEGER,
     BIT_STRING,
@@ -15,16 +12,11 @@ use asn1::types::{
     EXTERNAL,
     REAL,
     ExternalIdentification,
-    SEQUENCE,
     UTCTime,
     GeneralizedTime,
-    GeneralString,
-    BMPString,
     UniversalString,
-    CHARACTER_STRING,
     DATE,
     DATE_TIME,
-    DURATION,
     TIME_OF_DAY,
     ASN1Value,
     TagClass,
@@ -45,7 +37,6 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
     ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID,
     ASN1_UNIVERSAL_TAG_NUMBER_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_RESERVED_15,
     ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
     ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
     ASN1_UNIVERSAL_TAG_NUMBER_SET,
@@ -69,8 +60,8 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
     ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
     ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
-    TaggedASN1Value, EmbeddedPDV, CharacterString, UTF8String, RELATIVE_OID, TIME, External,
-    MAX_IA5_STRING_CHAR_CODE, DURATION_EQUIVALENT,
+    TaggedASN1Value, EmbeddedPDV, CharacterString, UTF8String, RELATIVE_OID, TIME,
+    MAX_IA5_STRING_CHAR_CODE, DURATION_EQUIVALENT, ExternalEncoding,
 };
 use num::Zero;
 
@@ -178,7 +169,7 @@ impl X690Element {
         match self.last_calculated_length {
             Some(l) => return l,
             None => {
-                let tag_length: usize = get_written_x690_tag_length(self.tag_class, self.tag_number);
+                let tag_length: usize = get_written_x690_tag_length(self.tag_number);
                 let value_length = self.value.len();
                 let length_length: usize = get_written_x690_length_length(value_length);
                 let ret = tag_length + length_length + value_length;
@@ -224,19 +215,13 @@ fn base_128_len (num: u32) -> usize {
     if num < 128 {
         return 1;
     }
-
     let mut l = 0;
     let mut i = num;
     while i > 0 {
         l += 1;
         i >>= 7;
     }
-
-    let mut bytes: usize = 0;
-    for i in (0..l).rev() {
-        bytes += 1;
-    }
-    return bytes;
+    return l;
 }
 
 fn write_base_128 <W> (output: &mut W, num: u32) -> Result<usize>
@@ -266,7 +251,6 @@ fn write_base_128 <W> (output: &mut W, num: u32) -> Result<usize>
 
 // Just gets the theoretical length of the written tag.
 pub fn get_written_x690_tag_length (
-    class: TagClass,
     tagnum: TagNumber,
 ) -> usize {
     if tagnum < 31 { // See ITU Rec. X.690 (2021), Section 8.1.2.4.
@@ -339,10 +323,10 @@ pub fn x690_write_length <W> (
             16777216..=4294967295 => 4,
             _ => return Err(Error::from(ErrorKind::Unsupported)),
         };
-        let first_byte_result = output.write(&[
+        output.write(&[
             0b1000_0000
             | octets_needed
-        ]);
+        ])?;
         output.write(length.to_be_bytes().as_slice())
     }
 }
@@ -494,9 +478,10 @@ where W : Write {
         None => (),
     };
     let mut data_value_bytes: Bytes = Vec::new();
-    match x690_write_octet_string_value(&mut data_value_bytes, &value.data_value) {
-        Err(e) => return Err(e),
-        _ => (),
+    match &value.data_value {
+        ExternalEncoding::single_ASN1_type(t) => ber_encode(&mut data_value_bytes, t)?,
+        ExternalEncoding::octet_aligned(o) => x690_write_octet_string_value(&mut data_value_bytes, o)?,
+        ExternalEncoding::arbitrary(b) => x690_write_bit_string_value(&mut data_value_bytes, b)?,
     };
     let data_value_element = X690Element::new(
         TagClass::CONTEXT,
@@ -1597,7 +1582,7 @@ fn write_x690_encoding <W> (output: &mut W, encoding: &X690Encoding) -> Result<u
             }
             Ok(sum)
         },
-        X690Encoding::AlreadyEncoded(encoded_value) => Ok(0), // This should never happen.
+        X690Encoding::AlreadyEncoded(_) => Ok(0), // This should never happen.
     }
 }
 
@@ -1776,16 +1761,12 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
             // let mut value_bytes_read: usize = bytes_read;
             let end_of_tag_and_length = bytes_read;
             while bytes_read < (end_of_tag_and_length + len) {
-                match ber_cst(&bytes[bytes_read..]) {
-                    Ok((el_len, el)) => {
-                        if el_len == 0 {
-                            break;
-                        }
-                        bytes_read += el_len;
-                        children.push(el);
-                    },
-                    Err(e) => return Err(Error::new(ErrorKind::InvalidData, "asdf")),
-                };
+                let (el_len, el) = ber_cst(&bytes[bytes_read..])?;
+                if el_len == 0 {
+                    break;
+                }
+                bytes_read += el_len;
+                children.push(el);
             };
             let el = X690Element::new(
                 tag_class,
@@ -1878,6 +1859,7 @@ pub fn deconstruct (el: &X690Element) -> Result<X690Element> {
 mod tests {
 
     use super::*;
+    use std::sync::Arc;
 
     #[test]
     fn test_x690_write_boolean_value () {

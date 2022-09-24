@@ -219,7 +219,7 @@ pub fn _parse_sequence_with_trailing_rctl <'a> (
     // NOTE: I deviated from the TypeScript implementation here. I don't see
     // how the value `startOfExtensions` could ever be -1.
     let start_of_rctl2 = start_of_exts + number_of_ext_components.unwrap_or(0);
-    let (exts_read, eal_index) = _parse_component_type_list(
+    let (_, eal_index) = _parse_component_type_list(
         eal,
         &elements[start_of_exts..start_of_rctl2],
         true,
@@ -287,8 +287,6 @@ pub fn _parse_sequence <'a> (
     }
 }
 
-// pub struct
-
 // pub fn _decode_choice (
 //     el: &mut X690Element,
 //     handlers: AlternativeHandlers,
@@ -351,12 +349,12 @@ mod tests {
         TagClass,
         ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
         ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-        ASN1_UNIVERSAL_TAG_NUMBER_NULL, OBJECT_IDENTIFIER, ASN1Value,
+        ASN1_UNIVERSAL_TAG_NUMBER_NULL, OBJECT_IDENTIFIER, ASN1Value, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING,
     };
 
     use crate::ber::{
         ber_decode_any,
-        ber_decode_object_identifier,
+        ber_decode_object_identifier, ber_decode_utf8_string, ber_decode_bmp_string,
     };
 
     use super::*;
@@ -386,8 +384,8 @@ mod tests {
     const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
     const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
 
-    fn decode_AlgorithmIdentifier (el: X690Element) -> Result<AlgorithmIdentifier> {
-        let elements = match el.value {
+    fn decode_AlgorithmIdentifier (el: &X690Element) -> Result<AlgorithmIdentifier> {
+        let elements = match &el.value {
             X690Encoding::Constructed(children) => children,
             _ => panic!(),
         };
@@ -412,6 +410,27 @@ mod tests {
             algorithm,
             parameters,
         })
+    }
+
+
+
+    enum DirectoryString {
+        UTF8String (String),
+        BMPString (String),
+    }
+
+    fn decode_DirectoryString (el: &X690Element) -> Result<DirectoryString> {
+        match (el.tag_class, el.tag_number) {
+            (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING) => {
+                let v = ber_decode_utf8_string(&el)?;
+                return Ok(DirectoryString::UTF8String(v));
+            },
+            (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING) => {
+                let v = ber_decode_bmp_string(&el)?;
+                return Ok(DirectoryString::BMPString(v));
+            },
+            _ => return Err(Error::from(ErrorKind::InvalidInput)),
+        }
     }
 
     #[test]
@@ -494,13 +513,28 @@ mod tests {
                 ),
             ]),
         );
-        let alg_id = decode_AlgorithmIdentifier(root).unwrap();
+        let alg_id = decode_AlgorithmIdentifier(&root).unwrap();
         assert_eq!(alg_id.algorithm.iter().map(|a| a.to_string()).collect::<Vec<String>>().join("."), "2.5.4.3");
         if let Some(p) = alg_id.parameters {
             match p {
                 ASN1Value::NullValue => (),
                 _ => panic!(),
             }
+        } else {
+            panic!();
+        }
+    }
+
+    #[test]
+    fn test_decode_directory_string () {
+        let root: X690Element = X690Element::new(
+            TagClass::UNIVERSAL,
+            ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
+            X690Encoding::IMPLICIT(Vec::from(String::from("Better Call Saul!"))),
+        );
+        let ds = decode_DirectoryString(&root).unwrap();
+        if let DirectoryString::UTF8String(s) = ds {
+            assert_eq!(s, String::from("Better Call Saul!"));
         } else {
             panic!();
         }
