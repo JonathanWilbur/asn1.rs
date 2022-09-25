@@ -60,9 +60,17 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
     ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
     ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
-    TaggedASN1Value, EmbeddedPDV, CharacterString, UTF8String, RELATIVE_OID, TIME,
-    MAX_IA5_STRING_CHAR_CODE, DURATION_EQUIVALENT, ExternalEncoding,
+    TaggedASN1Value,
+    EmbeddedPDV,
+    CharacterString,
+    UTF8String,
+    RELATIVE_OID,
+    TIME,
+    MAX_IA5_STRING_CHAR_CODE,
+    DURATION_EQUIVALENT,
+    ExternalEncoding, Tag,
 };
+use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use num::Zero;
 
 pub mod ber;
@@ -177,6 +185,25 @@ impl X690Element {
                 ret
             },
         }
+    }
+    
+    pub fn is_constructed (&self) -> bool {
+        if let X690Encoding::IMPLICIT(_) = self.value {
+            return false;
+        }
+        if let X690Encoding::Constructed(_) = self.value {
+            return true;
+        }
+        if let X690Encoding::EXPLICIT(_) = self.value {
+            return true;
+        }
+        if let X690Encoding::AlreadyEncoded(bytes) = &self.value {
+            if bytes.len() == 0 {
+                return false;
+            }
+            return (bytes[0] & 0b0010_0000) > 0;
+        }
+        false
     }
 
     // TODO: is_empty()
@@ -1631,9 +1658,9 @@ pub fn ber_encode <W> (output: &mut W, value: &ASN1Value) -> Result<usize>
     write_x690_node(output, &cst.root)
 }
 
-pub fn ber_decode_tag (bytes: ByteSlice) -> Result<(usize, X690Tag)> {
+pub fn ber_decode_tag (bytes: ByteSlice) -> ASN1Result<(usize, X690Tag)> {
     if bytes.len() == 0 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
     }
     let mut bytes_read = 1;
     let tag_class = match (bytes[0] & 0b1100_0000) >> 6 {
@@ -1651,12 +1678,12 @@ pub fn ber_decode_tag (bytes: ByteSlice) -> Result<(usize, X690Tag)> {
             let final_byte: bool = ((*byte) & 0b1000_0000) == 0;
             if (tag_number > 0) && !final_byte { // tag_number > 0 means we've already processed one byte.
                 // Tag encoded on more than 14 bits / two bytes.
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::tag_too_big));
             }
             let seven_bits = ((*byte) & 0b0111_1111) as u16;
             if !final_byte && (seven_bits == 0) {
                 // You cannot encode a long tag with padding bytes.
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::padding_in_tag_number));
             }
             tag_number <<= 7;
             tag_number += seven_bits;
@@ -1667,7 +1694,7 @@ pub fn ber_decode_tag (bytes: ByteSlice) -> Result<(usize, X690Tag)> {
         }
         if tag_number <= 31 { // TODO: Review this number / comparison.
             // This could have been encoded in short form.
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::tag_number_could_have_used_short_form));
         }
     } else {
         tag_number = (bytes[0] & 0b00011111) as TagNumber;
@@ -1677,10 +1704,10 @@ pub fn ber_decode_tag (bytes: ByteSlice) -> Result<(usize, X690Tag)> {
     Ok((bytes_read, tag))
 }
 
-pub fn ber_decode_length (bytes: ByteSlice) -> Result<(usize, X690Length)> {
+pub fn ber_decode_length (bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     if bytes.len() == 0 {
         // Truncated.
-        return Err(Error::new(ErrorKind::InvalidData, "qwer")); // TODO: Find a better error type.
+        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
     }
     if bytes[0] < 0b1000_0000 { // Equivalent to ((b[0] & 0b1000_0000) == 0)
         return Ok((1, X690Length::Definite(bytes[0] as usize)));
@@ -1692,11 +1719,11 @@ pub fn ber_decode_length (bytes: ByteSlice) -> Result<(usize, X690Length)> {
     let length_length = (bytes[0] & 0b0111_1111) as usize;
     if length_length > size_of::<usize>() {
         // Length too big.
-        return Err(Error::new(ErrorKind::InvalidData, "tyui")); // TODO: Find a better error type.
+        return Err(ASN1Error::new(ASN1ErrorCode::length_too_big));
     }
     if (bytes.len() - 1) < length_length {
         // Insufficient bytes to read the length.
-        return Err(Error::new(ErrorKind::InvalidData, "rutdfg")); // TODO: Find a better error type. 
+        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
     }
     let bytes_read = 1 + length_length;
     let len: usize = match length_length {
@@ -1714,7 +1741,7 @@ pub fn ber_decode_length (bytes: ByteSlice) -> Result<(usize, X690Length)> {
 }
 
 // Get the CST of BER-encoded data.
-pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
+pub fn ber_cst (bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
     let tag_encoding_length: usize;
     let tag_class: TagClass;
     let constructed: bool;
@@ -1740,8 +1767,10 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
     match value_length {
         X690Length::Definite(len) => {
             if (bytes.len() - bytes_read) < len {
-                // Truncated.
-                return Err(Error::new(ErrorKind::InvalidData, "eoriyjhe")); // TODO: Find a better error type. 
+                let mut err = ASN1Error::new(ASN1ErrorCode::truncated);
+                err.tag = Some(Tag::new(tag_class, tag_number));
+                err.length = Some(len);
+                return Err(err);
             }
             if !constructed {
                 let el = X690Element::new(
@@ -1779,7 +1808,9 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
         X690Length::Indefinite => {
             if !constructed {
                 // Indefinite length must be constructed.
-                return Err(Error::from(ErrorKind::InvalidData)); // TODO: Find a better error type. 
+                let mut err = ASN1Error::new(ASN1ErrorCode::x690_indefinite_length_but_not_constructed);
+                err.tag = Some(Tag::new(tag_class, tag_number));
+                return Err(err);
             }
             /* We don't know how many child elements this element must have, but
             it is a good guess (optimization) to assume that there is at least
@@ -1817,10 +1848,10 @@ pub fn ber_cst (bytes: ByteSlice) -> Result<(usize, X690Element)> {
 }
 
 // TODO: This needs testing.
-pub fn deconstruct (el: &X690Element) -> Result<X690Element> {
+pub fn deconstruct (el: &X690Element) -> ASN1Result<X690Element> {
     match &el.value {
         X690Encoding::IMPLICIT(_) => Ok(el.clone()),
-        X690Encoding::EXPLICIT(_) => return Err(Error::new(ErrorKind::InvalidData, "asdf")),
+        X690Encoding::EXPLICIT(inner) => Ok(*(*inner).clone()),
         X690Encoding::AlreadyEncoded(bytes) => {
             match ber_cst(&bytes) {
                 Ok((_, cst)) => {
@@ -1833,14 +1864,24 @@ pub fn deconstruct (el: &X690Element) -> Result<X690Element> {
             let mut deconstructed_value: Bytes = Vec::new();
             for child in children {
                 if child.tag_class != el.tag_class || child.tag_number != el.tag_number {
-                    return Err(Error::new(ErrorKind::InvalidData, "asdf")); 
+                    let mut err = ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
+                    err.component_name = el.name.clone();
+                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.length = Some(el.len());
+                    err.constructed = Some(true);
+                    return Err(err); 
                 }
                 match deconstruct(&child) {
                     Ok(deconstructed_child) => {
                         if let X690Encoding::IMPLICIT(sub) = deconstructed_child.value {
                             deconstructed_value.extend(sub);
                         } else {
-                            return Err(Error::new(ErrorKind::InvalidData, "asdf")); 
+                            let mut err = ASN1Error::new(ASN1ErrorCode::failed_to_deconstruct);
+                            err.component_name = el.name.clone();
+                            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                            err.length = Some(el.len());
+                            err.constructed = Some(true);
+                            return Err(err); 
                         }
                     },
                     Err(e) => return Err(e),

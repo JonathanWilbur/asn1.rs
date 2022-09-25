@@ -1,8 +1,11 @@
-use std::io::{ErrorKind, Result, Error};
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+
 use std::collections::{HashSet, HashMap};
 use asn1::types::Tag;
 use asn1::construction::{TagSelector, ComponentSpec};
 use crate::{X690Element, X690Encoding};
+use asn1::error::{ASN1Result, ASN1Error, ASN1ErrorCode};
 
 // Return `true` if successfully handled; `false` if error. Parsing will not continue if `false` returned.
 pub type ComponentHandler <'a> = &'a dyn FnMut (&X690Element) -> bool;
@@ -11,7 +14,7 @@ pub type ComponentHandlers <'a> = HashMap<&'a str, ComponentHandler<'a>>;
 
 pub type AlternativeHandlers <'a> = HashMap<Tag, (&'a str, ComponentHandler<'a>)>;
 
-pub type Decoder <T> = fn (el: &X690Element) -> Result<T>;
+pub type Decoder <T> = fn (el: &X690Element) -> ASN1Result<T>;
 
 pub type IndexedComponents <'a, 'b> = (HashMap<&'a str, &'b X690Element>, Vec<&'b X690Element>);
 
@@ -48,9 +51,11 @@ pub fn _parse_set <'a> (
     eal: &'a [ComponentSpec],
     rctl2: &'a [ComponentSpec],
     max_elements: usize,
-) -> Result<IndexedComponents<'a, 'a>> {
+) -> ASN1Result<IndexedComponents<'a, 'a>> {
     if elements.len() > max_elements {
-        return Err(Error::from(ErrorKind::InvalidInput));
+        let mut err = ASN1Error::new(ASN1ErrorCode::construction_too_complex);
+        err.constructed = Some(true);
+        return Err(err);
     }
 
     // Check for duplicates
@@ -58,7 +63,12 @@ pub fn _parse_set <'a> (
     for el in elements {
         // TODO: Is checking if a _reference_ to a tag going to work?
         if encountered_tags.contains(&Tag::new(el.tag_class, el.tag_number)) {
-            return Err(Error::from(ErrorKind::InvalidInput)); 
+            let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
+            err.component_name = el.name.clone();
+            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+            err.length = Some(el.len());
+            err.constructed = Some(el.is_constructed());
+            return Err(err);
         }
         encountered_tags.insert(Tag::new(el.tag_class, el.tag_number));
     }
@@ -84,7 +94,12 @@ pub fn _parse_set <'a> (
         match tag_to_spec.get(&Tag::new(el.tag_class, el.tag_number)) {
             Some(s) => {
                 if encountered_components.contains(s.name) {
-                    return Err(Error::from(ErrorKind::InvalidInput));
+                    let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_components);
+                    err.component_name = Some(String::from(s.name));
+                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.length = Some(el.len());
+                    err.constructed = Some(el.is_constructed());
+                    return Err(err);
                 }
                 encountered_components.insert(s.name);
                 if let Some(group_index) = s.group_index {
@@ -115,7 +130,9 @@ pub fn _parse_set <'a> (
     }
 
     if missing_required_components.len() > 0 {
-        return Err(Error::from(ErrorKind::InvalidInput));
+        let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+        err.component_name = Some(String::from(missing_required_components[0]));
+        return Err(err);
     }
 
     Ok(ret)
@@ -125,7 +142,7 @@ pub fn _parse_component_type_list <'a> (
     ctl: &'a [ComponentSpec],
     elements: &'a [&'a X690Element],
     is_extensions: bool,
-) -> Result<(usize, IndexedComponents<'a, 'a>)> {
+) -> ASN1Result<(usize, IndexedComponents<'a, 'a>)> {
     let mut e: usize = 0;
     let mut s: usize = 0;
     let mut current_group: Option<u8> = None;
@@ -149,7 +166,9 @@ pub fn _parse_component_type_list <'a> (
                     let curr_group = current_group.unwrap_or(u8::MAX);
                     if let Some(group_index) = spec.group_index {
                         if group_index <= curr_group {
-                            return Err(Error::from(ErrorKind::InvalidInput));
+                            let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                            err.component_name = Some(String::from(spec.name));
+                            return Err(err);
                         } else {
                             s += 1;
                             continue;
@@ -159,7 +178,9 @@ pub fn _parse_component_type_list <'a> (
                         continue;
                     }
                 } else {
-                    return Err(Error::from(ErrorKind::InvalidInput));
+                    let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                    err.component_name = Some(String::from(spec.name));
+                    return Err(err);
                 }
             },
         };
@@ -170,7 +191,9 @@ pub fn _parse_component_type_list <'a> (
             }
             e += 1; // Only if it is a match do you increment the element.
         } else if !spec.optional {
-            return Err(Error::from(ErrorKind::InvalidInput));
+            let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+            err.component_name = Some(String::from(spec.name));
+            return Err(err);
         }
         s += 1;
     }
@@ -194,7 +217,7 @@ pub fn _parse_sequence_with_trailing_rctl <'a> (
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
     rctl2: &'a [ComponentSpec],
-) -> Result<IndexedComponents<'a, 'a>> {
+) -> ASN1Result<IndexedComponents<'a, 'a>> {
     let (start_of_exts, rctl1_index) = _parse_component_type_list(
         rctl1,
         elements,
@@ -230,7 +253,9 @@ pub fn _parse_sequence_with_trailing_rctl <'a> (
         false,
     )?;
     if start_of_rctl2 + rctl2_components_read > elements.len() {
-        return Err(Error::from(ErrorKind::InvalidInput));
+        let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
+        err.constructed = Some(true);
+        return Err(err);
     }
     // let end_of_recognized_exts = start_of_exts + exts_read;
     let mut ret: IndexedComponents = rctl1_index;
@@ -245,7 +270,7 @@ pub fn _parse_sequence_without_trailing_rctl <'a> (
     elements: &'a [&'a X690Element],
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
-) -> Result<IndexedComponents<'a, 'a>> {
+) -> ASN1Result<IndexedComponents<'a, 'a>> {
     let (start_of_exts, rctl_index) = _parse_component_type_list(
         rctl1, 
         &elements,
@@ -270,7 +295,7 @@ pub fn _parse_sequence <'a> (
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
     rctl2: &'a [ComponentSpec],
-) -> Result<IndexedComponents<'a, 'a>> {
+) -> ASN1Result<IndexedComponents<'a, 'a>> {
     if rctl2.len() > 0 {
         return _parse_sequence_with_trailing_rctl(
             elements,
@@ -291,7 +316,7 @@ pub fn _parse_sequence <'a> (
 //     el: &mut X690Element,
 //     handlers: AlternativeHandlers,
 //     unrecognized_handler: Option<ComponentHandler>,
-// ) -> Result<()> {
+// ) -> ASN1Result<()> {
 //     let tag = Tag::new(el.tag_class, el.tag_number);
 //     match handlers.get(&tag) {
 //         Some((name, handler)) => {
@@ -314,10 +339,17 @@ pub fn _parse_sequence <'a> (
 //     Ok(())
 // }
 
-pub fn _decode_sequence_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> Result<Vec<T>> {
+pub fn _decode_sequence_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
     let elements = match &el.value {
         X690Encoding::Constructed(children) => children,
-        _ => return Err(Error::from(ErrorKind::InvalidInput)),
+        _ => {
+            let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
+            err.component_name = el.name.clone();
+            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+            err.constructed = Some(true);
+            err.length = Some(el.len());
+            return Err(err);
+        },
     };
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
     for element in elements {
@@ -327,10 +359,17 @@ pub fn _decode_sequence_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> R
     Ok(ret)
 }
 
-pub fn _decode_set_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> Result<Vec<T>> {
+pub fn _decode_set_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
     let elements = match &el.value {
         X690Encoding::Constructed(children) => children,
-        _ => return Err(Error::from(ErrorKind::InvalidInput)),
+        _ => {
+            let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
+            err.component_name = el.name.clone();
+            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+            err.constructed = Some(true);
+            err.length = Some(el.len());
+            return Err(err);
+        },
     };
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
     for element in elements {
@@ -384,13 +423,13 @@ mod tests {
     const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
     const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
 
-    fn decode_AlgorithmIdentifier (el: &X690Element) -> Result<AlgorithmIdentifier> {
+    fn decode_AlgorithmIdentifier (el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
         let elements = match &el.value {
             X690Encoding::Constructed(children) => children,
             _ => panic!(),
         };
         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
-        let (components, unrecognized) = _parse_sequence(
+        let (components, _) = _parse_sequence(
             el_refs.as_slice(),
             _rctl1_components_for_AlgorithmIdentifier,
             _eal_components_for_AlgorithmIdentifier,
@@ -412,14 +451,12 @@ mod tests {
         })
     }
 
-
-
     enum DirectoryString {
         UTF8String (String),
         BMPString (String),
     }
 
-    fn decode_DirectoryString (el: &X690Element) -> Result<DirectoryString> {
+    fn decode_DirectoryString (el: &X690Element) -> ASN1Result<DirectoryString> {
         match (el.tag_class, el.tag_number) {
             (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING) => {
                 let v = ber_decode_utf8_string(&el)?;
@@ -429,7 +466,7 @@ mod tests {
                 let v = ber_decode_bmp_string(&el)?;
                 return Ok(DirectoryString::BMPString(v));
             },
-            _ => return Err(Error::from(ErrorKind::InvalidInput)),
+            _ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
         }
     }
 

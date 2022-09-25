@@ -1,4 +1,3 @@
-use std::io::{Write, Result, Error, ErrorKind};
 use std::ops::Deref;
 use std::str::FromStr;
 use std::cmp::min;
@@ -88,9 +87,10 @@ use asn1::types::{
     EMBEDDED_PDV,
     PresentationContextSwitchingTypeIdentification,
     IdentificationSyntaxes,
-    CHARACTER_STRING,
+    CHARACTER_STRING, Tag,
 };
 use asn1::construction::{ComponentSpec, TagSelector};
+use asn1::error::{ASN1Error, ASN1Result, ASN1ErrorCode};
 
 use asn1::bitstring::join_bit_strings;
 use crate::{
@@ -118,20 +118,22 @@ use crate::{
     X690_REAL_BASE_16,
     deconstruct,
 };
-use crate::parsing::{_parse_sequence};
+use crate::parsing::_parse_sequence;
 
 // BIT STRING is constructed in a such a way that the octets of each subelement
 // cannot simply be concatenated. As such, this function deconstructed a
 // constructed BIT STRING to obtain a single BIT STRING.
-pub fn deconstruct_bit_string (el: &X690Element) -> Result<BIT_STRING> {
+pub fn deconstruct_bit_string (el: &X690Element) -> ASN1Result<BIT_STRING> {
     match &el.value {
-        X690Encoding::IMPLICIT(bytes) => {
-            match ber_decode_bit_string_value(bytes.as_slice()) {
-                Ok(decoded) => return Ok(decoded),
-                Err(e) => return Err(e),
-            }
+        X690Encoding::IMPLICIT(bytes) => Ok(ber_decode_bit_string_value(bytes.as_slice())?),
+        X690Encoding::EXPLICIT(_) => {
+            let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+            err.component_name = el.name.clone();
+            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+            err.constructed = Some(true);
+            err.length = Some(el.len());
+            return Err(err);
         },
-        X690Encoding::EXPLICIT(_) => return Err(Error::new(ErrorKind::InvalidData, "asdf")),
         X690Encoding::AlreadyEncoded(bytes) => {
             match ber_cst(&bytes) {
                 Ok((_, cst)) => {
@@ -144,7 +146,12 @@ pub fn deconstruct_bit_string (el: &X690Element) -> Result<BIT_STRING> {
             let mut substituent_bit_strings: Vec<BIT_STRING> = Vec::new();
             for child in children {
                 if child.tag_class != el.tag_class || child.tag_number != el.tag_number {
-                    return Err(Error::new(ErrorKind::InvalidData, "asdf")); 
+                    let mut err = ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
+                    err.component_name = el.name.clone();
+                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.length = Some(el.len());
+                    err.constructed = Some(true);
+                    return Err(err); 
                 }
                 match deconstruct_bit_string(&child) {
                     Ok(deconstructed_child) => {
@@ -158,23 +165,15 @@ pub fn deconstruct_bit_string (el: &X690Element) -> Result<BIT_STRING> {
     }
 }
 
-pub fn ber_encode_boolean_value <T> (output: &mut T, value: BOOLEAN) -> Result<usize>
-    where T : Write {
-    if value {
-       return output.write(&[ 0x01, 0x01, 0xFF ]);
-    } else {
-        return output.write(&[ 0x01, 0x01, 0x00 ]);
-    }
-}
-
-pub fn ber_decode_boolean_value (value_bytes: ByteSlice) -> Result<BOOLEAN> {
+pub fn ber_decode_boolean_value (value_bytes: ByteSlice) -> ASN1Result<BOOLEAN> {
     if value_bytes.len() != 1 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        let err = ASN1Error::new(ASN1ErrorCode::x690_boolean_not_one_byte);
+        return Err(err);
     }
     Ok(value_bytes[0] > 0)
 }
 
-pub fn ber_decode_integer_value (value_bytes: ByteSlice) -> Result<INTEGER> {
+pub fn ber_decode_integer_value (value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
     let len = value_bytes.len();
     match len {
         1 => Ok(value_bytes[0] as i8 as INTEGER),
@@ -191,18 +190,18 @@ pub fn ber_decode_integer_value (value_bytes: ByteSlice) -> Result<INTEGER> {
             buf[8-len..].copy_from_slice(value_bytes);
             Ok( i64::from_be_bytes(buf))
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::value_too_big)),
     }
 }
 
-pub fn ber_decode_bit_string_value (value_bytes: ByteSlice) -> Result<BIT_STRING> {
+pub fn ber_decode_bit_string_value (value_bytes: ByteSlice) -> ASN1Result<BIT_STRING> {
     let len = value_bytes.len();
     if len < 1 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
     }
     let trailing_bits = value_bytes[0];
     if trailing_bits > 7 {
-        return Err(Error::from(ErrorKind::InvalidData)); 
+        return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_remainder_gt_7)); 
     }
     Ok(BIT_STRING{
         bytes: Vec::from(&value_bytes[1..]),
@@ -210,14 +209,14 @@ pub fn ber_decode_bit_string_value (value_bytes: ByteSlice) -> Result<BIT_STRING
     })
 }
 
-pub fn ber_decode_octet_string_value (value_bytes: ByteSlice) -> Result<OCTET_STRING> {
+pub fn ber_decode_octet_string_value (value_bytes: ByteSlice) -> ASN1Result<OCTET_STRING> {
     Ok(Vec::from(value_bytes))
 }
 
-pub fn ber_decode_object_identifier_value (value_bytes: ByteSlice) -> Result<OBJECT_IDENTIFIER> {
+pub fn ber_decode_object_identifier_value (value_bytes: ByteSlice) -> ASN1Result<OBJECT_IDENTIFIER> {
     let len = value_bytes.len();
     if len < 1 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
     }
     let arc1 = (value_bytes[0] / 40) as u32;
     let arc2 = (value_bytes[0] % 40) as u32;
@@ -231,13 +230,13 @@ pub fn ber_decode_object_identifier_value (value_bytes: ByteSlice) -> Result<OBJ
             current_node = 0;
         }
     }
-    if current_node > 0 { // Truncated.
-        return Err(Error::from(ErrorKind::InvalidData));
+    if current_node > 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     Ok(nodes)
 }
 
-pub fn ber_decode_relative_oid_value (value_bytes: ByteSlice) -> Result<RELATIVE_OID> {
+pub fn ber_decode_relative_oid_value (value_bytes: ByteSlice) -> ASN1Result<RELATIVE_OID> {
     let len = value_bytes.len();
     let mut nodes: Vec<u32> = Vec::with_capacity(len);
     let mut current_node: u32 = 0;
@@ -250,7 +249,7 @@ pub fn ber_decode_relative_oid_value (value_bytes: ByteSlice) -> Result<RELATIVE
         }
     }
     if current_node > 0 { // Truncated.
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     Ok(nodes)
 }
@@ -270,7 +269,7 @@ pub fn ber_read_var_length_u64 (bytes: ByteSlice) -> u64 {
     }
 }
 
-pub fn ber_decode_real_value (value_bytes: ByteSlice) -> Result<REAL> {
+pub fn ber_decode_real_value (value_bytes: ByteSlice) -> ASN1Result<REAL> {
     if value_bytes.len() == 0 {
         return Ok(0.000000);
     }
@@ -280,32 +279,34 @@ pub fn ber_decode_real_value (value_bytes: ByteSlice) -> Result<REAL> {
             X690_SPECIAL_REAL_MINUS_INFINITY => return Ok(f64::NEG_INFINITY),
             X690_SPECIAL_REAL_NOT_A_NUMBER => return Ok(f64::NAN),
             X690_SPECIAL_REAL_MINUS_ZERO => return Ok(-0.000000),
-            _ => return Err(Error::from(ErrorKind::InvalidData)),
+            _ => return Err(ASN1Error::new(ASN1ErrorCode::urecognized_real_format)),
         },
         X690_REAL_BASE10 => {
             let str_ = match String::from_utf8(value_bytes[1..].to_vec()) {
                 Ok(v) => String::from(v.trim_start()),
-                _ => return Err(Error::from(ErrorKind::InvalidData)),
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_decoding_error)),
             };
             let f64_value = match f64::from_str(&str_) {
                 Ok(f) => f,
-                _ => return Err(Error::from(ErrorKind::InvalidData)),
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(String::from(&str_[0..32])))),
             };
             // FIXME: Wrong formatting.
-            return match value_bytes[0] & 0b0011_1111 {
+            let format = value_bytes[0] & 0b0011_1111;
+            return match format {
                 X690_REAL_NR1 => Ok(f64_value),
                 X690_REAL_NR2 => Ok(f64_value),
                 X690_REAL_NR3 => Ok(f64_value),
-                _ => return Err(Error::from(ErrorKind::InvalidData)),
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_unrecognized_format(format))),
             };
         },
         _ => { // Binary encoding
             let negative = (value_bytes[0] & 0b0100_0000) > 0;
-            let base: u8 = match value_bytes[0] & X690_REAL_BASE_MASK {
+            let base_byte = value_bytes[0] & X690_REAL_BASE_MASK;
+            let base: u8 = match base_byte {
                 X690_REAL_BASE_2 => 2,
                 X690_REAL_BASE_8 => 8,
                 X690_REAL_BASE_16 => 16,
-                _ => return Err(Error::from(ErrorKind::InvalidData)),
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_unrecognized_base(base_byte))),
             };
             let scale: u8 = (value_bytes[0] & X690_REAL_BINARY_SCALING_MASK).overflowing_shr(2).0;
             let mantissa: u64;
@@ -313,42 +314,43 @@ pub fn ber_decode_real_value (value_bytes: ByteSlice) -> Result<REAL> {
             match value_bytes[0] & X690_REAL_EXPONENT_FORMAT_MASK {
                 X690_REAL_EXPONENT_FORMAT_1_OCTET => {
                     if value_bytes.len() < 3 {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                     }
                     exponent = value_bytes[1] as i8 as i32;
                     mantissa = ber_read_var_length_u64(&value_bytes[2..])
                 },
                 X690_REAL_EXPONENT_FORMAT_2_OCTET => {
                     if value_bytes.len() < 4 {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                     }
-                    if value_bytes.len() > 4 + 6 { // Mantissa too big.
-                        return Err(Error::from(ErrorKind::InvalidData));
+                    if value_bytes.len() > 4 + 6 { // Mantissa too big..
+                        return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                     }
                     exponent = i32::from_be_bytes([ 0, 0, value_bytes[1], value_bytes[2] ]);
                     mantissa = ber_read_var_length_u64(&value_bytes[3..])
                 },
                 X690_REAL_EXPONENT_FORMAT_3_OCTET => {
                     if value_bytes.len() < 5 {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                     }
                     if value_bytes.len() > 5 + 6 { // Mantissa too big.
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                     }
                     exponent = i32::from_be_bytes([ 0, value_bytes[1], value_bytes[2], value_bytes[3] ]);
                     mantissa = ber_read_var_length_u64(&value_bytes[4..])
                 },
                 X690_REAL_EXPONENT_FORMAT_VAR_OCTET => {
                     if value_bytes.len() < 3 {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                     }
                     let exponent_len = value_bytes[1];
                     if exponent_len > 2 {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                     }
                     if value_bytes.len() > (3 + exponent_len).into() { // Mantissa too big.
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                     }
+                    // FIXME: How do you know the mantissa was not too big?
                     if exponent_len == 1 {
                         exponent = value_bytes[2] as i8 as i32;
                         mantissa = ber_read_var_length_u64(&value_bytes[3..]);
@@ -357,7 +359,7 @@ pub fn ber_decode_real_value (value_bytes: ByteSlice) -> Result<REAL> {
                         mantissa = ber_read_var_length_u64(&value_bytes[4..]);
                     }
                 },
-                _ => return Err(Error::from(ErrorKind::InvalidData)), // This should never happen.
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::nonsense)), // This should never happen.
             }
             let unsigned_value = (mantissa as f64)
                 * (2u8.pow(scale.into())) as f64
@@ -371,10 +373,10 @@ pub fn ber_decode_real_value (value_bytes: ByteSlice) -> Result<REAL> {
     }
 }
 
-pub fn ber_decode_numeric_string_value (value_bytes: ByteSlice) -> Result<NumericString> {
-    for byte in value_bytes {
+pub fn ber_decode_numeric_string_value (value_bytes: ByteSlice) -> ASN1Result<NumericString> {
+    for (i, byte) in value_bytes.iter().enumerate() {
         if !byte.is_ascii_digit() && *byte != 0x20 {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(*byte as u32, i)));
         }
     }
     unsafe {
@@ -382,8 +384,8 @@ pub fn ber_decode_numeric_string_value (value_bytes: ByteSlice) -> Result<Numeri
     }
 }
 
-pub fn ber_decode_printable_string_value (value_bytes: ByteSlice) -> Result<PrintableString> {
-    for byte in value_bytes {
+pub fn ber_decode_printable_string_value (value_bytes: ByteSlice) -> ASN1Result<PrintableString> {
+    for (i, byte) in value_bytes.iter().enumerate() {
         let b = *byte as char;
         if byte.is_ascii_alphanumeric()
             || (b >= '\x27' && b < '0' && b != '*') // '()+,-./ BUT NOT *
@@ -393,17 +395,17 @@ pub fn ber_decode_printable_string_value (value_bytes: ByteSlice) -> Result<Prin
             || b == '?' {
             continue;
         }
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(*byte as u32, i)));
     }
     unsafe {
         Ok(String::from_utf8_unchecked(value_bytes.to_vec()))
     }
 }
 
-pub fn ber_decode_ia5_string_value (value_bytes: ByteSlice) -> Result<IA5String> {
-    for byte in value_bytes {
+pub fn ber_decode_ia5_string_value (value_bytes: ByteSlice) -> ASN1Result<IA5String> {
+    for (i, byte) in value_bytes.iter().enumerate() {
         if *byte > MAX_IA5_STRING_CHAR_CODE { // FIXME: This is impossible.
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(*byte as u32, i)));
         }
     }
     // FIXME: This will not decode correctly.
@@ -412,111 +414,111 @@ pub fn ber_decode_ia5_string_value (value_bytes: ByteSlice) -> Result<IA5String>
     }
 }
 
-pub fn ber_decode_utc_time_value (value_bytes: ByteSlice) -> Result<UTCTime> {
+pub fn ber_decode_utc_time_value (value_bytes: ByteSlice) -> ASN1Result<UTCTime> {
     let len = value_bytes.len();
     if len < 10 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     if len > 17 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     for byte in value_bytes[0..10].iter() {
         if !byte.is_ascii_digit() {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
     }
     let s = match String::from_utf8(value_bytes.to_vec()) {
         Ok(r) => r,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let mut ret = UTCTime::new();
     ret.year = match u8::from_str(&s[0..2]) {
         Ok(u) => u,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_year)),
     };
     ret.month = match u8::from_str(&s[2..4]) {
         Ok(u) => {
             if u == 0 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
             }
             if u > 12 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_month)),
     };
     ret.day = match u8::from_str(&s[4..6]) {
         Ok(u) => {
             if u == 0 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
             }
             if u > 31 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_day)),
     };
     ret.hour = match u8::from_str(&s[6..8]) {
         Ok(u) => {
             if u > 23 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour)),
     };
     ret.minute = match u8::from_str(&s[8..10]) {
         Ok(u) => {
             if u > 59 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute)),
     };
     if (len > 12) && value_bytes[10].is_ascii_digit() {
         // Seconds component is present.
         if !value_bytes[11].is_ascii_digit() {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
         }
         ret.second = match u8::from_str(&s[10..12]) {
             Ok(u) => {
                 if u > 59 {
-                    return Err(Error::from(ErrorKind::InvalidData));
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
                 }
                 Some(u)
             },
-            Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_second)),
         };
     }
     if value_bytes[len - 1] as char != 'Z' {
         if (value_bytes[len - 5] as char != '+') && (value_bytes[len - 5] as char != '-') {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
         for byte in value_bytes[len-4..len].iter() {
             if !byte.is_ascii_digit() {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
         }
         let offset_hour = match i8::from_str(&s[len-4..len-2]) {
             Ok(u) => {
                 if u > 12 {
-                    return Err(Error::from(ErrorKind::InvalidData));
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
                 }
                 u
             },
-            Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
         };
         let offset_minute = match u8::from_str(&s[len-2..len]) {
             Ok(u) => {
                 if u > 59 {
-                    return Err(Error::from(ErrorKind::InvalidData));
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
                 }
                 u
             },
-            Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
         };
         ret.utc_offset = Some(UTCOffset {
             hour: if value_bytes[len - 5] as char == '-' { -1 * offset_hour } else { offset_hour },
@@ -527,76 +529,76 @@ pub fn ber_decode_utc_time_value (value_bytes: ByteSlice) -> Result<UTCTime> {
 }
 
 // FIXME:
-pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> Result<GeneralizedTime> {
+pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> ASN1Result<GeneralizedTime> {
     let len = value_bytes.len();
     if len < 10 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     // There is technically no limit on how big a GeneralizedTime can be, but
     // we have to set a reasonable limit here.
     if len > 32 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
     }
     for byte in value_bytes[0..10].iter() {
         if !byte.is_ascii_digit() {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
     }
     let s = match String::from_utf8(value_bytes.to_vec()) {
         Ok(r) => r,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let mut date = DATE::new();
     let mut ret = GeneralizedTime::new();
     date.year = match u16::from_str(&s[0..4]) {
         Ok(u) => u,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_year)),
     };
     date.month = match u8::from_str(&s[4..6]) {
         Ok(u) => {
             if u == 0 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
             }
             if u > 12 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_month)),
     };
     date.day = match u8::from_str(&s[6..8]) {
         Ok(u) => {
             if u == 0 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
             }
             if u > 31 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_day)),
     };
     ret.hour = match u8::from_str(&s[8..10]) {
         Ok(u) => {
             if u > 23 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour)),
     };
     if (len > 12) && value_bytes[10].is_ascii_digit() {
         if !value_bytes[11].is_ascii_digit() {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
         }
         ret.minute = match u8::from_str(&s[10..12]) {
             Ok(u) => {
                 if u > 59 {
-                    return Err(Error::from(ErrorKind::InvalidData));
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
                 }
                 Some(u)
             },
-            Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute)),
         };
     }
 
@@ -605,16 +607,16 @@ pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> Result<Gene
         if (len > 14) && value_bytes[12].is_ascii_digit() {
             // Seconds component is present.
             if !value_bytes[13].is_ascii_digit() {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
             ret.second = match u8::from_str(&s[12..14]) {
                 Ok(u) => {
                     if u > 59 {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
                     }
                     Some(u)
                 },
-                Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+                Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_second)),
             };
         }
     }
@@ -631,11 +633,11 @@ pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> Result<Gene
             ret.fraction = match u16::from_str(&s[12..end]) {
                 Ok(u) => {
                     if u > 9999 {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                     }
                     Some(u)
                 },
-                Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+                Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds)),
             };
         }
     }
@@ -653,26 +655,26 @@ pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> Result<Gene
     // For the rest of this function, we are parsing the UTC Offset.
     for byte in value_bytes[len-4..len].iter() {
         if !byte.is_ascii_digit() {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
     }
     let offset_hour = match i8::from_str(&s[len-4..len-2]) {
         Ok(u) => {
             if u > 12 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
     };
     let offset_minute = match u8::from_str(&s[len-2..len]) {
         Ok(u) => {
             if u > 59 {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
             u
         },
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
     };
     ret.utc_offset = Some(UTCOffset {
         hour: if value_bytes[len - 5] as char == '-' { -1 * offset_hour } else { offset_hour },
@@ -681,10 +683,10 @@ pub fn ber_decode_generalized_time_value (value_bytes: ByteSlice) -> Result<Gene
     Ok(ret)
 }
 
-pub fn ber_decode_graphic_string_value (value_bytes: ByteSlice) -> Result<GraphicString> {
-    for byte in value_bytes {
+pub fn ber_decode_graphic_string_value (value_bytes: ByteSlice) -> ASN1Result<GraphicString> {
+    for (i, byte) in value_bytes.iter().enumerate() {
         if !byte.is_ascii_graphic() && (*byte as char != ' ') {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(*byte as u32, i)));
         }
     }
     unsafe {
@@ -692,10 +694,10 @@ pub fn ber_decode_graphic_string_value (value_bytes: ByteSlice) -> Result<Graphi
     }
 }
 
-pub fn ber_decode_visible_string_value (value_bytes: ByteSlice) -> Result<VisibleString> {
-    for byte in value_bytes {
+pub fn ber_decode_visible_string_value (value_bytes: ByteSlice) -> ASN1Result<VisibleString> {
+    for (i, byte) in value_bytes.iter().enumerate() {
         if !byte.is_ascii() || *byte == 0x7F {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(*byte as u32, i)));
         }
     }
     unsafe {
@@ -703,10 +705,10 @@ pub fn ber_decode_visible_string_value (value_bytes: ByteSlice) -> Result<Visibl
     }
 }
 
-pub fn ber_decode_general_string_value (value_bytes: ByteSlice) -> Result<GeneralString> {
-    for byte in value_bytes {
+pub fn ber_decode_general_string_value (value_bytes: ByteSlice) -> ASN1Result<GeneralString> {
+    for (i, byte) in value_bytes.iter().enumerate() {
         if !byte.is_ascii() {
-            return Err(Error::from(ErrorKind::InvalidData));
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(*byte as u32, i)));
         }
     }
     unsafe {
@@ -714,9 +716,9 @@ pub fn ber_decode_general_string_value (value_bytes: ByteSlice) -> Result<Genera
     }
 }
 
-pub fn ber_decode_universal_string_value (value_bytes: ByteSlice) -> Result<UniversalString> {
+pub fn ber_decode_universal_string_value (value_bytes: ByteSlice) -> ASN1Result<UniversalString> {
     if (value_bytes.len() % 4) != 0 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     let char_length = value_bytes.len() / 4;
     let mut ret = String::with_capacity(char_length);
@@ -729,15 +731,15 @@ pub fn ber_decode_universal_string_value (value_bytes: ByteSlice) -> Result<Univ
         ]);
         match char::from_u32(code_point) {
             Some(c) => ret.push(c),
-            None => return Err(Error::from(ErrorKind::InvalidData)), 
-        }
+            None => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)), 
+        };
     }
     return Ok(ret);
 }
 
-pub fn ber_decode_bmp_string_value (value_bytes: ByteSlice) -> Result<BMPString> {
+pub fn ber_decode_bmp_string_value (value_bytes: ByteSlice) -> ASN1Result<BMPString> {
     if (value_bytes.len() % 2) != 0 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     let char_length = value_bytes.len() / 4;
     let mut ret = String::with_capacity(char_length);
@@ -748,70 +750,66 @@ pub fn ber_decode_bmp_string_value (value_bytes: ByteSlice) -> Result<BMPString>
         ]);
         match char::from_u32(code_point as u32) {
             Some(c) => ret.push(c),
-            None => return Err(Error::from(ErrorKind::InvalidData)), 
-        }
+            None => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)), 
+        };
     }
     return Ok(ret);
 }
 
-pub fn ber_decode_date_value (value_bytes: ByteSlice) -> Result<DATE> {
+pub fn ber_decode_date_value (value_bytes: ByteSlice) -> ASN1Result<DATE> {
     if value_bytes.len() != 10 { // "YYYY-MM-DD".len()
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     let str_ = match String::from_utf8(value_bytes.to_vec()) {
         Ok(s) => s,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let year = match u16::from_str(&str_[0..4]) {
         Ok(x) => x,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let month = match u8::from_str(&str_[5..7]) {
         Ok(x) => x,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let day = match u8::from_str(&str_[8..]) {
         Ok(x) => x,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
+    // FIXME: Validate hour, minute, second.
     return Ok(DATE { year, month, day });
 }
 
-pub fn ber_decode_time_of_day_value (value_bytes: ByteSlice) -> Result<TIME_OF_DAY> {
+pub fn ber_decode_time_of_day_value (value_bytes: ByteSlice) -> ASN1Result<TIME_OF_DAY> {
     if value_bytes.len() != 8 { // "HH:MM:SS".len()
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
     let str_ = match String::from_utf8(value_bytes.to_vec()) {
         Ok(s) => s,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let hour = match u8::from_str(&str_[0..2]) {
         Ok(x) => x,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let minute = match u8::from_str(&str_[3..5]) {
         Ok(x) => x,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
     let second = match u8::from_str(&str_[6..]) {
         Ok(x) => x,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
     };
+    // FIXME: Validate hour, minute, second.
     return Ok(TIME_OF_DAY { hour, minute, second });
 }
 
-pub fn ber_decode_date_time_value (value_bytes: ByteSlice) -> Result<DATE_TIME> {
+pub fn ber_decode_date_time_value (value_bytes: ByteSlice) -> ASN1Result<DATE_TIME> {
     if value_bytes.len() != 19 { // "YYYY-MM-DDTHH:MM:SS".len()
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
-    let date = match ber_decode_date_value(&value_bytes[0..10]) {
-        Ok(d) => d,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
-    };
-    let time = match ber_decode_time_of_day_value(&value_bytes[11..19]) {
-        Ok(t) => t,
-        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
-    };
+    let date = ber_decode_date_value(&value_bytes[0..10])?;
+    let time = ber_decode_time_of_day_value(&value_bytes[11..19])?;
     return Ok(DATE_TIME {
         date,
         time,
@@ -826,12 +824,12 @@ const DURATION_COMPONENT_HOURS: u8      = 0b0001_0000;
 const DURATION_COMPONENT_MINUTES: u8    = 0b0010_0000;
 const DURATION_COMPONENT_SECONDS: u8    = 0b0100_0000;
 
-pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> Result<DURATION> {
+pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> ASN1Result<DURATION> {
     if value_bytes.len() < 3 { // The smallest duration string, e.g. P1Y
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value))
     }
     if value_bytes[0] as char != 'P' {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value))
     }
     let mut ret = DURATION_EQUIVALENT::new();
     let mut start_of_last_digit = 0;
@@ -842,7 +840,7 @@ pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> Result<DURATION> {
         let char_ = value_bytes[i];
         if !char_.is_ascii_digit() {
             if start_of_last_digit == i {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
             }
             match char_ as char {
                 '.' => {
@@ -852,26 +850,26 @@ pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> Result<DURATION> {
                     if index_of_period > 0 {
                         if i != (value_bytes.len() - 1) {
                             // Extra data after the last permitted unit.
-                            return Err(Error::from(ErrorKind::InvalidData));
+                            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                         }
                     }
                     let end_index = if index_of_period > 0 { index_of_period } else { i };
                     let component_str = match String::from_utf8(value_bytes[start_of_last_digit..end_index].to_vec()) {
                         Ok(s) => s,
-                        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+                        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
                     };
                     let component_value = match u32::from_str(&component_str) {
                         Ok(v) => v,
-                        Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+                        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
                     };
                     start_of_last_digit = i + 1;
                     match char_ as char {
                         'Y' => {
                             if processing_time_components {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             if encountered > 0 {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             encountered |= DURATION_COMPONENT_YEARS;
                             ret.years = component_value;
@@ -879,13 +877,13 @@ pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> Result<DURATION> {
                         'M' => {
                             if processing_time_components {
                                 if encountered > DURATION_COMPONENT_HOURS {
-                                    return Err(Error::from(ErrorKind::InvalidData));
+                                    return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                                 }
                                 encountered |= DURATION_COMPONENT_MINUTES;
                                 ret.minutes = component_value;
                             } else {
                                 if encountered > DURATION_COMPONENT_YEARS {
-                                    return Err(Error::from(ErrorKind::InvalidData));
+                                    return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                                 }
                                 encountered |= DURATION_COMPONENT_MONTHS;
                                 ret.months = component_value;
@@ -893,40 +891,40 @@ pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> Result<DURATION> {
                         },
                         'W' => {
                             if processing_time_components {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             if encountered > DURATION_COMPONENT_MONTHS {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             encountered |= DURATION_COMPONENT_WEEKS;
                             ret.weeks = component_value;
                         },
                         'D' => {
                             if processing_time_components {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             if encountered > DURATION_COMPONENT_WEEKS {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             encountered |= DURATION_COMPONENT_DAYS;
                             ret.days = component_value;
                         },
                         'H' => {
                             if !processing_time_components {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             if encountered > DURATION_COMPONENT_DAYS {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             encountered |= DURATION_COMPONENT_HOURS;
                             ret.hours = component_value;
                         },
                         'S' => {
                             if !processing_time_components {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             if encountered > DURATION_COMPONENT_MINUTES {
-                                return Err(Error::from(ErrorKind::InvalidData));
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                             }
                             encountered |= DURATION_COMPONENT_SECONDS;
                             ret.seconds = component_value;
@@ -944,52 +942,48 @@ pub fn ber_decode_duration_value (value_bytes: ByteSlice) -> Result<DURATION> {
     Ok(ret)
 }
 
-pub fn ber_decode_boolean (el: &X690Element) -> Result<BOOLEAN> {
+pub fn ber_decode_boolean (el: &X690Element) -> ASN1Result<BOOLEAN> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_boolean_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_integer (el: &X690Element) -> Result<INTEGER> {
+pub fn ber_decode_integer (el: &X690Element) -> ASN1Result<INTEGER> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_integer_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_bit_string (el: &X690Element) -> Result<BIT_STRING> {
+pub fn ber_decode_bit_string (el: &X690Element) -> ASN1Result<BIT_STRING> {
     deconstruct_bit_string(&el)
 }
 
-pub fn ber_decode_octet_string (el: &X690Element) -> Result<OCTET_STRING> {
+pub fn ber_decode_octet_string (el: &X690Element) -> ASN1Result<OCTET_STRING> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_null (el: &X690Element) -> Result<ASN1Value> {
+pub fn ber_decode_null (el: &X690Element) -> ASN1Result<ASN1Value> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => {
             if bytes.len() != 0 {
-                return Err(Error::from(ErrorKind::InvalidData))
+                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
             }
             Ok(ASN1Value::NullValue)
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_object_identifier (el: &X690Element) -> Result<OBJECT_IDENTIFIER> {
+pub fn ber_decode_object_identifier (el: &X690Element) -> ASN1Result<OBJECT_IDENTIFIER> {
     match &el.value {
-        X690Encoding::IMPLICIT(bytes) =>
-            match ber_decode_object_identifier_value(bytes.as_slice()) {
-                Ok(decoded) => Ok(decoded),
-                Err(e) => Err(e),
-            },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        X690Encoding::IMPLICIT(bytes) => ber_decode_object_identifier_value(bytes.as_slice()),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
@@ -1038,16 +1032,16 @@ const _RCTL1_FOR_EXTERNAL: &[ComponentSpec; 4] = &[
 const _EAL_FOR_EXTERNAL: &[ComponentSpec; 0] = &[];
 const _RCTL2_FOR_EXTERNAL: &[ComponentSpec; 0] = &[];
 
-pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
+pub fn ber_decode_external (el: &X690Element) -> ASN1Result<EXTERNAL> {
     let elements = match &el.value {
         X690Encoding::Constructed(children) => children,
-        _ => return Err(Error::from(ErrorKind::InvalidData)),
+        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     if elements.len() > 4 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
     if elements.len() < 1 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
     let el_refs = elements.iter().collect::<Vec<&X690Element>>();
     let (components, unrecognized) = _parse_sequence(
@@ -1057,7 +1051,7 @@ pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
         _RCTL2_FOR_EXTERNAL.as_slice(),
     ).unwrap();
     if unrecognized.len() > 0 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_components_in_inextensible_type));
     }
     let dir_ref: OPTIONAL<OBJECT_IDENTIFIER> = match components.get("direct-reference") {
         Some(c) => {
@@ -1089,7 +1083,12 @@ pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
     let encoding: ExternalEncoding = match components.get("encoding") {
         Some(c) => {
             if c.tag_class != TagClass::CONTEXT {
-                return Err(Error::from(ErrorKind::InvalidData));
+                let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+                err.component_name = Some(String::from("encoding"));
+                err.tag = Some(Tag::new(c.tag_class, c.tag_number));
+                err.length = Some(c.len());
+                err.constructed = Some(c.is_constructed());
+                return Err(err);
             }
             match c.tag_number {
                 0 => {
@@ -1097,7 +1096,7 @@ pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
                         let v = ber_decode_any(inner.deref())?;
                         ExternalEncoding::single_ASN1_type(Box::new(v))
                     } else {
-                        return Err(Error::from(ErrorKind::InvalidData));
+                        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
                     }
                 },
                 1 => {
@@ -1108,10 +1107,10 @@ pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
                     let v = ber_decode_bit_string(c)?;
                     ExternalEncoding::arbitrary(v)
                 },
-                _ => return Err(Error::from(ErrorKind::InvalidData)),
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
             }
         },
-        None => return Err(Error::from(ErrorKind::InvalidData)),
+        None => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     let identification: ExternalIdentification;
     if dir_ref.is_some() && indir_ref.is_some() {
@@ -1124,7 +1123,7 @@ pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
     } else if indir_ref.is_some() {
         identification = ExternalIdentification::presentation_context_id(indir_ref.unwrap());
     } else {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
     Ok(EXTERNAL {
         identification,
@@ -1133,14 +1132,14 @@ pub fn ber_decode_external (el: &X690Element) -> Result<EXTERNAL> {
     })
 }
 
-pub fn ber_decode_real (el: &X690Element) -> Result<REAL> {
+pub fn ber_decode_real (el: &X690Element) -> ASN1Result<REAL> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) =>
             match ber_decode_real_value(bytes.as_slice()) {
                 Ok(decoded) => Ok(decoded),
                 Err(e) => Err(e),
             },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
@@ -1166,15 +1165,20 @@ pub fn ber_decode_real (el: &X690Element) -> Result<REAL> {
         data-value OCTET STRING }
     (WITH COMPONENTS { ... , data-value-descriptor ABSENT })`
 */
-pub fn ber_decode_presentation_context_switching_type_id (el: &X690Element) -> Result<PresentationContextSwitchingTypeIdentification> {
+pub fn ber_decode_presentation_context_switching_type_id (el: &X690Element) -> ASN1Result<PresentationContextSwitchingTypeIdentification> {
     if el.tag_class != TagClass::CONTEXT {
-        return Err(Error::from(ErrorKind::InvalidData));
+        let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+        err.component_name = Some(String::from("identification"));
+        err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+        err.length = Some(el.len());
+        err.constructed = Some(el.is_constructed());
+        return Err(err);
     }
     match el.tag_number {
         0 => { // syntaxes
             if let X690Encoding::Constructed(children) = &el.value {
                 if children.len() != 2 {
-                    return Err(Error::from(ErrorKind::InvalidData));
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
                 }
                 let r#abstract = ber_decode_object_identifier(&children[0])?;
                 let transfer = ber_decode_object_identifier(&children[1])?;
@@ -1183,7 +1187,7 @@ pub fn ber_decode_presentation_context_switching_type_id (el: &X690Element) -> R
                     transfer,
                 }))
             } else {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
             }
         },
         1 => { // syntax
@@ -1197,7 +1201,7 @@ pub fn ber_decode_presentation_context_switching_type_id (el: &X690Element) -> R
         3 => { // context-negotiation
             if let X690Encoding::Constructed(children) = &el.value {
                 if children.len() != 2 {
-                    return Err(Error::from(ErrorKind::InvalidData));
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
                 }
                 let presentation_context_id = ber_decode_integer(&children[0])?;
                 let transfer_syntax = ber_decode_object_identifier(&children[1])?;
@@ -1206,7 +1210,7 @@ pub fn ber_decode_presentation_context_switching_type_id (el: &X690Element) -> R
                     transfer_syntax,
                 }))
             } else {
-                return Err(Error::from(ErrorKind::InvalidData));
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
             }
         },
         4 => { // transfer-syntax
@@ -1217,23 +1221,23 @@ pub fn ber_decode_presentation_context_switching_type_id (el: &X690Element) -> R
             ber_decode_null(el)?;
             Ok(PresentationContextSwitchingTypeIdentification::fixed)
         },
-        _ => return Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
     }
 }
 
-pub fn ber_decode_embedded_pdv (el: &X690Element) -> Result<EMBEDDED_PDV> {
+pub fn ber_decode_embedded_pdv (el: &X690Element) -> ASN1Result<EMBEDDED_PDV> {
     let elements = match &el.value {
         X690Encoding::Constructed(children) => children,
-        _ => return Err(Error::from(ErrorKind::InvalidData)),
+        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     if elements.len() != 2 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
     let identification: PresentationContextSwitchingTypeIdentification;
     if let X690Encoding::EXPLICIT(inner) = &elements[0].value {
         identification = ber_decode_presentation_context_switching_type_id(&inner)?;
     } else {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
     let data_value: OCTET_STRING = ber_decode_octet_string(&elements[1])?;
     Ok(EMBEDDED_PDV {
@@ -1242,19 +1246,19 @@ pub fn ber_decode_embedded_pdv (el: &X690Element) -> Result<EMBEDDED_PDV> {
     })
 }
 
-pub fn ber_decode_character_string (el: &X690Element) -> Result<CHARACTER_STRING> {
+pub fn ber_decode_character_string (el: &X690Element) -> ASN1Result<CHARACTER_STRING> {
     let elements = match &el.value {
         X690Encoding::Constructed(children) => children,
-        _ => return Err(Error::from(ErrorKind::InvalidData)),
+        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     if elements.len() != 2 {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
     let identification: PresentationContextSwitchingTypeIdentification;
     if let X690Encoding::EXPLICIT(inner) = &elements[0].value {
         identification = ber_decode_presentation_context_switching_type_id(&inner)?;
     } else {
-        return Err(Error::from(ErrorKind::InvalidData));
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
     let string_value: OCTET_STRING = ber_decode_octet_string(&elements[1])?;
     Ok(CHARACTER_STRING {
@@ -1263,18 +1267,18 @@ pub fn ber_decode_character_string (el: &X690Element) -> Result<CHARACTER_STRING
     })
 }
 
-pub fn ber_decode_relative_oid (el: &X690Element) -> Result<RELATIVE_OID> {
+pub fn ber_decode_relative_oid (el: &X690Element) -> ASN1Result<RELATIVE_OID> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) =>
             match ber_decode_relative_oid_value(bytes.as_slice()) {
                 Ok(decoded) => Ok(decoded),
                 Err(e) => Err(e),
             },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_sequence (el: &X690Element) -> Result<SEQUENCE> {
+pub fn ber_decode_sequence (el: &X690Element) -> ASN1Result<SEQUENCE> {
     match &el.value {
         X690Encoding::Constructed(components) => {
             let mut values: Vec<ASN1Value> = Vec::new();
@@ -1286,11 +1290,11 @@ pub fn ber_decode_sequence (el: &X690Element) -> Result<SEQUENCE> {
             }
             return Ok(values);
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_set (el: &X690Element) -> Result<SET> {
+pub fn ber_decode_set (el: &X690Element) -> ASN1Result<SET> {
     match &el.value {
         X690Encoding::Constructed(components) => {
             let mut values: Vec<ASN1Value> = Vec::new();
@@ -1302,193 +1306,189 @@ pub fn ber_decode_set (el: &X690Element) -> Result<SET> {
             }
             return Ok(values);
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_object_descriptor (el: &X690Element) -> Result<ObjectDescriptor> {
+pub fn ber_decode_object_descriptor (el: &X690Element) -> ASN1Result<ObjectDescriptor> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_utf8_string (el: &X690Element) -> Result<UTF8String> {
+pub fn ber_decode_utf8_string (el: &X690Element) -> ASN1Result<UTF8String> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
             Ok(x) => Ok(x),
-            Err(_) => Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_numeric_string (el: &X690Element) -> Result<NumericString> {
+pub fn ber_decode_numeric_string (el: &X690Element) -> ASN1Result<NumericString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_numeric_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_printable_string (el: &X690Element) -> Result<PrintableString> {
+pub fn ber_decode_printable_string (el: &X690Element) -> ASN1Result<PrintableString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_printable_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_t61_string (el: &X690Element) -> Result<T61String> {
+pub fn ber_decode_t61_string (el: &X690Element) -> ASN1Result<T61String> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_videotex_string (el: &X690Element) -> Result<VideotexString> {
+pub fn ber_decode_videotex_string (el: &X690Element) -> ASN1Result<VideotexString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_ia5_string (el: &X690Element) -> Result<IA5String> {
+pub fn ber_decode_ia5_string (el: &X690Element) -> ASN1Result<IA5String> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_ia5_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_utc_time (el: &X690Element) -> Result<UTCTime> {
+pub fn ber_decode_utc_time (el: &X690Element) -> ASN1Result<UTCTime> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_utc_time_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_generalized_time (el: &X690Element) -> Result<GeneralizedTime> {
+pub fn ber_decode_generalized_time (el: &X690Element) -> ASN1Result<GeneralizedTime> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_generalized_time_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_graphic_string (el: &X690Element) -> Result<GraphicString> {
+pub fn ber_decode_graphic_string (el: &X690Element) -> ASN1Result<GraphicString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_visible_string (el: &X690Element) -> Result<VisibleString> {
+pub fn ber_decode_visible_string (el: &X690Element) -> ASN1Result<VisibleString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_visible_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_general_string (el: &X690Element) -> Result<GeneralString> {
+pub fn ber_decode_general_string (el: &X690Element) -> ASN1Result<GeneralString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_general_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_universal_string (el: &X690Element) -> Result<UniversalString> {
+pub fn ber_decode_universal_string (el: &X690Element) -> ASN1Result<UniversalString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_universal_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_bmp_string (el: &X690Element) -> Result<BMPString> {
+pub fn ber_decode_bmp_string (el: &X690Element) -> ASN1Result<BMPString> {
     let deconstruction = deconstruct(el)?;
     match deconstruction.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_bmp_string_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
     }
 }
 
-pub fn ber_decode_date (el: &X690Element) -> Result<DATE> {
+pub fn ber_decode_date (el: &X690Element) -> ASN1Result<DATE> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_date_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_time_of_day (el: &X690Element) -> Result<TIME_OF_DAY> {
+pub fn ber_decode_time_of_day (el: &X690Element) -> ASN1Result<TIME_OF_DAY> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_time_of_day_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_date_time (el: &X690Element) -> Result<DATE_TIME> {
+pub fn ber_decode_date_time (el: &X690Element) -> ASN1Result<DATE_TIME> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_date_time_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_duration (el: &X690Element) -> Result<DURATION> {
+pub fn ber_decode_duration (el: &X690Element) -> ASN1Result<DURATION> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => ber_decode_duration_value(bytes.as_slice()),
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_oid_iri (el: &X690Element) -> Result<OID_IRI> {
+pub fn ber_decode_oid_iri (el: &X690Element) -> ASN1Result<OID_IRI> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
             Ok(x) => Ok(x),
-            Err(_) => Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_relative_oid_iri (el: &X690Element) -> Result<OID_IRI> {
+pub fn ber_decode_relative_oid_iri (el: &X690Element) -> ASN1Result<OID_IRI> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
             Ok(x) => Ok(x),
-            Err(_) => Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_time (el: &X690Element) -> Result<TIME> {
+pub fn ber_decode_time (el: &X690Element) -> ASN1Result<TIME> {
     match &el.value {
         X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
             Ok(x) => Ok(x),
-            Err(_) => Err(Error::from(ErrorKind::InvalidData)),
+            Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
         },
-        _ => Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
-pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
-    if el.tag_class != TagClass::UNIVERSAL {
-        return Err(Error::from(ErrorKind::InvalidData));
-    }
-
+pub fn ber_decode_any (el: &X690Element) -> ASN1Result<ASN1Value> {
     if let X690Encoding::AlreadyEncoded(encoding) = &el.value {
         match ber_cst(&encoding) {
             Ok((bytes_read, encoded_el)) => {
                 if bytes_read != encoding.len() {
-                    return Err(Error::from(ErrorKind::InvalidData));
+                    return Err(ASN1Error::new(ASN1ErrorCode::trailing_data));
                 }
                 return ber_decode_any(&encoded_el);
             }
@@ -1496,8 +1496,14 @@ pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
         }
     }
 
+    if el.tag_class != TagClass::UNIVERSAL { // FIXME:
+        // If EXPLICIT, recurse inwards.
+        // If IMPLICIT, but constructed, treat it like a SEQUENCE.
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+
     match el.tag_number {
-        ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => Err(Error::from(ErrorKind::InvalidData)),
+        ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
         ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => match ber_decode_boolean(el) {
             Ok(v) => Ok(ASN1Value::BooleanValue(v)),
             Err(e) => Err(e),
@@ -1640,7 +1646,7 @@ pub fn ber_decode_any (el: &X690Element) -> Result<ASN1Value> {
             Ok(v) => Ok(ASN1Value::RelativeIRIValue(v)),
             Err(e) => Err(e),
         },
-        _ => return Err(Error::from(ErrorKind::InvalidData)),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 } 
 
@@ -1655,21 +1661,6 @@ mod tests {
     //     pub algorithm: OBJECT_IDENTIFIER,
     //     pub parameters: OPTIONAL<ASN1Value>,
     // }
-
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-
-    #[test]
-    fn test_ber_encode_boolean () {
-        let mut output: Vec<u8> = Vec::new();
-        ber_encode_boolean_value(&mut output, true).unwrap();
-        ber_encode_boolean_value(&mut output, false).unwrap();
-        assert_eq!(output.len(), 6);
-        assert!(output.starts_with(&[ 0x01, 0x01, 0xFF, 0x01, 0x01, 0x00 ]));
-    }
 
     #[test]
     fn test_ber_decode_algorithm_identifier () {

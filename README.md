@@ -249,6 +249,7 @@ which control how these elements are encoded.
 
 ## TODO
 
+- [ ] Use the `?` operator instead of nested matches.
 - [ ] `asn1`
   - [ ] Comparison functions for all time types
   - [ ] Comparison functions for context switching types
@@ -281,6 +282,10 @@ which control how these elements are encoded.
   - [ ] `real!` macro
   - [ ] `external!` macro
   - [ ] `embedded_pdv!` macro
+  - [ ] `ASN1Error::relate_tlv(X690Element)`
+  - [ ] `ASN1Error::relate_spec(ComponentSpec)`
+  - [ ] `ASN1Error::relate_value(ASN1Value)`
+  - [ ] `ASN1Error::relate_tag(Tag)`
 - [ ] `x690`
   - [ ] Deconstruct
   - [ ] Hash trait for `X690Element`
