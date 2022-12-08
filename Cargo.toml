@@ -3,4 +3,6 @@
 members = [
     "asn1",
     "x690",
+    "ldap",
+    "x500",
 ]

@@ -1,7 +1,7 @@
-use std::{vec::Vec, sync::Arc};
+use std::{sync::Arc, vec::Vec};
 
 pub type Bytes = Vec<u8>;
-pub type ByteSlice<'a> = &'a[u8];
+pub type ByteSlice<'a> = &'a [u8];
 pub type OPTIONAL<T> = Option<T>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord)]
@@ -18,74 +18,86 @@ pub enum TagClass {
 // it would be acceptable to only tolerate two bytes of long-length tag numbers.
 pub type TagNumber = u16;
 
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub struct IdentificationSyntaxes {
     pub r#abstract: OBJECT_IDENTIFIER,
     pub transfer: OBJECT_IDENTIFIER,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub struct ContextNegotiation {
     pub presentation_context_id: INTEGER,
     pub transfer_syntax: OBJECT_IDENTIFIER,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub enum ExternalIdentification {
     // syntaxes                (IdentificationSyntaxes),
-    syntax                  (OBJECT_IDENTIFIER),
-    presentation_context_id (INTEGER),
-    context_negotiation     (ContextNegotiation),
+    syntax(OBJECT_IDENTIFIER),
+    presentation_context_id(INTEGER),
+    context_negotiation(ContextNegotiation),
     // transfer_syntax         (OBJECT_IDENTIFIER),
     // fixed,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 // See ITU Recommendation X.690, Section 8.18.
 pub enum ExternalEncoding {
-    single_ASN1_type (Box<ASN1Value>),
-    octet_aligned (OCTET_STRING),
-    arbitrary (BIT_STRING),
+    single_ASN1_type(Arc<ASN1Value>),
+    octet_aligned(OCTET_STRING),
+    arbitrary(BIT_STRING),
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct External {
     pub identification: ExternalIdentification,
     pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
     pub data_value: ExternalEncoding,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum PresentationContextSwitchingTypeIdentification {
-    syntaxes                (IdentificationSyntaxes),
-    syntax                  (OBJECT_IDENTIFIER),
-    presentation_context_id (INTEGER),
-    context_negotiation     (ContextNegotiation),
-    transfer_syntax         (OBJECT_IDENTIFIER),
+    syntaxes(IdentificationSyntaxes),
+    syntax(OBJECT_IDENTIFIER),
+    presentation_context_id(INTEGER),
+    context_negotiation(ContextNegotiation),
+    transfer_syntax(OBJECT_IDENTIFIER),
     fixed,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct EmbeddedPDV {
     pub identification: PresentationContextSwitchingTypeIdentification,
     // pub data_value_descriptor: ObjectDescriptor,
     pub data_value: OCTET_STRING,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct CharacterString {
     pub identification: PresentationContextSwitchingTypeIdentification,
     // pub data_value_descriptor: ObjectDescriptor,
     pub string_value: OCTET_STRING,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct InstanceOf {
     pub type_id: OBJECT_IDENTIFIER,
     pub value: Arc<ASN1Value>,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct UTCOffset {
     pub hour: i8,
     pub minute: u8,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct DurationFractionalPart {
     pub number_of_digits: u8,
     pub fractional_value: u32,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 // Defined in ITU X.680, Section 38.4.4.2.
 pub struct DURATION_EQUIVALENT {
     pub years: u32,
@@ -101,13 +113,16 @@ pub struct DURATION_EQUIVALENT {
 // type END_OF_CONTENT = None;
 pub type BOOLEAN = bool;
 pub type INTEGER = i64;
+pub type BIT = usize;
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct BIT_STRING {
     pub bytes: Vec<u8>,
     pub trailing_bits: u8,
 }
 pub type OCTET_STRING = Bytes;
 // type NULL = None;
-pub type OBJECT_IDENTIFIER = Vec<u32>;
+pub type OID_ARC = u32;
+pub type OBJECT_IDENTIFIER = Vec<OID_ARC>;
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
 pub type EXTERNAL = External;
 pub type REAL = f64;
@@ -118,15 +133,18 @@ pub type RELATIVE_OID = Vec<u32>;
 pub type TIME = String;
 // type Reserved15 = None;
 pub type SEQUENCE = Vec<ASN1Value>;
-pub type SEQUENCE_OF = Vec<ASN1Value>;
+pub type SEQUENCE_OF<T> = Vec<T>;
 pub type SET = Vec<ASN1Value>;
-pub type SET_OF = Vec<ASN1Value>;
+pub type SET_OF<T> = Vec<T>;
 pub type NumericString = String;
 pub type PrintableString = String;
 pub type T61String = Bytes;
+pub type TeletexString = T61String;
 pub type VideotexString = Bytes;
 pub type IA5String = String;
 // pub type UTCTime = DateTime<Utc>;
+
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct UTCTime {
     pub year: u8, // Yes, u8, not u16: it is left to the application to determine which century the two-digit year identifies.
     pub month: u8,
@@ -136,6 +154,8 @@ pub struct UTCTime {
     pub second: Option<u8>,
     pub utc_offset: Option<UTCOffset>,
 }
+
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct GeneralizedTime {
     pub date: DATE,
     pub utc: bool, // If GT ends with "Z"
@@ -151,19 +171,25 @@ pub type GeneralString = String;
 pub type UniversalString = String;
 pub type CHARACTER_STRING = CharacterString;
 pub type BMPString = String;
+pub type NULL = ();
 
+// TODO: Test the ordering produced using #[derive(PartialOrd)]
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub struct DATE {
     pub year: u16,
     pub month: u8,
     pub day: u8,
 }
 
+// TODO: Test the ordering produced using #[derive(PartialOrd)]
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub struct TIME_OF_DAY {
     pub hour: u8,
     pub minute: u8,
     pub second: u8,
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub struct DATE_TIME {
     pub date: DATE,
     pub time: TIME_OF_DAY,
@@ -181,21 +207,24 @@ pub struct Tag {
 }
 
 impl Tag {
-
-    pub fn new (tag_class: TagClass, tag_number: TagNumber) -> Self {
+    pub fn new(tag_class: TagClass, tag_number: TagNumber) -> Self {
         Tag {
             tag_class,
             tag_number,
         }
     }
-
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct TaggedASN1Value {
     pub tag_class: TagClass,
     pub tag_number: TagNumber,
     pub explicit: bool,
     pub value: Arc<ASN1Value>,
+}
+
+pub struct TYPE_IDENTIFIER {
+    pub id: OBJECT_IDENTIFIER,
 }
 
 // Actually, I think this is unnecessary, because the tagged alternatives will
@@ -205,59 +234,60 @@ pub struct TaggedASN1Value {
 //     pub value: ASN1Value<'a>,
 // }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum ASN1Value {
     // BuiltInValue
-    BitStringValue (BIT_STRING),
-    BooleanValue (BOOLEAN),
-    ChoiceValue (Box<ASN1Value>),
+    BitStringValue(BIT_STRING),
+    BooleanValue(BOOLEAN),
+    ChoiceValue(Box<ASN1Value>),
     // ChoiceValue (&'a ChoiceValue<'a>),
-    EmbeddedPDVValue (EMBEDDED_PDV),
-    EnumeratedValue (ENUMERATED),
-    ExternalValue (EXTERNAL),
-    InstanceOfValue (INSTANCE_OF),
-    IntegerValue (INTEGER),
-    IRIValue (OID_IRI),
+    EmbeddedPDVValue(EMBEDDED_PDV),
+    EnumeratedValue(ENUMERATED),
+    ExternalValue(EXTERNAL),
+    InstanceOfValue(INSTANCE_OF),
+    IntegerValue(INTEGER),
+    IRIValue(OID_IRI),
     NullValue,
-    ObjectIdentifierValue (OBJECT_IDENTIFIER),
-    ObjectDescriptor (ObjectDescriptor),
-    OctetStringValue (OCTET_STRING),
-    RealValue (REAL),
-    RelativeIRIValue (RELATIVE_OID_IRI),
-    RelativeOIDValue (RELATIVE_OID),
-    SequenceValue (SEQUENCE),
-    SequenceOfValue (SEQUENCE_OF),
-    SetValue (SET),
-    SetOfValue (SET_OF),
+    ObjectIdentifierValue(OBJECT_IDENTIFIER),
+    ObjectDescriptor(ObjectDescriptor),
+    OctetStringValue(OCTET_STRING),
+    RealValue(REAL),
+    RelativeIRIValue(RELATIVE_OID_IRI),
+    RelativeOIDValue(RELATIVE_OID),
+    SequenceValue(SEQUENCE),
+    SequenceOfValue(SEQUENCE_OF<ASN1Value>),
+    SetValue(SET),
+    SetOfValue(SET_OF<ASN1Value>),
     // CharacterStringValue
-    UnrestrictedCharacterStringValue (CHARACTER_STRING),
+    UnrestrictedCharacterStringValue(CHARACTER_STRING),
     // RestrictedCharacterStringType
-    BMPString (BMPString),
-	GeneralString (GeneralString),
-	GraphicString (GraphicString),
-	IA5String (IA5String),
-	ISO646String (VisibleString), // Same as VisibleString.
-	NumericString (NumericString),
-	PrintableString (PrintableString),
-	TeletexString (T61String), // Same as TeletexString.
-	T61String (T61String),
-	UniversalString (UniversalString),
-	UTF8String (UTF8String),
-	VideotexString (VideotexString),
-	VisibleString (VisibleString),
+    BMPString(BMPString),
+    GeneralString(GeneralString),
+    GraphicString(GraphicString),
+    IA5String(IA5String),
+    ISO646String(VisibleString), // Same as VisibleString.
+    NumericString(NumericString),
+    PrintableString(PrintableString),
+    TeletexString(T61String), // Same as TeletexString.
+    T61String(T61String),
+    UniversalString(UniversalString),
+    UTF8String(UTF8String),
+    VideotexString(VideotexString),
+    VisibleString(VisibleString),
     // PrefixedValue (&'a ASN1Value<'a>),
-    TaggedValue (TaggedASN1Value),
-    TimeValue (TIME),
-    UTCTime (UTCTime),
-    GeneralizedTime (GeneralizedTime),
-    DATE (DATE),
-    TIME_OF_DAY (TIME_OF_DAY),
-    DATE_TIME (DATE_TIME),
-    DURATION (DURATION),
+    TaggedValue(TaggedASN1Value),
+    TimeValue(TIME),
+    UTCTime(UTCTime),
+    GeneralizedTime(GeneralizedTime),
+    DATE(DATE),
+    TIME_OF_DAY(TIME_OF_DAY),
+    DATE_TIME(DATE_TIME),
+    DURATION(DURATION),
 
     /* This is a type that stores the value bytes of values that were encoded
     with an implicit tag and decoded as ANY. Since we cannot know what the
     actual encoded ASN.1 value was, we just have to store raw bytes. */
-    UnknownBytes (Arc<Bytes>),
+    UnknownBytes(Arc<Bytes>),
 }
 
 pub const ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT: TagNumber = 0;
@@ -300,4 +330,4 @@ pub const ASN1_UNIVERSAL_TAG_NUMBER_DURATION: TagNumber = 34;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI: TagNumber = 35;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI: TagNumber = 36;
 
-pub const MAX_IA5_STRING_CHAR_CODE: u8 = 0x0000_00FF;
+pub const MAX_IA5_STRING_CHAR_CODE: u8 = 0x0000_007F;

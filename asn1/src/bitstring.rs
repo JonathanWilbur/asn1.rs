@@ -1,7 +1,7 @@
-use crate::types::{BIT_STRING};
-use std::convert::TryInto;
+use crate::{types::BIT_STRING, BIT};
+use std::{convert::TryInto, ops::Index};
 
-pub fn join_bit_strings (strs: &[BIT_STRING]) -> BIT_STRING {
+pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     if strs.len() == 0 {
         return BIT_STRING::new();
     }
@@ -20,15 +20,17 @@ pub fn join_bit_strings (strs: &[BIT_STRING]) -> BIT_STRING {
     // let bit_debt: usize = strs[0].trailing_bits as usize;
     let mut bit_index: usize = (strs[0].bytes.len() << 3) - strs[0].trailing_bits as usize;
     for bs in strs[1..].iter() {
-        if (bit_index % 8) == 0 { // We are octet-aligned, so we can just do a byte-for-byte copy.
+        if (bit_index % 8) == 0 {
+            // We are octet-aligned, so we can just do a byte-for-byte copy.
             ret.bytes.extend(&bs.bytes);
             bit_index += (bs.bytes.len() << 3) - bs.trailing_bits as usize;
-        } else { // Otherwise, we have to account for the bit shift. Sad!
+        } else {
+            // Otherwise, we have to account for the bit shift. Sad!
             let len = bs.bytes.len();
             // These should be the same for each iteration of the following loop.
             let trailing_bits = ((8 - (bit_index % 8)) % 8) as u8;
             let remaining_bits = (bit_index % 8) as u8;
-            for byte in bs.bytes[0..len-1].iter() {
+            for byte in bs.bytes[0..len - 1].iter() {
                 let prev_byte_mask: u8 = byte >> remaining_bits;
                 let curr_byte_mask: u8 = byte << trailing_bits;
                 let ret_len = ret.bytes.len();
@@ -43,14 +45,20 @@ pub fn join_bit_strings (strs: &[BIT_STRING]) -> BIT_STRING {
             let ret_len = ret.bytes.len();
             ret.bytes[ret_len - 1] &= 0xFFu8.overflowing_shl(trailing_bits as u32).0;
             ret.bytes[ret_len - 1] |= last_byte_mask;
-            if bits_in_last_byte > bits_left_in_curr_byte { // We have to overflow to a next byte.
-                ret.bytes.push(last_byte.overflowing_shl((8 - (bit_index % 8)).try_into().unwrap()).0);
+            if bits_in_last_byte > bits_left_in_curr_byte {
+                // We have to overflow to a next byte.
+                ret.bytes.push(
+                    last_byte
+                        .overflowing_shl((8 - (bit_index % 8)).try_into().unwrap())
+                        .0,
+                );
             }
             bit_index += (bs.bytes.len() << 3) - bs.trailing_bits as usize;
         }
     }
     ret.trailing_bits = ((8 - (bit_index % 8)) % 8) as u8;
-    if ret.bytes.len() > 0 { // Zero the remaining bytes
+    if ret.bytes.len() > 0 {
+        // Zero the remaining bytes
         let ret_len = ret.bytes.len();
         ret.bytes[ret_len - 1] &= 0xFFu8.overflowing_shl(ret.trailing_bits as u32).0;
     }
@@ -58,25 +66,32 @@ pub fn join_bit_strings (strs: &[BIT_STRING]) -> BIT_STRING {
 }
 
 impl BIT_STRING {
-
-    pub fn new () -> Self {
-        BIT_STRING { bytes: Vec::new(), trailing_bits: 0 }
+    pub fn new() -> Self {
+        BIT_STRING {
+            bytes: Vec::new(),
+            trailing_bits: 0,
+        }
     }
 
-    pub fn with_capacity (bits: usize) -> Self {
-        BIT_STRING { bytes: Vec::with_capacity(bits >> 3), trailing_bits: 0 }
+    pub fn with_capacity(bits: usize) -> Self {
+        BIT_STRING {
+            bytes: Vec::with_capacity(bits >> 3),
+            trailing_bits: 0,
+        }
     }
 
-    pub fn set (&mut self, index: usize, value: bool) -> bool {
+    pub fn set(&mut self, index: usize, value: bool) -> bool {
         let byte_index: usize = index >> 3;
         let bit_index: usize = index % 8;
         let extra_bytes_needed: usize = (byte_index + 1) - self.bytes.len();
-        let extended: bool = (extra_bytes_needed > 0) || (bit_index > (7 - self.trailing_bits).into());
+        let extended: bool =
+            (extra_bytes_needed > 0) || (bit_index > (7 - self.trailing_bits).into());
         for _ in 0..extra_bytes_needed {
             self.bytes.push(0);
         }
         let len = self.bytes.len(); // See: https://stackoverflow.com/questions/30532628/cannot-borrow-as-immutable-string-and-len
-        { // Zero remaining bits
+        {
+            // Zero remaining bits
             let zeroing_mask: u8 = !(0xFFu8.overflowing_shr((8 - self.trailing_bits).into()).0);
             self.bytes[len - 1] &= zeroing_mask;
         }
@@ -93,6 +108,49 @@ impl BIT_STRING {
         extended
     }
 
+    pub fn with_bits_set(bits_to_set: &[usize]) -> BIT_STRING {
+        let mut bit_size: usize = 0;
+        for bit in bits_to_set.iter() {
+            if *bit > bit_size {
+                bit_size = *bit;
+            }
+        }
+        let byte_size = bit_size >> 3;
+        let bytes: Vec<u8> = Vec::with_capacity(byte_size);
+        let trailing_bits = (8 - (bit_size % 8)) as u8;
+        let mut bs = BIT_STRING {
+            bytes,
+            trailing_bits,
+        };
+        for bit in bits_to_set.iter() {
+            bs.set(*bit, true);
+        }
+        bs
+    }
+
+    pub fn from_bin(bitstr: &str) -> BIT_STRING {
+        if bitstr.len() == 0 {
+            return BIT_STRING {
+                bytes: vec![],
+                trailing_bits: 0,
+            };
+        }
+        let bit_size = bitstr.len();
+        let bytes: Vec<u8> = Vec::with_capacity(bitstr.len() >> 3);
+        let trailing_bits = (8 - (bit_size % 8)) as u8; // REVIEW: I am not sure this is right.
+        let mut bs = BIT_STRING {
+            bytes,
+            trailing_bits,
+        };
+        let str_bytes = bitstr.as_bytes();
+        for i in 0..bitstr.len() {
+            let char = str_bytes[i];
+            if char == '1' as u8 {
+                bs.set(i, true);
+            }
+        }
+        bs
+    }
 }
 
 #[cfg(test)]
@@ -100,21 +158,21 @@ mod tests {
 
     // use super::*;
 
-    use crate::{types::BIT_STRING, bitstring::join_bit_strings};
+    use crate::{bitstring::join_bit_strings, types::BIT_STRING};
 
     #[test]
-    fn test_bit_string_set_1 () {
+    fn test_bit_string_set_1() {
         let mut bs = BIT_STRING::new();
         bs.set(0, true);
         assert_eq!(bs.bytes.len(), 1);
-        assert!(bs.bytes.starts_with(&[ 0b1000_0000 ]));
+        assert!(bs.bytes.starts_with(&[0b1000_0000]));
         assert_eq!(bs.trailing_bits, 7);
     }
 
     #[test]
-    fn test_bit_string_set_2 () {
+    fn test_bit_string_set_2() {
         let mut bs = BIT_STRING {
-            bytes: vec![ 0b0100_0000 ],
+            bytes: vec![0b0100_0000],
             trailing_bits: 5,
         };
         bs.set(6, true);
@@ -124,9 +182,9 @@ mod tests {
     }
 
     #[test]
-    fn test_bit_string_set_3 () {
+    fn test_bit_string_set_3() {
         let mut bs = BIT_STRING {
-            bytes: vec![ 0b0100_0001 ],
+            bytes: vec![0b0100_0001],
             trailing_bits: 0,
         };
         bs.set(8, true);
@@ -137,62 +195,59 @@ mod tests {
     }
 
     #[test]
-    fn test_join_bit_strings_1 () {
+    fn test_join_bit_strings_1() {
         let bs1 = BIT_STRING::new();
         let bs2 = BIT_STRING::new();
-        let bsout = join_bit_strings(&[ bs1, bs2 ]);
+        let bsout = join_bit_strings(&[bs1, bs2]);
         assert_eq!(bsout.bytes.len(), 0);
         assert_eq!(bsout.trailing_bits, 0);
     }
 
     #[test]
-    fn test_join_bit_strings_2 () {
+    fn test_join_bit_strings_2() {
         let bs1 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 0,
         };
         let bs2 = BIT_STRING::new();
-        let bsout = join_bit_strings(&[ bs1, bs2 ]);
+        let bsout = join_bit_strings(&[bs1, bs2]);
         assert_eq!(bsout.bytes.len(), 2);
         assert_eq!(bsout.trailing_bits, 0);
     }
 
     #[test]
-    fn test_join_bit_strings_3 () {
+    fn test_join_bit_strings_3() {
         let bs1 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs2 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
-        let bsout = join_bit_strings(&[ bs1, bs2 ]);
+        let bsout = join_bit_strings(&[bs1, bs2]);
         assert_eq!(bsout.bytes.len(), 4);
         assert_eq!(bsout.trailing_bits, 2);
-        assert!(bsout.bytes.starts_with(&[
-            0b1010_0101,
-            0b1111_0111,
-            0b0100_1011,
-            0b1110_1100,
-        ]));
+        assert!(bsout
+            .bytes
+            .starts_with(&[0b1010_0101, 0b1111_0111, 0b0100_1011, 0b1110_1100,]));
     }
 
     #[test]
-    fn test_join_bit_strings_4 () {
+    fn test_join_bit_strings_4() {
         let bs1 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs2 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs3 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
-        let bsout = join_bit_strings(&[ bs1, bs2, bs3 ]);
+        let bsout = join_bit_strings(&[bs1, bs2, bs3]);
         assert_eq!(bsout.bytes.len(), 6);
         assert_eq!(bsout.trailing_bits, 3);
         assert!(bsout.bytes.starts_with(&[
@@ -206,20 +261,20 @@ mod tests {
     }
 
     #[test]
-    fn test_join_bit_strings_5 () {
+    fn test_join_bit_strings_5() {
         let bs1 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0111 ],
+            bytes: vec![0b1010_0101, 0b1111_0111],
             trailing_bits: 2,
         };
         let bs2 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs3 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
-        let bsout = join_bit_strings(&[ bs1, bs2, bs3 ]);
+        let bsout = join_bit_strings(&[bs1, bs2, bs3]);
         assert_eq!(bsout.bytes.len(), 6);
         assert_eq!(bsout.trailing_bits, 4);
         // assert_eq!(bsout.bytes[2], 0b1010_0111);
@@ -234,20 +289,20 @@ mod tests {
     }
 
     #[test]
-    fn test_join_bit_strings_6 () {
+    fn test_join_bit_strings_6() {
         let bs1 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0111 ],
+            bytes: vec![0b1010_0101, 0b1111_0111],
             trailing_bits: 5,
         };
         let bs2 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 5,
         };
         let bs3 = BIT_STRING {
-            bytes: vec![ 0b1010_0101, 0b1111_0110 ],
+            bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 2,
         };
-        let bsout = join_bit_strings(&[ bs1, bs2, bs3 ]);
+        let bsout = join_bit_strings(&[bs1, bs2, bs3]);
         assert_eq!(bsout.bytes.len(), 5);
         assert_eq!(bsout.trailing_bits, 4);
         assert!(bsout.bytes.starts_with(&[

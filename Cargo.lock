@@ -48,6 +48,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
+name = "ldap"
+version = "0.1.0"
+dependencies = [
+ "asn1",
+ "x690",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.124"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -187,6 +195,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30b31594f29d27036c383b53b59ed3476874d518f0efb151b27a4c275141390e"
 dependencies = [
  "tap",
+]
+
+[[package]]
+name = "x500"
+version = "0.1.0"
+dependencies = [
+ "asn1",
+ "ldap",
+ "x690",
 ]
 
 [[package]]

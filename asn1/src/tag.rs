@@ -1,5 +1,9 @@
-use std::{fmt, str::FromStr, io::{Error, ErrorKind}};
 use crate::types::{Tag, TagClass, TagNumber};
+use std::{
+    fmt,
+    io::{Error, ErrorKind},
+    str::FromStr,
+};
 
 /*
 
@@ -14,7 +18,6 @@ From ITU Recommendation X.680 (2021), Section 8.6:
 >
 */
 impl PartialOrd for TagClass {
-
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         let self_class_ord: u8 = match self {
             TagClass::UNIVERSAL => 0,
@@ -30,12 +33,10 @@ impl PartialOrd for TagClass {
         };
         Some(self_class_ord.cmp(&other_class_ord))
     }
-
 }
 
 impl fmt::Display for Tag {
-
-    fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.tag_class {
             TagClass::UNIVERSAL => write!(f, "[ UNIVERSAL ")?,
             TagClass::CONTEXT => write!(f, "[ CONTEXT ")?,
@@ -44,18 +45,15 @@ impl fmt::Display for Tag {
         };
         write!(f, "{} ]", self.tag_number)
     }
-
 }
 
 impl From<(TagClass, TagNumber)> for Tag {
-
     fn from(other: (TagClass, TagNumber)) -> Self {
         Tag {
             tag_class: other.0,
             tag_number: other.1,
         }
     }
-
 }
 
 impl FromStr for Tag {
@@ -112,7 +110,6 @@ impl FromStr for Tag {
             tag_number,
         })
     }
-
 }
 
 /*
@@ -145,14 +142,8 @@ impl PartialOrd for Tag {
     }
 }
 
-// TODO: ToString (Automatically implemented with Display)
-// TODO: Default
-// TODO: AsRef?
 // TODO: Read / Write?
 // TODO: Iterator / IntoIterator
-// TODO: PartialOrd
-// TODO: Ord
-// TODO: Add
 // TODO: ToOwned
 // TODO: Borrow
 // TODO: TryFrom

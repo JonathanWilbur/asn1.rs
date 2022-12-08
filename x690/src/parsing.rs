@@ -1,24 +1,26 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 
-use std::collections::{HashSet, HashMap};
-use asn1::types::Tag;
-use asn1::construction::{TagSelector, ComponentSpec};
 use crate::{X690Element, X690Encoding};
-use asn1::error::{ASN1Result, ASN1Error, ASN1ErrorCode};
+use asn1::construction::{ComponentSpec, TagSelector};
+use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
+use asn1::types::Tag;
+use std::borrow::Borrow;
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 // Return `true` if successfully handled; `false` if error. Parsing will not continue if `false` returned.
-pub type ComponentHandler <'a> = &'a dyn FnMut (&X690Element) -> bool;
+pub type ComponentHandler<'a> = &'a dyn FnMut(&X690Element) -> bool;
 
-pub type ComponentHandlers <'a> = HashMap<&'a str, ComponentHandler<'a>>;
+pub type ComponentHandlers<'a> = HashMap<&'a str, ComponentHandler<'a>>;
 
-pub type AlternativeHandlers <'a> = HashMap<Tag, (&'a str, ComponentHandler<'a>)>;
+pub type AlternativeHandlers<'a> = HashMap<Tag, (&'a str, ComponentHandler<'a>)>;
 
-pub type Decoder <T> = fn (el: &X690Element) -> ASN1Result<T>;
+pub type Decoder<T> = fn(el: &X690Element) -> ASN1Result<T>;
 
-pub type IndexedComponents <'a, 'b> = (HashMap<&'a str, &'b X690Element>, Vec<&'b X690Element>);
+pub type IndexedComponents<'a> = (HashMap<&'a str, X690Element>, Vec<X690Element>);
 
-pub fn component_is_selected (el: &X690Element, sel: TagSelector) -> bool {
+pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
     match sel {
         TagSelector::tag((tc, tn)) => (el.tag_class == tc) && (el.tag_number == tn),
         TagSelector::any => true,
@@ -31,7 +33,7 @@ pub fn component_is_selected (el: &X690Element, sel: TagSelector) -> bool {
                 }
             }
             return true;
-        },
+        }
         TagSelector::or(sels) => {
             for s in sels {
                 if component_is_selected(el, **s) {
@@ -39,19 +41,19 @@ pub fn component_is_selected (el: &X690Element, sel: TagSelector) -> bool {
                 }
             }
             return false;
-        },
+        }
         TagSelector::not(n) => !component_is_selected(el, *n),
     }
 }
 
 // TODO: Avoid using HashMaps and Sets if the number of components is small.
-pub fn _parse_set <'a> (
+pub fn _parse_set<'a>(
     elements: &'a [&'a X690Element],
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
     rctl2: &'a [ComponentSpec],
     max_elements: usize,
-) -> ASN1Result<IndexedComponents<'a, 'a>> {
+) -> ASN1Result<IndexedComponents<'a>> {
     if elements.len() > max_elements {
         let mut err = ASN1Error::new(ASN1ErrorCode::construction_too_complex);
         err.constructed = Some(true);
@@ -61,7 +63,6 @@ pub fn _parse_set <'a> (
     // Check for duplicates
     let mut encountered_tags: HashSet<Tag> = HashSet::new();
     for el in elements {
-        // TODO: Is checking if a _reference_ to a tag going to work?
         if encountered_tags.contains(&Tag::new(el.tag_class, el.tag_number)) {
             let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
             err.component_name = el.name.clone();
@@ -84,8 +85,8 @@ pub fn _parse_set <'a> (
             TagSelector::tag(tag) => {
                 tag_to_spec.insert(Tag::new(tag.0, tag.1), *spec);
                 ()
-            },
-            _ => ()
+            }
+            _ => (),
         }
     }
 
@@ -105,9 +106,9 @@ pub fn _parse_set <'a> (
                 if let Some(group_index) = s.group_index {
                     encountered_ext_groups.insert(group_index);
                 }
-                ret.0.insert(s.name, el);
-            },
-            None => ret.1.push(el),
+                ret.0.insert(s.name, (**el).clone());
+            }
+            None => ret.1.push((**el).clone()),
         }
     }
 
@@ -122,9 +123,12 @@ pub fn _parse_set <'a> (
     for exg in &encountered_ext_groups {
         for spec in eal {
             if let Some(group_index) = spec.group_index {
-                if *exg == group_index && !spec.optional && !encountered_components.contains(spec.name) {
+                if *exg == group_index
+                    && !spec.optional
+                    && !encountered_components.contains(spec.name)
+                {
                     missing_required_components.push(spec.name);
-                }   
+                }
             }
         }
     }
@@ -138,11 +142,11 @@ pub fn _parse_set <'a> (
     Ok(ret)
 }
 
-pub fn _parse_component_type_list <'a> (
+pub fn _parse_component_type_list<'a>(
     ctl: &'a [ComponentSpec],
     elements: &'a [&'a X690Element],
     is_extensions: bool,
-) -> ASN1Result<(usize, IndexedComponents<'a, 'a>)> {
+) -> ASN1Result<(usize, IndexedComponents<'a>)> {
     let mut e: usize = 0;
     let mut s: usize = 0;
     let mut current_group: Option<u8> = None;
@@ -156,17 +160,18 @@ pub fn _parse_component_type_list <'a> (
                     s += 1;
                     continue;
                 /*
-                 The only difference between parsing an extension additions list
-                 and a root component type list is that, if you run out of elements
-                 in the extension additions list, it is only invalid if an
-                 ExtensionAdditionsGroup had any present elements, but was missing
-                 REQUIRED elements.
-                 */
+                The only difference between parsing an extension additions list
+                and a root component type list is that, if you run out of elements
+                in the extension additions list, it is only invalid if an
+                ExtensionAdditionsGroup had any present elements, but was missing
+                REQUIRED elements.
+                */
                 } else if is_extensions {
                     let curr_group = current_group.unwrap_or(u8::MAX);
                     if let Some(group_index) = spec.group_index {
                         if group_index <= curr_group {
-                            let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                            let mut err =
+                                ASN1Error::new(ASN1ErrorCode::missing_required_components);
                             err.component_name = Some(String::from(spec.name));
                             return Err(err);
                         } else {
@@ -182,10 +187,10 @@ pub fn _parse_component_type_list <'a> (
                     err.component_name = Some(String::from(spec.name));
                     return Err(err);
                 }
-            },
+            }
         };
         if component_is_selected(el, spec.selector) {
-            ret.0.insert(spec.name, el);
+            ret.0.insert(spec.name, (**el).clone());
             if let Some(group_index) = spec.group_index {
                 current_group = Some(group_index);
             }
@@ -200,7 +205,7 @@ pub fn _parse_component_type_list <'a> (
     Ok((e, ret))
 }
 
-fn _get_possible_initial_components (ctl: &[ComponentSpec]) -> usize {
+fn _get_possible_initial_components(ctl: &[ComponentSpec]) -> usize {
     let mut i = 0;
     while i < ctl.len() {
         if !ctl[i].optional {
@@ -212,17 +217,13 @@ fn _get_possible_initial_components (ctl: &[ComponentSpec]) -> usize {
     i
 }
 
-pub fn _parse_sequence_with_trailing_rctl <'a> (
+pub fn _parse_sequence_with_trailing_rctl<'a>(
     elements: &'a [&'a X690Element],
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
     rctl2: &'a [ComponentSpec],
-) -> ASN1Result<IndexedComponents<'a, 'a>> {
-    let (start_of_exts, rctl1_index) = _parse_component_type_list(
-        rctl1,
-        elements,
-        false,
-    )?;
+) -> ASN1Result<IndexedComponents<'a>> {
+    let (start_of_exts, rctl1_index) = _parse_component_type_list(rctl1, elements, false)?;
     let end_of_possible_rctl2_components = _get_possible_initial_components(rctl2);
     let possible_initial_rctl2_components = &rctl2[0..end_of_possible_rctl2_components];
     let extensions_onwards = &elements[start_of_exts..];
@@ -242,16 +243,10 @@ pub fn _parse_sequence_with_trailing_rctl <'a> (
     // NOTE: I deviated from the TypeScript implementation here. I don't see
     // how the value `startOfExtensions` could ever be -1.
     let start_of_rctl2 = start_of_exts + number_of_ext_components.unwrap_or(0);
-    let (_, eal_index) = _parse_component_type_list(
-        eal,
-        &elements[start_of_exts..start_of_rctl2],
-        true,
-    )?;
-    let (rctl2_components_read, rctl2_index) = _parse_component_type_list(
-        rctl2,
-        &elements[start_of_rctl2..],
-        false,
-    )?;
+    let (_, eal_index) =
+        _parse_component_type_list(eal, &elements[start_of_exts..start_of_rctl2], true)?;
+    let (rctl2_components_read, rctl2_index) =
+        _parse_component_type_list(rctl2, &elements[start_of_rctl2..], false)?;
     if start_of_rctl2 + rctl2_components_read > elements.len() {
         let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
         err.constructed = Some(true);
@@ -266,49 +261,32 @@ pub fn _parse_sequence_with_trailing_rctl <'a> (
     Ok(ret)
 }
 
-pub fn _parse_sequence_without_trailing_rctl <'a> (
+pub fn _parse_sequence_without_trailing_rctl<'a>(
     elements: &'a [&'a X690Element],
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
-) -> ASN1Result<IndexedComponents<'a, 'a>> {
-    let (start_of_exts, rctl_index) = _parse_component_type_list(
-        rctl1, 
-        &elements,
-        false,
-    )?;
-    let (exts_read, eal_index) = _parse_component_type_list(
-        eal,
-        &elements[start_of_exts..],
-        true,
-    )?;
+) -> ASN1Result<IndexedComponents<'a>> {
+    let (start_of_exts, rctl_index) = _parse_component_type_list(rctl1, &elements, false)?;
+    let (exts_read, eal_index) = _parse_component_type_list(eal, &elements[start_of_exts..], true)?;
     let end_of_recognized_exts = start_of_exts + exts_read;
     let mut ret: IndexedComponents = rctl_index;
     ret.0.extend(eal_index.0);
     for el in elements[end_of_recognized_exts..].into_iter() {
-        ret.1.push(el);
+        ret.1.push((**el).clone());
     }
     Ok(ret)
 }
 
-pub fn _parse_sequence <'a> (
+pub fn _parse_sequence<'a>(
     elements: &'a [&'a X690Element],
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
     rctl2: &'a [ComponentSpec],
-) -> ASN1Result<IndexedComponents<'a, 'a>> {
+) -> ASN1Result<IndexedComponents<'a>> {
     if rctl2.len() > 0 {
-        return _parse_sequence_with_trailing_rctl(
-            elements,
-            rctl1,
-            eal,
-            rctl2,
-        );
+        return _parse_sequence_with_trailing_rctl(elements, rctl1, eal, rctl2);
     } else {
-        return _parse_sequence_without_trailing_rctl(
-            elements,
-            rctl1,
-            eal,
-        );
+        return _parse_sequence_without_trailing_rctl(elements, rctl1, eal);
     }
 }
 
@@ -339,8 +317,8 @@ pub fn _parse_sequence <'a> (
 //     Ok(())
 // }
 
-pub fn _decode_sequence_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
-    let elements = match &el.value {
+pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
+    let elements = match el.value.borrow() {
         X690Encoding::Constructed(children) => children,
         _ => {
             let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
@@ -349,7 +327,7 @@ pub fn _decode_sequence_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> A
             err.constructed = Some(true);
             err.length = Some(el.len());
             return Err(err);
-        },
+        }
     };
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
     for element in elements {
@@ -359,8 +337,8 @@ pub fn _decode_sequence_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> A
     Ok(ret)
 }
 
-pub fn _decode_set_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
-    let elements = match &el.value {
+pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
+    let elements = match el.value.borrow() {
         X690Encoding::Constructed(children) => children,
         _ => {
             let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
@@ -369,7 +347,7 @@ pub fn _decode_set_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> ASN1Re
             err.constructed = Some(true);
             err.length = Some(el.len());
             return Err(err);
-        },
+        }
     };
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
     for element in elements {
@@ -379,21 +357,103 @@ pub fn _decode_set_of <T> (el: &X690Element, item_decoder: Decoder<T>) -> ASN1Re
     Ok(ret)
 }
 
-// FIXME: Use Arc<X690Element> instead of cloning.
+// pub fn _decode_explicit <T> (decoder: Decoder<T>) -> T {
+//     decoder()
+// }
+
+// export function _encode_explicit (
+//     class_: ASN1TagClass | undefined,
+//     tag: number | undefined,
+//     encoderGetter: () => ASN1Encoder<any>,
+//     outer:  ASN1Encoder<any>,
+// ): ASN1Encoder<any> {
+//     return function (value: any, elGetter: ASN1Encoder<any>): ASN1Element {
+//         const ret: ASN1Element = outer(value, outer);
+//         ret.sequence = [ encoderGetter()(value, elGetter) ];
+//         ret.construction = ASN1Construction.constructed;
+//         if (class_) {
+//             ret.tagClass = class_;
+//         }
+//         if (typeof tag !== "undefined") {
+//             ret.tagNumber = tag;
+//         }
+//         return ret;
+//     };
+// }
+
+// export function _decode_explicit<T> (decoderGetter: () => (el: ASN1Element) => T): ASN1Decoder<T> {
+//     return (el: ASN1Element) => decoderGetter()(el.inner);
+// }
+
+pub fn _encode_explicit(el: X690Element, tag: Tag) -> X690Element {
+    X690Element::new(
+        tag.tag_class,
+        tag.tag_number,
+        Arc::new(X690Encoding::EXPLICIT(Box::new(el))),
+    )
+}
+
+pub fn _encode_implicit(el: X690Element, tag: Tag) -> X690Element {
+    X690Element::new(
+        tag.tag_class,
+        tag.tag_number,
+        Arc::new(X690Encoding::EXPLICIT(Box::new(el))),
+    )
+}
+
+pub const ZXCV: fn(X690Element, Tag) -> X690Element = |el: X690Element, tag: Tag| -> X690Element {
+    X690Element::new(
+        tag.tag_class,
+        tag.tag_number,
+        Arc::new(X690Encoding::EXPLICIT(Box::new(el))),
+    )
+};
+
+// export function _encode_implicit (
+//     class_: ASN1TagClass | undefined,
+//     tag: number | undefined,
+//     encoderGetter: () => ASN1Encoder<any>,
+//     outer:  ASN1Encoder<any>, // eslint-disable-line
+//     // ^ This needs to remain here.
+// ): ASN1Encoder<any> {
+//     return function (value: any, elGetter: ASN1Encoder<any>): ASN1Element {
+//         const ret: ASN1Element = encoderGetter()(value, elGetter);
+//         if (class_) {
+//             ret.tagClass = class_;
+//         }
+//         if (typeof tag !== "undefined") {
+//             ret.tagNumber = tag;
+//         }
+//         return ret;
+//     };
+// }
+
+// export function _decode_implicit<T> (decoderGetter: () => (el: ASN1Element) => T): ASN1Decoder<T> {
+//     return (el: ASN1Element) => decoderGetter()(el);
+// }
+
+// TODO: Implement a deep_clone that recurses into the value as well.
+// This works as an encode and decode function.
+pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
+    Ok(el.clone())
+}
 
 #[cfg(test)]
 mod tests {
 
     use asn1::types::{
-        TagClass,
-        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-        ASN1_UNIVERSAL_TAG_NUMBER_NULL, OBJECT_IDENTIFIER, ASN1Value, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING,
+        ASN1Value, TagClass, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING, ASN1_UNIVERSAL_TAG_NUMBER_NULL,
+        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+        ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING, OBJECT_IDENTIFIER,
     };
+    use std::sync::Arc;
 
-    use crate::ber::{
-        ber_decode_any,
-        ber_decode_object_identifier, ber_decode_utf8_string, ber_decode_bmp_string,
+    use crate::{
+        ber::{
+            ber_decode_any, ber_decode_bmp_string, ber_decode_object_identifier,
+            ber_decode_utf8_string,
+        },
+        x690_write_object_identifier_value,
     };
 
     use super::*;
@@ -403,18 +463,22 @@ mod tests {
         pub parameters: Option<ASN1Value>,
     }
 
-    const _rctl1_components_for_AlgorithmIdentifier: &[ComponentSpec; 2] = &[
+    const _rctl1_components_for_AlgorithmIdentifier: &[ComponentSpec; 3] = &[
         ComponentSpec::new(
             "algorithm",
             false,
-            TagSelector::tag((TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER)),
+            TagSelector::tag((
+                TagClass::UNIVERSAL,
+                ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+            )),
             None,
             None,
         ),
+        ComponentSpec::new("parameters", true, TagSelector::any, None, None),
         ComponentSpec::new(
-            "parameters",
+            "asdf",
             true,
-            TagSelector::any,
+            TagSelector::or(&[&TagSelector::any, &TagSelector::any]),
             None,
             None,
         ),
@@ -423,8 +487,13 @@ mod tests {
     const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
     const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
 
-    fn decode_AlgorithmIdentifier (el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
-        let elements = match &el.value {
+    fn asdf(el: &mut X690Element) -> ASN1Result<&X690Element> {
+        el.tag_class = TagClass::UNIVERSAL;
+        Ok(el)
+    }
+
+    fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
+        let elements = match el.value.borrow() {
             X690Encoding::Constructed(children) => children,
             _ => panic!(),
         };
@@ -434,16 +503,13 @@ mod tests {
             _rctl1_components_for_AlgorithmIdentifier,
             _eal_components_for_AlgorithmIdentifier,
             _rctl2_components_for_AlgorithmIdentifier,
-        ).unwrap();
-        let algorithm: OBJECT_IDENTIFIER = ber_decode_object_identifier(components.get("algorithm").unwrap()).unwrap();
+        )?;
+        // NOTE: unwrap() should be fine, because we validate that there is such a component in `_parse_sequence`.
+        let algorithm: OBJECT_IDENTIFIER =
+            ber_decode_object_identifier(components.get("algorithm").unwrap())?;
         let parameters: Option<ASN1Value> = match components.get("parameters") {
-            Some(c) => {
-                match ber_decode_any(c) {
-                    Ok(v) => Some(v),
-                    Err(e) => return Err(e),
-                }
-            },
-            None => None,
+            Some(c) => Some(ber_decode_any(c)?),
+            _ => None,
         };
         Ok(AlgorithmIdentifier {
             algorithm,
@@ -451,42 +517,84 @@ mod tests {
         })
     }
 
-    enum DirectoryString {
-        UTF8String (String),
-        BMPString (String),
+    fn encode_AlgorithmIdentifier(value: AlgorithmIdentifier) -> ASN1Result<X690Element> {
+        let mut algorithm_b_: Vec<u8> = vec![];
+        let mut parameter_b_: Vec<u8> = vec![];
+        x690_write_object_identifier_value(&mut algorithm_b_, &value.algorithm)?;
+        let parameters = value.parameters;
+        let algorithm_e_: X690Element = X690Element::new(
+            TagClass::UNIVERSAL,
+            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+            Arc::new(X690Encoding::IMPLICIT(algorithm_b_)),
+        );
+        let parameter_e_: Option<X690Element> = None;
+        let mut components_: Vec<X690Element> = Vec::with_capacity(2);
+        components_.push(algorithm_e_);
+        if let Some(parameter_e_some_) = parameter_e_ {
+            components_.push(parameter_e_some_);
+        }
+
+        Ok(X690Element::new(
+            TagClass::UNIVERSAL,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            Arc::new(X690Encoding::Constructed([components_].concat())),
+        ))
     }
 
-    fn decode_DirectoryString (el: &X690Element) -> ASN1Result<DirectoryString> {
+    enum DirectoryString {
+        UTF8String(String),
+        BMPString(String),
+        Unrecognized(X690Element),
+    }
+
+    fn decode_DirectoryString(el: &X690Element) -> ASN1Result<DirectoryString> {
         match (el.tag_class, el.tag_number) {
             (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING) => {
                 let v = ber_decode_utf8_string(&el)?;
                 return Ok(DirectoryString::UTF8String(v));
-            },
+            }
             (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING) => {
                 let v = ber_decode_bmp_string(&el)?;
                 return Ok(DirectoryString::BMPString(v));
-            },
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
+            }
+            _ => {
+                return Err(ASN1Error::new(
+                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                ))
+            }
+        }
+    }
+
+    fn encode_DirectoryString(value: &DirectoryString) -> ASN1Result<X690Element> {
+        match &value {
+            DirectoryString::UTF8String(v) => Ok(X690Element::new(
+                TagClass::UNIVERSAL,
+                0,
+                Arc::new(X690Encoding::IMPLICIT(v.clone().into_bytes())),
+            )),
+            DirectoryString::Unrecognized(el) => Ok(el.clone()),
+            _ => {
+                return Err(ASN1Error::new(
+                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                ))
+            }
         }
     }
 
     #[test]
-    fn test_decode_sequence () {
+    fn test_decode_sequence() {
         let rctl1: Vec<ComponentSpec> = vec![
             ComponentSpec::new(
                 "algorithm",
                 false,
-                TagSelector::tag((TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER)),
+                TagSelector::tag((
+                    TagClass::UNIVERSAL,
+                    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+                )),
                 None,
                 None,
             ),
-            ComponentSpec::new(
-                "parameters",
-                true,
-                TagSelector::any,
-                None,
-                None,
-            ),
+            ComponentSpec::new("parameters", true, TagSelector::any, None, None),
         ];
         let eal: Vec<ComponentSpec> = vec![];
         let rctl2: Vec<ComponentSpec> = vec![];
@@ -494,20 +602,20 @@ mod tests {
         let root: X690Element = X690Element::new(
             TagClass::UNIVERSAL,
             ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            X690Encoding::Constructed(vec![
+            Arc::new(X690Encoding::Constructed(vec![
                 X690Element::new(
                     TagClass::UNIVERSAL,
                     ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-                    X690Encoding::IMPLICIT(vec![ 0x55, 0x04, 0x03 ]),
+                    Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
                 ),
                 X690Element::new(
                     TagClass::UNIVERSAL,
                     ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-                    X690Encoding::IMPLICIT(vec![]),
+                    Arc::new(X690Encoding::IMPLICIT(vec![])),
                 ),
-            ]),
+            ])),
         );
-        let elements = match root.value {
+        let elements = match root.value.borrow() {
             X690Encoding::Constructed(children) => children,
             _ => panic!(),
         };
@@ -517,11 +625,22 @@ mod tests {
             rctl1.as_slice(),
             eal.as_slice(),
             rctl2.as_slice(),
-        ).unwrap();
-        let algorithm: OBJECT_IDENTIFIER = ber_decode_object_identifier(components.get("algorithm").unwrap()).unwrap();
-        let parameters: Option<ASN1Value> = components.get("parameters").and_then(|c| Some(ber_decode_any(c).unwrap()));
+        )
+        .unwrap();
+        let algorithm: OBJECT_IDENTIFIER =
+            ber_decode_object_identifier(components.get("algorithm").unwrap()).unwrap();
+        let parameters: Option<ASN1Value> = components
+            .get("parameters")
+            .and_then(|c| Some(ber_decode_any(c).unwrap()));
         assert_eq!(unrecognized.len(), 0);
-        assert_eq!(algorithm.iter().map(|a| a.to_string()).collect::<Vec<String>>().join("."), "2.5.4.3");
+        assert_eq!(
+            algorithm
+                .iter()
+                .map(|a| a.to_string())
+                .collect::<Vec<String>>()
+                .join("."),
+            "2.5.4.3"
+        );
         if let Some(p) = parameters {
             match p {
                 ASN1Value::NullValue => (),
@@ -533,25 +652,33 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_algorithm_identifier () {
+    fn test_decode_algorithm_identifier() {
         let root: X690Element = X690Element::new(
             TagClass::UNIVERSAL,
             ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            X690Encoding::Constructed(vec![
+            Arc::new(X690Encoding::Constructed(vec![
                 X690Element::new(
                     TagClass::UNIVERSAL,
                     ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-                    X690Encoding::IMPLICIT(vec![ 0x55, 0x04, 0x03 ]),
+                    Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
                 ),
                 X690Element::new(
                     TagClass::UNIVERSAL,
                     ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-                    X690Encoding::IMPLICIT(vec![]),
+                    Arc::new(X690Encoding::IMPLICIT(vec![])),
                 ),
-            ]),
+            ])),
         );
         let alg_id = decode_AlgorithmIdentifier(&root).unwrap();
-        assert_eq!(alg_id.algorithm.iter().map(|a| a.to_string()).collect::<Vec<String>>().join("."), "2.5.4.3");
+        assert_eq!(
+            alg_id
+                .algorithm
+                .iter()
+                .map(|a| a.to_string())
+                .collect::<Vec<String>>()
+                .join("."),
+            "2.5.4.3"
+        );
         if let Some(p) = alg_id.parameters {
             match p {
                 ASN1Value::NullValue => (),
@@ -563,11 +690,13 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_directory_string () {
+    fn test_decode_directory_string() {
         let root: X690Element = X690Element::new(
             TagClass::UNIVERSAL,
             ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
-            X690Encoding::IMPLICIT(Vec::from(String::from("Better Call Saul!"))),
+            Arc::new(X690Encoding::IMPLICIT(Vec::from(String::from(
+                "Better Call Saul!",
+            )))),
         );
         let ds = decode_DirectoryString(&root).unwrap();
         if let DirectoryString::UTF8String(s) = ds {
@@ -576,5 +705,4 @@ mod tests {
             panic!();
         }
     }
-
 }

@@ -1,7 +1,7 @@
 use crate::types::{GeneralizedTime, DATE};
 
 impl GeneralizedTime {
-    pub fn new () -> Self {
+    pub fn new() -> Self {
         GeneralizedTime {
             date: DATE::new(),
             utc: true,

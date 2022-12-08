@@ -3,7 +3,8 @@ use std::fmt;
 use std::io::Error;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum ASN1ErrorCode { // I went with an enum rather than integer error codes, because of debug printing.
+pub enum ASN1ErrorCode {
+    // I went with an enum rather than integer error codes, because of debug printing.
     io,
     truncated,
     tag_too_big,
@@ -19,7 +20,7 @@ pub enum ASN1ErrorCode { // I went with an enum rather than integer error codes,
     invalid_construction,
     unrecognized_components_in_inextensible_type,
     unrecognized_alternative_in_inextensible_choice,
-    prohibited_character (u32, usize), // (charcode, index)
+    prohibited_character(u32, usize), // (charcode, index)
     construction_too_complex,
     duplicate_tags_in_set,
     duplicate_components,
@@ -29,9 +30,9 @@ pub enum ASN1ErrorCode { // I went with an enum rather than integer error codes,
     oid_padding,
     urecognized_real_format,
     base_10_real_string_decoding_error,
-    base_10_real_string_malformed (String),
-    base_10_real_unrecognized_format (u8),
-    base_10_real_unrecognized_base (u8),
+    base_10_real_string_malformed(String),
+    base_10_real_unrecognized_format(u8),
+    base_10_real_unrecognized_base(u8),
     x690_long_form_unnecessary,
     x690_indefinite_length_but_not_constructed,
     x690_boolean_not_one_byte,
@@ -63,12 +64,12 @@ pub struct ASN1Error {
 }
 
 impl fmt::Display for ASN1ErrorCode {
-
-    fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::invalid_construction => write!(f, "invalid_construction"),
-            Self::prohibited_character(c, i) =>
-                write!(f, "prohibited_character (char={}, index={})", *c, *i),
+            Self::prohibited_character(c, i) => {
+                write!(f, "prohibited_character (char={}, index={})", *c, *i)
+            }
             Self::int_padding => write!(f, "int_padding"),
             Self::der_boolean_not_0x00_or_0xFF => write!(f, "der_boolean_not_0x00_or_0xFF"),
             Self::oid_padding => write!(f, "oid_padding"),
@@ -76,12 +77,10 @@ impl fmt::Display for ASN1ErrorCode {
             _ => write!(f, "other"),
         }
     }
-
 }
 
 impl ASN1Error {
-
-    pub fn new (error_code: ASN1ErrorCode) -> Self {
+    pub fn new(error_code: ASN1ErrorCode) -> Self {
         ASN1Error {
             error_code,
             component_name: None,
@@ -94,11 +93,9 @@ impl ASN1Error {
             io_error: None,
         }
     }
-
 }
 
 impl From<Error> for ASN1Error {
-
     fn from(other: Error) -> Self {
         ASN1Error {
             error_code: ASN1ErrorCode::io,
@@ -112,12 +109,10 @@ impl From<Error> for ASN1Error {
             io_error: Some(other),
         }
     }
-
 }
 
 impl fmt::Display for ASN1Error {
-
-    fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.error_code.fmt(f)?;
         if let Some(component_name) = &self.component_name {
             write!(f, " component='{}'", component_name)?;
@@ -142,7 +137,6 @@ impl fmt::Display for ASN1Error {
         }
         Ok(())
     }
-
 }
 
-pub type ASN1Result <T> = Result<T, ASN1Error>;
+pub type ASN1Result<T> = Result<T, ASN1Error>;
