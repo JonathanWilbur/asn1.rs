@@ -114,7 +114,10 @@ pub struct ModificationParameter {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ModificationParameter {
-    pub fn new(secondaryShadows: Vec<SupplierAndConsumers>, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        secondaryShadows: Vec<SupplierAndConsumers>,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         ModificationParameter {
             secondaryShadows,
             _unrecognized,
@@ -837,7 +840,10 @@ pub struct ClassAttributeSelection {
     pub classAttributes: OPTIONAL<ClassAttributes>,
 }
 impl ClassAttributeSelection {
-    pub fn new(class: OPTIONAL<OBJECT_IDENTIFIER>, classAttributes: OPTIONAL<ClassAttributes>) -> Self {
+    pub fn new(
+        class: OPTIONAL<OBJECT_IDENTIFIER>,
+        classAttributes: OPTIONAL<ClassAttributes>,
+    ) -> Self {
         ClassAttributeSelection {
             class,
             classAttributes,

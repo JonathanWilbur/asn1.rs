@@ -3905,7 +3905,10 @@ pub struct TbsHandshakeReq_encr_mode_non_aead {
     pub icvAlgID: Vec<AlgorithmIdentifier>,
 }
 impl TbsHandshakeReq_encr_mode_non_aead {
-    pub fn new(encr: OPTIONAL<Vec<AlgorithmIdentifier>>, icvAlgID: Vec<AlgorithmIdentifier>) -> Self {
+    pub fn new(
+        encr: OPTIONAL<Vec<AlgorithmIdentifier>>,
+        icvAlgID: Vec<AlgorithmIdentifier>,
+    ) -> Self {
         TbsHandshakeReq_encr_mode_non_aead { encr, icvAlgID }
     }
 }

@@ -822,15 +822,17 @@ pub fn _encode_Implementation_data(value_: &Implementation_data) -> ASN1Result<X
 pub type TheOsiBind = X690Element; // ObjectClassFieldType
 
 pub fn _decode_TheOsiBind(el: &X690Element) -> ASN1Result<TheOsiBind> {
-    x690_identity(&el)
+    x690_identity(&el.inner()?)
 }
 
 pub fn _encode_TheOsiBind(value_: &TheOsiBind) -> ASN1Result<X690Element> {
     |v_1: &TheOsiBind| -> ASN1Result<X690Element> {
-        let mut el_1 = x690_identity(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 16;
-        Ok(el_1)
+        let el_1 = x690_identity(&v_1)?;
+        Ok(X690Element::new(
+            TagClass::CONTEXT,
+            16,
+            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+        ))
     }(&value_)
 }
 
@@ -1456,10 +1458,10 @@ pub fn _decode_Associate_source_diagnostic(
     |el: &X690Element| -> ASN1Result<Associate_source_diagnostic> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 1) => Ok(Associate_source_diagnostic::acse_service_user(
-                _decode_Associate_source_diagnostic_acse_service_user(&el)?,
+                _decode_Associate_source_diagnostic_acse_service_user(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 2) => Ok(Associate_source_diagnostic::acse_service_provider(
-                _decode_Associate_source_diagnostic_acse_service_provider(&el)?,
+                _decode_Associate_source_diagnostic_acse_service_provider(&el.inner()?)?,
             )),
             _ => {
                 return Err(ASN1Error::new(
@@ -1475,8 +1477,22 @@ pub fn _encode_Associate_source_diagnostic(
 ) -> ASN1Result<X690Element> {
     |value: &Associate_source_diagnostic| -> ASN1Result<X690Element> {
         match value {
-		Associate_source_diagnostic::acse_service_user(v) => |v_1: &Associate_source_diagnostic_acse_service_user| -> ASN1Result<X690Element> { let mut el_1 = _encode_Associate_source_diagnostic_acse_service_user(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 1; Ok(el_1) }(&v),
-		Associate_source_diagnostic::acse_service_provider(v) => |v_1: &Associate_source_diagnostic_acse_service_provider| -> ASN1Result<X690Element> { let mut el_1 = _encode_Associate_source_diagnostic_acse_service_provider(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 2; Ok(el_1) }(&v),
+		Associate_source_diagnostic::acse_service_user(v) => |v_1: &Associate_source_diagnostic_acse_service_user| -> ASN1Result<X690Element> {
+            let el_1 = _encode_Associate_source_diagnostic_acse_service_user(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                1,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
+		Associate_source_diagnostic::acse_service_provider(v) => |v_1: &Associate_source_diagnostic_acse_service_provider| -> ASN1Result<X690Element> {
+            let el_1 = _encode_Associate_source_diagnostic_acse_service_provider(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                2,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
 	}
     }(&value_)
 }
@@ -1490,15 +1506,17 @@ pub fn _encode_Associate_source_diagnostic(
 pub type TheOsiBindRes = X690Element; // ObjectClassFieldType
 
 pub fn _decode_TheOsiBindRes(el: &X690Element) -> ASN1Result<TheOsiBindRes> {
-    x690_identity(&el)
+    x690_identity(&el.inner()?)
 }
 
 pub fn _encode_TheOsiBindRes(value_: &TheOsiBindRes) -> ASN1Result<X690Element> {
     |v_1: &TheOsiBindRes| -> ASN1Result<X690Element> {
-        let mut el_1 = x690_identity(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 17;
-        Ok(el_1)
+        let el_1 = x690_identity(&v_1)?;
+        Ok(X690Element::new(
+            TagClass::CONTEXT,
+            17,
+            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+        ))
     }(&value_)
 }
 
@@ -2063,15 +2081,17 @@ pub fn _encode_Association_informationBindErr(
 pub type TheOsiBindErr = X690Element; // ObjectClassFieldType
 
 pub fn _decode_TheOsiBindErr(el: &X690Element) -> ASN1Result<TheOsiBindErr> {
-    x690_identity(&el)
+    x690_identity(&el.inner()?)
 }
 
 pub fn _encode_TheOsiBindErr(value_: &TheOsiBindErr) -> ASN1Result<X690Element> {
     |v_1: &TheOsiBindErr| -> ASN1Result<X690Element> {
-        let mut el_1 = x690_identity(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 18;
-        Ok(el_1)
+        let el_1 = x690_identity(&v_1)?;
+        Ok(X690Element::new(
+            TagClass::CONTEXT,
+            18,
+            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+        ))
     }(&value_)
 }
 
@@ -2879,7 +2899,11 @@ pub struct OsiRej {
     pub _unrecognized: Vec<X690Element>,
 }
 impl OsiRej {
-    pub fn new(invokeId: InvokeId, problem: OsiRej_problem, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        invokeId: InvokeId,
+        problem: OsiRej_problem,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         OsiRej {
             invokeId,
             problem,
@@ -3656,7 +3680,7 @@ pub fn _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_
 		(TagClass::CONTEXT, 0) => Ok(OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el)?)),
 		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
-    }(&el)
+    }(&el.inner()?)
 }
 
 pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
@@ -3664,7 +3688,14 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_
 ) -> ASN1Result<X690Element> {
     |value: &OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
-		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
+		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
+            let el_1 = x690_identity(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
 	}
 }(&value_)
 }
@@ -4394,8 +4425,22 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_presentation_context_definit
 ) -> ASN1Result<X690Element> {
     |value_: &OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item| -> ASN1Result<X690Element> {
 	let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-	components_.push(|v_1: &Result_| -> ASN1Result<X690Element> { let mut el_1 = _encode_Result_(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&value_.result)?);
-	components_.push(|v_1: &Transfer_syntax_name| -> ASN1Result<X690Element> { let mut el_1 = _encode_Transfer_syntax_name(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 1; Ok(el_1) }(&value_.transfer_syntax_name)?);
+	components_.push(|v_1: &Result_| -> ASN1Result<X690Element> {
+        let el_1 = _encode_Result_(&v_1)?;
+        Ok(X690Element::new(
+            TagClass::CONTEXT,
+            0,
+            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+        ))
+    }(&value_.result)?);
+	components_.push(|v_1: &Transfer_syntax_name| -> ASN1Result<X690Element> {
+        let el_1 = _encode_Transfer_syntax_name(&v_1)?;
+        Ok(X690Element::new(
+            TagClass::CONTEXT,
+            1,
+            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+        ))
+    }(&value_.transfer_syntax_name)?);
 	Ok(X690Element::new(
 		TagClass::UNIVERSAL,
 		ASN1_UNIVERSAL_TAG_NUMBER_SET,
@@ -4445,7 +4490,7 @@ pub fn _decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
 > {
     |el: &X690Element| -> ASN1Result<OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values> {
 	match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el)?)),
+		(TagClass::CONTEXT, 0) => Ok(OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
 		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&el)
@@ -4456,7 +4501,14 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
 ) -> ASN1Result<X690Element> {
     |value: &OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
-		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
+		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
+            let el_1 = x690_identity(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
 	}
 }(&value_)
 }
@@ -4976,7 +5028,7 @@ pub fn _decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
 > {
     |el: &X690Element| -> ASN1Result<OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values> {
 	match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el)?)),
+		(TagClass::CONTEXT, 0) => Ok(OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
 		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&el)
@@ -4987,7 +5039,14 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
 ) -> ASN1Result<X690Element> {
     |value: &OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
-		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
+		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
+            let el_1 = x690_identity(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
 	}
 }(&value_)
 }
@@ -5593,7 +5652,7 @@ pub fn _decode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(
                 OsiUnbind_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(
-                    x690_identity(&el)?,
+                    x690_identity(&el.inner()?)?,
                 ),
             ),
             _ => {
@@ -5612,10 +5671,12 @@ pub fn _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
         match value {
             OsiUnbind_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }
@@ -5761,7 +5822,7 @@ pub fn _decode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
 ) -> ASN1Result<OsiUnbindResult_fully_encoded_data_Item_presentation_data_values> {
     |el: &X690Element| -> ASN1Result<OsiUnbindResult_fully_encoded_data_Item_presentation_data_values> {
 	match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el)?)),
+		(TagClass::CONTEXT, 0) => Ok(OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
 		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&el)
@@ -5772,7 +5833,14 @@ pub fn _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
 ) -> ASN1Result<X690Element> {
     |value: &OsiUnbindResult_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
-		OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
+		OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
+            let el_1 = x690_identity(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
 	}
 }(&value_)
 }
@@ -5918,7 +5986,7 @@ pub fn _decode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(
                 OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(
-                    x690_identity(&el)?,
+                    x690_identity(&el.inner()?)?,
                 ),
             ),
             _ => {
@@ -5935,7 +6003,14 @@ pub fn _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
 ) -> ASN1Result<X690Element> {
     |value: &OsiOperation_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
-		OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
+		OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
+            let el_1 = x690_identity(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
 	}
 }(&value_)
 }
@@ -6238,7 +6313,7 @@ pub fn _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
         ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
     > {
         match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el)?)),
+		(TagClass::CONTEXT, 0) => Ok(ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
 		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
     }(&el)
@@ -6249,7 +6324,14 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
 ) -> ASN1Result<X690Element> {
     |value: &ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
-		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
+		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
+            let el_1 = x690_identity(&v_1)?;
+            Ok(X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            ))
+        }(&v),
 	}
 }(&value_)
 }

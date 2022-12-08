@@ -448,11 +448,8 @@ mod tests {
     };
     use std::sync::Arc;
 
-    use crate::{
-        ber::{
-            ber_decode_any, ber_decode_bmp_string, ber_decode_object_identifier,
-            ber_decode_utf8_string,
-        },
+    use crate::ber::{
+        ber_decode_any, ber_decode_bmp_string, ber_decode_object_identifier, ber_decode_utf8_string,
     };
 
     use super::*;

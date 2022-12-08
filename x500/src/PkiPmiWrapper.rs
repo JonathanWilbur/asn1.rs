@@ -639,10 +639,10 @@ pub fn _decode_SenderDhInfo(el: &X690Element) -> ASN1Result<SenderDhInfo> {
     |el: &X690Element| -> ASN1Result<SenderDhInfo> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(SenderDhInfo::senderStaticInfo(_decode_SenderStaticInfo(
-                &el,
+                &el.inner()?,
             )?)),
             (TagClass::CONTEXT, 1) => Ok(SenderDhInfo::senderDhPublicKey(
-                _decode_SenderDhPublicKey(&el)?,
+                _decode_SenderDhPublicKey(&el.inner()?)?,
             )),
             _ => Ok(SenderDhInfo::_unrecognized(el.clone())),
         }
@@ -654,18 +654,22 @@ pub fn _encode_SenderDhInfo(value_: &SenderDhInfo) -> ASN1Result<X690Element> {
         match value {
             SenderDhInfo::senderStaticInfo(v) => {
                 |v_1: &SenderStaticInfo| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_SenderStaticInfo(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_SenderStaticInfo(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             SenderDhInfo::senderDhPublicKey(v) => {
                 |v_1: &SenderDhPublicKey| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_SenderDhPublicKey(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_SenderDhPublicKey(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             SenderDhInfo::_unrecognized(el) => Ok(el.clone()),
@@ -1321,10 +1325,12 @@ impl<'a> TryFrom<&'a X690Element> for TBSPDU_wrapper_conf {
 pub fn _decode_TBSPDU_wrapper_conf(el: &X690Element) -> ASN1Result<TBSPDU_wrapper_conf> {
     |el: &X690Element| -> ASN1Result<TBSPDU_wrapper_conf> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 2) => Ok(TBSPDU_wrapper_conf::clear(_decode_WrappedPDUInfo(&el)?)),
-            (TagClass::CONTEXT, 3) => {
-                Ok(TBSPDU_wrapper_conf::protected(_decode_EncryptedInfo(&el)?))
-            }
+            (TagClass::CONTEXT, 2) => Ok(TBSPDU_wrapper_conf::clear(_decode_WrappedPDUInfo(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 3) => Ok(TBSPDU_wrapper_conf::protected(_decode_EncryptedInfo(
+                &el.inner()?,
+            )?)),
             _ => Ok(TBSPDU_wrapper_conf::_unrecognized(el.clone())),
         }
     }(&el)
@@ -1334,16 +1340,20 @@ pub fn _encode_TBSPDU_wrapper_conf(value_: &TBSPDU_wrapper_conf) -> ASN1Result<X
     |value: &TBSPDU_wrapper_conf| -> ASN1Result<X690Element> {
         match value {
             TBSPDU_wrapper_conf::clear(v) => |v_1: &WrappedPDUInfo| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_WrappedPDUInfo(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                let el_1 = _encode_WrappedPDUInfo(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             TBSPDU_wrapper_conf::protected(v) => |v_1: &EncryptedInfo| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_EncryptedInfo(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
+                let el_1 = _encode_EncryptedInfo(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    3,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             TBSPDU_wrapper_conf::_unrecognized(el) => Ok(el.clone()),
         }

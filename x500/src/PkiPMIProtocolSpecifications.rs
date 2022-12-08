@@ -4879,8 +4879,8 @@ impl<'a> TryFrom<&'a X690Element> for TBresponse {
 pub fn _decode_TBresponse(el: &X690Element) -> ASN1Result<TBresponse> {
     |el: &X690Element| -> ASN1Result<TBresponse> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(TBresponse::success(_decode_TBOK(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(TBresponse::failure(_decode_TBerror(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(TBresponse::success(_decode_TBOK(&el.inner()?)?)),
+            (TagClass::CONTEXT, 1) => Ok(TBresponse::failure(_decode_TBerror(&el.inner()?)?)),
             _ => Ok(TBresponse::_unrecognized(el.clone())),
         }
     }(&el)
@@ -4890,16 +4890,20 @@ pub fn _encode_TBresponse(value_: &TBresponse) -> ASN1Result<X690Element> {
     |value: &TBresponse| -> ASN1Result<X690Element> {
         match value {
             TBresponse::success(v) => |v_1: &TBOK| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_TBOK(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_TBOK(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             TBresponse::failure(v) => |v_1: &TBerror| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_TBerror(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_TBerror(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             TBresponse::_unrecognized(el) => Ok(el.clone()),
         }
@@ -5213,8 +5217,8 @@ impl<'a> TryFrom<&'a X690Element> for CertRsp_result {
 pub fn _decode_CertRsp_result(el: &X690Element) -> ASN1Result<CertRsp_result> {
     |el: &X690Element| -> ASN1Result<CertRsp_result> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(CertRsp_result::success(_decode_CertOK(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(CertRsp_result::failure(_decode_CertErr(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(CertRsp_result::success(_decode_CertOK(&el.inner()?)?)),
+            (TagClass::CONTEXT, 1) => Ok(CertRsp_result::failure(_decode_CertErr(&el.inner()?)?)),
             _ => Ok(CertRsp_result::_unrecognized(el.clone())),
         }
     }(&el)
@@ -5224,16 +5228,20 @@ pub fn _encode_CertRsp_result(value_: &CertRsp_result) -> ASN1Result<X690Element
     |value: &CertRsp_result| -> ASN1Result<X690Element> {
         match value {
             CertRsp_result::success(v) => |v_1: &CertOK| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CertOK(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_CertOK(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertRsp_result::failure(v) => |v_1: &CertErr| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CertErr(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_CertErr(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertRsp_result::_unrecognized(el) => Ok(el.clone()),
         }
@@ -5270,8 +5278,8 @@ impl<'a> TryFrom<&'a X690Element> for CertErr_notOK {
 pub fn _decode_CertErr_notOK(el: &X690Element) -> ASN1Result<CertErr_notOK> {
     |el: &X690Element| -> ASN1Result<CertErr_notOK> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(CertErr_notOK::wrErr(_decode_PkiWaError(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(CertErr_notOK::avmpErr(_decode_AVMP_error(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(CertErr_notOK::wrErr(_decode_PkiWaError(&el.inner()?)?)),
+            (TagClass::CONTEXT, 1) => Ok(CertErr_notOK::avmpErr(_decode_AVMP_error(&el.inner()?)?)),
             _ => Ok(CertErr_notOK::_unrecognized(el.clone())),
         }
     }(&el)
@@ -5281,16 +5289,20 @@ pub fn _encode_CertErr_notOK(value_: &CertErr_notOK) -> ASN1Result<X690Element> 
     |value: &CertErr_notOK| -> ASN1Result<X690Element> {
         match value {
             CertErr_notOK::wrErr(v) => |v_1: &PkiWaError| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_PkiWaError(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_PkiWaError(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertErr_notOK::avmpErr(v) => |v_1: &AVMP_error| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AVMP_error(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_AVMP_error(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertErr_notOK::_unrecognized(el) => Ok(el.clone()),
         }
@@ -5327,8 +5339,12 @@ impl<'a> TryFrom<&'a X690Element> for AddAvlRsp_result {
 pub fn _decode_AddAvlRsp_result(el: &X690Element) -> ASN1Result<AddAvlRsp_result> {
     |el: &X690Element| -> ASN1Result<AddAvlRsp_result> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(AddAvlRsp_result::success(_decode_AddAvlOK(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(AddAvlRsp_result::failure(_decode_AddAvlErr(&el)?)),
+            (TagClass::CONTEXT, 0) => {
+                Ok(AddAvlRsp_result::success(_decode_AddAvlOK(&el.inner()?)?))
+            }
+            (TagClass::CONTEXT, 1) => {
+                Ok(AddAvlRsp_result::failure(_decode_AddAvlErr(&el.inner()?)?))
+            }
             _ => Ok(AddAvlRsp_result::_unrecognized(el.clone())),
         }
     }(&el)
@@ -5338,16 +5354,20 @@ pub fn _encode_AddAvlRsp_result(value_: &AddAvlRsp_result) -> ASN1Result<X690Ele
     |value: &AddAvlRsp_result| -> ASN1Result<X690Element> {
         match value {
             AddAvlRsp_result::success(v) => |v_1: &AddAvlOK| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AddAvlOK(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_AddAvlOK(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             AddAvlRsp_result::failure(v) => |v_1: &AddAvlErr| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AddAvlErr(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_AddAvlErr(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             AddAvlRsp_result::_unrecognized(el) => Ok(el.clone()),
         }
@@ -5384,8 +5404,12 @@ impl<'a> TryFrom<&'a X690Element> for ReplaceAvlRsp_result {
 pub fn _decode_ReplaceAvlRsp_result(el: &X690Element) -> ASN1Result<ReplaceAvlRsp_result> {
     |el: &X690Element| -> ASN1Result<ReplaceAvlRsp_result> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(ReplaceAvlRsp_result::success(_decode_RepAvlOK(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(ReplaceAvlRsp_result::failure(_decode_RepAvlErr(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(ReplaceAvlRsp_result::success(_decode_RepAvlOK(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 1) => Ok(ReplaceAvlRsp_result::failure(_decode_RepAvlErr(
+                &el.inner()?,
+            )?)),
             _ => Ok(ReplaceAvlRsp_result::_unrecognized(el.clone())),
         }
     }(&el)
@@ -5395,16 +5419,20 @@ pub fn _encode_ReplaceAvlRsp_result(value_: &ReplaceAvlRsp_result) -> ASN1Result
     |value: &ReplaceAvlRsp_result| -> ASN1Result<X690Element> {
         match value {
             ReplaceAvlRsp_result::success(v) => |v_1: &RepAvlOK| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_RepAvlOK(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_RepAvlOK(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             ReplaceAvlRsp_result::failure(v) => |v_1: &RepAvlErr| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_RepAvlErr(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_RepAvlErr(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             ReplaceAvlRsp_result::_unrecognized(el) => Ok(el.clone()),
         }
@@ -5441,8 +5469,12 @@ impl<'a> TryFrom<&'a X690Element> for DeleteAvlRsp_result {
 pub fn _decode_DeleteAvlRsp_result(el: &X690Element) -> ASN1Result<DeleteAvlRsp_result> {
     |el: &X690Element| -> ASN1Result<DeleteAvlRsp_result> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(DeleteAvlRsp_result::success(_decode_DelAvlOK(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(DeleteAvlRsp_result::failure(_decode_DelAvlErr(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(DeleteAvlRsp_result::success(_decode_DelAvlOK(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 1) => Ok(DeleteAvlRsp_result::failure(_decode_DelAvlErr(
+                &el.inner()?,
+            )?)),
             _ => Ok(DeleteAvlRsp_result::_unrecognized(el.clone())),
         }
     }(&el)
@@ -5452,16 +5484,20 @@ pub fn _encode_DeleteAvlRsp_result(value_: &DeleteAvlRsp_result) -> ASN1Result<X
     |value: &DeleteAvlRsp_result| -> ASN1Result<X690Element> {
         match value {
             DeleteAvlRsp_result::success(v) => |v_1: &DelAvlOK| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_DelAvlOK(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_DelAvlOK(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             DeleteAvlRsp_result::failure(v) => |v_1: &DelAvlErr| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_DelAvlErr(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_DelAvlErr(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             DeleteAvlRsp_result::_unrecognized(el) => Ok(el.clone()),
         }
@@ -5596,10 +5632,10 @@ pub fn _decode_CertSubscribeRsp_result(el: &X690Element) -> ASN1Result<CertSubsc
     |el: &X690Element| -> ASN1Result<CertSubscribeRsp_result> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(CertSubscribeRsp_result::success(
-                _decode_CertSubscribeOK(&el)?,
+                _decode_CertSubscribeOK(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(CertSubscribeRsp_result::failure(
-                _decode_CertSubscribeErr(&el)?,
+                _decode_CertSubscribeErr(&el.inner()?)?,
             )),
             _ => Ok(CertSubscribeRsp_result::_unrecognized(el.clone())),
         }
@@ -5613,18 +5649,22 @@ pub fn _encode_CertSubscribeRsp_result(
         match value {
             CertSubscribeRsp_result::success(v) => {
                 |v_1: &CertSubscribeOK| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertSubscribeOK(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_CertSubscribeOK(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertSubscribeRsp_result::failure(v) => {
                 |v_1: &CertSubscribeErr| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertSubscribeErr(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_CertSubscribeErr(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertSubscribeRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -5866,10 +5906,10 @@ pub fn _decode_CertSubscribeOK_Item(el: &X690Element) -> ASN1Result<CertSubscrib
     |el: &X690Element| -> ASN1Result<CertSubscribeOK_Item> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(CertSubscribeOK_Item::ok(
-                _decode_CertSubscribeOK_Item_ok(&el)?,
+                _decode_CertSubscribeOK_Item_ok(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(CertSubscribeOK_Item::not_ok(
-                _decode_CertSubscribeOK_Item_not_ok(&el)?,
+                _decode_CertSubscribeOK_Item_not_ok(&el.inner()?)?,
             )),
             _ => Ok(CertSubscribeOK_Item::_unrecognized(el.clone())),
         }
@@ -5881,18 +5921,22 @@ pub fn _encode_CertSubscribeOK_Item(value_: &CertSubscribeOK_Item) -> ASN1Result
         match value {
             CertSubscribeOK_Item::ok(v) => {
                 |v_1: &CertSubscribeOK_Item_ok| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertSubscribeOK_Item_ok(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_CertSubscribeOK_Item_ok(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertSubscribeOK_Item::not_ok(v) => {
                 |v_1: &CertSubscribeOK_Item_not_ok| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertSubscribeOK_Item_not_ok(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_CertSubscribeOK_Item_not_ok(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertSubscribeOK_Item::_unrecognized(el) => Ok(el.clone()),
@@ -6030,10 +6074,10 @@ pub fn _decode_CertUnsubscribeRsp_result(
     |el: &X690Element| -> ASN1Result<CertUnsubscribeRsp_result> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(CertUnsubscribeRsp_result::success(
-                _decode_CertUnsubscribeOK(&el)?,
+                _decode_CertUnsubscribeOK(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(CertUnsubscribeRsp_result::failure(
-                _decode_CertUnsubscribeErr(&el)?,
+                _decode_CertUnsubscribeErr(&el.inner()?)?,
             )),
             _ => Ok(CertUnsubscribeRsp_result::_unrecognized(el.clone())),
         }
@@ -6047,18 +6091,22 @@ pub fn _encode_CertUnsubscribeRsp_result(
         match value {
             CertUnsubscribeRsp_result::success(v) => {
                 |v_1: &CertUnsubscribeOK| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertUnsubscribeOK(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_CertUnsubscribeOK(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertUnsubscribeRsp_result::failure(v) => {
                 |v_1: &CertUnsubscribeErr| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertUnsubscribeErr(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_CertUnsubscribeErr(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertUnsubscribeRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -6279,10 +6327,10 @@ pub fn _decode_CertUnsubscribeOK_Item(el: &X690Element) -> ASN1Result<CertUnsubs
     |el: &X690Element| -> ASN1Result<CertUnsubscribeOK_Item> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(CertUnsubscribeOK_Item::ok(
-                _decode_CertUnsubscribeOK_Item_ok(&el)?,
+                _decode_CertUnsubscribeOK_Item_ok(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(CertUnsubscribeOK_Item::not_ok(
-                _decode_CertUnsubscribeOK_Item_not_ok(&el)?,
+                _decode_CertUnsubscribeOK_Item_not_ok(&el.inner()?)?,
             )),
             _ => Ok(CertUnsubscribeOK_Item::_unrecognized(el.clone())),
         }
@@ -6294,18 +6342,22 @@ pub fn _encode_CertUnsubscribeOK_Item(value_: &CertUnsubscribeOK_Item) -> ASN1Re
         match value {
             CertUnsubscribeOK_Item::ok(v) => {
                 |v_1: &CertUnsubscribeOK_Item_ok| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertUnsubscribeOK_Item_ok(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_CertUnsubscribeOK_Item_ok(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertUnsubscribeOK_Item::not_ok(v) => {
                 |v_1: &CertUnsubscribeOK_Item_not_ok| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertUnsubscribeOK_Item_not_ok(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_CertUnsubscribeOK_Item_not_ok(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertUnsubscribeOK_Item::_unrecognized(el) => Ok(el.clone()),
@@ -6445,12 +6497,12 @@ impl<'a> TryFrom<&'a X690Element> for CertReplaceRsp_result {
 pub fn _decode_CertReplaceRsp_result(el: &X690Element) -> ASN1Result<CertReplaceRsp_result> {
     |el: &X690Element| -> ASN1Result<CertReplaceRsp_result> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => {
-                Ok(CertReplaceRsp_result::success(_decode_CertReplaceOK(&el)?))
-            }
-            (TagClass::CONTEXT, 1) => {
-                Ok(CertReplaceRsp_result::failure(_decode_CertReplaceErr(&el)?))
-            }
+            (TagClass::CONTEXT, 0) => Ok(CertReplaceRsp_result::success(_decode_CertReplaceOK(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 1) => Ok(CertReplaceRsp_result::failure(_decode_CertReplaceErr(
+                &el.inner()?,
+            )?)),
             _ => Ok(CertReplaceRsp_result::_unrecognized(el.clone())),
         }
     }(&el)
@@ -6460,17 +6512,21 @@ pub fn _encode_CertReplaceRsp_result(value_: &CertReplaceRsp_result) -> ASN1Resu
     |value: &CertReplaceRsp_result| -> ASN1Result<X690Element> {
         match value {
             CertReplaceRsp_result::success(v) => |v_1: &CertReplaceOK| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CertReplaceOK(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_CertReplaceOK(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertReplaceRsp_result::failure(v) => {
                 |v_1: &CertReplaceErr| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertReplaceErr(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_CertReplaceErr(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertReplaceRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -6686,11 +6742,11 @@ impl<'a> TryFrom<&'a X690Element> for CertReplaceOK_Item {
 pub fn _decode_CertReplaceOK_Item(el: &X690Element) -> ASN1Result<CertReplaceOK_Item> {
     |el: &X690Element| -> ASN1Result<CertReplaceOK_Item> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => {
-                Ok(CertReplaceOK_Item::ok(_decode_CertReplaceOK_Item_ok(&el)?))
-            }
+            (TagClass::CONTEXT, 0) => Ok(CertReplaceOK_Item::ok(_decode_CertReplaceOK_Item_ok(
+                &el.inner()?,
+            )?)),
             (TagClass::CONTEXT, 1) => Ok(CertReplaceOK_Item::not_ok(
-                _decode_CertReplaceOK_Item_not_ok(&el)?,
+                _decode_CertReplaceOK_Item_not_ok(&el.inner()?)?,
             )),
             _ => Ok(CertReplaceOK_Item::_unrecognized(el.clone())),
         }
@@ -6701,17 +6757,21 @@ pub fn _encode_CertReplaceOK_Item(value_: &CertReplaceOK_Item) -> ASN1Result<X69
     |value: &CertReplaceOK_Item| -> ASN1Result<X690Element> {
         match value {
             CertReplaceOK_Item::ok(v) => |v_1: &CertReplaceOK_Item_ok| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CertReplaceOK_Item_ok(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_CertReplaceOK_Item_ok(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertReplaceOK_Item::not_ok(v) => {
                 |v_1: &CertReplaceOK_Item_not_ok| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertReplaceOK_Item_not_ok(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_CertReplaceOK_Item_not_ok(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertReplaceOK_Item::_unrecognized(el) => Ok(el.clone()),
@@ -6751,12 +6811,14 @@ pub fn _decode_CertReplaceErr_code(el: &X690Element) -> ASN1Result<CertReplaceEr
     |el: &X690Element| -> ASN1Result<CertReplaceErr_code> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(CertReplaceErr_code::signedData(
-                _decode_SignedData_error(&el)?,
+                _decode_SignedData_error(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(CertReplaceErr_code::envelopedData(
-                _decode_EnvelopedData_error(&el)?,
+                _decode_EnvelopedData_error(&el.inner()?)?,
             )),
-            (TagClass::CONTEXT, 2) => Ok(CertReplaceErr_code::casp(_decode_CASP_error(&el)?)),
+            (TagClass::CONTEXT, 2) => {
+                Ok(CertReplaceErr_code::casp(_decode_CASP_error(&el.inner()?)?))
+            }
             _ => Ok(CertReplaceErr_code::_unrecognized(el.clone())),
         }
     }(&el)
@@ -6767,25 +6829,31 @@ pub fn _encode_CertReplaceErr_code(value_: &CertReplaceErr_code) -> ASN1Result<X
         match value {
             CertReplaceErr_code::signedData(v) => {
                 |v_1: &SignedData_error| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_SignedData_error(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_SignedData_error(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertReplaceErr_code::envelopedData(v) => {
                 |v_1: &EnvelopedData_error| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_EnvelopedData_error(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_EnvelopedData_error(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertReplaceErr_code::casp(v) => |v_1: &CASP_error| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CASP_error(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                let el_1 = _encode_CASP_error(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertReplaceErr_code::_unrecognized(el) => Ok(el.clone()),
         }
@@ -6930,10 +6998,12 @@ impl<'a> TryFrom<&'a X690Element> for CertUpdateRsp_result {
 pub fn _decode_CertUpdateRsp_result(el: &X690Element) -> ASN1Result<CertUpdateRsp_result> {
     |el: &X690Element| -> ASN1Result<CertUpdateRsp_result> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(CertUpdateRsp_result::success(_decode_CertUpdateOK(&el)?)),
-            (TagClass::CONTEXT, 1) => {
-                Ok(CertUpdateRsp_result::failure(_decode_CertUpdateErr(&el)?))
-            }
+            (TagClass::CONTEXT, 0) => Ok(CertUpdateRsp_result::success(_decode_CertUpdateOK(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 1) => Ok(CertUpdateRsp_result::failure(_decode_CertUpdateErr(
+                &el.inner()?,
+            )?)),
             _ => Ok(CertUpdateRsp_result::_unrecognized(el.clone())),
         }
     }(&el)
@@ -6943,16 +7013,20 @@ pub fn _encode_CertUpdateRsp_result(value_: &CertUpdateRsp_result) -> ASN1Result
     |value: &CertUpdateRsp_result| -> ASN1Result<X690Element> {
         match value {
             CertUpdateRsp_result::success(v) => |v_1: &CertUpdateOK| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CertUpdateOK(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_CertUpdateOK(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertUpdateRsp_result::failure(v) => |v_1: &CertUpdateErr| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CertUpdateErr(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_CertUpdateErr(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertUpdateRsp_result::_unrecognized(el) => Ok(el.clone()),
         }
@@ -7165,9 +7239,11 @@ impl<'a> TryFrom<&'a X690Element> for CertUpdateOK_Item {
 pub fn _decode_CertUpdateOK_Item(el: &X690Element) -> ASN1Result<CertUpdateOK_Item> {
     |el: &X690Element| -> ASN1Result<CertUpdateOK_Item> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(CertUpdateOK_Item::ok(_decode_CertUpdateOK_Item_ok(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(CertUpdateOK_Item::ok(_decode_CertUpdateOK_Item_ok(
+                &el.inner()?,
+            )?)),
             (TagClass::CONTEXT, 1) => Ok(CertUpdateOK_Item::not_ok(
-                _decode_CertUpdateOK_Item_not_ok(&el)?,
+                _decode_CertUpdateOK_Item_not_ok(&el.inner()?)?,
             )),
             _ => Ok(CertUpdateOK_Item::_unrecognized(el.clone())),
         }
@@ -7178,17 +7254,21 @@ pub fn _encode_CertUpdateOK_Item(value_: &CertUpdateOK_Item) -> ASN1Result<X690E
     |value: &CertUpdateOK_Item| -> ASN1Result<X690Element> {
         match value {
             CertUpdateOK_Item::ok(v) => |v_1: &CertUpdateOK_Item_ok| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_CertUpdateOK_Item_ok(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_CertUpdateOK_Item_ok(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CertUpdateOK_Item::not_ok(v) => {
                 |v_1: &CertUpdateOK_Item_not_ok| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_CertUpdateOK_Item_not_ok(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_CertUpdateOK_Item_not_ok(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             CertUpdateOK_Item::_unrecognized(el) => Ok(el.clone()),

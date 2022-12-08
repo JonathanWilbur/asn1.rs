@@ -1866,30 +1866,30 @@ pub fn _decode_Criteria(el: &X690Element) -> ASN1Result<Criteria> {
                 }(&el)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(Criteria::and(
-                |el: &X690Element| -> ASN1Result<SET_OF<Box<Criteria>>> {
-                    let elements = match el.value.borrow() {
+                |el2: &X690Element| -> ASN1Result<SET_OF<Box<Criteria>>> {
+                    let elements = match el2.value.borrow() {
                         X690Encoding::Constructed(children) => children,
                         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
                     };
                     let mut items: SET_OF<Box<Criteria>> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(Box::new(_decode_Criteria(el)?));
+                    for x in elements {
+                        items.push(Box::new(_decode_Criteria(x)?));
                     }
                     Ok(items)
-                }(&el)?,
+                }(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 2) => Ok(Criteria::or(
-                |el: &X690Element| -> ASN1Result<SET_OF<Box<Criteria>>> {
-                    let elements = match el.value.borrow() {
+                |el2: &X690Element| -> ASN1Result<SET_OF<Box<Criteria>>> {
+                    let elements = match el2.value.borrow() {
                         X690Encoding::Constructed(children) => children,
                         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
                     };
                     let mut items: SET_OF<Box<Criteria>> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(Box::new(_decode_Criteria(el)?));
+                    for x in elements {
+                        items.push(Box::new(_decode_Criteria(x)?));
                     }
                     Ok(items)
-                }(&el)?,
+                }(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 3) => Ok(Criteria::not(
                 |el: &X690Element| -> ASN1Result<Box<Criteria>> {
@@ -1914,7 +1914,7 @@ pub fn _encode_Criteria(value_: &Criteria) -> ASN1Result<X690Element> {
                 ))
             }(&v),
             Criteria::and(v) => |v_1: &Vec<Box<Criteria>>| -> ASN1Result<X690Element> {
-                let mut el_1 = |value_: &SET_OF<Box<Criteria>>| -> ASN1Result<X690Element> {
+                let el_1 = |value_: &SET_OF<Box<Criteria>>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Criteria(&v)?);
@@ -1925,12 +1925,14 @@ pub fn _encode_Criteria(value_: &Criteria) -> ASN1Result<X690Element> {
                         Arc::new(X690Encoding::Constructed(children)),
                     ))
                 }(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             Criteria::or(v) => |v_1: &Vec<Box<Criteria>>| -> ASN1Result<X690Element> {
-                let mut el_1 = |value_: &SET_OF<Box<Criteria>>| -> ASN1Result<X690Element> {
+                let el_1 = |value_: &SET_OF<Box<Criteria>>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Criteria(&v)?);
@@ -1941,9 +1943,11 @@ pub fn _encode_Criteria(value_: &Criteria) -> ASN1Result<X690Element> {
                         Arc::new(X690Encoding::Constructed(children)),
                     ))
                 }(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             Criteria::not(v) => |v_1: &Criteria| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
@@ -1996,13 +2000,21 @@ impl<'a> TryFrom<&'a X690Element> for CriteriaItem {
 pub fn _decode_CriteriaItem(el: &X690Element) -> ASN1Result<CriteriaItem> {
     |el: &X690Element| -> ASN1Result<CriteriaItem> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(CriteriaItem::equality(_decode_AttributeType(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(CriteriaItem::substrings(_decode_AttributeType(&el)?)),
-            (TagClass::CONTEXT, 2) => Ok(CriteriaItem::greaterOrEqual(_decode_AttributeType(&el)?)),
-            (TagClass::CONTEXT, 3) => Ok(CriteriaItem::lessOrEqual(_decode_AttributeType(&el)?)),
-            (TagClass::CONTEXT, 4) => {
-                Ok(CriteriaItem::approximateMatch(_decode_AttributeType(&el)?))
+            (TagClass::CONTEXT, 0) => {
+                Ok(CriteriaItem::equality(_decode_AttributeType(&el.inner()?)?))
             }
+            (TagClass::CONTEXT, 1) => Ok(CriteriaItem::substrings(_decode_AttributeType(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 2) => Ok(CriteriaItem::greaterOrEqual(_decode_AttributeType(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 3) => Ok(CriteriaItem::lessOrEqual(_decode_AttributeType(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 4) => Ok(CriteriaItem::approximateMatch(_decode_AttributeType(
+                &el.inner()?,
+            )?)),
             _ => Ok(CriteriaItem::_unrecognized(el.clone())),
         }
     }(&el)
@@ -2012,34 +2024,44 @@ pub fn _encode_CriteriaItem(value_: &CriteriaItem) -> ASN1Result<X690Element> {
     |value: &CriteriaItem| -> ASN1Result<X690Element> {
         match value {
             CriteriaItem::equality(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AttributeType(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_AttributeType(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CriteriaItem::substrings(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AttributeType(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_AttributeType(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CriteriaItem::greaterOrEqual(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AttributeType(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                let el_1 = _encode_AttributeType(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CriteriaItem::lessOrEqual(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AttributeType(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
+                let el_1 = _encode_AttributeType(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    3,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CriteriaItem::approximateMatch(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AttributeType(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 4;
-                Ok(el_1)
+                let el_1 = _encode_AttributeType(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    4,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             CriteriaItem::_unrecognized(el) => Ok(el.clone()),
         }
@@ -4476,33 +4498,33 @@ impl<'a> TryFrom<&'a X690Element> for UiiFilter {
 pub fn _decode_UiiFilter(el: &X690Element) -> ASN1Result<UiiFilter> {
     |el: &X690Element| -> ASN1Result<UiiFilter> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(UiiFilter::item(_decode_UiiItem(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(UiiFilter::and(|el: &X690Element| -> ASN1Result<
+            (TagClass::CONTEXT, 0) => Ok(UiiFilter::item(_decode_UiiItem(&el.inner()?)?)),
+            (TagClass::CONTEXT, 1) => Ok(UiiFilter::and(|el2: &X690Element| -> ASN1Result<
                 SET_OF<Box<UiiFilter>>,
             > {
-                let elements = match el.value.borrow() {
+                let elements = match el2.value.borrow() {
                     X690Encoding::Constructed(children) => children,
                     _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
                 };
                 let mut items: SET_OF<Box<UiiFilter>> = Vec::with_capacity(elements.len());
-                for el in elements {
-                    items.push(Box::new(_decode_UiiFilter(el)?));
+                for x in elements {
+                    items.push(Box::new(_decode_UiiFilter(x)?));
                 }
                 Ok(items)
-            }(&el)?)),
-            (TagClass::CONTEXT, 2) => Ok(UiiFilter::or(|el: &X690Element| -> ASN1Result<
+            }(&el.inner()?)?)),
+            (TagClass::CONTEXT, 2) => Ok(UiiFilter::or(|el2: &X690Element| -> ASN1Result<
                 SET_OF<Box<UiiFilter>>,
             > {
-                let elements = match el.value.borrow() {
+                let elements = match el2.value.borrow() {
                     X690Encoding::Constructed(children) => children,
                     _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
                 };
                 let mut items: SET_OF<Box<UiiFilter>> = Vec::with_capacity(elements.len());
-                for el in elements {
-                    items.push(Box::new(_decode_UiiFilter(el)?));
+                for x in elements {
+                    items.push(Box::new(_decode_UiiFilter(x)?));
                 }
                 Ok(items)
-            }(&el)?)),
+            }(&el.inner()?)?)),
             (TagClass::CONTEXT, 3) => Ok(UiiFilter::not(
                 |el: &X690Element| -> ASN1Result<Box<UiiFilter>> {
                     Ok(Box::new(_decode_UiiFilter(&el.inner()?)?))
@@ -4521,13 +4543,15 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
     |value: &UiiFilter| -> ASN1Result<X690Element> {
         match value {
             UiiFilter::item(v) => |v_1: &UiiItem| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_UiiItem(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_UiiItem(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             UiiFilter::and(v) => |v_1: &Vec<Box<UiiFilter>>| -> ASN1Result<X690Element> {
-                let mut el_1 = |value_: &SET_OF<Box<UiiFilter>>| -> ASN1Result<X690Element> {
+                let el_1 = |value_: &SET_OF<Box<UiiFilter>>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_UiiFilter(&v)?);
@@ -4538,12 +4562,14 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
                         Arc::new(X690Encoding::Constructed(children)),
                     ))
                 }(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             UiiFilter::or(v) => |v_1: &Vec<Box<UiiFilter>>| -> ASN1Result<X690Element> {
-                let mut el_1 = |value_: &SET_OF<Box<UiiFilter>>| -> ASN1Result<X690Element> {
+                let el_1 = |value_: &SET_OF<Box<UiiFilter>>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_UiiFilter(&v)?);
@@ -4554,9 +4580,11 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
                         Arc::new(X690Encoding::Constructed(children)),
                     ))
                 }(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             UiiFilter::not(v) => |v_1: &UiiFilter| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
@@ -12192,10 +12220,10 @@ pub fn _decode_EpcFormat_fields_Item_charField(
     |el: &X690Element| -> ASN1Result<EpcFormat_fields_Item_charField> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(EpcFormat_fields_Item_charField::characters(
-                ber_decode_integer(&el)?,
+                ber_decode_integer(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(EpcFormat_fields_Item_charField::maxValue(
-                ber_decode_integer(&el)?,
+                ber_decode_integer(&el.inner()?)?,
             )),
             _ => {
                 return Err(ASN1Error::new(
@@ -12213,18 +12241,22 @@ pub fn _encode_EpcFormat_fields_Item_charField(
         match value {
             EpcFormat_fields_Item_charField::characters(v) => {
                 |v_1: &INTEGER| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_integer(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = ber_encode_integer(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             EpcFormat_fields_Item_charField::maxValue(v) => {
                 |v_1: &INTEGER| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_integer(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = ber_encode_integer(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }
@@ -12396,9 +12428,11 @@ impl<'a> TryFrom<&'a X690Element> for PwdResponse_warning {
 pub fn _decode_PwdResponse_warning(el: &X690Element) -> ASN1Result<PwdResponse_warning> {
     |el: &X690Element| -> ASN1Result<PwdResponse_warning> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(PwdResponse_warning::timeleft(ber_decode_integer(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(PwdResponse_warning::timeleft(ber_decode_integer(
+                &el.inner()?,
+            )?)),
             (TagClass::CONTEXT, 1) => Ok(PwdResponse_warning::graceRemaining(ber_decode_integer(
-                &el,
+                &el.inner()?,
             )?)),
             _ => Ok(PwdResponse_warning::_unrecognized(el.clone())),
         }
@@ -12409,16 +12443,20 @@ pub fn _encode_PwdResponse_warning(value_: &PwdResponse_warning) -> ASN1Result<X
     |value: &PwdResponse_warning| -> ASN1Result<X690Element> {
         match value {
             PwdResponse_warning::timeleft(v) => |v_1: &INTEGER| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_integer(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = ber_encode_integer(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             PwdResponse_warning::graceRemaining(v) => |v_1: &INTEGER| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_integer(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = ber_encode_integer(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             PwdResponse_warning::_unrecognized(el) => Ok(el.clone()),
         }
@@ -12577,13 +12615,13 @@ pub fn _decode_OctetSubstringAssertion_Item(
     |el: &X690Element| -> ASN1Result<OctetSubstringAssertion_Item> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(OctetSubstringAssertion_Item::initial(
-                ber_decode_octet_string(&el)?,
+                ber_decode_octet_string(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(OctetSubstringAssertion_Item::any(
-                ber_decode_octet_string(&el)?,
+                ber_decode_octet_string(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 2) => Ok(OctetSubstringAssertion_Item::final_(
-                ber_decode_octet_string(&el)?,
+                ber_decode_octet_string(&el.inner()?)?,
             )),
             _ => Ok(OctetSubstringAssertion_Item::_unrecognized(el.clone())),
         }
@@ -12597,26 +12635,32 @@ pub fn _encode_OctetSubstringAssertion_Item(
         match value {
             OctetSubstringAssertion_Item::initial(v) => {
                 |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_octet_string(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = ber_encode_octet_string(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             OctetSubstringAssertion_Item::any(v) => {
                 |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_octet_string(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = ber_encode_octet_string(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             OctetSubstringAssertion_Item::final_(v) => {
                 |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_octet_string(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
+                    let el_1 = ber_encode_octet_string(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        2,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             OctetSubstringAssertion_Item::_unrecognized(el) => Ok(el.clone()),

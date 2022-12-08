@@ -4073,7 +4073,7 @@ pub fn _decode_ExtendedNetworkAddress(el: &X690Element) -> ASN1Result<ExtendedNe
                 _decode_ExtendedNetworkAddress_e163_4_address(&el)?,
             )),
             (TagClass::CONTEXT, 0) => Ok(ExtendedNetworkAddress::psap_address(
-                _decode_PresentationAddress(&el)?,
+                _decode_PresentationAddress(&el.inner()?)?,
             )),
             _ => {
                 return Err(ASN1Error::new(
@@ -4092,10 +4092,12 @@ pub fn _encode_ExtendedNetworkAddress(value_: &ExtendedNetworkAddress) -> ASN1Re
             }
             ExtendedNetworkAddress::psap_address(v) => {
                 |v_1: &PresentationAddress| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_PresentationAddress(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_PresentationAddress(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }

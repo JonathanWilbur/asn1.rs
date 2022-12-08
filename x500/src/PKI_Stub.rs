@@ -1362,7 +1362,11 @@ pub struct AttributeTypeAndValue {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeAndValue {
-    pub fn new(type_: OBJECT_IDENTIFIER, value: UTF8String, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        type_: OBJECT_IDENTIFIER,
+        value: UTF8String,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         AttributeTypeAndValue {
             type_,
             value,
@@ -2415,12 +2419,12 @@ pub fn _decode_AttCertIssuer(el: &X690Element) -> ASN1Result<AttCertIssuer> {
             objectDigestInfo,
             _unrecognized,
         })
-    }(&el)
+    }(&el.inner()?)
 }
 
 pub fn _encode_AttCertIssuer(value_: &AttCertIssuer) -> ASN1Result<X690Element> {
     |v_1: &AttCertIssuer| -> ASN1Result<X690Element> {
-        let mut el_1 = |value_: &AttCertIssuer| -> ASN1Result<X690Element> {
+        let el_1 = |value_: &AttCertIssuer| -> ASN1Result<X690Element> {
             let mut components_: Vec<X690Element> = Vec::with_capacity(13);
             if let Some(v_) = &value_.issuerName {
                 components_.push(_encode_GeneralNames(&v_)?);
@@ -2455,9 +2459,11 @@ pub fn _encode_AttCertIssuer(value_: &AttCertIssuer) -> ASN1Result<X690Element> 
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 0;
-        Ok(el_1)
+        Ok(X690Element::new(
+            TagClass::CONTEXT,
+            0,
+            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+        ))
     }(&value_)
 }
 
@@ -2660,6 +2666,7 @@ pub fn _decode_GeneralName(el: &X690Element) -> ASN1Result<GeneralName> {
     }(&el)
 }
 
+// NOTE: There is a bug in GeneralName in PKI-Stub. It should be IMPLICIT encoded.
 pub fn _encode_GeneralName(value_: &GeneralName) -> ASN1Result<X690Element> {
     |value: &GeneralName| -> ASN1Result<X690Element> {
         match value {

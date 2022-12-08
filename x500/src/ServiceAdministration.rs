@@ -1360,43 +1360,45 @@ pub fn _decode_ContextCombination(el: &X690Element) -> ASN1Result<ContextCombina
     |el: &X690Element| -> ASN1Result<ContextCombination> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(ContextCombination::context(
-                ber_decode_object_identifier(&el)?,
+                ber_decode_object_identifier(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => {
-                Ok(ContextCombination::and(|el: &X690Element| -> ASN1Result<
+                Ok(ContextCombination::and(|el2: &X690Element| -> ASN1Result<
                     SEQUENCE_OF<Box<ContextCombination>>,
                 > {
-                    let elements = match el.value.borrow() {
+                    let elements = match el2.value.borrow() {
                         X690Encoding::Constructed(children) => children,
                         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
                     };
                     let mut items: SEQUENCE_OF<Box<ContextCombination>> =
                         Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(Box::new(_decode_ContextCombination(el)?));
+                    for x in elements {
+                        items.push(Box::new(_decode_ContextCombination(x)?));
                     }
                     Ok(items)
-                }(&el)?))
+                }(&el.inner()?)?))
             }
-            (TagClass::CONTEXT, 2) => Ok(ContextCombination::or(|el: &X690Element| -> ASN1Result<
-                SEQUENCE_OF<Box<ContextCombination>>,
-            > {
-                let elements = match el.value.borrow() {
-                    X690Encoding::Constructed(children) => children,
-                    _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                };
-                let mut items: SEQUENCE_OF<Box<ContextCombination>> =
-                    Vec::with_capacity(elements.len());
-                for el in elements {
-                    items.push(Box::new(_decode_ContextCombination(el)?));
-                }
-                Ok(items)
-            }(&el)?)),
+            (TagClass::CONTEXT, 2) => {
+                Ok(ContextCombination::or(|el2: &X690Element| -> ASN1Result<
+                    SEQUENCE_OF<Box<ContextCombination>>,
+                > {
+                    let elements = match el2.value.borrow() {
+                        X690Encoding::Constructed(children) => children,
+                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+                    };
+                    let mut items: SEQUENCE_OF<Box<ContextCombination>> =
+                        Vec::with_capacity(elements.len());
+                    for x in elements {
+                        items.push(Box::new(_decode_ContextCombination(x)?));
+                    }
+                    Ok(items)
+                }(&el.inner()?)?))
+            }
             (TagClass::CONTEXT, 3) => {
-                Ok(ContextCombination::not(|el: &X690Element| -> ASN1Result<
+                Ok(ContextCombination::not(|el2: &X690Element| -> ASN1Result<
                     Box<ContextCombination>,
                 > {
-                    Ok(Box::new(_decode_ContextCombination(&el.inner()?)?))
+                    Ok(Box::new(_decode_ContextCombination(&el2.inner()?)?))
                 }(&el)?))
             }
             _ => Ok(ContextCombination::_unrecognized(el.clone())),
@@ -1409,15 +1411,17 @@ pub fn _encode_ContextCombination(value_: &ContextCombination) -> ASN1Result<X69
         match value {
             ContextCombination::context(v) => {
                 |v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_object_identifier(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = ber_encode_object_identifier(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ContextCombination::and(v) => {
                 |v_1: &Vec<Box<ContextCombination>>| -> ASN1Result<X690Element> {
-                    let mut el_1 =
+                    let el_1 =
                         |value_: &SEQUENCE_OF<Box<ContextCombination>>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
@@ -1429,14 +1433,16 @@ pub fn _encode_ContextCombination(value_: &ContextCombination) -> ASN1Result<X69
                                 Arc::new(X690Encoding::Constructed(children)),
                             ))
                         }(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ContextCombination::or(v) => {
                 |v_1: &Vec<Box<ContextCombination>>| -> ASN1Result<X690Element> {
-                    let mut el_1 =
+                    let el_1 =
                         |value_: &SEQUENCE_OF<Box<ContextCombination>>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
@@ -1448,9 +1454,11 @@ pub fn _encode_ContextCombination(value_: &ContextCombination) -> ASN1Result<X69
                                 Arc::new(X690Encoding::Constructed(children)),
                             ))
                         }(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        2,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ContextCombination::not(v) => |v_1: &ContextCombination| -> ASN1Result<X690Element> {
@@ -1612,48 +1620,44 @@ impl<'a> TryFrom<&'a X690Element> for AttributeCombination {
 pub fn _decode_AttributeCombination(el: &X690Element) -> ASN1Result<AttributeCombination> {
     |el: &X690Element| -> ASN1Result<AttributeCombination> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => {
-                Ok(AttributeCombination::attribute(_decode_AttributeType(&el)?))
-            }
-            (TagClass::CONTEXT, 1) => {
-                Ok(AttributeCombination::and(|el: &X690Element| -> ASN1Result<
-                    SEQUENCE_OF<Box<AttributeCombination>>,
-                > {
-                    let elements = match el.value.borrow() {
+            (TagClass::CONTEXT, 0) => Ok(AttributeCombination::attribute(_decode_AttributeType(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 1) => Ok(AttributeCombination::and(
+                |el2: &X690Element| -> ASN1Result<SEQUENCE_OF<Box<AttributeCombination>>> {
+                    let elements = match el2.value.borrow() {
                         X690Encoding::Constructed(children) => children,
                         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
                     };
                     let mut items: SEQUENCE_OF<Box<AttributeCombination>> =
                         Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(Box::new(_decode_AttributeCombination(el)?));
+                    for x in elements {
+                        items.push(Box::new(_decode_AttributeCombination(x)?));
                     }
                     Ok(items)
-                }(&el)?))
-            }
+                }(&el.inner()?)?,
+            )),
             (TagClass::CONTEXT, 2) => {
-                Ok(AttributeCombination::or(|el: &X690Element| -> ASN1Result<
+                Ok(AttributeCombination::or(|el2: &X690Element| -> ASN1Result<
                     SEQUENCE_OF<Box<AttributeCombination>>,
                 > {
-                    let elements = match el.value.borrow() {
+                    let elements = match el2.value.borrow() {
                         X690Encoding::Constructed(children) => children,
                         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
                     };
                     let mut items: SEQUENCE_OF<Box<AttributeCombination>> =
                         Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(Box::new(_decode_AttributeCombination(el)?));
+                    for x in elements {
+                        items.push(Box::new(_decode_AttributeCombination(x)?));
                     }
                     Ok(items)
-                }(&el)?))
+                }(&el.inner()?)?))
             }
-            (TagClass::CONTEXT, 3) => {
-                Ok(AttributeCombination::not(|el: &X690Element| -> ASN1Result<
-                    Box<AttributeCombination>,
-                > {
-                    Ok(Box::new(_decode_AttributeCombination(&el.inner()?)?))
-                }(&el)?))
-            }
+            (TagClass::CONTEXT, 3) => Ok(AttributeCombination::not(
+                |el2: &X690Element| -> ASN1Result<Box<AttributeCombination>> {
+                    Ok(Box::new(_decode_AttributeCombination(&el2.inner()?)?))
+                }(&el)?,
+            )),
             _ => Ok(AttributeCombination::_unrecognized(el.clone())),
         }
     }(&el)
@@ -1664,15 +1668,17 @@ pub fn _encode_AttributeCombination(value_: &AttributeCombination) -> ASN1Result
         match value {
             AttributeCombination::attribute(v) => {
                 |v_1: &AttributeType| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_AttributeType(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_AttributeType(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             AttributeCombination::and(v) => {
                 |v_1: &Vec<Box<AttributeCombination>>| -> ASN1Result<X690Element> {
-                    let mut el_1 =
+                    let el_1 =
                         |value_: &SEQUENCE_OF<Box<AttributeCombination>>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
@@ -1684,14 +1690,16 @@ pub fn _encode_AttributeCombination(value_: &AttributeCombination) -> ASN1Result
                                 Arc::new(X690Encoding::Constructed(children)),
                             ))
                         }(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             AttributeCombination::or(v) => {
                 |v_1: &Vec<Box<AttributeCombination>>| -> ASN1Result<X690Element> {
-                    let mut el_1 =
+                    let el_1 =
                         |value_: &SEQUENCE_OF<Box<AttributeCombination>>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
@@ -1703,9 +1711,11 @@ pub fn _encode_AttributeCombination(value_: &AttributeCombination) -> ASN1Result
                                 Arc::new(X690Encoding::Constructed(children)),
                             ))
                         }(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        2,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             AttributeCombination::not(v) => {

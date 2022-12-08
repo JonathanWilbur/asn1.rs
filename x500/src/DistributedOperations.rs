@@ -3353,11 +3353,15 @@ impl<'a> TryFrom<&'a X690Element> for DSACredentials {
 pub fn _decode_DSACredentials(el: &X690Element) -> ASN1Result<DSACredentials> {
     |el: &X690Element| -> ASN1Result<DSACredentials> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(DSACredentials::simple(_decode_SimpleCredentials(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(DSACredentials::strong(_decode_StrongCredentials(&el)?)),
-            (TagClass::CONTEXT, 2) => {
-                Ok(DSACredentials::externalProcedure(ber_decode_external(&el)?))
-            }
+            (TagClass::CONTEXT, 0) => Ok(DSACredentials::simple(_decode_SimpleCredentials(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 1) => Ok(DSACredentials::strong(_decode_StrongCredentials(
+                &el.inner()?,
+            )?)),
+            (TagClass::CONTEXT, 2) => Ok(DSACredentials::externalProcedure(ber_decode_external(
+                &el.inner()?,
+            )?)),
             (TagClass::CONTEXT, 3) => Ok(DSACredentials::spkm(|el: &X690Element| -> ASN1Result<
                 SpkmCredentials,
             > {
@@ -3372,22 +3376,28 @@ pub fn _encode_DSACredentials(value_: &DSACredentials) -> ASN1Result<X690Element
     |value: &DSACredentials| -> ASN1Result<X690Element> {
         match value {
             DSACredentials::simple(v) => |v_1: &SimpleCredentials| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_SimpleCredentials(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_SimpleCredentials(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             DSACredentials::strong(v) => |v_1: &StrongCredentials| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_StrongCredentials(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_StrongCredentials(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             DSACredentials::externalProcedure(v) => |v_1: &EXTERNAL| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_external(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                let el_1 = ber_encode_external(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             DSACredentials::spkm(v) => |v_1: &SpkmCredentials| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(

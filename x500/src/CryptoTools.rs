@@ -993,7 +993,11 @@ pub struct AUTHEN_ENCRYPT<ToBeAuth, ToBeEnciphered> {
     pub _unrecognized: Vec<X690Element>,
 }
 impl<ToBeAuth, ToBeEnciphered> AUTHEN_ENCRYPT<ToBeAuth, ToBeEnciphered> {
-    pub fn new(aad: OPTIONAL<ToBeAuth>, encr: ToBeEnciphered, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        aad: OPTIONAL<ToBeAuth>,
+        encr: ToBeEnciphered,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         AUTHEN_ENCRYPT {
             aad,
             encr,

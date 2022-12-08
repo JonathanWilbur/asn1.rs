@@ -924,7 +924,11 @@ pub struct AttributeTypeAndValue {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeAndValue {
-    pub fn new(type_: OBJECT_IDENTIFIER, value: X690Element, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        type_: OBJECT_IDENTIFIER,
+        value: X690Element,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         AttributeTypeAndValue {
             type_,
             value,
@@ -1316,10 +1320,10 @@ pub fn _decode_ChopSpecification_specificExclusions_Item(
     |el: &X690Element| -> ASN1Result<ChopSpecification_specificExclusions_Item> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(ChopSpecification_specificExclusions_Item::chopBefore(
-                _decode_LocalName(&el)?,
+                _decode_LocalName(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(ChopSpecification_specificExclusions_Item::chopAfter(
-                _decode_LocalName(&el)?,
+                _decode_LocalName(&el.inner()?)?,
             )),
             _ => Ok(ChopSpecification_specificExclusions_Item::_unrecognized(
                 el.clone(),
@@ -1335,18 +1339,22 @@ pub fn _encode_ChopSpecification_specificExclusions_Item(
         match value {
             ChopSpecification_specificExclusions_Item::chopBefore(v) => {
                 |v_1: &LocalName| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_LocalName(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_LocalName(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ChopSpecification_specificExclusions_Item::chopAfter(v) => {
                 |v_1: &LocalName| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_LocalName(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_LocalName(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ChopSpecification_specificExclusions_Item::_unrecognized(el) => Ok(el.clone()),
@@ -1615,7 +1623,9 @@ impl<'a> TryFrom<&'a X690Element> for Refinement {
 pub fn _decode_Refinement(el: &X690Element) -> ASN1Result<Refinement> {
     |el: &X690Element| -> ASN1Result<Refinement> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(Refinement::item(ber_decode_object_identifier(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(Refinement::item(ber_decode_object_identifier(
+                &el.inner()?,
+            )?)),
             (TagClass::CONTEXT, 1) => Ok(Refinement::and(|el: &X690Element| -> ASN1Result<
                 SET_OF<Box<Refinement>>,
             > {
@@ -1628,7 +1638,7 @@ pub fn _decode_Refinement(el: &X690Element) -> ASN1Result<Refinement> {
                     items.push(Box::new(_decode_Refinement(el)?));
                 }
                 Ok(items)
-            }(&el)?)),
+            }(&el.inner()?)?)),
             (TagClass::CONTEXT, 2) => Ok(Refinement::or(|el: &X690Element| -> ASN1Result<
                 SET_OF<Box<Refinement>>,
             > {
@@ -1641,7 +1651,7 @@ pub fn _decode_Refinement(el: &X690Element) -> ASN1Result<Refinement> {
                     items.push(Box::new(_decode_Refinement(el)?));
                 }
                 Ok(items)
-            }(&el)?)),
+            }(&el.inner()?)?)),
             (TagClass::CONTEXT, 3) => Ok(Refinement::not(
                 |el: &X690Element| -> ASN1Result<Box<Refinement>> {
                     Ok(Box::new(_decode_Refinement(&el.inner()?)?))
@@ -1656,13 +1666,15 @@ pub fn _encode_Refinement(value_: &Refinement) -> ASN1Result<X690Element> {
     |value: &Refinement| -> ASN1Result<X690Element> {
         match value {
             Refinement::item(v) => |v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_object_identifier(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = ber_encode_object_identifier(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             Refinement::and(v) => |v_1: &Vec<Box<Refinement>>| -> ASN1Result<X690Element> {
-                let mut el_1 = |value_: &SET_OF<Box<Refinement>>| -> ASN1Result<X690Element> {
+                let el_1 = |value_: &SET_OF<Box<Refinement>>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Refinement(&v)?);
@@ -1673,12 +1685,14 @@ pub fn _encode_Refinement(value_: &Refinement) -> ASN1Result<X690Element> {
                         Arc::new(X690Encoding::Constructed(children)),
                     ))
                 }(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             Refinement::or(v) => |v_1: &Vec<Box<Refinement>>| -> ASN1Result<X690Element> {
-                let mut el_1 = |value_: &SET_OF<Box<Refinement>>| -> ASN1Result<X690Element> {
+                let el_1 = |value_: &SET_OF<Box<Refinement>>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Refinement(&v)?);
@@ -1689,9 +1703,11 @@ pub fn _encode_Refinement(value_: &Refinement) -> ASN1Result<X690Element> {
                         Arc::new(X690Encoding::Constructed(children)),
                     ))
                 }(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             Refinement::not(v) => |v_1: &Box<Refinement>| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
@@ -4441,7 +4457,11 @@ pub struct PwdHistory {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PwdHistory {
-    pub fn new(time: GeneralizedTime, password: X690Element, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        time: GeneralizedTime,
+        password: X690Element,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         PwdHistory {
             time,
             password,
@@ -5264,7 +5284,11 @@ pub struct Attribute_valuesWithContext_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Attribute_valuesWithContext_Item {
-    pub fn new(value: X690Element, contextList: Vec<Context>, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        value: X690Element,
+        contextList: Vec<Context>,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         Attribute_valuesWithContext_Item {
             value,
             contextList,
@@ -5394,7 +5418,7 @@ pub fn _decode_AttributeValueAssertion_assertedContexts(
     |el: &X690Element| -> ASN1Result<AttributeValueAssertion_assertedContexts> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(AttributeValueAssertion_assertedContexts::allContexts(
-                ber_decode_null(&el)?,
+                ber_decode_null(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => {
                 Ok(AttributeValueAssertion_assertedContexts::selectedContexts(
@@ -5409,7 +5433,7 @@ pub fn _decode_AttributeValueAssertion_assertedContexts(
                             items.push(_decode_ContextAssertion(el)?);
                         }
                         Ok(items)
-                    }(&el)?,
+                    }(&el.inner()?)?,
                 ))
             }
             _ => {
@@ -5428,15 +5452,17 @@ pub fn _encode_AttributeValueAssertion_assertedContexts(
         match value {
             AttributeValueAssertion_assertedContexts::allContexts(v) => {
                 |v_1: &NULL| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_null(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = ber_encode_null(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             AttributeValueAssertion_assertedContexts::selectedContexts(v) => {
                 |v_1: &Vec<ContextAssertion>| -> ASN1Result<X690Element> {
-                    let mut el_1 = |value_: &SET_OF<ContextAssertion>| -> ASN1Result<X690Element> {
+                    let el_1 = |value_: &SET_OF<ContextAssertion>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_ContextAssertion(&v)?);
@@ -5447,9 +5473,11 @@ pub fn _encode_AttributeValueAssertion_assertedContexts(
                             Arc::new(X690Encoding::Constructed(children)),
                         ))
                     }(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }

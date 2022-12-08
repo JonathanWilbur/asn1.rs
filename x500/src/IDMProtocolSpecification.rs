@@ -77,17 +77,17 @@ impl<'a> TryFrom<&'a X690Element> for IDM_PDU {
 pub fn _decode_IDM_PDU(el: &X690Element) -> ASN1Result<IDM_PDU> {
     |el: &X690Element| -> ASN1Result<IDM_PDU> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(IDM_PDU::bind(_decode_IdmBind(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(IDM_PDU::bindResult(_decode_IdmBindResult(&el)?)),
-            (TagClass::CONTEXT, 2) => Ok(IDM_PDU::bindError(_decode_IdmBindError(&el)?)),
-            (TagClass::CONTEXT, 3) => Ok(IDM_PDU::request(_decode_Request(&el)?)),
-            (TagClass::CONTEXT, 4) => Ok(IDM_PDU::result(_decode_IdmResult(&el)?)),
-            (TagClass::CONTEXT, 5) => Ok(IDM_PDU::error(_decode_Error(&el)?)),
-            (TagClass::CONTEXT, 6) => Ok(IDM_PDU::reject(_decode_IdmReject(&el)?)),
-            (TagClass::CONTEXT, 7) => Ok(IDM_PDU::unbind(_decode_Unbind(&el)?)),
-            (TagClass::CONTEXT, 8) => Ok(IDM_PDU::abort(_decode_Abort(&el)?)),
-            (TagClass::CONTEXT, 9) => Ok(IDM_PDU::startTLS(_decode_StartTLS(&el)?)),
-            (TagClass::CONTEXT, 10) => Ok(IDM_PDU::tLSResponse(_decode_TLSResponse(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(IDM_PDU::bind(_decode_IdmBind(&el.inner()?)?)),
+            (TagClass::CONTEXT, 1) => Ok(IDM_PDU::bindResult(_decode_IdmBindResult(&el.inner()?)?)),
+            (TagClass::CONTEXT, 2) => Ok(IDM_PDU::bindError(_decode_IdmBindError(&el.inner()?)?)),
+            (TagClass::CONTEXT, 3) => Ok(IDM_PDU::request(_decode_Request(&el.inner()?)?)),
+            (TagClass::CONTEXT, 4) => Ok(IDM_PDU::result(_decode_IdmResult(&el.inner()?)?)),
+            (TagClass::CONTEXT, 5) => Ok(IDM_PDU::error(_decode_Error(&el.inner()?)?)),
+            (TagClass::CONTEXT, 6) => Ok(IDM_PDU::reject(_decode_IdmReject(&el.inner()?)?)),
+            (TagClass::CONTEXT, 7) => Ok(IDM_PDU::unbind(_decode_Unbind(&el.inner()?)?)),
+            (TagClass::CONTEXT, 8) => Ok(IDM_PDU::abort(_decode_Abort(&el.inner()?)?)),
+            (TagClass::CONTEXT, 9) => Ok(IDM_PDU::startTLS(_decode_StartTLS(&el.inner()?)?)),
+            (TagClass::CONTEXT, 10) => Ok(IDM_PDU::tLSResponse(_decode_TLSResponse(&el.inner()?)?)),
             _ => Ok(IDM_PDU::_unrecognized(el.clone())),
         }
     }(&el)
@@ -97,70 +97,92 @@ pub fn _encode_IDM_PDU(value_: &IDM_PDU) -> ASN1Result<X690Element> {
     |value: &IDM_PDU| -> ASN1Result<X690Element> {
         match value {
             IDM_PDU::bind(v) => |v_1: &IdmBind| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_IdmBind(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = _encode_IdmBind(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::bindResult(v) => |v_1: &IdmBindResult| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_IdmBindResult(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
+                let el_1 = _encode_IdmBindResult(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    1,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::bindError(v) => |v_1: &IdmBindError| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_IdmBindError(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                let el_1 = _encode_IdmBindError(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::request(v) => |v_1: &Request| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Request(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
+                let el_1 = _encode_Request(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    3,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::result(v) => |v_1: &IdmResult| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_IdmResult(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 4;
-                Ok(el_1)
+                let el_1 = _encode_IdmResult(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    4,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::error(v) => |v_1: &Error| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Error(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 5;
-                Ok(el_1)
+                let el_1 = _encode_Error(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    5,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::reject(v) => |v_1: &IdmReject| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_IdmReject(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 6;
-                Ok(el_1)
+                let el_1 = _encode_IdmReject(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    6,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::unbind(v) => |v_1: &Unbind| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Unbind(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 7;
-                Ok(el_1)
+                let el_1 = _encode_Unbind(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    7,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::abort(v) => |v_1: &Abort| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Abort(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 8;
-                Ok(el_1)
+                let el_1 = _encode_Abort(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    8,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::startTLS(v) => |v_1: &StartTLS| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_StartTLS(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 9;
-                Ok(el_1)
+                let el_1 = _encode_StartTLS(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    9,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::tLSResponse(v) => |v_1: &TLSResponse| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_TLSResponse(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 10;
-                Ok(el_1)
+                let el_1 = _encode_TLSResponse(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    10,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             IDM_PDU::_unrecognized(el) => Ok(el.clone()),
         }
@@ -324,7 +346,7 @@ pub fn _encode_IdmBind(value_: &IdmBind) -> ASN1Result<X690Element> {
         }(&value_.argument)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -973,7 +995,11 @@ pub struct IdmReject {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmReject {
-    pub fn new(invokeID: INTEGER, reason: IdmReject_reason, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        invokeID: INTEGER,
+        reason: IdmReject_reason,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         IdmReject {
             invokeID,
             reason,

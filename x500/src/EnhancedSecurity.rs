@@ -786,7 +786,11 @@ pub struct SecurityCategory {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SecurityCategory {
-    pub fn new(type_: OBJECT_IDENTIFIER, value: X690Element, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        type_: OBJECT_IDENTIFIER,
+        value: X690Element,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         SecurityCategory {
             type_,
             value,
@@ -1192,7 +1196,11 @@ pub struct IssuerAndSerialNumber {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerAndSerialNumber {
-    pub fn new(issuer: Name, serial: CertificateSerialNumber, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        issuer: Name,
+        serial: CertificateSerialNumber,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         IssuerAndSerialNumber {
             issuer,
             serial,
@@ -1617,7 +1625,11 @@ pub struct AttributeValueIntegrityInfoContent {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeValueIntegrityInfoContent {
-    pub fn new(signer: OPTIONAL<Signer>, aVIHash: AVIHash, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        signer: OPTIONAL<Signer>,
+        aVIHash: AVIHash,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         AttributeValueIntegrityInfoContent {
             signer,
             aVIHash,

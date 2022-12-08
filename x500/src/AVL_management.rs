@@ -635,7 +635,11 @@ pub struct CertRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertRsp {
-    pub fn new(invokeID: InvokeID, result: CertRsp_result, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        invokeID: InvokeID,
+        result: CertRsp_result,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         CertRsp {
             invokeID,
             result,
@@ -1049,7 +1053,11 @@ pub struct AddAvlRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AddAvlRsp {
-    pub fn new(invokeID: InvokeID, result: AddAvlRsp_result, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        invokeID: InvokeID,
+        result: AddAvlRsp_result,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         AddAvlRsp {
             invokeID,
             result,

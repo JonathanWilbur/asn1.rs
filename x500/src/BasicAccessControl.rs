@@ -1021,7 +1021,11 @@ pub struct RestrictedValue {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RestrictedValue {
-    pub fn new(type_: AttributeType, valuesIn: AttributeType, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        type_: AttributeType,
+        valuesIn: AttributeType,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         RestrictedValue {
             type_,
             valuesIn,
@@ -2284,10 +2288,10 @@ pub fn _decode_ACIItem_itemOrUserFirst(el: &X690Element) -> ASN1Result<ACIItem_i
     |el: &X690Element| -> ASN1Result<ACIItem_itemOrUserFirst> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(ACIItem_itemOrUserFirst::itemFirst(
-                _decode_ACIItem_itemOrUserFirst_itemFirst(&el)?,
+                _decode_ACIItem_itemOrUserFirst_itemFirst(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(ACIItem_itemOrUserFirst::userFirst(
-                _decode_ACIItem_itemOrUserFirst_userFirst(&el)?,
+                _decode_ACIItem_itemOrUserFirst_userFirst(&el.inner()?)?,
             )),
             _ => Ok(ACIItem_itemOrUserFirst::_unrecognized(el.clone())),
         }
@@ -2301,18 +2305,22 @@ pub fn _encode_ACIItem_itemOrUserFirst(
         match value {
             ACIItem_itemOrUserFirst::itemFirst(v) => {
                 |v_1: &ACIItem_itemOrUserFirst_itemFirst| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_ACIItem_itemOrUserFirst_itemFirst(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = _encode_ACIItem_itemOrUserFirst_itemFirst(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ACIItem_itemOrUserFirst::userFirst(v) => {
                 |v_1: &ACIItem_itemOrUserFirst_userFirst| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_ACIItem_itemOrUserFirst_userFirst(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
+                    let el_1 = _encode_ACIItem_itemOrUserFirst_userFirst(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        1,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ACIItem_itemOrUserFirst::_unrecognized(el) => Ok(el.clone()),

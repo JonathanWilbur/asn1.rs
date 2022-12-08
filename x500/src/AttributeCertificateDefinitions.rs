@@ -5787,7 +5787,11 @@ pub struct AttributeMappings_Item_typeMappings {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeMappings_Item_typeMappings {
-    pub fn new(local: AttributeType, remote: AttributeType, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(
+        local: AttributeType,
+        remote: AttributeType,
+        _unrecognized: Vec<X690Element>,
+    ) -> Self {
         AttributeMappings_Item_typeMappings {
             local,
             remote,

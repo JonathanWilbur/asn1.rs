@@ -2919,16 +2919,18 @@ pub fn _decode_EstablishOperationalBindingArgumentData_initiator(
     |el: &X690Element| -> ASN1Result<EstablishOperationalBindingArgumentData_initiator> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 3) => Ok(
-                EstablishOperationalBindingArgumentData_initiator::symmetric(x690_identity(&el)?),
+                EstablishOperationalBindingArgumentData_initiator::symmetric(x690_identity(
+                    &el.inner()?,
+                )?),
             ),
             (TagClass::CONTEXT, 4) => Ok(
                 EstablishOperationalBindingArgumentData_initiator::roleA_initiates(x690_identity(
-                    &el,
+                    &el.inner()?,
                 )?),
             ),
             (TagClass::CONTEXT, 5) => Ok(
                 EstablishOperationalBindingArgumentData_initiator::roleB_initiates(x690_identity(
-                    &el,
+                    &el.inner()?,
                 )?),
             ),
             _ => {
@@ -2947,26 +2949,32 @@ pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
         match value {
             EstablishOperationalBindingArgumentData_initiator::symmetric(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 3;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        3,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             EstablishOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 4;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        4,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             EstablishOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 5;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        5,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }
@@ -3003,9 +3011,9 @@ impl<'a> TryFrom<&'a X690Element> for Validity_validFrom {
 pub fn _decode_Validity_validFrom(el: &X690Element) -> ASN1Result<Validity_validFrom> {
     |el: &X690Element| -> ASN1Result<Validity_validFrom> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(Validity_validFrom::now(ber_decode_null(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(Validity_validFrom::now(ber_decode_null(&el.inner()?)?)),
             (TagClass::CONTEXT, 1) => Ok(Validity_validFrom::time(
-                |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
             )),
             _ => Ok(Validity_validFrom::_unrecognized(el.clone())),
         }
@@ -3016,10 +3024,12 @@ pub fn _encode_Validity_validFrom(value_: &Validity_validFrom) -> ASN1Result<X69
     |value: &Validity_validFrom| -> ASN1Result<X690Element> {
         match value {
             Validity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_null(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = ber_encode_null(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             Validity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
@@ -3064,10 +3074,10 @@ pub fn _decode_Validity_validUntil(el: &X690Element) -> ASN1Result<Validity_vali
     |el: &X690Element| -> ASN1Result<Validity_validUntil> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(Validity_validUntil::explicitTermination(
-                ber_decode_null(&el)?,
+                ber_decode_null(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(Validity_validUntil::time(
-                |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
             )),
             _ => Ok(Validity_validUntil::_unrecognized(el.clone())),
         }
@@ -3079,10 +3089,12 @@ pub fn _encode_Validity_validUntil(value_: &Validity_validUntil) -> ASN1Result<X
         match value {
             Validity_validUntil::explicitTermination(v) => {
                 |v_1: &NULL| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_null(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = ber_encode_null(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             Validity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
@@ -3129,14 +3141,20 @@ pub fn _decode_EstablishOperationalBindingResultData_initiator(
 ) -> ASN1Result<EstablishOperationalBindingResultData_initiator> {
     |el: &X690Element| -> ASN1Result<EstablishOperationalBindingResultData_initiator> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 3) => Ok(
-                EstablishOperationalBindingResultData_initiator::symmetric(x690_identity(&el)?),
-            ),
+            (TagClass::CONTEXT, 3) => {
+                Ok(EstablishOperationalBindingResultData_initiator::symmetric(
+                    x690_identity(&el.inner()?)?,
+                ))
+            }
             (TagClass::CONTEXT, 4) => Ok(
-                EstablishOperationalBindingResultData_initiator::roleA_replies(x690_identity(&el)?),
+                EstablishOperationalBindingResultData_initiator::roleA_replies(x690_identity(
+                    &el.inner()?,
+                )?),
             ),
             (TagClass::CONTEXT, 5) => Ok(
-                EstablishOperationalBindingResultData_initiator::roleB_replies(x690_identity(&el)?),
+                EstablishOperationalBindingResultData_initiator::roleB_replies(x690_identity(
+                    &el.inner()?,
+                )?),
             ),
             _ => {
                 return Err(ASN1Error::new(
@@ -3154,26 +3172,32 @@ pub fn _encode_EstablishOperationalBindingResultData_initiator(
         match value {
             EstablishOperationalBindingResultData_initiator::symmetric(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 3;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        3,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             EstablishOperationalBindingResultData_initiator::roleA_replies(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 4;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        4,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             EstablishOperationalBindingResultData_initiator::roleB_replies(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 5;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        5,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }
@@ -3212,17 +3236,19 @@ pub fn _decode_ModifyOperationalBindingArgumentData_initiator(
 ) -> ASN1Result<ModifyOperationalBindingArgumentData_initiator> {
     |el: &X690Element| -> ASN1Result<ModifyOperationalBindingArgumentData_initiator> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 3) => Ok(
-                ModifyOperationalBindingArgumentData_initiator::symmetric(x690_identity(&el)?),
-            ),
+            (TagClass::CONTEXT, 3) => {
+                Ok(ModifyOperationalBindingArgumentData_initiator::symmetric(
+                    x690_identity(&el.inner()?)?,
+                ))
+            }
             (TagClass::CONTEXT, 4) => Ok(
                 ModifyOperationalBindingArgumentData_initiator::roleA_initiates(x690_identity(
-                    &el,
+                    &el.inner()?,
                 )?),
             ),
             (TagClass::CONTEXT, 5) => Ok(
                 ModifyOperationalBindingArgumentData_initiator::roleB_initiates(x690_identity(
-                    &el,
+                    &el.inner()?,
                 )?),
             ),
             _ => {
@@ -3241,26 +3267,32 @@ pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
         match value {
             ModifyOperationalBindingArgumentData_initiator::symmetric(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 3;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        3,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ModifyOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 4;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        4,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ModifyOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 5;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        5,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }
@@ -3299,9 +3331,11 @@ pub fn _decode_ModifiedValidity_validFrom(
 ) -> ASN1Result<ModifiedValidity_validFrom> {
     |el: &X690Element| -> ASN1Result<ModifiedValidity_validFrom> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(ModifiedValidity_validFrom::now(ber_decode_null(&el)?)),
+            (TagClass::CONTEXT, 0) => Ok(ModifiedValidity_validFrom::now(ber_decode_null(
+                &el.inner()?,
+            )?)),
             (TagClass::CONTEXT, 1) => Ok(ModifiedValidity_validFrom::time(
-                |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
             )),
             _ => Ok(ModifiedValidity_validFrom::_unrecognized(el.clone())),
         }
@@ -3314,10 +3348,12 @@ pub fn _encode_ModifiedValidity_validFrom(
     |value: &ModifiedValidity_validFrom| -> ASN1Result<X690Element> {
         match value {
             ModifiedValidity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_null(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
+                let el_1 = ber_encode_null(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    0,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             ModifiedValidity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
@@ -3365,13 +3401,13 @@ pub fn _decode_ModifiedValidity_validUntil(
     |el: &X690Element| -> ASN1Result<ModifiedValidity_validUntil> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 0) => Ok(ModifiedValidity_validUntil::explicitTermination(
-                ber_decode_null(&el)?,
+                ber_decode_null(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 1) => Ok(ModifiedValidity_validUntil::time(
-                |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
             )),
             (TagClass::CONTEXT, 2) => Ok(ModifiedValidity_validUntil::unchanged(ber_decode_null(
-                &el,
+                &el.inner()?,
             )?)),
             _ => Ok(ModifiedValidity_validUntil::_unrecognized(el.clone())),
         }
@@ -3385,10 +3421,12 @@ pub fn _encode_ModifiedValidity_validUntil(
         match value {
             ModifiedValidity_validUntil::explicitTermination(v) => {
                 |v_1: &NULL| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_null(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
+                    let el_1 = ber_encode_null(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        0,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             ModifiedValidity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
@@ -3399,10 +3437,12 @@ pub fn _encode_ModifiedValidity_validUntil(
                 ))
             }(&v),
             ModifiedValidity_validUntil::unchanged(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_null(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
+                let el_1 = ber_encode_null(&v_1)?;
+                Ok(X690Element::new(
+                    TagClass::CONTEXT,
+                    2,
+                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                ))
             }(&v),
             ModifiedValidity_validUntil::_unrecognized(el) => Ok(el.clone()),
         }
@@ -3442,16 +3482,18 @@ pub fn _decode_TerminateOperationalBindingArgumentData_initiator(
     |el: &X690Element| -> ASN1Result<TerminateOperationalBindingArgumentData_initiator> {
         match (el.tag_class, el.tag_number) {
             (TagClass::CONTEXT, 2) => Ok(
-                TerminateOperationalBindingArgumentData_initiator::symmetric(x690_identity(&el)?),
+                TerminateOperationalBindingArgumentData_initiator::symmetric(x690_identity(
+                    &el.inner()?,
+                )?),
             ),
             (TagClass::CONTEXT, 3) => Ok(
                 TerminateOperationalBindingArgumentData_initiator::roleA_initiates(x690_identity(
-                    &el,
+                    &el.inner()?,
                 )?),
             ),
             (TagClass::CONTEXT, 4) => Ok(
                 TerminateOperationalBindingArgumentData_initiator::roleB_initiates(x690_identity(
-                    &el,
+                    &el.inner()?,
                 )?),
             ),
             _ => {
@@ -3470,26 +3512,32 @@ pub fn _encode_TerminateOperationalBindingArgumentData_initiator(
         match value {
             TerminateOperationalBindingArgumentData_initiator::symmetric(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        2,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             TerminateOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 3;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        3,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
             TerminateOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
                 |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let mut el_1 = x690_identity(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 4;
-                    Ok(el_1)
+                    let el_1 = x690_identity(&v_1)?;
+                    Ok(X690Element::new(
+                        TagClass::CONTEXT,
+                        4,
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+                    ))
                 }(&v)
             }
         }
