@@ -44,7 +44,7 @@ pub struct SPKM_REQ {
     pub auth_data: OPTIONAL<AuthorizationData>,
 }
 impl SPKM_REQ {
-    fn new(
+    pub fn new(
         requestToken: REQ_TOKEN,
         certif_data: OPTIONAL<CertificationData>,
         auth_data: OPTIONAL<AuthorizationData>,
@@ -171,7 +171,7 @@ pub struct CertificationData {
     pub certificateRevocationList: OPTIONAL<CertificateList>,
 }
 impl CertificationData {
-    fn new(
+    pub fn new(
         certificationPath: OPTIONAL<CertificationPath>,
         certificateRevocationList: OPTIONAL<CertificateList>,
     ) -> Self {
@@ -302,7 +302,7 @@ pub struct CertificationPath {
     pub theCACertificates: OPTIONAL<Vec<CertificatePair>>,
 }
 impl CertificationPath {
-    fn new(
+    pub fn new(
         userKeyId: OPTIONAL<OCTET_STRING>,
         userCertif: OPTIONAL<Certificate>,
         verifKeyId: OPTIONAL<OCTET_STRING>,
@@ -520,7 +520,7 @@ pub struct REQ_TOKEN {
     pub req_integrity: Integrity,
 }
 impl REQ_TOKEN {
-    fn new(
+    pub fn new(
         req_contents: Req_contents,
         algId: AlgorithmIdentifier,
         req_integrity: Integrity,
@@ -672,7 +672,7 @@ pub struct Req_contents {
     pub key_src_bind: OPTIONAL<OCTET_STRING>,
 }
 impl Req_contents {
-    fn new(
+    pub fn new(
         tok_id: INTEGER,
         context_id: Random_Integer,
         pvno: BIT_STRING,
@@ -942,7 +942,7 @@ pub struct Context_Data {
     pub owf_alg: OWF_Algs,
 }
 impl Context_Data {
-    fn new(
+    pub fn new(
         channelId: OPTIONAL<ChannelId>,
         seq_number: OPTIONAL<INTEGER>,
         options: Options,
@@ -1201,11 +1201,6 @@ pub fn _encode_Conf_Algs(value_: &Conf_Algs) -> ASN1Result<X690Element> {
                 el_1.tag_number = 1;
                 Ok(el_1)
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -1332,7 +1327,7 @@ pub struct SPKM_REP_TI {
     pub certif_data: OPTIONAL<CertificationData>,
 }
 impl SPKM_REP_TI {
-    fn new(responseToken: REP_TI_TOKEN, certif_data: OPTIONAL<CertificationData>) -> Self {
+    pub fn new(responseToken: REP_TI_TOKEN, certif_data: OPTIONAL<CertificationData>) -> Self {
         SPKM_REP_TI {
             responseToken,
             certif_data,
@@ -1431,7 +1426,7 @@ pub struct REP_TI_TOKEN {
     pub rep_ti_integ: Integrity,
 }
 impl REP_TI_TOKEN {
-    fn new(
+    pub fn new(
         rep_ti_contents: Rep_ti_contents,
         algId: AlgorithmIdentifier,
         rep_ti_integ: Integrity,
@@ -1558,7 +1553,7 @@ pub struct Rep_ti_contents {
     pub key_estb_str: OPTIONAL<BIT_STRING>,
 }
 impl Rep_ti_contents {
-    fn new(
+    pub fn new(
         tok_id: INTEGER,
         context_id: Random_Integer,
         pvno: OPTIONAL<BIT_STRING>,
@@ -1817,7 +1812,7 @@ pub struct SPKM_REP_IT {
     pub rep_it_integ: Integrity,
 }
 impl SPKM_REP_IT {
-    fn new(
+    pub fn new(
         responseToken: REP_IT_TOKEN,
         algId: AlgorithmIdentifier,
         rep_it_integ: Integrity,
@@ -1934,7 +1929,7 @@ pub struct REP_IT_TOKEN {
     pub key_estb_rep: OPTIONAL<BIT_STRING>,
 }
 impl REP_IT_TOKEN {
-    fn new(
+    pub fn new(
         tok_id: INTEGER,
         context_id: Random_Integer,
         randSrc: Random_Integer,
@@ -2095,7 +2090,7 @@ pub struct SPKM_ERROR {
     pub integrity: Integrity,
 }
 impl SPKM_ERROR {
-    fn new(errorToken: ERROR_TOKEN, algId: AlgorithmIdentifier, integrity: Integrity) -> Self {
+    pub fn new(errorToken: ERROR_TOKEN, algId: AlgorithmIdentifier, integrity: Integrity) -> Self {
         SPKM_ERROR {
             errorToken,
             algId,
@@ -2198,7 +2193,7 @@ pub struct ERROR_TOKEN {
     pub context_id: Random_Integer,
 }
 impl ERROR_TOKEN {
-    fn new(tok_id: INTEGER, context_id: Random_Integer) -> Self {
+    pub fn new(tok_id: INTEGER, context_id: Random_Integer) -> Self {
         ERROR_TOKEN { tok_id, context_id }
     }
 }
@@ -2283,7 +2278,7 @@ pub struct SPKM_MIC {
     pub int_cksum: BIT_STRING,
 }
 impl SPKM_MIC {
-    fn new(mic_header: Mic_Header, int_cksum: BIT_STRING) -> Self {
+    pub fn new(mic_header: Mic_Header, int_cksum: BIT_STRING) -> Self {
         SPKM_MIC {
             mic_header,
             int_cksum,
@@ -2379,7 +2374,7 @@ pub struct Mic_Header {
     pub snd_seq: OPTIONAL<SeqNum>,
 }
 impl Mic_Header {
-    fn new(
+    pub fn new(
         tok_id: INTEGER,
         context_id: Random_Integer,
         int_alg: OPTIONAL<AlgorithmIdentifier>,
@@ -2517,7 +2512,7 @@ pub struct SeqNum {
     pub dir_ind: BOOLEAN,
 }
 impl SeqNum {
-    fn new(num: INTEGER, dir_ind: BOOLEAN) -> Self {
+    pub fn new(num: INTEGER, dir_ind: BOOLEAN) -> Self {
         SeqNum { num, dir_ind }
     }
 }
@@ -2602,7 +2597,7 @@ pub struct SPKM_WRAP {
     pub wrap_body: Wrap_Body,
 }
 impl SPKM_WRAP {
-    fn new(wrap_header: Wrap_Header, wrap_body: Wrap_Body) -> Self {
+    pub fn new(wrap_header: Wrap_Header, wrap_body: Wrap_Body) -> Self {
         SPKM_WRAP {
             wrap_header,
             wrap_body,
@@ -2700,7 +2695,7 @@ pub struct Wrap_Header {
     pub snd_seq: OPTIONAL<SeqNum>,
 }
 impl Wrap_Header {
-    fn new(
+    pub fn new(
         tok_id: INTEGER,
         context_id: Random_Integer,
         int_alg: OPTIONAL<AlgorithmIdentifier>,
@@ -2863,7 +2858,7 @@ pub struct Wrap_Body {
     pub data: BIT_STRING,
 }
 impl Wrap_Body {
-    fn new(int_cksum: BIT_STRING, data: BIT_STRING) -> Self {
+    pub fn new(int_cksum: BIT_STRING, data: BIT_STRING) -> Self {
         Wrap_Body { int_cksum, data }
     }
 }
@@ -2991,11 +2986,6 @@ pub fn _encode_Conf_Alg(value_: &Conf_Alg) -> ASN1Result<X690Element> {
                 el_1.tag_number = 1;
                 Ok(el_1)
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3015,7 +3005,7 @@ pub struct SPKM_DEL {
     pub int_cksum: BIT_STRING,
 }
 impl SPKM_DEL {
-    fn new(del_header: Del_Header, int_cksum: BIT_STRING) -> Self {
+    pub fn new(del_header: Del_Header, int_cksum: BIT_STRING) -> Self {
         SPKM_DEL {
             del_header,
             int_cksum,
@@ -3111,7 +3101,7 @@ pub struct Del_Header {
     pub snd_seq: OPTIONAL<SeqNum>,
 }
 impl Del_Header {
-    fn new(
+    pub fn new(
         tok_id: INTEGER,
         context_id: Random_Integer,
         int_alg: OPTIONAL<AlgorithmIdentifier>,
@@ -3265,7 +3255,7 @@ pub struct InitialContextToken {
     pub innerContextToken: SPKMInnerContextToken,
 }
 impl InitialContextToken {
-    fn new(thisMech: MechType, innerContextToken: SPKMInnerContextToken) -> Self {
+    pub fn new(thisMech: MechType, innerContextToken: SPKMInnerContextToken) -> Self {
         InitialContextToken {
             thisMech,
             innerContextToken,
@@ -3444,11 +3434,6 @@ pub fn _encode_SPKMInnerContextToken(value_: &SPKMInnerContextToken) -> ASN1Resu
                 el_1.tag_number = 6;
                 Ok(el_1)
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3567,7 +3552,7 @@ pub struct AuthorizationData_Item {
     pub ad_data: OCTET_STRING,
 }
 impl AuthorizationData_Item {
-    fn new(ad_type: INTEGER, ad_data: OCTET_STRING) -> Self {
+    pub fn new(ad_type: INTEGER, ad_data: OCTET_STRING) -> Self {
         AuthorizationData_Item { ad_type, ad_data }
     }
 }

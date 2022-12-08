@@ -275,7 +275,7 @@ pub struct SupplierOrConsumer {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SupplierOrConsumer {
-    fn new(
+    pub fn new(
         ae_title: Name,                                          /* REPLICATED_COMPONENT */
         address: PresentationAddress,                            /* REPLICATED_COMPONENT */
         protocolInformation: OPTIONAL<Vec<ProtocolInformation>>, /* REPLICATED_COMPONENT */
@@ -477,7 +477,7 @@ pub struct SupplierInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SupplierInformation {
-    fn new(
+    pub fn new(
         ae_title: Name,                                          /* REPLICATED_COMPONENT */
         address: PresentationAddress,                            /* REPLICATED_COMPONENT */
         protocolInformation: OPTIONAL<Vec<ProtocolInformation>>, /* REPLICATED_COMPONENT */
@@ -809,7 +809,7 @@ pub struct SupplierAndConsumers {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SupplierAndConsumers {
-    fn new(
+    pub fn new(
         ae_title: Name,                                          /* REPLICATED_COMPONENT */
         address: PresentationAddress,                            /* REPLICATED_COMPONENT */
         protocolInformation: OPTIONAL<Vec<ProtocolInformation>>, /* REPLICATED_COMPONENT */
@@ -1312,7 +1312,7 @@ pub struct supplierOrConsumerInformationMatch_AssertionType {
     pub agreement_identifier: INTEGER,
 }
 impl supplierOrConsumerInformationMatch_AssertionType {
-    fn new(ae_title: Name, agreement_identifier: INTEGER) -> Self {
+    pub fn new(ae_title: Name, agreement_identifier: INTEGER) -> Self {
         supplierOrConsumerInformationMatch_AssertionType {
             ae_title,
             agreement_identifier,

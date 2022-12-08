@@ -26,7 +26,6 @@ use asn1::types::{
     DURATION_EQUIVALENT, EXTERNAL, INTEGER, MAX_IA5_STRING_CHAR_CODE, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
 };
-use asn1::INSTANCE_OF;
 use num::Zero;
 use std::borrow::Borrow;
 use std::io::{Error, ErrorKind, Result, Write};

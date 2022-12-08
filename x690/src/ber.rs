@@ -1842,7 +1842,7 @@ pub fn ber_encode_octet_string(value: &OCTET_STRING) -> ASN1Result<X690Element> 
     ))
 }
 
-pub fn ber_encode_null(value: &NULL) -> ASN1Result<X690Element> {
+pub fn ber_encode_null(_value: &NULL) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         TagClass::UNIVERSAL,
         ASN1_UNIVERSAL_TAG_NUMBER_NULL,

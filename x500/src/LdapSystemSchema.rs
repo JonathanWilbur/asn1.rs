@@ -19,7 +19,6 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::DirectoryAbstractService::*;
 use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
@@ -294,7 +293,7 @@ pub struct LdapSyntaxDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl LdapSyntaxDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         description: OPTIONAL<UnboundedDirectoryString>,
         _unrecognized: Vec<X690Element>,

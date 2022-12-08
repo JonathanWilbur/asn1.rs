@@ -40,7 +40,7 @@ pub struct UserNotice {
     pub explicitText: OPTIONAL<DisplayText>,
 }
 impl UserNotice {
-    fn new(noticeRef: OPTIONAL<NoticeReference>, explicitText: OPTIONAL<DisplayText>) -> Self {
+    pub fn new(noticeRef: OPTIONAL<NoticeReference>, explicitText: OPTIONAL<DisplayText>) -> Self {
         UserNotice {
             noticeRef,
             explicitText,
@@ -154,7 +154,7 @@ pub struct NoticeReference {
     pub noticeNumbers: Vec<INTEGER>,
 }
 impl NoticeReference {
-    fn new(organization: DisplayText, noticeNumbers: Vec<INTEGER>) -> Self {
+    pub fn new(organization: DisplayText, noticeNumbers: Vec<INTEGER>) -> Self {
         NoticeReference {
             organization,
             noticeNumbers,
@@ -298,11 +298,6 @@ pub fn _encode_DisplayText(value_: &DisplayText) -> ASN1Result<X690Element> {
             DisplayText::visibleString(v) => ber_encode_visible_string(&v),
             DisplayText::bmpString(v) => ber_encode_bmp_string(&v),
             DisplayText::utf8String(v) => ber_encode_utf8_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }

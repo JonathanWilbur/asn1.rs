@@ -147,7 +147,7 @@ pub struct InitializationReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationReq {
-    fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
         InitializationReq {
             version,
             _unrecognized,
@@ -229,7 +229,7 @@ pub struct InitializationAcc {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationAcc {
-    fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
         InitializationAcc {
             version,
             _unrecognized,
@@ -313,7 +313,7 @@ pub struct InitializationRej {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationRej {
-    fn new(diag: InitializationRej_diag, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(diag: InitializationRej_diag, _unrecognized: Vec<X690Element>) -> Self {
         InitializationRej {
             diag,
             _unrecognized,
@@ -398,7 +398,7 @@ pub struct InitializationAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationAbort {
-    fn new(diag: InitializationAbort_diag, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(diag: InitializationAbort_diag, _unrecognized: Vec<X690Element>) -> Self {
         InitializationAbort {
             diag,
             _unrecognized,
@@ -620,7 +620,7 @@ pub struct TBOK {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBOK {
-    fn new(
+    pub fn new(
         levelOfAssurance: INTEGER,
         confidenceLevel: INTEGER,
         validationTime: UTCTime,
@@ -780,7 +780,7 @@ pub struct TBerror {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBerror {
-    fn new(
+    pub fn new(
         code: TBerror_code,
         diagnostic: OPTIONAL<UTF8String>,
         _unrecognized: Vec<X690Element>,

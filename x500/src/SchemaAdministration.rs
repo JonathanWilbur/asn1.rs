@@ -128,7 +128,7 @@ pub struct DITStructureRuleDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DITStructureRuleDescription {
-    fn new(
+    pub fn new(
         ruleIdentifier: RuleIdentifier, /* REPLICATED_COMPONENT */
         nameForm: OBJECT_IDENTIFIER,    /* REPLICATED_COMPONENT */
         superiorStructureRules: OPTIONAL<Vec<RuleIdentifier>>, /* REPLICATED_COMPONENT */
@@ -398,7 +398,7 @@ pub struct DITContentRuleDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DITContentRuleDescription {
-    fn new(
+    pub fn new(
         structuralObjectClass: OBJECT_IDENTIFIER, /* REPLICATED_COMPONENT */
         auxiliaries: OPTIONAL<Vec<OBJECT_IDENTIFIER>>, /* REPLICATED_COMPONENT */
         mandatory: OPTIONAL<Vec<OBJECT_IDENTIFIER>>, /* REPLICATED_COMPONENT */
@@ -822,7 +822,7 @@ pub struct MatchingRuleDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MatchingRuleDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,
@@ -1067,7 +1067,7 @@ pub struct AttributeTypeDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,
@@ -1283,7 +1283,7 @@ pub struct AttributeTypeInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeInformation {
-    fn new(
+    pub fn new(
         derivation: OPTIONAL<OBJECT_IDENTIFIER>,
         equalityMatch: OPTIONAL<OBJECT_IDENTIFIER>,
         orderingMatch: OPTIONAL<OBJECT_IDENTIFIER>,
@@ -1667,7 +1667,7 @@ pub struct ObjectClassDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ObjectClassDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,
@@ -1869,7 +1869,7 @@ pub struct ObjectClassInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ObjectClassInformation {
-    fn new(
+    pub fn new(
         subclassOf: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
         kind: OPTIONAL<ObjectClassKind>,
         mandatories: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
@@ -2168,7 +2168,7 @@ pub struct NameFormDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl NameFormDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,
@@ -2368,7 +2368,7 @@ pub struct NameFormInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl NameFormInformation {
-    fn new(
+    pub fn new(
         subordinate: OBJECT_IDENTIFIER,
         namingMandatories: Vec<OBJECT_IDENTIFIER>,
         namingOptionals: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
@@ -2572,7 +2572,7 @@ pub struct MatchingRuleUseDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MatchingRuleUseDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,
@@ -2903,7 +2903,7 @@ pub struct ContextDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ContextDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,
@@ -3101,7 +3101,7 @@ pub struct ContextInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ContextInformation {
-    fn new(
+    pub fn new(
         syntax: UnboundedDirectoryString,
         assertionSyntax: OPTIONAL<UnboundedDirectoryString>,
         _unrecognized: Vec<X690Element>,
@@ -3244,7 +3244,7 @@ pub struct DITContextUseDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DITContextUseDescription {
-    fn new(
+    pub fn new(
         identifier: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,
@@ -3446,7 +3446,7 @@ pub struct DITContextUseInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DITContextUseInformation {
-    fn new(
+    pub fn new(
         mandatoryContexts: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
         optionalContexts: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
         _unrecognized: Vec<X690Element>,
@@ -3684,7 +3684,7 @@ pub struct FriendsDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl FriendsDescription {
-    fn new(
+    pub fn new(
         anchor: OBJECT_IDENTIFIER,
         name: OPTIONAL<Vec<UnboundedDirectoryString>>,
         description: OPTIONAL<UnboundedDirectoryString>,

@@ -122,7 +122,7 @@ pub struct AlgorithmWithInvoke {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AlgorithmWithInvoke {
-    fn new(
+    pub fn new(
         algorithm: OBJECT_IDENTIFIER,
         parameters: OPTIONAL<X690Element>,
         dynamParms: OPTIONAL<X690Element>,
@@ -261,7 +261,7 @@ pub struct AlgorithmIdentifier {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AlgorithmIdentifier {
-    fn new(
+    pub fn new(
         algorithm: OBJECT_IDENTIFIER,
         parameters: OPTIONAL<X690Element>,
         _unrecognized: Vec<X690Element>,
@@ -473,7 +473,7 @@ pub struct TBSCertificate {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBSCertificate {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         serialNumber: CertificateSerialNumber,
         signature: AlgorithmIdentifier,
@@ -752,7 +752,7 @@ pub struct Validity {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Validity {
-    fn new(notBefore: Time, notAfter: Time, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(notBefore: Time, notAfter: Time, _unrecognized: Vec<X690Element>) -> Self {
         Validity {
             notBefore,
             notAfter,
@@ -837,7 +837,7 @@ pub struct SubjectPublicKeyInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SubjectPublicKeyInfo {
-    fn new(
+    pub fn new(
         algorithm: AlgorithmIdentifier,
         subjectPublicKey: PublicKey,
         _unrecognized: Vec<X690Element>,
@@ -985,11 +985,6 @@ pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
         match value {
             Time::utcTime(v) => ber_encode_utc_time(&v),
             Time::generalizedTime(v) => ber_encode_generalized_time(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -1065,7 +1060,7 @@ pub struct Extension {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Extension {
-    fn new(
+    pub fn new(
         extnId: OBJECT_IDENTIFIER,
         critical: OPTIONAL<BOOLEAN>,
         extnValue: OCTET_STRING,
@@ -1257,11 +1252,6 @@ pub fn _encode_Name(value_: &Name) -> ASN1Result<X690Element> {
     |value: &Name| -> ASN1Result<X690Element> {
         match value {
             Name::rdnSequence(v) => _encode_RDNSequence(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -1372,7 +1362,7 @@ pub struct AttributeTypeAndValue {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeAndValue {
-    fn new(type_: OBJECT_IDENTIFIER, value: UTF8String, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(type_: OBJECT_IDENTIFIER, value: UTF8String, _unrecognized: Vec<X690Element>) -> Self {
         AttributeTypeAndValue {
             type_,
             value,
@@ -1498,7 +1488,7 @@ pub struct Attribute {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Attribute {
-    fn new(
+    pub fn new(
         type_: OBJECT_IDENTIFIER,
         values: Vec<UTF8String>,
         _unrecognized: Vec<X690Element>,
@@ -1650,7 +1640,7 @@ pub struct TBSAttributeCertificate {
     pub extensions: OPTIONAL<Extensions>,
 }
 impl TBSAttributeCertificate {
-    fn new(
+    pub fn new(
         version: AttCertVersion,
         holder: Holder,
         issuer: AttCertIssuer,
@@ -1893,7 +1883,7 @@ pub struct Holder {
     pub objectDigestInfo: OPTIONAL<ObjectDigestInfo>,
 }
 impl Holder {
-    fn new(
+    pub fn new(
         baseCertificateID: OPTIONAL<IssuerSerial>,
         entityName: OPTIONAL<GeneralNames>,
         objectDigestInfo: OPTIONAL<ObjectDigestInfo>,
@@ -2058,7 +2048,7 @@ pub struct IssuerSerial {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerSerial {
-    fn new(
+    pub fn new(
         issuer: GeneralNames,
         serial: CertificateSerialNumber,
         issuerUID: OPTIONAL<UniqueIdentifier>,
@@ -2183,7 +2173,7 @@ pub struct ObjectDigestInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ObjectDigestInfo {
-    fn new(
+    pub fn new(
         digestedObjectType: ObjectDigestInfo_digestedObjectType,
         otherObjectTypeID: OPTIONAL<OBJECT_IDENTIFIER>,
         digestAlgorithm: AlgorithmIdentifier,
@@ -2324,7 +2314,7 @@ pub struct AttCertIssuer {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttCertIssuer {
-    fn new(
+    pub fn new(
         issuerName: OPTIONAL<GeneralNames>,
         baseCertificateID: OPTIONAL<IssuerSerial>,
         objectDigestInfo: OPTIONAL<ObjectDigestInfo>,
@@ -2488,7 +2478,7 @@ pub struct AttCertValidityPeriod {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttCertValidityPeriod {
-    fn new(
+    pub fn new(
         notBeforeTime: GeneralizedTime,
         notAfterTime: GeneralizedTime,
         _unrecognized: Vec<X690Element>,
@@ -2775,7 +2765,7 @@ pub struct TBSCertAVL {
     pub avlExtensions: OPTIONAL<Extensions>,
 }
 impl TBSCertAVL {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         serialNumber: OPTIONAL<AvlSerialNumber>,
         signature: AlgorithmIdentifier,
@@ -3062,7 +3052,7 @@ pub struct IssuerSerialNumber {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerSerialNumber {
-    fn new(
+    pub fn new(
         issuer: Name,
         serialNumber: CertificateSerialNumber,
         _unrecognized: Vec<X690Element>,
@@ -3299,7 +3289,7 @@ pub struct TBSCertAVL_entries_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBSCertAVL_entries_Item {
-    fn new(
+    pub fn new(
         idType: TBSCertAVL_entries_Item_idType,
         scope: OPTIONAL<ScopeRestrictions>,
         entryExtensions: OPTIONAL<Extensions>,

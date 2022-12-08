@@ -19,7 +19,6 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::CommonProtocolSpecification::*;
 use crate::DirectoryAbstractService::*;
 use crate::DirectoryShadowAbstractService::*;
 use crate::DistributedOperations::*;
@@ -27,8 +26,6 @@ use crate::IDMProtocolSpecification::*;
 use crate::OperationalBindingManagement::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::borrow::Borrow;
-use std::sync::Arc;
 use x690::*;
 
 /// ### ASN.1 Definition:

@@ -67,7 +67,7 @@ pub struct AuthorityKeyIdentifier {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AuthorityKeyIdentifier {
-    fn new(
+    pub fn new(
         keyIdentifier: OPTIONAL<KeyIdentifier>,
         authorityCertIssuer: OPTIONAL<GeneralNames>,
         authorityCertSerialNumber: OPTIONAL<CertificateSerialNumber>,
@@ -371,7 +371,7 @@ pub struct PrivateKeyUsagePeriod {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PrivateKeyUsagePeriod {
-    fn new(
+    pub fn new(
         notBefore: OPTIONAL<GeneralizedTime>,
         notAfter: OPTIONAL<GeneralizedTime>,
         _unrecognized: Vec<X690Element>,
@@ -555,7 +555,7 @@ pub struct PolicyInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PolicyInformation {
-    fn new(
+    pub fn new(
         policyIdentifier: CertPolicyId,
         policyQualifiers: OPTIONAL<Vec<PolicyQualifierInfo>>,
         _unrecognized: Vec<X690Element>,
@@ -703,7 +703,7 @@ pub struct PolicyQualifierInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PolicyQualifierInfo {
-    fn new(
+    pub fn new(
         policyQualifierId: OBJECT_IDENTIFIER,
         qualifier: OPTIONAL<X690Element>,
         _unrecognized: Vec<X690Element>,
@@ -911,7 +911,7 @@ pub struct AvlId {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AvlId {
-    fn new(
+    pub fn new(
         issuer: Name,
         serialNumber: OPTIONAL<AvlSerialNumber>,
         _unrecognized: Vec<X690Element>,
@@ -1195,7 +1195,7 @@ pub struct EDIPartyName {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EDIPartyName {
-    fn new(
+    pub fn new(
         nameAssigner: OPTIONAL<UnboundedDirectoryString>,
         partyName: UnboundedDirectoryString,
         _unrecognized: Vec<X690Element>,
@@ -1421,7 +1421,7 @@ pub struct BasicConstraintsSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl BasicConstraintsSyntax {
-    fn new(
+    pub fn new(
         cA: OPTIONAL<BOOLEAN>,
         pathLenConstraint: OPTIONAL<INTEGER>,
         _unrecognized: Vec<X690Element>,
@@ -1563,7 +1563,7 @@ pub struct NameConstraintsSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl NameConstraintsSyntax {
-    fn new(
+    pub fn new(
         permittedSubtrees: OPTIONAL<GeneralSubtrees>,
         excludedSubtrees: OPTIONAL<GeneralSubtrees>,
         _unrecognized: Vec<X690Element>,
@@ -1732,7 +1732,7 @@ pub struct GeneralSubtree {
     pub _unrecognized: Vec<X690Element>,
 }
 impl GeneralSubtree {
-    fn new(
+    pub fn new(
         base: GeneralName,
         minimum: OPTIONAL<BaseDistance>,
         maximum: OPTIONAL<BaseDistance>,
@@ -1896,7 +1896,7 @@ pub struct PolicyConstraintsSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PolicyConstraintsSyntax {
-    fn new(
+    pub fn new(
         requireExplicitPolicy: OPTIONAL<SkipCerts>,
         inhibitPolicyMapping: OPTIONAL<SkipCerts>,
         _unrecognized: Vec<X690Element>,
@@ -2152,7 +2152,7 @@ pub struct PerAuthorityScope {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PerAuthorityScope {
-    fn new(
+    pub fn new(
         authorityName: OPTIONAL<GeneralName>,
         distributionPoint: OPTIONAL<DistributionPointName>,
         onlyContains: OPTIONAL<OnlyCertificateTypes>,
@@ -2456,7 +2456,7 @@ pub struct NumberRange {
     pub _unrecognized: Vec<X690Element>,
 }
 impl NumberRange {
-    fn new(
+    pub fn new(
         startingNumber: OPTIONAL<INTEGER>,
         endingNumber: OPTIONAL<INTEGER>,
         modulus: OPTIONAL<INTEGER>,
@@ -2606,7 +2606,7 @@ pub struct BaseRevocationInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl BaseRevocationInfo {
-    fn new(
+    pub fn new(
         cRLStreamIdentifier: OPTIONAL<CRLStreamIdentifier>,
         cRLNumber: CRLNumber,
         baseThisUpdate: GeneralizedTime,
@@ -2862,7 +2862,7 @@ pub struct CRLReferral {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CRLReferral {
-    fn new(
+    pub fn new(
         issuer: OPTIONAL<GeneralName>,
         location: OPTIONAL<GeneralName>,
         deltaRefInfo: OPTIONAL<DeltaRefInfo>,
@@ -3067,7 +3067,7 @@ pub struct DeltaRefInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DeltaRefInfo {
-    fn new(
+    pub fn new(
         deltaLocation: GeneralName,
         lastDelta: OPTIONAL<GeneralizedTime>,
         _unrecognized: Vec<X690Element>,
@@ -3251,7 +3251,7 @@ pub struct DeltaInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DeltaInformation {
-    fn new(
+    pub fn new(
         deltaLocation: GeneralName,
         nextDelta: OPTIONAL<GeneralizedTime>,
         _unrecognized: Vec<X690Element>,
@@ -3405,7 +3405,7 @@ pub struct ToBeRevokedGroup {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ToBeRevokedGroup {
-    fn new(
+    pub fn new(
         certificateIssuer: OPTIONAL<GeneralName>,
         reasonInfo: OPTIONAL<ReasonInfo>,
         revocationTime: GeneralizedTime,
@@ -3549,7 +3549,7 @@ pub struct ReasonInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ReasonInfo {
-    fn new(
+    pub fn new(
         reasonCode: CRLReason,
         holdInstructionCode: OPTIONAL<HoldInstruction>,
         _unrecognized: Vec<X690Element>,
@@ -3738,7 +3738,7 @@ pub struct CertificateGroupNumberRange {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificateGroupNumberRange {
-    fn new(
+    pub fn new(
         startingNumber: INTEGER,
         endingNumber: INTEGER,
         _unrecognized: Vec<X690Element>,
@@ -3944,7 +3944,7 @@ pub struct RevokedGroup {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RevokedGroup {
-    fn new(
+    pub fn new(
         certificateIssuer: OPTIONAL<GeneralName>,
         reasonInfo: OPTIONAL<ReasonInfo>,
         invalidityDate: OPTIONAL<GeneralizedTime>,
@@ -4173,11 +4173,6 @@ pub fn _encode_RevokedCertificateGroup(
         match value {
             RevokedCertificateGroup::serialNumberRange(v) => _encode_NumberRange(&v),
             RevokedCertificateGroup::nameSubtree(v) => _encode_GeneralName(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4390,7 +4385,7 @@ pub struct DistributionPoint {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DistributionPoint {
-    fn new(
+    pub fn new(
         distributionPoint: OPTIONAL<DistributionPointName>,
         reasons: OPTIONAL<ReasonFlags>,
         cRLIssuer: OPTIONAL<GeneralNames>,
@@ -4685,7 +4680,7 @@ pub struct IssuingDistPointSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuingDistPointSyntax {
-    fn new(
+    pub fn new(
         distributionPoint: OPTIONAL<DistributionPointName>,
         onlyContainsUserPublicKeyCerts: OPTIONAL<BOOLEAN>,
         onlyContainsCACerts: OPTIONAL<BOOLEAN>,
@@ -5068,7 +5063,7 @@ pub struct SubjectAltPublicKeyInfo {
     pub subjectAltPublicKey: BIT_STRING,
 }
 impl SubjectAltPublicKeyInfo {
-    fn new(algorithm: AlgorithmIdentifier, subjectAltPublicKey: BIT_STRING) -> Self {
+    pub fn new(algorithm: AlgorithmIdentifier, subjectAltPublicKey: BIT_STRING) -> Self {
         SubjectAltPublicKeyInfo {
             algorithm,
             subjectAltPublicKey,
@@ -5247,7 +5242,7 @@ pub struct AAIssuingDistPointSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AAIssuingDistPointSyntax {
-    fn new(
+    pub fn new(
         distributionPoint: OPTIONAL<DistributionPointName>,
         onlySomeReasons: OPTIONAL<ReasonFlags>,
         indirectCRL: OPTIONAL<BOOLEAN>,
@@ -5522,7 +5517,7 @@ pub struct CertificateExactAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificateExactAssertion {
-    fn new(
+    pub fn new(
         serialNumber: CertificateSerialNumber,
         issuer: Name,
         _unrecognized: Vec<X690Element>,
@@ -5667,7 +5662,7 @@ pub struct CertificateAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificateAssertion {
-    fn new(
+    pub fn new(
         serialNumber: OPTIONAL<CertificateSerialNumber>,
         issuer: OPTIONAL<Name>,
         subjectKeyIdentifier: OPTIONAL<SubjectKeyIdentifier>,
@@ -6193,7 +6188,7 @@ pub struct CertificatePairExactAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificatePairExactAssertion {
-    fn new(
+    pub fn new(
         issuedToThisCAAssertion: OPTIONAL<CertificateExactAssertion>,
         issuedByThisCAAssertion: OPTIONAL<CertificateExactAssertion>,
         _unrecognized: Vec<X690Element>,
@@ -6358,7 +6353,7 @@ pub struct CertificatePairAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificatePairAssertion {
-    fn new(
+    pub fn new(
         issuedToThisCAAssertion: OPTIONAL<CertificateAssertion>,
         issuedByThisCAAssertion: OPTIONAL<CertificateAssertion>,
         _unrecognized: Vec<X690Element>,
@@ -6515,7 +6510,7 @@ pub struct CertificateListExactAssertion {
     pub distributionPoint: OPTIONAL<DistributionPointName>,
 }
 impl CertificateListExactAssertion {
-    fn new(
+    pub fn new(
         issuer: Name,
         thisUpdate: Time,
         distributionPoint: OPTIONAL<DistributionPointName>,
@@ -6657,7 +6652,7 @@ pub struct CertificateListAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificateListAssertion {
-    fn new(
+    pub fn new(
         issuer: OPTIONAL<Name>,
         minCRLNumber: OPTIONAL<CRLNumber>,
         maxCRLNumber: OPTIONAL<CRLNumber>,
@@ -6962,7 +6957,7 @@ pub struct PkiPathMatchSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PkiPathMatchSyntax {
-    fn new(firstIssuer: Name, lastSubject: Name, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(firstIssuer: Name, lastSubject: Name, _unrecognized: Vec<X690Element>) -> Self {
         PkiPathMatchSyntax {
             firstIssuer,
             lastSubject,
@@ -7090,7 +7085,7 @@ pub struct EnhancedCertificateAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EnhancedCertificateAssertion {
-    fn new(
+    pub fn new(
         serialNumber: OPTIONAL<CertificateSerialNumber>,
         issuer: OPTIONAL<Name>,
         subjectKeyIdentifier: OPTIONAL<SubjectKeyIdentifier>,
@@ -7489,7 +7484,7 @@ pub struct AltName {
     pub altNameValue: OPTIONAL<GeneralName>,
 }
 impl AltName {
-    fn new(altnameType: AltNameType, altNameValue: OPTIONAL<GeneralName>) -> Self {
+    pub fn new(altnameType: AltNameType, altNameValue: OPTIONAL<GeneralName>) -> Self {
         AltName {
             altnameType,
             altNameValue,
@@ -8323,7 +8318,7 @@ pub struct PolicyMappingsSyntax_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PolicyMappingsSyntax_Item {
-    fn new(
+    pub fn new(
         issuerDomainPolicy: CertPolicyId,
         subjectDomainPolicy: CertPolicyId,
         _unrecognized: Vec<X690Element>,

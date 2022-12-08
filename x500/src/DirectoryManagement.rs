@@ -19,13 +19,9 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::BasicAccessControl::*;
 use crate::DSAOperationalAttributeTypes::*;
-use crate::DirectoryAbstractService::*;
-use crate::DirectoryShadowAbstractService::*;
 use crate::DistributedOperations::*;
 use crate::InformationFramework::*;
-use crate::OperationalBindingManagement::*;
 use crate::SchemaAdministration::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
@@ -183,7 +179,7 @@ pub struct DirectoryInformationServiceElement {
     pub attributeValue: OPTIONAL<AttributeValue>,
 }
 impl DirectoryInformationServiceElement {
-    fn new(
+    pub fn new(
         operationType: OPTIONAL<DirectoryInformationServiceElement_operationType>,
         attributeType: OPTIONAL<AttributeType>,
         attributeValue: OPTIONAL<AttributeValue>,
@@ -3531,7 +3527,7 @@ pub struct SubSchemaSyntax_Item_subSchema {
     pub matchRuleUses: OPTIONAL<Vec<MatchingRuleUseDescription>>,
 }
 impl SubSchemaSyntax_Item_subSchema {
-    fn new(
+    pub fn new(
         structureRules: OPTIONAL<Vec<DITStructureRuleDescription>>,
         contentRules: OPTIONAL<Vec<DITContentRuleDescription>>,
         matchingRules: OPTIONAL<Vec<MatchingRuleDescription>>,
@@ -3898,7 +3894,7 @@ pub struct SubSchemaSyntax_Item {
     pub subSchema: SubSchemaSyntax_Item_subSchema,
 }
 impl SubSchemaSyntax_Item {
-    fn new(name: Name, subSchema: SubSchemaSyntax_Item_subSchema) -> Self {
+    pub fn new(name: Name, subSchema: SubSchemaSyntax_Item_subSchema) -> Self {
         SubSchemaSyntax_Item { name, subSchema }
     }
 }

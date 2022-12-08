@@ -22,7 +22,6 @@
 use crate::BasicAccessControl::*;
 use crate::CommonProtocolSpecification::*;
 use crate::DirectoryAbstractService::*;
-use crate::EnhancedSecurity::*;
 use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
 use crate::ServiceAdministration::*;
@@ -69,7 +68,7 @@ pub struct DsaReferralData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl DsaReferralData {
-    fn new(
+    pub fn new(
         reference: ContinuationReference,
         contextPrefix: OPTIONAL<DistinguishedName>,
         _unrecognized: Vec<X690Element>,
@@ -379,7 +378,7 @@ pub struct ChainingArguments {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ChainingArguments {
-    fn new(
+    pub fn new(
         originator: OPTIONAL<DistinguishedName>,
         targetObject: OPTIONAL<DistinguishedName>,
         operationProgress: OPTIONAL<OperationProgress>,
@@ -1183,7 +1182,7 @@ pub struct ChainingResults {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ChainingResults {
-    fn new(
+    pub fn new(
         info: OPTIONAL<DomainInfo>,
         crossReferences: OPTIONAL<Vec<CrossReference>>,
         securityParameters: OPTIONAL<SecurityParameters>,
@@ -1420,7 +1419,7 @@ pub struct CrossReference {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CrossReference {
-    fn new(
+    pub fn new(
         contextPrefix: DistinguishedName,
         accessPoint: AccessPointInformation,
         _unrecognized: Vec<X690Element>,
@@ -1546,7 +1545,7 @@ pub struct OperationProgress {
     pub _unrecognized: Vec<X690Element>,
 }
 impl OperationProgress {
-    fn new(
+    pub fn new(
         nameResolutionPhase: OperationProgress_nameResolutionPhase,
         nextRDNToBeResolved: OPTIONAL<INTEGER>,
         _unrecognized: Vec<X690Element>,
@@ -1711,7 +1710,7 @@ pub struct TraceItem {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TraceItem {
-    fn new(
+    pub fn new(
         dsa: Name,
         targetObject: OPTIONAL<Name>,
         operationProgress: OperationProgress,
@@ -1902,7 +1901,7 @@ pub struct AccessPoint {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AccessPoint {
-    fn new(
+    pub fn new(
         ae_title: Name,
         address: PresentationAddress,
         protocolInformation: OPTIONAL<Vec<ProtocolInformation>>,
@@ -2085,7 +2084,7 @@ pub struct MasterOrShadowAccessPoint {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MasterOrShadowAccessPoint {
-    fn new(
+    pub fn new(
         ae_title: Name,                                          /* REPLICATED_COMPONENT */
         address: PresentationAddress,                            /* REPLICATED_COMPONENT */
         protocolInformation: OPTIONAL<Vec<ProtocolInformation>>, /* REPLICATED_COMPONENT */
@@ -2374,7 +2373,7 @@ pub struct AccessPointInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AccessPointInformation {
-    fn new(
+    pub fn new(
         ae_title: Name,                                          /* REPLICATED_COMPONENT */
         address: PresentationAddress,                            /* REPLICATED_COMPONENT */
         protocolInformation: OPTIONAL<Vec<ProtocolInformation>>, /* REPLICATED_COMPONENT */
@@ -2648,7 +2647,7 @@ pub struct DitBridgeKnowledge {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DitBridgeKnowledge {
-    fn new(
+    pub fn new(
         domainLocalID: OPTIONAL<UnboundedDirectoryString>,
         accessPoints: MasterAndShadowAccessPoints,
         _unrecognized: Vec<X690Element>,
@@ -2813,7 +2812,7 @@ pub struct ContinuationReference {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ContinuationReference {
-    fn new(
+    pub fn new(
         targetObject: Name,
         aliasedRDNs: OPTIONAL<INTEGER>,
         operationProgress: OperationProgress,
@@ -3190,7 +3189,7 @@ pub struct DSABindArgument {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DSABindArgument {
-    fn new(
+    pub fn new(
         credentials: OPTIONAL<DSACredentials>,
         versions: OPTIONAL<Versions>,
         _unrecognized: Vec<X690Element>,
@@ -3434,7 +3433,7 @@ pub struct Chained_ArgumentType_OPTIONALLY_PROTECTED_Parameter1 {
     pub argument: X690Element,
 }
 impl Chained_ArgumentType_OPTIONALLY_PROTECTED_Parameter1 {
-    fn new(chainedArgument: ChainingArguments, argument: X690Element) -> Self {
+    pub fn new(chainedArgument: ChainingArguments, argument: X690Element) -> Self {
         Chained_ArgumentType_OPTIONALLY_PROTECTED_Parameter1 {
             chainedArgument,
             argument,
@@ -3543,7 +3542,7 @@ pub struct Chained_ResultType_OPTIONALLY_PROTECTED_Parameter1 {
     pub result: X690Element,
 }
 impl Chained_ResultType_OPTIONALLY_PROTECTED_Parameter1 {
-    fn new(chainedResult: ChainingResults, result: X690Element) -> Self {
+    pub fn new(chainedResult: ChainingResults, result: X690Element) -> Self {
         Chained_ResultType_OPTIONALLY_PROTECTED_Parameter1 {
             chainedResult,
             result,

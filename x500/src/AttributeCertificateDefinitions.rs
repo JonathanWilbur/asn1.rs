@@ -77,7 +77,7 @@ pub struct TBSAttributeCertificate {
     pub extensions: OPTIONAL<Extensions>,
 }
 impl TBSAttributeCertificate {
-    fn new(
+    pub fn new(
         version: AttCertVersion,
         holder: Holder,
         issuer: AttCertIssuer,
@@ -320,7 +320,7 @@ pub struct Holder {
     pub objectDigestInfo: OPTIONAL<ObjectDigestInfo>,
 }
 impl Holder {
-    fn new(
+    pub fn new(
         baseCertificateID: OPTIONAL<IssuerSerial>,
         entityName: OPTIONAL<GeneralNames>,
         objectDigestInfo: OPTIONAL<ObjectDigestInfo>,
@@ -470,7 +470,7 @@ pub struct IssuerSerial {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerSerial {
-    fn new(
+    pub fn new(
         issuer: GeneralNames,
         serial: CertificateSerialNumber,
         issuerUID: OPTIONAL<UniqueIdentifier>,
@@ -595,7 +595,7 @@ pub struct ObjectDigestInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ObjectDigestInfo {
-    fn new(
+    pub fn new(
         digestedObjectType: ObjectDigestInfo_digestedObjectType,
         otherObjectTypeID: OPTIONAL<OBJECT_IDENTIFIER>,
         digestAlgorithm: AlgorithmIdentifier,
@@ -736,7 +736,7 @@ pub struct AttCertIssuer {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttCertIssuer {
-    fn new(
+    pub fn new(
         issuerName: OPTIONAL<GeneralNames>,
         baseCertificateID: OPTIONAL<IssuerSerial>,
         objectDigestInfo: OPTIONAL<ObjectDigestInfo>,
@@ -890,7 +890,7 @@ pub struct AttCertValidityPeriod {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttCertValidityPeriod {
-    fn new(
+    pub fn new(
         notBeforeTime: GeneralizedTime,
         notAfterTime: GeneralizedTime,
         _unrecognized: Vec<X690Element>,
@@ -991,7 +991,7 @@ pub struct AttributeCertificationPath {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeCertificationPath {
-    fn new(
+    pub fn new(
         attributeCertificate: AttributeCertificate,
         acPath: OPTIONAL<Vec<ACPathData>>,
         _unrecognized: Vec<X690Element>,
@@ -1124,7 +1124,7 @@ pub struct ACPathData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ACPathData {
-    fn new(
+    pub fn new(
         certificate: OPTIONAL<Certificate>,
         attributeCertificate: OPTIONAL<AttributeCertificate>,
         _unrecognized: Vec<X690Element>,
@@ -1298,7 +1298,7 @@ pub struct RoleSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RoleSyntax {
-    fn new(
+    pub fn new(
         roleAuthority: OPTIONAL<GeneralNames>,
         roleName: GeneralName,
         _unrecognized: Vec<X690Element>,
@@ -1474,7 +1474,7 @@ pub struct DualStringSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DualStringSyntax {
-    fn new(
+    pub fn new(
         operation: UnboundedDirectoryString,
         object: UnboundedDirectoryString,
         _unrecognized: Vec<X690Element>,
@@ -1783,7 +1783,7 @@ pub struct TargetCert {
     pub certDigestInfo: OPTIONAL<ObjectDigestInfo>,
 }
 impl TargetCert {
-    fn new(
+    pub fn new(
         targetCertificate: IssuerSerial,
         targetName: OPTIONAL<GeneralName>,
         certDigestInfo: OPTIONAL<ObjectDigestInfo>,
@@ -1925,7 +1925,7 @@ pub struct UserNotice {
     pub explicitText: OPTIONAL<DisplayText>,
 }
 impl UserNotice {
-    fn new(noticeRef: OPTIONAL<NoticeReference>, explicitText: OPTIONAL<DisplayText>) -> Self {
+    pub fn new(noticeRef: OPTIONAL<NoticeReference>, explicitText: OPTIONAL<DisplayText>) -> Self {
         UserNotice {
             noticeRef,
             explicitText,
@@ -2038,7 +2038,7 @@ pub struct NoticeReference {
     pub noticeNumbers: Vec<INTEGER>,
 }
 impl NoticeReference {
-    fn new(organization: DisplayText, noticeNumbers: Vec<INTEGER>) -> Self {
+    pub fn new(organization: DisplayText, noticeNumbers: Vec<INTEGER>) -> Self {
         NoticeReference {
             organization,
             noticeNumbers,
@@ -2181,11 +2181,6 @@ pub fn _encode_DisplayText(value_: &DisplayText) -> ASN1Result<X690Element> {
             DisplayText::visibleString(v) => ber_encode_visible_string(&v),
             DisplayText::bmpString(v) => ber_encode_bmp_string(&v),
             DisplayText::utf8String(v) => ber_encode_utf8_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -2362,7 +2357,7 @@ pub struct AttributeDescriptorSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeDescriptorSyntax {
-    fn new(
+    pub fn new(
         identifier: AttributeIdentifier,
         attributeSyntax: OCTET_STRING,
         name: OPTIONAL<AttributeName>,
@@ -2580,7 +2575,7 @@ pub struct PrivilegePolicyIdentifier {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PrivilegePolicyIdentifier {
-    fn new(
+    pub fn new(
         privilegePolicy: PrivilegePolicy,
         privPolSyntax: InfoSyntax,
         _unrecognized: Vec<X690Element>,
@@ -2758,7 +2753,7 @@ pub struct RoleSpecCertIdentifier {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RoleSpecCertIdentifier {
-    fn new(
+    pub fn new(
         roleName: GeneralName,
         roleCertIssuer: GeneralName,
         roleCertSerialNumber: OPTIONAL<CertificateSerialNumber>,
@@ -2955,7 +2950,7 @@ pub struct BasicAttConstraintsSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl BasicAttConstraintsSyntax {
-    fn new(
+    pub fn new(
         authority: OPTIONAL<BOOLEAN>,
         pathLenConstraint: OPTIONAL<INTEGER>,
         _unrecognized: Vec<X690Element>,
@@ -3496,7 +3491,7 @@ pub struct HolderNameConstraintsSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl HolderNameConstraintsSyntax {
-    fn new(
+    pub fn new(
         permittedSubtrees: GeneralSubtrees,
         excludedSubtrees: OPTIONAL<GeneralSubtrees>,
         _unrecognized: Vec<X690Element>,
@@ -3655,7 +3650,7 @@ pub struct GeneralSubtree {
     pub _unrecognized: Vec<X690Element>,
 }
 impl GeneralSubtree {
-    fn new(
+    pub fn new(
         base: GeneralName,
         minimum: OPTIONAL<BaseDistance>,
         maximum: OPTIONAL<BaseDistance>,
@@ -4336,7 +4331,7 @@ pub struct AttributeCertificateExactAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeCertificateExactAssertion {
-    fn new(
+    pub fn new(
         serialNumber: CertificateSerialNumber,
         issuer: AttCertIssuer,
         _unrecognized: Vec<X690Element>,
@@ -4469,7 +4464,7 @@ pub struct AttributeCertificateAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeCertificateAssertion {
-    fn new(
+    pub fn new(
         holder: OPTIONAL<AttributeCertificateAssertion_holder>,
         issuer: OPTIONAL<GeneralNames>,
         attCertValidity: OPTIONAL<GeneralizedTime>,
@@ -4699,7 +4694,7 @@ pub struct HolderIssuerAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl HolderIssuerAssertion {
-    fn new(
+    pub fn new(
         holder: OPTIONAL<Holder>,
         issuer: OPTIONAL<AttCertIssuer>,
         _unrecognized: Vec<X690Element>,
@@ -4849,7 +4844,7 @@ pub struct DelMatchSyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DelMatchSyntax {
-    fn new(
+    pub fn new(
         firstIssuer: AttCertIssuer,
         lastHolder: Holder,
         _unrecognized: Vec<X690Element>,
@@ -5661,7 +5656,7 @@ pub struct AllowedAttributeAssignments_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AllowedAttributeAssignments_Item {
-    fn new(
+    pub fn new(
         attributes: Vec<AllowedAttributeAssignments_Item_attributes_Item>,
         holderDomain: GeneralName,
         _unrecognized: Vec<X690Element>,
@@ -5792,7 +5787,7 @@ pub struct AttributeMappings_Item_typeMappings {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeMappings_Item_typeMappings {
-    fn new(local: AttributeType, remote: AttributeType, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(local: AttributeType, remote: AttributeType, _unrecognized: Vec<X690Element>) -> Self {
         AttributeMappings_Item_typeMappings {
             local,
             remote,
@@ -5900,7 +5895,7 @@ pub struct AttributeMappings_Item_typeValueMappings {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeMappings_Item_typeValueMappings {
-    fn new(
+    pub fn new(
         local: AttributeTypeAndValue,
         remote: AttributeTypeAndValue,
         _unrecognized: Vec<X690Element>,
@@ -6060,11 +6055,6 @@ pub fn _encode_AttributeMappings_Item(value_: &AttributeMappings_Item) -> ASN1Re
                     el_1.tag_number = 1;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)

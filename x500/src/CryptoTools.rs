@@ -427,7 +427,7 @@ pub struct MULTY_SIGNED<ToBeSigned> {
     pub _unrecognized: Vec<X690Element>,
 }
 impl<ToBeSigned> MULTY_SIGNED<ToBeSigned> {
-    fn new(
+    pub fn new(
         toBeSigned: ToBeSigned,
         algorithm: OBJECT_IDENTIFIER,
         parmeters: Vec<MULTY_SIGNED_parmeters_sign>,
@@ -566,7 +566,7 @@ pub struct Signed<ToBeSigned> {
     pub _unrecognized: Vec<X690Element>,
 }
 impl<ToBeSigned> Signed<ToBeSigned> {
-    fn new(
+    pub fn new(
         toBeSigned: ToBeSigned,
         signature: BIT_STRING,
         altSignature: OPTIONAL<BIT_STRING>,
@@ -692,7 +692,7 @@ pub struct ICV_Total<ToBeProtected> {
     pub _unrecognized: Vec<X690Element>,
 }
 impl<ToBeProtected> ICV_Total<ToBeProtected> {
-    fn new(
+    pub fn new(
         toBeProtected: ToBeProtected,
         algorithmIdentifier: AlgorithmWithInvoke,
         icv: BIT_STRING,
@@ -853,7 +853,7 @@ pub struct ICV_Invoke<ToBeProtected> {
     pub _unrecognized: Vec<X690Element>,
 }
 impl<ToBeProtected> ICV_Invoke<ToBeProtected> {
-    fn new(
+    pub fn new(
         toBeProtected: ToBeProtected,
         dynParms: OPTIONAL<AlgoInvoke>,
         icv: BIT_STRING,
@@ -993,7 +993,7 @@ pub struct AUTHEN_ENCRYPT<ToBeAuth, ToBeEnciphered> {
     pub _unrecognized: Vec<X690Element>,
 }
 impl<ToBeAuth, ToBeEnciphered> AUTHEN_ENCRYPT<ToBeAuth, ToBeEnciphered> {
-    fn new(aad: OPTIONAL<ToBeAuth>, encr: ToBeEnciphered, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(aad: OPTIONAL<ToBeAuth>, encr: ToBeEnciphered, _unrecognized: Vec<X690Element>) -> Self {
         AUTHEN_ENCRYPT {
             aad,
             encr,
@@ -1176,7 +1176,7 @@ pub struct MULTY_SIGNED_parmeters_sign {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MULTY_SIGNED_parmeters_sign {
-    fn new(
+    pub fn new(
         algo: AlgorithmIdentifier,
         signature: BIT_STRING,
         _unrecognized: Vec<X690Element>,

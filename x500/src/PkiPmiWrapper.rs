@@ -21,10 +21,8 @@
 //!
 use crate::AttributeCertificateDefinitions::*;
 use crate::AuthenticationFramework::*;
-use crate::CertificateExtensions::*;
 use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
-use crate::UsefulDefinitions::*;
 use asn1::*;
 use std::borrow::Borrow;
 use std::sync::Arc;
@@ -73,7 +71,7 @@ pub struct TBSPDU_wrapper {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBSPDU_wrapper {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         signatureAlgorithm: AlgorithmIdentifier,
         certPath: PkiPath,
@@ -287,7 +285,7 @@ pub struct WrappedPDUInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl WrappedPDUInfo {
-    fn new(
+    pub fn new(
         pduType: OBJECT_IDENTIFIER,
         pduInfo: X690Element,
         _unrecognized: Vec<X690Element>,
@@ -393,7 +391,7 @@ pub struct EncryptedInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EncryptedInfo {
-    fn new(
+    pub fn new(
         keyAgreement: KeyAgreement,
         encryptedPduInfo: EncryptedPduInfo,
         _unrecognized: Vec<X690Element>,
@@ -498,7 +496,7 @@ pub struct KeyAgreement {
     pub _unrecognized: Vec<X690Element>,
 }
 impl KeyAgreement {
-    fn new(
+    pub fn new(
         senderDhInfo: SenderDhInfo,
         keyEncryptionAlgorithm: KeyAgreement_keyEncryptionAlgorithm,
         _unrecognized: Vec<X690Element>,
@@ -694,7 +692,7 @@ pub struct SenderStaticInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SenderStaticInfo {
-    fn new(
+    pub fn new(
         issuer: Name,
         serialNumber: CertificateSerialNumber,
         partyAinfo: UserKeyingMaterial,
@@ -802,7 +800,7 @@ pub struct SenderDhPublicKey {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SenderDhPublicKey {
-    fn new(
+    pub fn new(
         algorithm: AlgorithmIdentifier,
         publicKey: BIT_STRING,
         _unrecognized: Vec<X690Element>,
@@ -936,7 +934,7 @@ pub struct EncryptedPduInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EncryptedPduInfo {
-    fn new(
+    pub fn new(
         pduType: OBJECT_IDENTIFIER,
         encryptedKey: OPTIONAL<EncryptedKey>,
         pduEncryptionAlgorithm: OPTIONAL<EncryptedPduInfo_pduEncryptionAlgorithm>,
@@ -1366,7 +1364,7 @@ pub struct KeyAgreement_keyEncryptionAlgorithm {
     pub _unrecognized: Vec<X690Element>,
 }
 impl KeyAgreement_keyEncryptionAlgorithm {
-    fn new(
+    pub fn new(
         algorithm: OBJECT_IDENTIFIER,
         parameters: X690Element,
         _unrecognized: Vec<X690Element>,
@@ -1461,7 +1459,7 @@ pub struct EncryptedPduInfo_pduEncryptionAlgorithm {
     pub parameter: X690Element,
 }
 impl EncryptedPduInfo_pduEncryptionAlgorithm {
-    fn new(algorithm: OBJECT_IDENTIFIER, parameter: X690Element) -> Self {
+    pub fn new(algorithm: OBJECT_IDENTIFIER, parameter: X690Element) -> Self {
         EncryptedPduInfo_pduEncryptionAlgorithm {
             algorithm,
             parameter,

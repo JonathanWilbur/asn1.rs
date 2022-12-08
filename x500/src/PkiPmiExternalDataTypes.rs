@@ -43,7 +43,7 @@ pub struct UserNotice {
     pub explicitText: OPTIONAL<DisplayText>,
 }
 impl UserNotice {
-    fn new(noticeRef: OPTIONAL<NoticeReference>, explicitText: OPTIONAL<DisplayText>) -> Self {
+    pub fn new(noticeRef: OPTIONAL<NoticeReference>, explicitText: OPTIONAL<DisplayText>) -> Self {
         UserNotice {
             noticeRef,
             explicitText,
@@ -156,7 +156,7 @@ pub struct NoticeReference {
     pub noticeNumbers: Vec<INTEGER>,
 }
 impl NoticeReference {
-    fn new(organization: DisplayText, noticeNumbers: Vec<INTEGER>) -> Self {
+    pub fn new(organization: DisplayText, noticeNumbers: Vec<INTEGER>) -> Self {
         NoticeReference {
             organization,
             noticeNumbers,
@@ -299,11 +299,6 @@ pub fn _encode_DisplayText(value_: &DisplayText) -> ASN1Result<X690Element> {
             DisplayText::visibleString(v) => ber_encode_visible_string(&v),
             DisplayText::bmpString(v) => ber_encode_bmp_string(&v),
             DisplayText::utf8String(v) => ber_encode_utf8_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -377,7 +372,7 @@ pub struct AccessDescription {
     pub accessLocation: GeneralName,
 }
 impl AccessDescription {
-    fn new(accessMethod: OBJECT_IDENTIFIER, accessLocation: GeneralName) -> Self {
+    pub fn new(accessMethod: OBJECT_IDENTIFIER, accessLocation: GeneralName) -> Self {
         AccessDescription {
             accessMethod,
             accessLocation,
@@ -680,7 +675,7 @@ pub struct ORAddress {
     pub extension_attributes: OPTIONAL<ExtensionAttributes>,
 }
 impl ORAddress {
-    fn new(
+    pub fn new(
         built_in_standard_attributes: BuiltInStandardAttributes,
         built_in_domain_defined_attributes: OPTIONAL<BuiltInDomainDefinedAttributes>,
         extension_attributes: OPTIONAL<ExtensionAttributes>,
@@ -820,7 +815,7 @@ pub struct BuiltInStandardAttributes {
     pub organizational_unit_names: OPTIONAL<OrganizationalUnitNames>,
 }
 impl BuiltInStandardAttributes {
-    fn new(
+    pub fn new(
         country_name: OPTIONAL<CountryName>,
         administration_domain_name: OPTIONAL<AdministrationDomainName>,
         network_address: OPTIONAL<NetworkAddress>,
@@ -1181,11 +1176,6 @@ pub fn _encode_CountryName(value_: &CountryName) -> ASN1Result<X690Element> {
                     match value {
                         CountryName::x121_dcc_code(v) => ber_encode_numeric_string(&v),
                         CountryName::iso_3166_alpha2_code(v) => ber_encode_printable_string(&v),
-                        _ => {
-                            return Err(ASN1Error::new(
-                                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                            ))
-                        }
                     }
                 }(&v_1)?,
             ))),
@@ -1253,11 +1243,6 @@ pub fn _encode_AdministrationDomainName(
                     match value {
                         AdministrationDomainName::numeric(v) => ber_encode_numeric_string(&v),
                         AdministrationDomainName::printable(v) => ber_encode_printable_string(&v),
-                        _ => {
-                            return Err(ASN1Error::new(
-                                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                            ))
-                        }
                     }
                 }(&v_1)?,
             ))),
@@ -1361,11 +1346,6 @@ pub fn _encode_PrivateDomainName(value_: &PrivateDomainName) -> ASN1Result<X690E
         match value {
             PrivateDomainName::numeric(v) => ber_encode_numeric_string(&v),
             PrivateDomainName::printable(v) => ber_encode_printable_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -1422,7 +1402,7 @@ pub struct PersonalName {
     pub generation_qualifier: OPTIONAL<PrintableString>,
 }
 impl PersonalName {
-    fn new(
+    pub fn new(
         surname: PrintableString,
         given_name: OPTIONAL<PrintableString>,
         initials: OPTIONAL<PrintableString>,
@@ -1693,7 +1673,7 @@ pub struct BuiltInDomainDefinedAttribute {
     pub value: PrintableString,
 }
 impl BuiltInDomainDefinedAttribute {
-    fn new(type_: PrintableString, value: PrintableString) -> Self {
+    pub fn new(type_: PrintableString, value: PrintableString) -> Self {
         BuiltInDomainDefinedAttribute { type_, value }
     }
 }
@@ -1821,7 +1801,7 @@ pub struct ExtensionAttribute {
     pub extension_attribute_value: X690Element,
 }
 impl ExtensionAttribute {
-    fn new(extension_attribute_type: INTEGER, extension_attribute_value: X690Element) -> Self {
+    pub fn new(extension_attribute_type: INTEGER, extension_attribute_value: X690Element) -> Self {
         ExtensionAttribute {
             extension_attribute_type,
             extension_attribute_value,
@@ -2198,7 +2178,7 @@ pub struct TeletexPersonalName {
     pub generation_qualifier: OPTIONAL<TeletexString>,
 }
 impl TeletexPersonalName {
-    fn new(
+    pub fn new(
         surname: TeletexString,
         given_name: OPTIONAL<TeletexString>,
         initials: OPTIONAL<TeletexString>,
@@ -2398,7 +2378,7 @@ pub struct UniversalPersonalName {
     pub generation_qualifier: OPTIONAL<UniversalOrBMPString>,
 }
 impl UniversalPersonalName {
-    fn new(
+    pub fn new(
         surname: UniversalOrBMPString,
         given_name: OPTIONAL<UniversalOrBMPString>,
         initials: OPTIONAL<UniversalOrBMPString>,
@@ -2727,7 +2707,7 @@ pub struct UniversalOrBMPString {
     pub iso_639_language_code: OPTIONAL<PrintableString>,
 }
 impl UniversalOrBMPString {
-    fn new(
+    pub fn new(
         character_encoding: UniversalOrBMPString_character_encoding,
         iso_639_language_code: OPTIONAL<PrintableString>,
     ) -> Self {
@@ -2920,11 +2900,6 @@ pub fn _encode_PhysicalDeliveryCountryName(
         match value {
             PhysicalDeliveryCountryName::x121_dcc_code(v) => ber_encode_numeric_string(&v),
             PhysicalDeliveryCountryName::iso_3166_alpha2_code(v) => ber_encode_printable_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -2996,11 +2971,6 @@ pub fn _encode_PostalCode(value_: &PostalCode) -> ASN1Result<X690Element> {
         match value {
             PostalCode::numeric_code(v) => ber_encode_numeric_string(&v),
             PostalCode::printable_code(v) => ber_encode_printable_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3444,7 +3414,7 @@ pub struct UnformattedPostalAddress {
     pub teletex_string: OPTIONAL<TeletexString>,
 }
 impl UnformattedPostalAddress {
-    fn new(
+    pub fn new(
         printable_address: OPTIONAL<Vec<PrintableString>>,
         teletex_string: OPTIONAL<TeletexString>,
     ) -> Self {
@@ -3936,7 +3906,7 @@ pub struct PDSParameter {
     pub teletex_string: OPTIONAL<TeletexString>,
 }
 impl PDSParameter {
-    fn new(
+    pub fn new(
         printable_string: OPTIONAL<PrintableString>,
         teletex_string: OPTIONAL<TeletexString>,
     ) -> Self {
@@ -4128,11 +4098,6 @@ pub fn _encode_ExtendedNetworkAddress(value_: &ExtendedNetworkAddress) -> ASN1Re
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4253,7 +4218,7 @@ pub struct TeletexDomainDefinedAttribute {
     pub value: TeletexString,
 }
 impl TeletexDomainDefinedAttribute {
-    fn new(type_: TeletexString, value: TeletexString) -> Self {
+    pub fn new(type_: TeletexString, value: TeletexString) -> Self {
         TeletexDomainDefinedAttribute { type_, value }
     }
 }
@@ -4399,7 +4364,7 @@ pub struct UniversalDomainDefinedAttribute {
     pub value: UniversalOrBMPString,
 }
 impl UniversalDomainDefinedAttribute {
-    fn new(type_: UniversalOrBMPString, value: UniversalOrBMPString) -> Self {
+    pub fn new(type_: UniversalOrBMPString, value: UniversalOrBMPString) -> Self {
         UniversalDomainDefinedAttribute { type_, value }
     }
 }
@@ -4798,11 +4763,6 @@ pub fn _encode_UniversalOrBMPString_character_encoding(
             UniversalOrBMPString_character_encoding::four_octets(v) => {
                 ber_encode_universal_string(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4820,7 +4780,7 @@ pub struct ExtendedNetworkAddress_e163_4_address {
     pub sub_address: OPTIONAL<NumericString>,
 }
 impl ExtendedNetworkAddress_e163_4_address {
-    fn new(number: NumericString, sub_address: OPTIONAL<NumericString>) -> Self {
+    pub fn new(number: NumericString, sub_address: OPTIONAL<NumericString>) -> Self {
         ExtendedNetworkAddress_e163_4_address {
             number,
             sub_address,

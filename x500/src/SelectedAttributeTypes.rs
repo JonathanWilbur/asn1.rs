@@ -19,12 +19,8 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::AuthenticationFramework::*;
-use crate::DirectoryAbstractService::*;
 use crate::InformationFramework::*;
-use crate::PasswordPolicy::*;
 use crate::PkiPmiExternalDataTypes::*;
-use crate::SchemaAdministration::*;
 use crate::ServiceAdministration::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
@@ -103,11 +99,6 @@ pub fn _encode_UnboundedDirectoryString(
             UnboundedDirectoryString::bmpString(v) => ber_encode_bmp_string(&v),
             UnboundedDirectoryString::universalString(v) => ber_encode_universal_string(&v),
             UnboundedDirectoryString::uTF8String(v) => ber_encode_utf8_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -181,11 +172,6 @@ pub fn _encode_DirectoryString(value_: &DirectoryString) -> ASN1Result<X690Eleme
             DirectoryString::bmpString(v) => ber_encode_bmp_string(&v),
             DirectoryString::universalString(v) => ber_encode_universal_string(&v),
             DirectoryString::uTF8String(v) => ber_encode_utf8_string(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -593,7 +579,7 @@ pub struct UUIDPair {
     pub _unrecognized: Vec<X690Element>,
 }
 impl UUIDPair {
-    fn new(issuerUUID: UUID, subjectUUID: UUID, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(issuerUUID: UUID, subjectUUID: UUID, _unrecognized: Vec<X690Element>) -> Self {
         UUIDPair {
             issuerUUID,
             subjectUUID,
@@ -1374,7 +1360,7 @@ pub struct UtmCoordinates {
     pub northing: NumericString,
 }
 impl UtmCoordinates {
-    fn new(zone: PrintableString, easting: NumericString, northing: NumericString) -> Self {
+    pub fn new(zone: PrintableString, easting: NumericString, northing: NumericString) -> Self {
         UtmCoordinates {
             zone,
             easting,
@@ -1728,7 +1714,7 @@ pub struct Guide {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Guide {
-    fn new(
+    pub fn new(
         objectClass_: OPTIONAL<OBJECT_IDENTIFIER>,
         criteria: Criteria,
         _unrecognized: Vec<X690Element>,
@@ -2112,7 +2098,7 @@ pub struct EnhancedGuide {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EnhancedGuide {
-    fn new(
+    pub fn new(
         objectClass_: OBJECT_IDENTIFIER,
         criteria: Criteria,
         subset: OPTIONAL<EnhancedGuide_subset>,
@@ -2702,7 +2688,7 @@ pub struct TelexNumber {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TelexNumber {
-    fn new(
+    pub fn new(
         telexNumber: PrintableString,
         countryCode: PrintableString,
         answerback: PrintableString,
@@ -2905,7 +2891,7 @@ pub struct FacsimileTelephoneNumber {
     pub _unrecognized: Vec<X690Element>,
 }
 impl FacsimileTelephoneNumber {
-    fn new(
+    pub fn new(
         telephoneNumber: TelephoneNumber,
         parameters: OPTIONAL<G3FacsimileNonBasicParameters>,
         _unrecognized: Vec<X690Element>,
@@ -3477,7 +3463,7 @@ pub struct PresentationAddress {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PresentationAddress {
-    fn new(
+    pub fn new(
         pSelector: OPTIONAL<OCTET_STRING>,
         sSelector: OPTIONAL<OCTET_STRING>,
         tSelector: OPTIONAL<OCTET_STRING>,
@@ -3738,7 +3724,7 @@ pub struct ProtocolInformation {
     pub profiles: Vec<OBJECT_IDENTIFIER>,
 }
 impl ProtocolInformation {
-    fn new(nAddress: OCTET_STRING, profiles: Vec<OBJECT_IDENTIFIER>) -> Self {
+    pub fn new(nAddress: OCTET_STRING, profiles: Vec<OBJECT_IDENTIFIER>) -> Self {
         ProtocolInformation { nAddress, profiles }
     }
 }
@@ -3939,7 +3925,7 @@ pub struct NameAndOptionalUID {
     pub _unrecognized: Vec<X690Element>,
 }
 impl NameAndOptionalUID {
-    fn new(
+    pub fn new(
         dn: DistinguishedName,
         uid: OPTIONAL<UniqueIdentifier>,
         _unrecognized: Vec<X690Element>,
@@ -4354,7 +4340,7 @@ pub struct UiiFormat {
     pub next: UiiFormat_next,
 }
 impl UiiFormat {
-    fn new(
+    pub fn new(
         baseObject: OPTIONAL<URI>,
         subset: OPTIONAL<UiiFormat_subset>,
         next: UiiFormat_next,
@@ -4579,11 +4565,6 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
                     Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_UiiFilter(&v_1)?))),
                 ))
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4603,7 +4584,7 @@ pub struct UiiItem {
     pub length: OPTIONAL<INTEGER>,
 }
 impl UiiItem {
-    fn new(type_: OBJECT_IDENTIFIER, length: OPTIONAL<INTEGER>) -> Self {
+    pub fn new(type_: OBJECT_IDENTIFIER, length: OPTIONAL<INTEGER>) -> Self {
         UiiItem { type_, length }
     }
 }
@@ -4891,7 +4872,7 @@ pub struct EpcFormat {
     pub urnPrefix: OPTIONAL<UTF8String>,
 }
 impl EpcFormat {
-    fn new(
+    pub fn new(
         fields: Vec<EpcFormat_fields_Item>,
         digitShift: OPTIONAL<INTEGER>,
         checkCalc: OPTIONAL<INTEGER>,
@@ -5559,7 +5540,7 @@ pub struct MultipleMatchingLocalities {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MultipleMatchingLocalities {
-    fn new(
+    pub fn new(
         matchingRuleUsed: OPTIONAL<OBJECT_IDENTIFIER>,
         attributeList: Vec<AttributeValueAssertion>,
         _unrecognized: Vec<X690Element>,
@@ -5818,7 +5799,7 @@ pub struct PwdResponse {
     pub error: OPTIONAL<PwdResponse_error>,
 }
 impl PwdResponse {
-    fn new(warning: OPTIONAL<PwdResponse_warning>, error: OPTIONAL<PwdResponse_error>) -> Self {
+    pub fn new(warning: OPTIONAL<PwdResponse_warning>, error: OPTIONAL<PwdResponse_error>) -> Self {
         PwdResponse { warning, error }
     }
 }
@@ -8245,7 +8226,7 @@ pub struct TimeSpecification {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TimeSpecification {
-    fn new(
+    pub fn new(
         time: TimeSpecification_time,
         notThisTime: OPTIONAL<BOOLEAN>,
         timeZone: OPTIONAL<TimeZone>,
@@ -8409,7 +8390,7 @@ pub struct Period {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Period {
-    fn new(
+    pub fn new(
         timesOfDay: OPTIONAL<Vec<DayTimeBand>>,
         days: OPTIONAL<Period_days>,
         weeks: OPTIONAL<Period_weeks>,
@@ -8773,11 +8754,6 @@ pub fn _encode_XDayOf(value_: &XDayOf) -> ASN1Result<X690Element> {
                     Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_NamedDay(&v_1)?))),
                 ))
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -8847,11 +8823,6 @@ pub fn _encode_NamedDay(value_: &NamedDay) -> ASN1Result<X690Element> {
         match value {
             NamedDay::intNamedDays(v) => _encode_NamedDay_intNamedDays(&v),
             NamedDay::bitNamedDays(v) => _encode_NamedDay_bitNamedDays(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -8873,7 +8844,7 @@ pub struct DayTimeBand {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DayTimeBand {
-    fn new(
+    pub fn new(
         startDayTime: OPTIONAL<DayTime>,
         endDayTime: OPTIONAL<DayTime>,
         _unrecognized: Vec<X690Element>,
@@ -9031,7 +9002,7 @@ pub struct DayTime {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DayTime {
-    fn new(
+    pub fn new(
         hour: INTEGER,
         minute: OPTIONAL<INTEGER>,
         second: OPTIONAL<INTEGER>,
@@ -12185,11 +12156,6 @@ pub fn _encode_UiiFormat_next(value_: &UiiFormat_next) -> ASN1Result<X690Element
         match value {
             UiiFormat_next::length(v) => ber_encode_integer(&v),
             UiiFormat_next::filter(v) => _encode_UiiFilter(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -12261,11 +12227,6 @@ pub fn _encode_EpcFormat_fields_Item_charField(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -12309,7 +12270,7 @@ pub struct EpcFormat_fields_Item {
     pub result: OPTIONAL<EpcFormat_fields_Item_result>,
 }
 impl EpcFormat_fields_Item {
-    fn new(
+    pub fn new(
         bits: INTEGER,
         charField: EpcFormat_fields_Item_charField,
         result: OPTIONAL<EpcFormat_fields_Item_result>,
@@ -12677,7 +12638,7 @@ pub struct TimeSpecification_time_absolute {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TimeSpecification_time_absolute {
-    fn new(
+    pub fn new(
         startTime: OPTIONAL<GeneralizedTime>,
         endTime: OPTIONAL<GeneralizedTime>,
         _unrecognized: Vec<X690Element>,
@@ -12874,11 +12835,6 @@ pub fn _encode_TimeSpecification_time(value_: &TimeSpecification_time) -> ASN1Re
                         Arc::new(X690Encoding::Constructed(children)),
                     ))
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)
@@ -13276,7 +13232,7 @@ pub struct TimeAssertion_between {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TimeAssertion_between {
-    fn new(
+    pub fn new(
         startTime: GeneralizedTime,
         endTime: OPTIONAL<GeneralizedTime>,
         entirely: OPTIONAL<BOOLEAN>,

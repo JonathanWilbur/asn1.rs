@@ -19,7 +19,6 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::DirectoryOSIProtocols::*;
 use crate::DirectoryOperationalBindingTypes::*;
 use crate::DistributedOperations::*;
 use crate::InformationFramework::*;
@@ -46,7 +45,7 @@ pub struct HierarchicalAgreement {
     pub _unrecognized: Vec<X690Element>,
 }
 impl HierarchicalAgreement {
-    fn new(
+    pub fn new(
         rdn: RelativeDistinguishedName,
         immediateSuperior: DistinguishedName,
         _unrecognized: Vec<X690Element>,
@@ -173,7 +172,7 @@ pub struct SuperiorToSubordinate {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SuperiorToSubordinate {
-    fn new(
+    pub fn new(
         contextPrefixInfo: DITcontext,
         entryInfo: OPTIONAL<Vec<Attribute>>,
         immediateSuperiorInfo: OPTIONAL<Vec<Attribute>>,
@@ -415,7 +414,7 @@ pub struct Vertex {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Vertex {
-    fn new(
+    pub fn new(
         rdn: RelativeDistinguishedName,
         admPointInfo: OPTIONAL<Vec<Attribute>>,
         subentries: OPTIONAL<Vec<SubentryInfo>>,
@@ -652,7 +651,7 @@ pub struct SubentryInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SubentryInfo {
-    fn new(
+    pub fn new(
         rdn: RelativeDistinguishedName,
         info: Vec<Attribute>,
         _unrecognized: Vec<X690Element>,
@@ -802,7 +801,7 @@ pub struct SubordinateToSuperior {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SubordinateToSuperior {
-    fn new(
+    pub fn new(
         accessPoints: OPTIONAL<MasterAndShadowAccessPoints>,
         alias: OPTIONAL<BOOLEAN>,
         entryInfo: OPTIONAL<Vec<Attribute>>,
@@ -1074,7 +1073,7 @@ pub struct NonSpecificHierarchicalAgreement {
     pub _unrecognized: Vec<X690Element>,
 }
 impl NonSpecificHierarchicalAgreement {
-    fn new(immediateSuperior: DistinguishedName, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(immediateSuperior: DistinguishedName, _unrecognized: Vec<X690Element>) -> Self {
         NonSpecificHierarchicalAgreement {
             immediateSuperior,
             _unrecognized,
@@ -1193,7 +1192,7 @@ pub struct NHOBSubordinateToSuperior {
     pub _unrecognized: Vec<X690Element>,
 }
 impl NHOBSubordinateToSuperior {
-    fn new(
+    pub fn new(
         accessPoints: OPTIONAL<MasterAndShadowAccessPoints>,
         subentries: OPTIONAL<Vec<SubentryInfo>>,
         _unrecognized: Vec<X690Element>,

@@ -89,7 +89,7 @@ pub struct ACIItem {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ACIItem {
-    fn new(
+    pub fn new(
         identificationTag: UnboundedDirectoryString,
         precedence: Precedence,
         authenticationLevel: AuthenticationLevel,
@@ -245,7 +245,7 @@ pub struct ProtectedItems {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ProtectedItems {
-    fn new(
+    pub fn new(
         entry: OPTIONAL<NULL>,
         allUserAttributeTypes: OPTIONAL<NULL>,
         attributeType: OPTIONAL<Vec<AttributeType>>,
@@ -924,7 +924,7 @@ pub struct MaxValueCount {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MaxValueCount {
-    fn new(type_: AttributeType, maxCount: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(type_: AttributeType, maxCount: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
         MaxValueCount {
             type_,
             maxCount,
@@ -1021,7 +1021,7 @@ pub struct RestrictedValue {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RestrictedValue {
-    fn new(type_: AttributeType, valuesIn: AttributeType, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(type_: AttributeType, valuesIn: AttributeType, _unrecognized: Vec<X690Element>) -> Self {
         RestrictedValue {
             type_,
             valuesIn,
@@ -1126,7 +1126,7 @@ pub struct UserClasses {
     pub _unrecognized: Vec<X690Element>,
 }
 impl UserClasses {
-    fn new(
+    pub fn new(
         allUsers: OPTIONAL<NULL>,
         thisEntry: OPTIONAL<NULL>,
         name: OPTIONAL<Vec<NameAndOptionalUID>>,
@@ -1437,7 +1437,7 @@ pub struct ItemPermission {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ItemPermission {
-    fn new(
+    pub fn new(
         precedence: OPTIONAL<Precedence>,
         userClasses: UserClasses,
         grantsAndDenials: GrantsAndDenials,
@@ -1559,7 +1559,7 @@ pub struct UserPermission {
     pub _unrecognized: Vec<X690Element>,
 }
 impl UserPermission {
-    fn new(
+    pub fn new(
         precedence: OPTIONAL<Precedence>,
         protectedItems: ProtectedItems,
         grantsAndDenials: GrantsAndDenials,
@@ -2019,7 +2019,7 @@ pub struct ACIItem_itemOrUserFirst_itemFirst {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ACIItem_itemOrUserFirst_itemFirst {
-    fn new(
+    pub fn new(
         protectedItems: ProtectedItems,
         itemPermissions: Vec<ItemPermission>,
         _unrecognized: Vec<X690Element>,
@@ -2143,7 +2143,7 @@ pub struct ACIItem_itemOrUserFirst_userFirst {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ACIItem_itemOrUserFirst_userFirst {
-    fn new(
+    pub fn new(
         userClasses: UserClasses,
         userPermissions: Vec<UserPermission>,
         _unrecognized: Vec<X690Element>,
@@ -2360,7 +2360,7 @@ pub struct AuthenticationLevel_basicLevels {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AuthenticationLevel_basicLevels {
-    fn new(
+    pub fn new(
         level: AuthenticationLevel_basicLevels_level,
         localQualifier: OPTIONAL<INTEGER>,
         signed: OPTIONAL<BOOLEAN>,

@@ -72,7 +72,7 @@ pub struct SearchRule {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SearchRule {
-    fn new(
+    pub fn new(
         id: INTEGER,              /* REPLICATED_COMPONENT */
         dmdId: OBJECT_IDENTIFIER, /* REPLICATED_COMPONENT */
         serviceType: OPTIONAL<OBJECT_IDENTIFIER>,
@@ -685,7 +685,7 @@ pub struct SearchRuleId {
     pub dmdId: OBJECT_IDENTIFIER,
 }
 impl SearchRuleId {
-    fn new(id: INTEGER, dmdId: OBJECT_IDENTIFIER) -> Self {
+    pub fn new(id: INTEGER, dmdId: OBJECT_IDENTIFIER) -> Self {
         SearchRuleId { id, dmdId }
     }
 }
@@ -839,7 +839,7 @@ pub struct RequestAttribute {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RequestAttribute {
-    fn new(
+    pub fn new(
         attributeType: OBJECT_IDENTIFIER,
         includeSubtypes: OPTIONAL<BOOLEAN>,
         selectedValues: OPTIONAL<Vec<X690Element>>,
@@ -1211,7 +1211,7 @@ pub struct ContextProfile {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ContextProfile {
-    fn new(
+    pub fn new(
         contextType: OBJECT_IDENTIFIER,
         contextValue: OPTIONAL<Vec<X690Element>>,
         _unrecognized: Vec<X690Element>,
@@ -1485,7 +1485,7 @@ pub struct MatchingUse {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MatchingUse {
-    fn new(
+    pub fn new(
         restrictionType: OBJECT_IDENTIFIER,
         restrictionValue: X690Element,
         _unrecognized: Vec<X690Element>,
@@ -1746,7 +1746,7 @@ pub struct ResultAttribute {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ResultAttribute {
-    fn new(
+    pub fn new(
         attributeType: OBJECT_IDENTIFIER,
         outputValues: OPTIONAL<ResultAttribute_outputValues>,
         contexts: OPTIONAL<Vec<ContextProfile>>,
@@ -1914,7 +1914,7 @@ pub struct ControlOptions {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ControlOptions {
-    fn new(
+    pub fn new(
         serviceControls: OPTIONAL<ServiceControlOptions>,
         searchOptions: OPTIONAL<SearchControlOptions>,
         hierarchyOptions: OPTIONAL<HierarchySelections>,
@@ -2094,7 +2094,7 @@ pub struct EntryLimit {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EntryLimit {
-    fn new(default: INTEGER, max: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(default: INTEGER, max: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
         EntryLimit {
             default,
             max,
@@ -2197,7 +2197,7 @@ pub struct RelaxationPolicy {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RelaxationPolicy {
-    fn new(
+    pub fn new(
         basic: OPTIONAL<MRMapping>,
         tightenings: OPTIONAL<Vec<MRMapping>>,
         relaxations: OPTIONAL<Vec<MRMapping>>,
@@ -2479,7 +2479,7 @@ pub struct MRMapping {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MRMapping {
-    fn new(
+    pub fn new(
         mapping: OPTIONAL<Vec<Mapping>>,
         substitution: OPTIONAL<Vec<MRSubstitution>>,
         _unrecognized: Vec<X690Element>,
@@ -2673,7 +2673,7 @@ pub struct Mapping {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Mapping {
-    fn new(
+    pub fn new(
         mappingFunction: OBJECT_IDENTIFIER,
         level: OPTIONAL<INTEGER>,
         _unrecognized: Vec<X690Element>,
@@ -2787,7 +2787,7 @@ pub struct MRSubstitution {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MRSubstitution {
-    fn new(
+    pub fn new(
         attribute: AttributeType,
         oldMatchingRule: OPTIONAL<OBJECT_IDENTIFIER>,
         newMatchingRule: OPTIONAL<OBJECT_IDENTIFIER>,
@@ -3087,7 +3087,7 @@ pub struct RequestAttribute_defaultValues_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RequestAttribute_defaultValues_Item {
-    fn new(
+    pub fn new(
         entryType: OPTIONAL<OBJECT_IDENTIFIER>,
         values: Vec<X690Element>,
         _unrecognized: Vec<X690Element>,
@@ -3277,11 +3277,6 @@ pub fn _encode_ResultAttribute_outputValues(
                 }(&v)
             }
             ResultAttribute_outputValues::matchedValuesOnly(v) => ber_encode_null(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }

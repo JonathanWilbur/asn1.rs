@@ -41,40 +41,17 @@ pub enum OPTIONALLY_PROTECTED<Type> {
     signed(SIGNED<Type>),
 }
 
-// impl TryFrom<X690Element> for OPTIONALLY_PROTECTED<Type> {
-
-// 	type Error = ASN1Error;
-
-// 	fn try_from (el: X690Element) -> Result<Self, Self::Error> {
-
-// 		_decode_OPTIONALLY_PROTECTED(&el)
-
-// 	}
-
-// }
-// impl<'a> TryFrom<&'a X690Element> for OPTIONALLY_PROTECTED<Type> {
-
-// 	type Error = ASN1Error;
-
-// 	fn try_from (el: &'a X690Element) -> Result<Self, Self::Error> {
-
-// 		_decode_OPTIONALLY_PROTECTED(el)
-
-// 	}
-
-// }
-
 pub fn _decode_OPTIONALLY_PROTECTED<Type: 'static>(
     _decode_Type: fn(&X690Element) -> ASN1Result<Type>,
     e: &X690Element,
 ) -> ASN1Result<OPTIONALLY_PROTECTED<Type>> {
     |el: &X690Element| -> ASN1Result<OPTIONALLY_PROTECTED<Type>> {
         match (el.tag_class, el.tag_number) {
-            _ => Ok(OPTIONALLY_PROTECTED::unsigned(_decode_Type(&el)?)),
             (TagClass::UNIVERSAL, 16) => Ok(OPTIONALLY_PROTECTED::signed(_decode_SIGNED::<Type>(
                 _decode_Type,
                 &el,
             )?)),
+            _ => Ok(OPTIONALLY_PROTECTED::unsigned(_decode_Type(&el)?)),
         }
     }(&e)
 }
@@ -87,11 +64,6 @@ pub fn _encode_OPTIONALLY_PROTECTED<Type>(
         match value {
             OPTIONALLY_PROTECTED::unsigned(v) => _encode_Type(&v),
             OPTIONALLY_PROTECTED::signed(v) => _encode_SIGNED::<Type>(_encode_Type, &v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&v)
 }
@@ -109,40 +81,17 @@ pub enum OPTIONALLY_PROTECTED_SEQ<Type> {
     signed(SIGNED<Type>),
 }
 
-// impl TryFrom<X690Element> for OPTIONALLY_PROTECTED_SEQ<Type> {
-
-// 	type Error = ASN1Error;
-
-// 	fn try_from (el: X690Element) -> Result<Self, Self::Error> {
-
-// 		_decode_OPTIONALLY_PROTECTED_SEQ(&el)
-
-// 	}
-
-// }
-// impl<'a> TryFrom<&'a X690Element> for OPTIONALLY_PROTECTED_SEQ<Type> {
-
-// 	type Error = ASN1Error;
-
-// 	fn try_from (el: &'a X690Element) -> Result<Self, Self::Error> {
-
-// 		_decode_OPTIONALLY_PROTECTED_SEQ(el)
-
-// 	}
-
-// }
-
 pub fn _decode_OPTIONALLY_PROTECTED_SEQ<Type: 'static>(
     _decode_Type: fn(&X690Element) -> ASN1Result<Type>,
     e: &X690Element,
 ) -> ASN1Result<OPTIONALLY_PROTECTED_SEQ<Type>> {
     |el: &X690Element| -> ASN1Result<OPTIONALLY_PROTECTED_SEQ<Type>> {
         match (el.tag_class, el.tag_number) {
-            _ => Ok(OPTIONALLY_PROTECTED_SEQ::unsigned(_decode_Type(&el)?)),
             (TagClass::CONTEXT, 0) => Ok(OPTIONALLY_PROTECTED_SEQ::signed(_decode_SIGNED::<Type>(
                 _decode_Type,
                 &el,
             )?)),
+            _ => Ok(OPTIONALLY_PROTECTED_SEQ::unsigned(_decode_Type(&el)?)),
         }
     }(&e)
 }
@@ -161,11 +110,6 @@ pub fn _encode_OPTIONALLY_PROTECTED_SEQ<Type>(
                     el_1.tag_number = 0;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&v)
@@ -224,7 +168,7 @@ pub struct SignedSecurityLabelContent {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SignedSecurityLabelContent {
-    fn new(
+    pub fn new(
         attHash: HASH,
         issuer: OPTIONAL<Name>,
         keyIdentifier: OPTIONAL<KeyIdentifier>,
@@ -368,7 +312,7 @@ pub struct SecurityLabel {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SecurityLabel {
-    fn new(
+    pub fn new(
         security_policy_identifier: OPTIONAL<SecurityPolicyIdentifier>,
         security_classification: OPTIONAL<SecurityClassification>,
         privacy_mark: OPTIONAL<PrivacyMark>,
@@ -658,7 +602,7 @@ pub struct Clearance {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Clearance {
-    fn new(
+    pub fn new(
         policyId: OBJECT_IDENTIFIER,
         classList: OPTIONAL<ClassList>,
         securityCategories: OPTIONAL<Vec<SecurityCategory>>,
@@ -842,7 +786,7 @@ pub struct SecurityCategory {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SecurityCategory {
-    fn new(type_: OBJECT_IDENTIFIER, value: X690Element, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(type_: OBJECT_IDENTIFIER, value: X690Element, _unrecognized: Vec<X690Element>) -> Self {
         SecurityCategory {
             type_,
             value,
@@ -1012,7 +956,7 @@ pub struct AttributeIntegrityInfoContent {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeIntegrityInfoContent {
-    fn new(
+    pub fn new(
         scope: Scope,
         signer: OPTIONAL<Signer>,
         attribsHash: AttribsHash,
@@ -1248,7 +1192,7 @@ pub struct IssuerAndSerialNumber {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerAndSerialNumber {
-    fn new(issuer: Name, serial: CertificateSerialNumber, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(issuer: Name, serial: CertificateSerialNumber, _unrecognized: Vec<X690Element>) -> Self {
         IssuerAndSerialNumber {
             issuer,
             serial,
@@ -1341,7 +1285,7 @@ pub struct SpecificallyIdentified {
     pub serial: OPTIONAL<CertificateSerialNumber>,
 }
 impl SpecificallyIdentified {
-    fn new(
+    pub fn new(
         name: GeneralName,
         issuer: OPTIONAL<GeneralName>,
         serial: OPTIONAL<CertificateSerialNumber>,
@@ -1673,7 +1617,7 @@ pub struct AttributeValueIntegrityInfoContent {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeValueIntegrityInfoContent {
-    fn new(signer: OPTIONAL<Signer>, aVIHash: AVIHash, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(signer: OPTIONAL<Signer>, aVIHash: AVIHash, _unrecognized: Vec<X690Element>) -> Self {
         AttributeValueIntegrityInfoContent {
             signer,
             aVIHash,
@@ -1799,7 +1743,7 @@ pub struct AttributeTypeValueContexts {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeValueContexts {
-    fn new(
+    pub fn new(
         type_: OBJECT_IDENTIFIER,
         value: X690Element,
         contextList: OPTIONAL<Vec<Context>>,

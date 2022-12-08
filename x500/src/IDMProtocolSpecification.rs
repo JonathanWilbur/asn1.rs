@@ -21,7 +21,6 @@
 //!
 use crate::CertificateExtensions::*;
 use crate::CommonProtocolSpecification::*;
-use crate::DirectoryAbstractService::*;
 use asn1::*;
 use std::borrow::Borrow;
 use std::sync::Arc;
@@ -190,7 +189,7 @@ pub struct IdmBind {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmBind {
-    fn new(
+    pub fn new(
         protocolID: OBJECT_IDENTIFIER,
         callingAETitle: OPTIONAL<GeneralName>,
         calledAETitle: OPTIONAL<GeneralName>,
@@ -353,7 +352,7 @@ pub struct IdmBindResult {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmBindResult {
-    fn new(
+    pub fn new(
         protocolID: OBJECT_IDENTIFIER,
         respondingAETitle: OPTIONAL<GeneralName>,
         result: X690Element,
@@ -497,7 +496,7 @@ pub struct IdmBindError {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmBindError {
-    fn new(
+    pub fn new(
         protocolID: OBJECT_IDENTIFIER,
         respondingAETitle: OPTIONAL<GeneralName>,
         aETitleError: OPTIONAL<IdmBindError_aETitleError>,
@@ -652,7 +651,7 @@ pub struct Request {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Request {
-    fn new(
+    pub fn new(
         invokeID: INTEGER,
         opcode: Code,
         argument: X690Element,
@@ -755,7 +754,7 @@ pub struct IdmResult {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmResult {
-    fn new(
+    pub fn new(
         invokeID: INTEGER,
         opcode: Code,
         result: X690Element,
@@ -858,7 +857,7 @@ pub struct Error {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Error {
-    fn new(
+    pub fn new(
         invokeID: INTEGER,
         errcode: X690Element,
         error: X690Element,
@@ -974,7 +973,7 @@ pub struct IdmReject {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmReject {
-    fn new(invokeID: INTEGER, reason: IdmReject_reason, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: INTEGER, reason: IdmReject_reason, _unrecognized: Vec<X690Element>) -> Self {
         IdmReject {
             invokeID,
             reason,

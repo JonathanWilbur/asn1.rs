@@ -1775,7 +1775,7 @@ pub struct DSS_Parms {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DSS_Parms {
-    fn new(p: INTEGER, q: INTEGER, g: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(p: INTEGER, q: INTEGER, g: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
         DSS_Parms {
             p,
             q,
@@ -1949,7 +1949,7 @@ pub struct DomainParameters {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DomainParameters {
-    fn new(
+    pub fn new(
         p: INTEGER,
         g: INTEGER,
         q: INTEGER,
@@ -2096,7 +2096,7 @@ pub struct ValidationParms {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ValidationParms {
-    fn new(seed: BIT_STRING, pgenCounter: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(seed: BIT_STRING, pgenCounter: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
         ValidationParms {
             seed,
             pgenCounter,
@@ -2428,7 +2428,7 @@ pub struct rSASSA_PSS_Type {
     pub trailerField: OPTIONAL<INTEGER>,
 }
 impl rSASSA_PSS_Type {
-    fn new(
+    pub fn new(
         hashAlgorithm: AlgorithmIdentifier,
         saltLength: OPTIONAL<INTEGER>,
         trailerField: OPTIONAL<INTEGER>,

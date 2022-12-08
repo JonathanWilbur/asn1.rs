@@ -453,7 +453,6 @@ mod tests {
             ber_decode_any, ber_decode_bmp_string, ber_decode_object_identifier,
             ber_decode_utf8_string,
         },
-        x690_write_object_identifier_value,
     };
 
     use super::*;
@@ -487,11 +486,6 @@ mod tests {
     const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
     const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
 
-    fn asdf(el: &mut X690Element) -> ASN1Result<&X690Element> {
-        el.tag_class = TagClass::UNIVERSAL;
-        Ok(el)
-    }
-
     fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
         let elements = match el.value.borrow() {
             X690Encoding::Constructed(children) => children,
@@ -517,34 +511,9 @@ mod tests {
         })
     }
 
-    fn encode_AlgorithmIdentifier(value: AlgorithmIdentifier) -> ASN1Result<X690Element> {
-        let mut algorithm_b_: Vec<u8> = vec![];
-        let mut parameter_b_: Vec<u8> = vec![];
-        x690_write_object_identifier_value(&mut algorithm_b_, &value.algorithm)?;
-        let parameters = value.parameters;
-        let algorithm_e_: X690Element = X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-            Arc::new(X690Encoding::IMPLICIT(algorithm_b_)),
-        );
-        let parameter_e_: Option<X690Element> = None;
-        let mut components_: Vec<X690Element> = Vec::with_capacity(2);
-        components_.push(algorithm_e_);
-        if let Some(parameter_e_some_) = parameter_e_ {
-            components_.push(parameter_e_some_);
-        }
-
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed([components_].concat())),
-        ))
-    }
-
     enum DirectoryString {
         UTF8String(String),
         BMPString(String),
-        Unrecognized(X690Element),
     }
 
     fn decode_DirectoryString(el: &X690Element) -> ASN1Result<DirectoryString> {
@@ -557,22 +526,6 @@ mod tests {
                 let v = ber_decode_bmp_string(&el)?;
                 return Ok(DirectoryString::BMPString(v));
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
-        }
-    }
-
-    fn encode_DirectoryString(value: &DirectoryString) -> ASN1Result<X690Element> {
-        match &value {
-            DirectoryString::UTF8String(v) => Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                0,
-                Arc::new(X690Encoding::IMPLICIT(v.clone().into_bytes())),
-            )),
-            DirectoryString::Unrecognized(el) => Ok(el.clone()),
             _ => {
                 return Err(ASN1Error::new(
                     ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,

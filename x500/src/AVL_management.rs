@@ -200,7 +200,7 @@ pub struct InitializationRec {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationRec {
-    fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
         InitializationRec {
             version,
             _unrecognized,
@@ -282,7 +282,7 @@ pub struct InitializationAcc {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationAcc {
-    fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
         InitializationAcc {
             version,
             _unrecognized,
@@ -366,7 +366,7 @@ pub struct InitializationRej {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationRej {
-    fn new(diag: InitializationRej_diag, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(diag: InitializationRej_diag, _unrecognized: Vec<X690Element>) -> Self {
         InitializationRej {
             diag,
             _unrecognized,
@@ -451,7 +451,7 @@ pub struct InitializationAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationAbort {
-    fn new(diag: InitializationAbort_diag, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(diag: InitializationAbort_diag, _unrecognized: Vec<X690Element>) -> Self {
         InitializationAbort {
             diag,
             _unrecognized,
@@ -533,7 +533,7 @@ pub struct CertReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertReq {
-    fn new(invokeID: InvokeID, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: InvokeID, _unrecognized: Vec<X690Element>) -> Self {
         CertReq {
             invokeID,
             _unrecognized,
@@ -635,7 +635,7 @@ pub struct CertRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertRsp {
-    fn new(invokeID: InvokeID, result: CertRsp_result, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: InvokeID, result: CertRsp_result, _unrecognized: Vec<X690Element>) -> Self {
         CertRsp {
             invokeID,
             result,
@@ -724,7 +724,7 @@ pub struct CertOK {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertOK {
-    fn new(dhCert: Certificate, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(dhCert: Certificate, _unrecognized: Vec<X690Element>) -> Self {
         CertOK {
             dhCert,
             _unrecognized,
@@ -808,7 +808,7 @@ pub struct CertErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertErr {
-    fn new(
+    pub fn new(
         notOK: AVMP_error,
         note: OPTIONAL<Notifications>,
         _unrecognized: Vec<X690Element>,
@@ -949,7 +949,7 @@ pub struct AddAvlReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AddAvlReq {
-    fn new(invokeID: InvokeID, certlist: CertAVL, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: InvokeID, certlist: CertAVL, _unrecognized: Vec<X690Element>) -> Self {
         AddAvlReq {
             invokeID,
             certlist,
@@ -1049,7 +1049,7 @@ pub struct AddAvlRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AddAvlRsp {
-    fn new(invokeID: InvokeID, result: AddAvlRsp_result, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: InvokeID, result: AddAvlRsp_result, _unrecognized: Vec<X690Element>) -> Self {
         AddAvlRsp {
             invokeID,
             result,
@@ -1138,7 +1138,7 @@ pub struct AddAvlOK {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AddAvlOK {
-    fn new(ok: NULL, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(ok: NULL, _unrecognized: Vec<X690Element>) -> Self {
         AddAvlOK { ok, _unrecognized }
     }
 }
@@ -1217,7 +1217,7 @@ pub struct AddAvlErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AddAvlErr {
-    fn new(notOK: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(notOK: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
         AddAvlErr {
             notOK,
             _unrecognized,
@@ -1303,7 +1303,7 @@ pub struct ReplaceAvlReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ReplaceAvlReq {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         old: OPTIONAL<AvlSerialNumber>,
         new: CertAVL,
@@ -1424,7 +1424,7 @@ pub struct ReplaceAvlRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ReplaceAvlRsp {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         result: ReplaceAvlRsp_result,
         _unrecognized: Vec<X690Element>,
@@ -1517,7 +1517,7 @@ pub struct RepAvlOK {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RepAvlOK {
-    fn new(ok: NULL, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(ok: NULL, _unrecognized: Vec<X690Element>) -> Self {
         RepAvlOK { ok, _unrecognized }
     }
 }
@@ -1596,7 +1596,7 @@ pub struct RepAvlErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RepAvlErr {
-    fn new(notOK: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(notOK: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
         RepAvlErr {
             notOK,
             _unrecognized,
@@ -1680,7 +1680,7 @@ pub struct DeleteAvlReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DeleteAvlReq {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         avl_Id: OPTIONAL<AvlSerialNumber>,
         _unrecognized: Vec<X690Element>,
@@ -1789,7 +1789,7 @@ pub struct DeleteAvlRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DeleteAvlRsp {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         result: DeleteAvlRsp_result,
         _unrecognized: Vec<X690Element>,
@@ -1882,7 +1882,7 @@ pub struct DelAvlOK {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DelAvlOK {
-    fn new(ok: NULL, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(ok: NULL, _unrecognized: Vec<X690Element>) -> Self {
         DelAvlOK { ok, _unrecognized }
     }
 }
@@ -1961,7 +1961,7 @@ pub struct DelAvlErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DelAvlErr {
-    fn new(notOK: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(notOK: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
         DelAvlErr {
             notOK,
             _unrecognized,
@@ -2045,7 +2045,7 @@ pub struct AbortAVL {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AbortAVL {
-    fn new(invokeID: InvokeID, reason: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: InvokeID, reason: AVMP_error, _unrecognized: Vec<X690Element>) -> Self {
         AbortAVL {
             invokeID,
             reason,

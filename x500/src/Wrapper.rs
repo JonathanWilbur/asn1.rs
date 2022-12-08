@@ -21,7 +21,6 @@
 //!
 use crate::CryptoTools::*;
 use crate::PKI_Stub::*;
-use crate::ProtProtocols::*;
 use asn1::*;
 use std::borrow::Borrow;
 use std::sync::Arc;
@@ -46,7 +45,7 @@ pub struct WrappedProt {
     pub _unrecognized: Vec<X690Element>,
 }
 impl WrappedProt {
-    fn new(id: OBJECT_IDENTIFIER, prot: X690Element, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(id: OBJECT_IDENTIFIER, prot: X690Element, _unrecognized: Vec<X690Element>) -> Self {
         WrappedProt {
             id,
             prot,
@@ -361,7 +360,7 @@ pub struct TbsHandshakeReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsHandshakeReq {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         prProt: OBJECT_IDENTIFIER,
         sigAlg: AlgorithmIdentifier,
@@ -835,7 +834,7 @@ pub struct TbsHandshakeAcc {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsHandshakeAcc {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         sigSel: TbsHandshakeAcc_sigSel,
         pkiPath: DER_PkiPath,
@@ -1052,7 +1051,7 @@ pub struct TbsHandshakeWrpRej {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsHandshakeWrpRej {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         sigSel: TbsHandshakeWrpRej_sigSel,
         assoID: AssoID,
@@ -1233,7 +1232,7 @@ pub struct TbsHandshakeProRej {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsHandshakeProRej {
-    fn new(
+    pub fn new(
         sigSel: TbsHandshakeProRej_sigSel,
         assoID: AssoID,
         time: TimeStamp,
@@ -1387,7 +1386,7 @@ pub struct TbsHandshakeSecAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsHandshakeSecAbort {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         sigAlg: AlgorithmIdentifier,
         assoID: AssoID,
@@ -1572,7 +1571,7 @@ pub struct TbsHandshakeProAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsHandshakeProAbort {
-    fn new(
+    pub fn new(
         sigAlg: AlgorithmIdentifier,
         assoID: AssoID,
         time: TimeStamp,
@@ -1732,7 +1731,7 @@ pub struct TbsDtSecAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsDtSecAbort {
-    fn new(
+    pub fn new(
         sigAlg: AlgorithmIdentifier,
         assoID: AssoID,
         time: TimeStamp,
@@ -1909,7 +1908,7 @@ pub struct TbsApplAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsApplAbort {
-    fn new(
+    pub fn new(
         sigAlg: AlgorithmIdentifier,
         assoID: AssoID,
         time: TimeStamp,
@@ -2079,7 +2078,7 @@ pub struct TbsReleaseReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsReleaseReq {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         sigAlg: AlgorithmIdentifier,
         assoID: AssoID,
@@ -2247,7 +2246,7 @@ pub struct TbsReleaseRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbsReleaseRsp {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         sigAlg: AlgorithmIdentifier,
         assoID: AssoID,
@@ -2481,7 +2480,7 @@ pub struct AadClientAE {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AadClientAE {
-    fn new(
+    pub fn new(
         invokeID: OPTIONAL<InvokeID>, /* REPLICATED_COMPONENT */
         assoID: AssoID,               /* REPLICATED_COMPONENT */
         time: TimeStamp,              /* REPLICATED_COMPONENT */
@@ -2684,7 +2683,7 @@ pub struct TbpDataTransferClient {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbpDataTransferClient {
-    fn new(
+    pub fn new(
         invokeID: OPTIONAL<InvokeID>, /* REPLICATED_COMPONENT */
         assoID: AssoID,               /* REPLICATED_COMPONENT */
         time: TimeStamp,              /* REPLICATED_COMPONENT */
@@ -2873,7 +2872,7 @@ pub struct AadClient {
     pub keyEst: OPTIONAL<AlgoInvoke>,
 }
 impl AadClient {
-    fn new(
+    pub fn new(
         invokeID: OPTIONAL<InvokeID>,
         assoID: AssoID,
         time: TimeStamp,
@@ -3143,7 +3142,7 @@ pub struct AadServerAE {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AadServerAE {
-    fn new(
+    pub fn new(
         invokeID: OPTIONAL<InvokeID>,  /* REPLICATED_COMPONENT */
         assoID: AssoID,                /* REPLICATED_COMPONENT */
         time: TimeStamp,               /* REPLICATED_COMPONENT */
@@ -3379,7 +3378,7 @@ pub struct TbpDataTransferServer {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TbpDataTransferServer {
-    fn new(
+    pub fn new(
         invokeID: OPTIONAL<InvokeID>,  /* REPLICATED_COMPONENT */
         assoID: AssoID,                /* REPLICATED_COMPONENT */
         time: TimeStamp,               /* REPLICATED_COMPONENT */
@@ -3602,7 +3601,7 @@ pub struct AadServer {
     pub changedKey: OPTIONAL<BOOLEAN>,
 }
 impl AadServer {
-    fn new(
+    pub fn new(
         invokeID: OPTIONAL<InvokeID>,
         assoID: AssoID,
         time: TimeStamp,
@@ -3906,7 +3905,7 @@ pub struct TbsHandshakeReq_encr_mode_non_aead {
     pub icvAlgID: Vec<AlgorithmIdentifier>,
 }
 impl TbsHandshakeReq_encr_mode_non_aead {
-    fn new(encr: OPTIONAL<Vec<AlgorithmIdentifier>>, icvAlgID: Vec<AlgorithmIdentifier>) -> Self {
+    pub fn new(encr: OPTIONAL<Vec<AlgorithmIdentifier>>, icvAlgID: Vec<AlgorithmIdentifier>) -> Self {
         TbsHandshakeReq_encr_mode_non_aead { encr, icvAlgID }
     }
 }
@@ -4191,11 +4190,6 @@ pub fn _encode_TbsHandshakeAcc_sigSel(value_: &TbsHandshakeAcc_sigSel) -> ASN1Re
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4260,11 +4254,6 @@ pub fn _encode_TbsHandshakeAcc_keyEstSel(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4282,7 +4271,7 @@ pub struct TbsHandshakeAcc_encr_mode_non_aead {
     pub icvAlgID: AlgorithmIdentifier,
 }
 impl TbsHandshakeAcc_encr_mode_non_aead {
-    fn new(encr: OPTIONAL<AlgorithmIdentifier>, icvAlgID: AlgorithmIdentifier) -> Self {
+    pub fn new(encr: OPTIONAL<AlgorithmIdentifier>, icvAlgID: AlgorithmIdentifier) -> Self {
         TbsHandshakeAcc_encr_mode_non_aead { encr, icvAlgID }
     }
 }
@@ -4500,11 +4489,6 @@ pub fn _encode_TbsHandshakeWrpRej_sigSel(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4568,11 +4552,6 @@ pub fn _encode_TbsHandshakeProRej_sigSel(
                     el_1.tag_number = 0;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)

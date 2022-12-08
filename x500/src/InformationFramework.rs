@@ -50,7 +50,7 @@ pub struct Attribute {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Attribute {
-    fn new(
+    pub fn new(
         type_: OBJECT_IDENTIFIER,
         values: Vec<X690Element>,
         valuesWithContext: OPTIONAL<Vec<Attribute_valuesWithContext_Item>>,
@@ -247,7 +247,7 @@ pub struct Context {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Context {
-    fn new(
+    pub fn new(
         contextType: OBJECT_IDENTIFIER,
         contextValues: Vec<X690Element>,
         fallback: OPTIONAL<BOOLEAN>,
@@ -395,7 +395,7 @@ pub struct AttributeValueAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeValueAssertion {
-    fn new(
+    pub fn new(
         type_: OBJECT_IDENTIFIER,
         assertion: X690Element,
         assertedContexts: OPTIONAL<AttributeValueAssertion_assertedContexts>,
@@ -514,7 +514,7 @@ pub struct ContextAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ContextAssertion {
-    fn new(
+    pub fn new(
         contextType: OBJECT_IDENTIFIER,
         contextValues: Vec<X690Element>,
         _unrecognized: Vec<X690Element>,
@@ -635,7 +635,7 @@ pub struct AttributeTypeAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeAssertion {
-    fn new(
+    pub fn new(
         type_: OBJECT_IDENTIFIER,
         assertedContexts: OPTIONAL<Vec<ContextAssertion>>,
         _unrecognized: Vec<X690Element>,
@@ -814,11 +814,6 @@ pub fn _encode_Name(value_: &Name) -> ASN1Result<X690Element> {
     |value: &Name| -> ASN1Result<X690Element> {
         match value {
             Name::rdnSequence(v) => _encode_RDNSequence(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -929,7 +924,7 @@ pub struct AttributeTypeAndValue {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeAndValue {
-    fn new(type_: OBJECT_IDENTIFIER, value: X690Element, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(type_: OBJECT_IDENTIFIER, value: X690Element, _unrecognized: Vec<X690Element>) -> Self {
         AttributeTypeAndValue {
             type_,
             value,
@@ -1024,7 +1019,7 @@ pub struct SubtreeSpecification {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SubtreeSpecification {
-    fn new(
+    pub fn new(
         base: OPTIONAL<LocalName>,
         specificExclusions: OPTIONAL<Vec<ChopSpecification_specificExclusions_Item>>, /* REPLICATED_COMPONENT */
         minimum: OPTIONAL<BaseDistance>, /* REPLICATED_COMPONENT */
@@ -1378,7 +1373,7 @@ pub struct ChopSpecification {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ChopSpecification {
-    fn new(
+    pub fn new(
         specificExclusions: OPTIONAL<Vec<ChopSpecification_specificExclusions_Item>>,
         minimum: OPTIONAL<BaseDistance>,
         maximum: OPTIONAL<BaseDistance>,
@@ -2178,7 +2173,7 @@ pub struct DITStructureRule {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DITStructureRule {
-    fn new(
+    pub fn new(
         ruleIdentifier: RuleIdentifier,
         nameForm: OBJECT_IDENTIFIER,
         superiorStructureRules: OPTIONAL<Vec<RuleIdentifier>>,
@@ -2361,7 +2356,7 @@ pub struct DITContentRule {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DITContentRule {
-    fn new(
+    pub fn new(
         structuralObjectClass: OBJECT_IDENTIFIER,
         auxiliaries: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
         mandatory: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
@@ -2710,7 +2705,7 @@ pub struct DITContextUse {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DITContextUse {
-    fn new(
+    pub fn new(
         attributeType: OBJECT_IDENTIFIER,
         mandatoryContexts: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
         optionalContexts: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
@@ -3674,7 +3669,7 @@ pub struct SearchRuleDescription {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SearchRuleDescription {
-    fn new(
+    pub fn new(
         id: INTEGER,                                          /* REPLICATED_COMPONENT */
         dmdId: OBJECT_IDENTIFIER,                             /* REPLICATED_COMPONENT */
         serviceType: OPTIONAL<OBJECT_IDENTIFIER>,             /* REPLICATED_COMPONENT */
@@ -4446,7 +4441,7 @@ pub struct PwdHistory {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PwdHistory {
-    fn new(time: GeneralizedTime, password: X690Element, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(time: GeneralizedTime, password: X690Element, _unrecognized: Vec<X690Element>) -> Self {
         PwdHistory {
             time,
             password,
@@ -5269,7 +5264,7 @@ pub struct Attribute_valuesWithContext_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Attribute_valuesWithContext_Item {
-    fn new(value: X690Element, contextList: Vec<Context>, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(value: X690Element, contextList: Vec<Context>, _unrecognized: Vec<X690Element>) -> Self {
         Attribute_valuesWithContext_Item {
             value,
             contextList,
@@ -5456,11 +5451,6 @@ pub fn _encode_AttributeValueAssertion_assertedContexts(
                     el_1.tag_number = 1;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)

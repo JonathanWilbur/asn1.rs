@@ -214,7 +214,7 @@ pub struct InitializationRec {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationRec {
-    fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
         InitializationRec {
             version,
             _unrecognized,
@@ -296,7 +296,7 @@ pub struct InitializationAcc {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationAcc {
-    fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(version: Version, _unrecognized: Vec<X690Element>) -> Self {
         InitializationAcc {
             version,
             _unrecognized,
@@ -380,7 +380,7 @@ pub struct InitializationRej {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationRej {
-    fn new(diag: InitializationRej_diag, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(diag: InitializationRej_diag, _unrecognized: Vec<X690Element>) -> Self {
         InitializationRej {
             diag,
             _unrecognized,
@@ -465,7 +465,7 @@ pub struct InitializationAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InitializationAbort {
-    fn new(diag: InitializationAbort_diag, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(diag: InitializationAbort_diag, _unrecognized: Vec<X690Element>) -> Self {
         InitializationAbort {
             diag,
             _unrecognized,
@@ -552,7 +552,7 @@ pub struct CertSubscribeReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertSubscribeReq {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         certs: Vec<CertSubscribeReq_certs_Item>,
         _unrecognized: Vec<X690Element>,
@@ -694,7 +694,7 @@ pub struct CertSubscribeRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertSubscribeRsp {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         result: CertSubscribeRsp_result,
         _unrecognized: Vec<X690Element>,
@@ -881,7 +881,7 @@ pub struct CertSubscribeErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertSubscribeErr {
-    fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
         CertSubscribeErr {
             code,
             _unrecognized,
@@ -968,7 +968,7 @@ pub struct CertUnsubscribeReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUnsubscribeReq {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         certs: Vec<CertUnsubscribeReq_certs_Item>,
         _unrecognized: Vec<X690Element>,
@@ -1095,7 +1095,7 @@ pub struct CertUnsubscribeRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUnsubscribeRsp {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         result: CertUnsubscribeRsp_result,
         _unrecognized: Vec<X690Element>,
@@ -1231,7 +1231,7 @@ pub struct CertUnsubscribeErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUnsubscribeErr {
-    fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
         CertUnsubscribeErr {
             code,
             _unrecognized,
@@ -1318,7 +1318,7 @@ pub struct CertReplaceReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertReplaceReq {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         certs: Vec<CertReplaceReq_certs_Item>,
         _unrecognized: Vec<X690Element>,
@@ -1445,7 +1445,7 @@ pub struct CertReplaceRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertReplaceRsp {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         result: CertReplaceRsp_result,
         _unrecognized: Vec<X690Element>,
@@ -1581,7 +1581,7 @@ pub struct CertReplaceErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertReplaceErr {
-    fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
         CertReplaceErr {
             code,
             _unrecognized,
@@ -1669,7 +1669,7 @@ pub struct CertUpdateReq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUpdateReq {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         certs: Vec<CertUpdateReq_certs_Item>,
         _unrecognized: Vec<X690Element>,
@@ -1796,7 +1796,7 @@ pub struct CertUpdateRsp {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUpdateRsp {
-    fn new(
+    pub fn new(
         invokeID: InvokeID,
         result: CertUpdateRsp_result,
         _unrecognized: Vec<X690Element>,
@@ -1932,7 +1932,7 @@ pub struct CertUpdateErr {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUpdateErr {
-    fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(code: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
         CertUpdateErr {
             code,
             _unrecognized,
@@ -2016,7 +2016,7 @@ pub struct CAsubscribeAbort {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CAsubscribeAbort {
-    fn new(invokeID: InvokeID, reason: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: InvokeID, reason: CASP_error, _unrecognized: Vec<X690Element>) -> Self {
         CAsubscribeAbort {
             invokeID,
             reason,
@@ -2191,7 +2191,7 @@ pub struct CertSubscribeReq_certs_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertSubscribeReq_certs_Item {
-    fn new(
+    pub fn new(
         subject: Name,
         serialNumber: CertificateSerialNumber,
         _unrecognized: Vec<X690Element>,
@@ -2356,7 +2356,7 @@ pub struct CertSubscribeOK_Item_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertSubscribeOK_Item_ok {
-    fn new(
+    pub fn new(
         cert: Certificate,
         status: CertStatus,
         revokeReason: OPTIONAL<CRLReason>,
@@ -2472,7 +2472,7 @@ pub struct CertSubscribeOK_Item_not_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertSubscribeOK_Item_not_ok {
-    fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
         CertSubscribeOK_Item_not_ok {
             status,
             _unrecognized,
@@ -2623,7 +2623,7 @@ pub struct CertUnsubscribeReq_certs_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUnsubscribeReq_certs_Item {
-    fn new(
+    pub fn new(
         subject: Name,
         serialNumber: CertificateSerialNumber,
         _unrecognized: Vec<X690Element>,
@@ -2789,7 +2789,7 @@ pub struct CertUnsubscribeOK_Item_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUnsubscribeOK_Item_ok {
-    fn new(
+    pub fn new(
         subject: Name,
         serialNumber: CertificateSerialNumber,
         _unrecognized: Vec<X690Element>,
@@ -2885,7 +2885,7 @@ pub struct CertUnsubscribeOK_Item_not_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUnsubscribeOK_Item_not_ok {
-    fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
         CertUnsubscribeOK_Item_not_ok {
             status,
             _unrecognized,
@@ -3036,7 +3036,7 @@ pub struct CertReplaceReq_certs_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertReplaceReq_certs_Item {
-    fn new(
+    pub fn new(
         old: CertificateSerialNumber,
         new: Certificate,
         _unrecognized: Vec<X690Element>,
@@ -3201,7 +3201,7 @@ pub struct CertReplaceOK_Item_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertReplaceOK_Item_ok {
-    fn new(
+    pub fn new(
         issuer: Name,
         serialNumber: CertificateSerialNumber,
         _unrecognized: Vec<X690Element>,
@@ -3293,7 +3293,7 @@ pub struct CertReplaceOK_Item_not_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertReplaceOK_Item_not_ok {
-    fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
         CertReplaceOK_Item_not_ok {
             status,
             _unrecognized,
@@ -3443,7 +3443,7 @@ pub struct CertUpdateReq_certs_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUpdateReq_certs_Item {
-    fn new(
+    pub fn new(
         subject: Name,
         serialNumber: CertificateSerialNumber,
         certStatus: CertStatus,
@@ -3609,7 +3609,7 @@ pub struct CertUpdateOK_Item_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUpdateOK_Item_ok {
-    fn new(
+    pub fn new(
         subject: Name,
         serialNumber: CertificateSerialNumber,
         _unrecognized: Vec<X690Element>,
@@ -3701,7 +3701,7 @@ pub struct CertUpdateOK_Item_not_ok {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertUpdateOK_Item_not_ok {
-    fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(status: CASP_CertStatusCode, _unrecognized: Vec<X690Element>) -> Self {
         CertUpdateOK_Item_not_ok {
             status,
             _unrecognized,

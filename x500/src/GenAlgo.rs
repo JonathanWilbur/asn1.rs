@@ -150,7 +150,7 @@ pub struct Payload14 {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Payload14 {
-    fn new(
+    pub fn new(
         dhPublicKey: OCTET_STRING,
         nonce: OCTET_STRING,
         _unrecognized: Vec<X690Element>,
@@ -282,7 +282,7 @@ pub struct Payload23 {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Payload23 {
-    fn new(
+    pub fn new(
         dhPublicKey: OCTET_STRING,
         nonce: OCTET_STRING,
         _unrecognized: Vec<X690Element>,
@@ -414,7 +414,7 @@ pub struct Payload28 {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Payload28 {
-    fn new(
+    pub fn new(
         dhPublicKey: OCTET_STRING,
         nonce: OCTET_STRING,
         _unrecognized: Vec<X690Element>,

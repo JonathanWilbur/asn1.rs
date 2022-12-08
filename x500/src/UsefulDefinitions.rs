@@ -20,8 +20,6 @@
 //! types.
 //!
 use asn1::*;
-use std::borrow::Borrow;
-use std::sync::Arc;
 use x690::*;
 
 /// ### ASN.1 Definition:

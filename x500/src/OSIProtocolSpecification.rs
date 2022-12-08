@@ -20,8 +20,6 @@
 //! types.
 //!
 use crate::CommonProtocolSpecification::*;
-use crate::DirectoryAbstractService::*;
-use crate::DirectoryOSIProtocols::*;
 use crate::InformationFramework::*;
 use asn1::*;
 use std::borrow::Borrow;
@@ -78,7 +76,7 @@ pub struct OsiBind {
     pub normal_mode_parameters: OsiBind_normal_mode_parameters,
 }
 impl OsiBind {
-    fn new(
+    pub fn new(
         mode_selector: OsiBind_mode_selector,
         normal_mode_parameters: OsiBind_normal_mode_parameters,
     ) -> Self {
@@ -312,7 +310,7 @@ pub struct AARQ_apdu {
     pub user_information: Association_informationBind,
 }
 impl AARQ_apdu {
-    fn new(
+    pub fn new(
         protocol_version: OPTIONAL<AARQ_apdu_protocol_version>,
         application_context_name: Application_context_name,
         called_AP_title: OPTIONAL<Name>,
@@ -865,7 +863,7 @@ pub struct OsiBindResult {
     pub normal_mode_parameters: OsiBindResult_normal_mode_parameters,
 }
 impl OsiBindResult {
-    fn new(
+    pub fn new(
         mode_selector: OsiBindResult_mode_selector,
         normal_mode_parameters: OsiBindResult_normal_mode_parameters,
     ) -> Self {
@@ -1019,7 +1017,7 @@ pub struct AARE_apdu {
     pub user_information: Association_informationBindRes,
 }
 impl AARE_apdu {
-    fn new(
+    pub fn new(
         protocol_version: OPTIONAL<AARE_apdu_protocol_version>,
         application_context_name: Application_context_name,
         result: Associate_result,
@@ -1479,7 +1477,6 @@ pub fn _encode_Associate_source_diagnostic(
         match value {
 		Associate_source_diagnostic::acse_service_user(v) => |v_1: &Associate_source_diagnostic_acse_service_user| -> ASN1Result<X690Element> { let mut el_1 = _encode_Associate_source_diagnostic_acse_service_user(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 1; Ok(el_1) }(&v),
 		Associate_source_diagnostic::acse_service_provider(v) => |v_1: &Associate_source_diagnostic_acse_service_provider| -> ASN1Result<X690Element> { let mut el_1 = _encode_Associate_source_diagnostic_acse_service_provider(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 2; Ok(el_1) }(&v),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
     }(&value_)
 }
@@ -1565,11 +1562,6 @@ pub fn _encode_OsiBindError(value_: &OsiBindError) -> ASN1Result<X690Element> {
         match value {
             OsiBindError::normal_mode_parameters(v) => {
                 _encode_OsiBindError_normal_mode_parameters(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)
@@ -1690,7 +1682,7 @@ pub struct AAREerr_apdu {
     pub user_information: OPTIONAL<Association_informationBindErr>,
 }
 impl AAREerr_apdu {
-    fn new(
+    pub fn new(
         protocol_version: OPTIONAL<AAREerr_apdu_protocol_version>,
         application_context_name: Application_context_name,
         result: Associate_result,
@@ -2156,11 +2148,6 @@ pub fn _encode_OsiUnbind(value_: &OsiUnbind) -> ASN1Result<X690Element> {
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -2178,7 +2165,7 @@ pub struct TheOsiUnbind {
     pub reason: OPTIONAL<Release_request_reason>,
 }
 impl TheOsiUnbind {
-    fn new(reason: OPTIONAL<Release_request_reason>) -> Self {
+    pub fn new(reason: OPTIONAL<Release_request_reason>) -> Self {
         TheOsiUnbind { reason }
     }
 }
@@ -2349,11 +2336,6 @@ pub fn _encode_OsiUnbindResult(value_: &OsiUnbindResult) -> ASN1Result<X690Eleme
                 el_1.tag_number = 1;
                 Ok(el_1)
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -2371,7 +2353,7 @@ pub struct TheOsiUnbindRes {
     pub reason: OPTIONAL<Release_response_reason>,
 }
 impl TheOsiUnbindRes {
-    fn new(reason: OPTIONAL<Release_response_reason>) -> Self {
+    pub fn new(reason: OPTIONAL<Release_response_reason>) -> Self {
         TheOsiUnbindRes { reason }
     }
 }
@@ -2544,11 +2526,6 @@ pub fn _encode_OsiOperation(value_: &OsiOperation) -> ASN1Result<X690Element> {
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -2608,11 +2585,6 @@ pub fn _encode_OsiDirectoryOperation(value_: &OsiDirectoryOperation) -> ASN1Resu
             OsiDirectoryOperation::result(v) => _encode_OsiRes(&v),
             OsiDirectoryOperation::error(v) => _encode_OsiErr(&v),
             OsiDirectoryOperation::reject(v) => _encode_OsiRej(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -2634,7 +2606,7 @@ pub struct OsiReq {
     pub argument: X690Element,
 }
 impl OsiReq {
-    fn new(invokeId: InvokeId, opcode: Code, argument: X690Element) -> Self {
+    pub fn new(invokeId: InvokeId, opcode: Code, argument: X690Element) -> Self {
         OsiReq {
             invokeId,
             opcode,
@@ -2725,7 +2697,7 @@ pub struct OsiRes {
     pub result: OsiRes_result,
 }
 impl OsiRes {
-    fn new(invokeId: InvokeId, result: OsiRes_result) -> Self {
+    pub fn new(invokeId: InvokeId, result: OsiRes_result) -> Self {
         OsiRes { invokeId, result }
     }
 }
@@ -2811,7 +2783,7 @@ pub struct OsiErr {
     pub error: X690Element,
 }
 impl OsiErr {
-    fn new(invokeID: InvokeId, errcode: X690Element, error: X690Element) -> Self {
+    pub fn new(invokeID: InvokeId, errcode: X690Element, error: X690Element) -> Self {
         OsiErr {
             invokeID,
             errcode,
@@ -2907,7 +2879,7 @@ pub struct OsiRej {
     pub _unrecognized: Vec<X690Element>,
 }
 impl OsiRej {
-    fn new(invokeId: InvokeId, problem: OsiRej_problem, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeId: InvokeId, problem: OsiRej_problem, _unrecognized: Vec<X690Element>) -> Self {
         OsiRej {
             invokeId,
             problem,
@@ -3135,11 +3107,6 @@ pub fn _encode_PresentationAbort(value_: &PresentationAbort) -> ASN1Result<X690E
         match value {
             PresentationAbort::aru_ppdu(v) => _encode_ARU_PPDU(&v),
             PresentationAbort::arp_ppdu(v) => _encode_ARP_PPDU(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3203,11 +3170,6 @@ pub fn _encode_ARU_PPDU(value_: &ARU_PPDU) -> ASN1Result<X690Element> {
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3267,7 +3229,7 @@ pub struct ABRT_apdu {
     pub abort_source: ABRT_source,
 }
 impl ABRT_apdu {
-    fn new(abort_source: ABRT_source) -> Self {
+    pub fn new(abort_source: ABRT_source) -> Self {
         ABRT_apdu { abort_source }
     }
 }
@@ -3372,7 +3334,7 @@ pub struct ARP_PPDU {
     pub event_identifier: OPTIONAL<Event_identifier>,
 }
 impl ARP_PPDU {
-    fn new(
+    pub fn new(
         provider_reason: OPTIONAL<Abort_reason>,
         event_identifier: OPTIONAL<Event_identifier>,
     ) -> Self {
@@ -3567,7 +3529,7 @@ pub struct OsiBind_mode_selector {
     pub mode_value: INTEGER,
 }
 impl OsiBind_mode_selector {
-    fn new(mode_value: INTEGER) -> Self {
+    pub fn new(mode_value: INTEGER) -> Self {
         OsiBind_mode_selector { mode_value }
     }
 }
@@ -3703,7 +3665,6 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_
     |value: &OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
 		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&value_)
 }
@@ -3723,7 +3684,7 @@ pub struct OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item {
         OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 }
 impl OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item {
-    fn new(
+    pub fn new(
         transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
         presentation_context_identifier: Presentation_context_identifier,
         presentation_data_values: OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
@@ -3910,11 +3871,6 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data(
                 el_1.tag_number = 1;
                 Ok(el_1)
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3935,7 +3891,7 @@ pub struct OsiBind_normal_mode_parameters {
     pub user_data: OsiBind_normal_mode_parameters_user_data,
 }
 impl OsiBind_normal_mode_parameters {
-    fn new(
+    pub fn new(
         protocol_version: OPTIONAL<OsiBind_normal_mode_parameters_protocol_version>,
         calling_presentation_selector: OPTIONAL<Presentation_selector>,
         called_presentation_selector: OPTIONAL<Presentation_selector>,
@@ -4109,7 +4065,7 @@ pub struct Context_list_Item {
     pub transfer_syntax_name_list: Vec<Transfer_syntax_name>,
 }
 impl Context_list_Item {
-    fn new(
+    pub fn new(
         presentation_context_identifier: Presentation_context_identifier,
         abstract_syntax_name: Abstract_syntax_name,
         transfer_syntax_name_list: Vec<Transfer_syntax_name>,
@@ -4262,7 +4218,7 @@ pub struct OsiBindResult_mode_selector {
     pub mode_value: INTEGER,
 }
 impl OsiBindResult_mode_selector {
-    fn new(mode_value: INTEGER) -> Self {
+    pub fn new(mode_value: INTEGER) -> Self {
         OsiBindResult_mode_selector { mode_value }
     }
 }
@@ -4366,7 +4322,7 @@ pub struct OsiBindResult_normal_mode_parameters_presentation_context_definition_
     pub transfer_syntax_name: Transfer_syntax_name,
 }
 impl OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item {
-    fn new(result: Result_, transfer_syntax_name: Transfer_syntax_name) -> Self {
+    pub fn new(result: Result_, transfer_syntax_name: Transfer_syntax_name) -> Self {
         OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item {
             result,
             transfer_syntax_name,
@@ -4501,7 +4457,6 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
     |value: &OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
 		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&value_)
 }
@@ -4520,7 +4475,7 @@ pub struct OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Ite
 		pub presentation_data_values: OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
 }
 impl OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item {
-    fn new(
+    pub fn new(
         transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
         presentation_context_identifier: Presentation_context_identifier,
         presentation_data_values: OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
@@ -4692,11 +4647,6 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -4717,7 +4667,7 @@ pub struct OsiBindResult_normal_mode_parameters {
     pub user_data: OsiBindResult_normal_mode_parameters_user_data,
 }
 impl OsiBindResult_normal_mode_parameters {
-    fn new(
+    pub fn new(
         protocol_version: OPTIONAL<OsiBindResult_normal_mode_parameters_protocol_version>,
         responding_presentation_selector: OPTIONAL<Presentation_selector>,
         presentation_context_definition_result_list: Vec<
@@ -5038,7 +4988,6 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
     |value: &OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
 		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&value_)
 }
@@ -5057,7 +5006,7 @@ pub struct OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item
 		pub presentation_data_values: OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
 }
 impl OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item {
-    fn new(
+    pub fn new(
         transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
         presentation_context_identifier: Presentation_context_identifier,
         presentation_data_values: OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
@@ -5229,11 +5178,6 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -5254,7 +5198,7 @@ pub struct OsiBindError_normal_mode_parameters {
     pub user_data: OPTIONAL<OsiBindError_normal_mode_parameters_user_data>,
 }
 impl OsiBindError_normal_mode_parameters {
-    fn new(
+    pub fn new(
         protocol_version: OPTIONAL<OsiBindError_normal_mode_parameters_protocol_version>,
         responding_presentation_selector: OPTIONAL<Presentation_selector>,
         presentation_context_definition_result_list: OPTIONAL<Result_list>,
@@ -5476,7 +5420,7 @@ pub struct Result_list_Item {
     pub provider_reason: OPTIONAL<Result_list_Item_provider_reason>,
 }
 impl Result_list_Item {
-    fn new(
+    pub fn new(
         result: Result_,
         transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
         provider_reason: OPTIONAL<Result_list_Item_provider_reason>,
@@ -5674,11 +5618,6 @@ pub fn _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -5696,7 +5635,7 @@ pub struct OsiUnbind_fully_encoded_data_Item {
     pub presentation_data_values: OsiUnbind_fully_encoded_data_Item_presentation_data_values,
 }
 impl OsiUnbind_fully_encoded_data_Item {
-    fn new(
+    pub fn new(
         presentation_context_identifier: Presentation_context_identifier,
         presentation_data_values: OsiUnbind_fully_encoded_data_Item_presentation_data_values,
     ) -> Self {
@@ -5834,7 +5773,6 @@ pub fn _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
     |value: &OsiUnbindResult_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
 		OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&value_)
 }
@@ -5852,7 +5790,7 @@ pub struct OsiUnbindResult_fully_encoded_data_Item {
     pub presentation_data_values: OsiUnbindResult_fully_encoded_data_Item_presentation_data_values,
 }
 impl OsiUnbindResult_fully_encoded_data_Item {
-    fn new(
+    pub fn new(
         presentation_context_identifier: Presentation_context_identifier,
         presentation_data_values: OsiUnbindResult_fully_encoded_data_Item_presentation_data_values,
     ) -> Self {
@@ -5998,7 +5936,6 @@ pub fn _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
     |value: &OsiOperation_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
 		OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&value_)
 }
@@ -6016,7 +5953,7 @@ pub struct OsiOperation_fully_encoded_data_Item {
     pub presentation_data_values: OsiOperation_fully_encoded_data_Item_presentation_data_values,
 }
 impl OsiOperation_fully_encoded_data_Item {
-    fn new(
+    pub fn new(
         presentation_context_identifier: Presentation_context_identifier,
         presentation_data_values: OsiOperation_fully_encoded_data_Item_presentation_data_values,
     ) -> Self {
@@ -6123,7 +6060,7 @@ pub struct OsiRes_result {
     pub result: X690Element,
 }
 impl OsiRes_result {
-    fn new(opcode: Code, result: X690Element) -> Self {
+    pub fn new(opcode: Code, result: X690Element) -> Self {
         OsiRes_result { opcode, result }
     }
 }
@@ -6313,7 +6250,6 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
     |value: &ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
 	match value {
 		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { let mut el_1 = x690_identity(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
 	}
 }(&value_)
 }
@@ -6332,7 +6268,7 @@ pub struct ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item {
         ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 }
 impl ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item {
-    fn new(
+    pub fn new(
         presentation_context_identifier: Presentation_context_identifier,
         presentation_data_values: ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
     ) -> Self {
@@ -6494,11 +6430,6 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data(
                 el_1.tag_number = 1;
                 Ok(el_1)
             }(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -6516,7 +6447,7 @@ pub struct ARU_PPDU_normal_mode_parameters {
     pub user_data: ARU_PPDU_normal_mode_parameters_user_data,
 }
 impl ARU_PPDU_normal_mode_parameters {
-    fn new(
+    pub fn new(
         presentation_context_identifier_list: Presentation_context_identifier_list,
         user_data: ARU_PPDU_normal_mode_parameters_user_data,
     ) -> Self {
@@ -6621,7 +6552,7 @@ pub struct Presentation_context_identifier_list_Item {
     pub transfer_syntax_name: Transfer_syntax_name,
 }
 impl Presentation_context_identifier_list_Item {
-    fn new(
+    pub fn new(
         presentation_context_identifier: Presentation_context_identifier,
         transfer_syntax_name: Transfer_syntax_name,
     ) -> Self {

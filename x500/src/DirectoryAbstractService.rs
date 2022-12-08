@@ -86,7 +86,7 @@ pub struct CommonArguments {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CommonArguments {
-    fn new(
+    pub fn new(
         serviceControls: OPTIONAL<ServiceControls>,
         securityParameters: OPTIONAL<SecurityParameters>,
         requestor: OPTIONAL<DistinguishedName>,
@@ -561,7 +561,7 @@ pub struct CommonArgumentsSeq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CommonArgumentsSeq {
-    fn new(
+    pub fn new(
         serviceControls: OPTIONAL<ServiceControls>,
         securityParameters: OPTIONAL<SecurityParameters>,
         requestor: OPTIONAL<DistinguishedName>,
@@ -1047,7 +1047,7 @@ pub struct CommonResults {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CommonResults {
-    fn new(
+    pub fn new(
         securityParameters: OPTIONAL<SecurityParameters>,
         performer: OPTIONAL<DistinguishedName>,
         aliasDereferenced: OPTIONAL<BOOLEAN>,
@@ -1278,7 +1278,7 @@ pub struct CommonResultsSeq {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CommonResultsSeq {
-    fn new(
+    pub fn new(
         securityParameters: OPTIONAL<SecurityParameters>,
         performer: OPTIONAL<DistinguishedName>,
         aliasDereferenced: OPTIONAL<BOOLEAN>,
@@ -1520,7 +1520,7 @@ pub struct ServiceControls {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ServiceControls {
-    fn new(
+    pub fn new(
         options: OPTIONAL<ServiceControlOptions>,
         priority: OPTIONAL<ServiceControls_priority>,
         timeLimit: OPTIONAL<INTEGER>,
@@ -1945,7 +1945,7 @@ pub struct EntryInformationSelection {
     pub familyReturn: OPTIONAL<FamilyReturn>,
 }
 impl EntryInformationSelection {
-    fn new(
+    pub fn new(
         attributes: OPTIONAL<EntryInformationSelection_attributes>,
         infoTypes: OPTIONAL<EntryInformationSelection_infoTypes>,
         extraAttributes: OPTIONAL<EntryInformationSelection_extraAttributes>,
@@ -2265,7 +2265,7 @@ pub struct TypeAndContextAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TypeAndContextAssertion {
-    fn new(
+    pub fn new(
         type_: AttributeType,
         contextAssertions: TypeAndContextAssertion_contextAssertions,
         _unrecognized: Vec<X690Element>,
@@ -2370,7 +2370,7 @@ pub struct FamilyReturn {
     pub _unrecognized: Vec<X690Element>,
 }
 impl FamilyReturn {
-    fn new(
+    pub fn new(
         memberSelect: FamilyReturn_memberSelect,
         familySelect: OPTIONAL<Vec<OBJECT_IDENTIFIER>>,
         _unrecognized: Vec<X690Element>,
@@ -2513,7 +2513,7 @@ pub struct EntryInformation {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EntryInformation {
-    fn new(
+    pub fn new(
         name: Name,
         fromEntry: OPTIONAL<BOOLEAN>,
         information: OPTIONAL<Vec<EntryInformation_information_Item>>,
@@ -2780,7 +2780,7 @@ pub struct FamilyEntries {
     pub _unrecognized: Vec<X690Element>,
 }
 impl FamilyEntries {
-    fn new(
+    pub fn new(
         family_class: OBJECT_IDENTIFIER,
         familyEntries: Vec<FamilyEntry>,
         _unrecognized: Vec<X690Element>,
@@ -2908,7 +2908,7 @@ pub struct FamilyEntry {
     pub _unrecognized: Vec<X690Element>,
 }
 impl FamilyEntry {
-    fn new(
+    pub fn new(
         rdn: RelativeDistinguishedName,
         information: Vec<FamilyEntry_information_Item>,
         family_info: OPTIONAL<Vec<FamilyEntries>>,
@@ -3363,7 +3363,7 @@ pub struct MatchingRuleAssertion {
     pub _unrecognized: Vec<X690Element>,
 }
 impl MatchingRuleAssertion {
-    fn new(
+    pub fn new(
         matchingRule: Vec<OBJECT_IDENTIFIER>,
         type_: OPTIONAL<AttributeType>,
         matchValue: X690Element,
@@ -3638,7 +3638,7 @@ pub struct SortKey {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SortKey {
-    fn new(
+    pub fn new(
         type_: AttributeType,
         orderingRule: OPTIONAL<OBJECT_IDENTIFIER>,
         _unrecognized: Vec<X690Element>,
@@ -3758,7 +3758,7 @@ pub struct SecurityParameters {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SecurityParameters {
-    fn new(
+    pub fn new(
         certification_path: OPTIONAL<CertificationPath>,
         name: OPTIONAL<DistinguishedName>,
         time: OPTIONAL<Time>,
@@ -4170,7 +4170,7 @@ pub struct DirectoryBindArgument {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DirectoryBindArgument {
-    fn new(
+    pub fn new(
         credentials: OPTIONAL<Credentials>,
         versions: OPTIONAL<Versions>,
         _unrecognized: Vec<X690Element>,
@@ -4418,7 +4418,7 @@ pub struct SimpleCredentials {
     pub password: OPTIONAL<SimpleCredentials_password>,
 }
 impl SimpleCredentials {
-    fn new(
+    pub fn new(
         name: DistinguishedName,
         validity: OPTIONAL<SimpleCredentials_validity>,
         password: OPTIONAL<SimpleCredentials_password>,
@@ -4578,7 +4578,7 @@ pub struct StrongCredentials {
     pub _unrecognized: Vec<X690Element>,
 }
 impl StrongCredentials {
-    fn new(
+    pub fn new(
         certification_path: OPTIONAL<CertificationPath>,
         bind_token: Token,
         name: OPTIONAL<DistinguishedName>,
@@ -4826,7 +4826,7 @@ pub struct SaslCredentials {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SaslCredentials {
-    fn new(
+    pub fn new(
         mechanism: DirectoryString,
         credentials: OPTIONAL<OCTET_STRING>,
         saslAbort: OPTIONAL<BOOLEAN>,
@@ -5012,7 +5012,7 @@ pub struct TokenContent {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TokenContent {
-    fn new(
+    pub fn new(
         algorithm: AlgorithmIdentifier,
         name: DistinguishedName,
         time: Time,
@@ -5223,7 +5223,7 @@ pub struct DirectoryBindResult {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DirectoryBindResult {
-    fn new(
+    pub fn new(
         credentials: OPTIONAL<Credentials>,
         versions: OPTIONAL<Versions>,
         pwdResponseValue: OPTIONAL<PwdResponseValue>,
@@ -5397,7 +5397,7 @@ pub struct PwdResponseValue {
     pub error: OPTIONAL<PwdResponseValue_error>,
 }
 impl PwdResponseValue {
-    fn new(
+    pub fn new(
         warning: OPTIONAL<PwdResponseValue_warning>,
         error: OPTIONAL<PwdResponseValue_error>,
     ) -> Self {
@@ -5511,7 +5511,7 @@ pub struct DirectoryBindError_OPTIONALLY_PROTECTED_Parameter1 {
     pub securityParameters: OPTIONAL<SecurityParameters>,
 }
 impl DirectoryBindError_OPTIONALLY_PROTECTED_Parameter1 {
-    fn new(
+    pub fn new(
         versions: OPTIONAL<Versions>,
         error: DirectoryBindError_OPTIONALLY_PROTECTED_Parameter1_error,
         securityParameters: OPTIONAL<SecurityParameters>,
@@ -5758,7 +5758,7 @@ pub struct ReadArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl ReadArgumentData {
-    fn new(
+    pub fn new(
         object: Name,
         selection: OPTIONAL<EntryInformationSelection>,
         modifyRightsRequest: OPTIONAL<BOOLEAN>,
@@ -6307,7 +6307,7 @@ pub struct ReadResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ReadResultData {
-    fn new(
+    pub fn new(
         entry: EntryInformation,
         modifyRights: OPTIONAL<ModifyRights>,
         _unrecognized: Vec<X690Element>,
@@ -6678,7 +6678,7 @@ pub struct CompareArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl CompareArgumentData {
-    fn new(
+    pub fn new(
         object: Name,
         purported: AttributeValueAssertion,
         _unrecognized: Vec<X690Element>,
@@ -7181,7 +7181,7 @@ pub struct CompareResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl CompareResultData {
-    fn new(
+    pub fn new(
         name: OPTIONAL<Name>,
         matched: BOOLEAN,
         fromEntry: OPTIONAL<BOOLEAN>,
@@ -7525,7 +7525,7 @@ pub struct AbandonArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AbandonArgumentData {
-    fn new(invokeID: InvokeId, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(invokeID: InvokeId, _unrecognized: Vec<X690Element>) -> Self {
         AbandonArgumentData {
             invokeID,
             _unrecognized,
@@ -7679,7 +7679,7 @@ pub struct AbandonResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl AbandonResultData {
-    fn new(
+    pub fn new(
         invokeID: InvokeId,
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
@@ -7965,7 +7965,7 @@ pub struct ListArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl ListArgumentData {
-    fn new(
+    pub fn new(
         object: Name,
         pagedResults: OPTIONAL<PagedResultsRequest>,
         listFamily: OPTIONAL<BOOLEAN>,
@@ -8601,7 +8601,7 @@ pub struct PartialOutcomeQualifier {
     pub entryCount: OPTIONAL<PartialOutcomeQualifier_entryCount>,
 }
 impl PartialOutcomeQualifier {
-    fn new(
+    pub fn new(
         limitProblem: OPTIONAL<LimitProblem>,
         unexplored: OPTIONAL<Vec<ContinuationReference>>,
         unavailableCriticalExtensions: OPTIONAL<BOOLEAN>,
@@ -9099,7 +9099,7 @@ pub struct SearchArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl SearchArgumentData {
-    fn new(
+    pub fn new(
         baseObject: Name,
         subset: OPTIONAL<SearchArgumentData_subset>,
         filter: OPTIONAL<Filter>,
@@ -10121,7 +10121,7 @@ pub struct JoinArgument {
     pub _unrecognized: Vec<X690Element>,
 }
 impl JoinArgument {
-    fn new(
+    pub fn new(
         joinBaseObject: Name,
         domainLocalID: OPTIONAL<DomainLocalID>,
         joinSubset: OPTIONAL<JoinArgument_joinSubset>,
@@ -10396,7 +10396,7 @@ pub struct JoinAttPair {
     pub _unrecognized: Vec<X690Element>,
 }
 impl JoinAttPair {
-    fn new(
+    pub fn new(
         baseAtt: AttributeType,
         joinAtt: AttributeType,
         joinContext: OPTIONAL<Vec<JoinContextType>>,
@@ -10720,7 +10720,7 @@ pub struct AddEntryArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl AddEntryArgumentData {
-    fn new(
+    pub fn new(
         object: Name,
         entry: Vec<Attribute>,
         targetSystem: OPTIONAL<AccessPoint>,
@@ -11308,7 +11308,7 @@ pub struct AddEntryResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl AddEntryResultData {
-    fn new(
+    pub fn new(
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
         performer: OPTIONAL<DistinguishedName>,           /* REPLICATED_COMPONENT */
@@ -11593,7 +11593,7 @@ pub struct RemoveEntryArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl RemoveEntryArgumentData {
-    fn new(
+    pub fn new(
         object: Name,
         _unrecognized: Vec<X690Element>,
         serviceControls: OPTIONAL<ServiceControls>, /* REPLICATED_COMPONENT */
@@ -12109,7 +12109,7 @@ pub struct RemoveEntryResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl RemoveEntryResultData {
-    fn new(
+    pub fn new(
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
         performer: OPTIONAL<DistinguishedName>,           /* REPLICATED_COMPONENT */
@@ -12399,7 +12399,7 @@ pub struct ModifyEntryArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl ModifyEntryArgumentData {
-    fn new(
+    pub fn new(
         object: Name,
         changes: Vec<EntryModification>,
         selection: OPTIONAL<EntryInformationSelection>,
@@ -12997,7 +12997,7 @@ pub struct ModifyEntryResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ModifyEntryResultData {
-    fn new(
+    pub fn new(
         entry: OPTIONAL<EntryInformation>,
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
@@ -13426,7 +13426,7 @@ pub struct ModifyDNArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl ModifyDNArgumentData {
-    fn new(
+    pub fn new(
         object: DistinguishedName,
         newRDN: RelativeDistinguishedName,
         deleteOldRDN: OPTIONAL<BOOLEAN>,
@@ -14029,7 +14029,7 @@ pub struct ModifyDNResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ModifyDNResultData {
-    fn new(
+    pub fn new(
         newRDN: RelativeDistinguishedName,
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
@@ -14297,7 +14297,7 @@ pub struct ChangePasswordArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ChangePasswordArgumentData {
-    fn new(
+    pub fn new(
         object: DistinguishedName,
         oldPwd: UserPwd,
         newPwd: UserPwd,
@@ -14503,7 +14503,7 @@ pub struct ChangePasswordResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ChangePasswordResultData {
-    fn new(
+    pub fn new(
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
         performer: OPTIONAL<DistinguishedName>,           /* REPLICATED_COMPONENT */
@@ -14776,7 +14776,7 @@ pub struct AdministerPasswordArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AdministerPasswordArgumentData {
-    fn new(object: DistinguishedName, newPwd: UserPwd, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(object: DistinguishedName, newPwd: UserPwd, _unrecognized: Vec<X690Element>) -> Self {
         AdministerPasswordArgumentData {
             object,
             newPwd,
@@ -14959,7 +14959,7 @@ pub struct AdministerPasswordResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl AdministerPasswordResultData {
-    fn new(
+    pub fn new(
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
         performer: OPTIONAL<DistinguishedName>,           /* REPLICATED_COMPONENT */
@@ -15238,7 +15238,7 @@ pub struct LdapArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl LdapArgumentData {
-    fn new(
+    pub fn new(
         object: DistinguishedName,
         ldapMessage: LDAPMessage,
         linkId: OPTIONAL<LinkId>,
@@ -15750,7 +15750,7 @@ pub struct LdapResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl LdapResultData {
-    fn new(
+    pub fn new(
         ldapMessages: OPTIONAL<Vec<LDAPMessage>>,
         returnToClient: OPTIONAL<BOOLEAN>,
         _unrecognized: Vec<X690Element>,
@@ -16089,7 +16089,7 @@ pub struct LinkedArgumentData {
     pub familyGrouping: OPTIONAL<FamilyGrouping>,   /* REPLICATED_COMPONENT */
 }
 impl LinkedArgumentData {
-    fn new(
+    pub fn new(
         object: DistinguishedName,
         ldapMessage: LDAPMessage,
         linkId: LinkId,
@@ -16616,7 +16616,7 @@ pub struct AbandonedData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl AbandonedData {
-    fn new(
+    pub fn new(
         problem: OPTIONAL<AbandonedProblem>,
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
@@ -16898,7 +16898,7 @@ pub struct AbandonFailedData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl AbandonFailedData {
-    fn new(
+    pub fn new(
         problem: AbandonProblem,
         operation: InvokeId,
         _unrecognized: Vec<X690Element>,
@@ -17206,7 +17206,7 @@ pub struct AttributeErrorData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl AttributeErrorData {
-    fn new(
+    pub fn new(
         object: Name,
         problems: Vec<AttributeErrorData_problems_Item>,
         _unrecognized: Vec<X690Element>,
@@ -17551,7 +17551,7 @@ pub struct NameErrorData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl NameErrorData {
-    fn new(
+    pub fn new(
         problem: NameProblem,
         matched: Name,
         _unrecognized: Vec<X690Element>,
@@ -17854,7 +17854,7 @@ pub struct ReferralData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ReferralData {
-    fn new(
+    pub fn new(
         candidate: ContinuationReference,
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
@@ -18113,7 +18113,7 @@ pub struct SecurityErrorData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl SecurityErrorData {
-    fn new(
+    pub fn new(
         problem: SecurityProblem,
         spkmInfo: OPTIONAL<SPKM_ERROR>,
         encPwdInfo: OPTIONAL<EncPwdInfo>,
@@ -18451,7 +18451,7 @@ pub struct EncPwdInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EncPwdInfo {
-    fn new(
+    pub fn new(
         algorithms: OPTIONAL<Vec<AlgorithmIdentifier>>,
         pwdQualityRule: OPTIONAL<Vec<AttributeTypeAndValue>>,
         _unrecognized: Vec<X690Element>,
@@ -18638,7 +18638,7 @@ pub struct ServiceErrorData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ServiceErrorData {
-    fn new(
+    pub fn new(
         problem: ServiceProblem,
         _unrecognized: Vec<X690Element>,
         securityParameters: OPTIONAL<SecurityParameters>, /* REPLICATED_COMPONENT */
@@ -18967,7 +18967,7 @@ pub struct UpdateErrorData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl UpdateErrorData {
-    fn new(
+    pub fn new(
         problem: UpdateProblem,
         attributeInfo: OPTIONAL<Vec<UpdateErrorData_attributeInfo_Item>>,
         _unrecognized: Vec<X690Element>,
@@ -19361,7 +19361,7 @@ pub struct ServiceControls_manageDSAITPlaneRef {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ServiceControls_manageDSAITPlaneRef {
-    fn new(dsaName: Name, agreementID: AgreementID, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(dsaName: Name, agreementID: AgreementID, _unrecognized: Vec<X690Element>) -> Self {
         ServiceControls_manageDSAITPlaneRef {
             dsaName,
             agreementID,
@@ -19526,11 +19526,6 @@ pub fn _encode_EntryInformationSelection_attributes(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -19648,11 +19643,6 @@ pub fn _encode_EntryInformationSelection_extraAttributes(
                     el_1.tag_number = 4;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)
@@ -19997,7 +19987,7 @@ pub struct FilterItem_substrings {
     pub _unrecognized: Vec<X690Element>,
 }
 impl FilterItem_substrings {
-    fn new(
+    pub fn new(
         type_: OBJECT_IDENTIFIER,
         strings: Vec<FilterItem_substrings_strings_Item>,
         _unrecognized: Vec<X690Element>,
@@ -20123,7 +20113,7 @@ pub struct PagedResultsRequest_newRequest {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PagedResultsRequest_newRequest {
-    fn new(
+    pub fn new(
         pageSize: INTEGER,
         sortKeys: OPTIONAL<Vec<SortKey>>,
         reverse: OPTIONAL<BOOLEAN>,
@@ -20374,11 +20364,6 @@ pub fn _encode_SimpleCredentials_validity_time1(
         match value {
             SimpleCredentials_validity_time1::utc(v) => ber_encode_utc_time(&v),
             SimpleCredentials_validity_time1::gt(v) => ber_encode_generalized_time(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -20436,11 +20421,6 @@ pub fn _encode_SimpleCredentials_validity_time2(
         match value {
             SimpleCredentials_validity_time2::utc(v) => ber_encode_utc_time(&v),
             SimpleCredentials_validity_time2::gt(v) => ber_encode_generalized_time(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -20460,7 +20440,7 @@ pub struct SimpleCredentials_validity {
     pub random2: OPTIONAL<BIT_STRING>,
 }
 impl SimpleCredentials_validity {
-    fn new(
+    pub fn new(
         time1: OPTIONAL<SimpleCredentials_validity_time1>,
         time2: OPTIONAL<SimpleCredentials_validity_time2>,
         random1: OPTIONAL<BIT_STRING>,
@@ -20989,7 +20969,7 @@ pub struct ModifyRights_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ModifyRights_Item {
-    fn new(
+    pub fn new(
         item: ModifyRights_Item_item,
         permission: ModifyRights_Item_permission,
         _unrecognized: Vec<X690Element>,
@@ -21094,7 +21074,7 @@ pub struct ListResultData_listInfo_subordinates_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ListResultData_listInfo_subordinates_Item {
-    fn new(
+    pub fn new(
         rdn: RelativeDistinguishedName,
         aliasEntry: OPTIONAL<BOOLEAN>,
         fromEntry: OPTIONAL<BOOLEAN>,
@@ -21250,7 +21230,7 @@ pub struct ListResultData_listInfo {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ListResultData_listInfo {
-    fn new(
+    pub fn new(
         name: OPTIONAL<Name>,
         subordinates: Vec<ListResultData_listInfo_subordinates_Item>,
         partialOutcomeQualifier: OPTIONAL<PartialOutcomeQualifier>,
@@ -21725,7 +21705,7 @@ pub struct SearchResultData_searchInfo {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl SearchResultData_searchInfo {
-    fn new(
+    pub fn new(
         name: OPTIONAL<Name>,
         entries: Vec<EntryInformation>,
         partialOutcomeQualifier: OPTIONAL<PartialOutcomeQualifier>,
@@ -22063,7 +22043,7 @@ pub struct AttributeErrorData_problems_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeErrorData_problems_Item {
-    fn new(
+    pub fn new(
         problem: AttributeProblem,
         type_: AttributeType,
         value: OPTIONAL<AttributeValue>,

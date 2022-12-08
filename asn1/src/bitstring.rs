@@ -1,5 +1,5 @@
-use crate::{types::BIT_STRING, BIT};
-use std::{convert::TryInto, ops::Index};
+use crate::types::BIT_STRING;
+use std::convert::TryInto;
 
 pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     if strs.len() == 0 {

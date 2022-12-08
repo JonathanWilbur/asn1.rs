@@ -19,9 +19,6 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::AttributeCertificateDefinitions::*;
-use crate::AuthenticationFramework::*;
-use crate::CertificateExtensions::*;
 use crate::InformationFramework::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
@@ -50,7 +47,7 @@ pub struct ExtensionAttribute {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ExtensionAttribute {
-    fn new(
+    pub fn new(
         type_: OBJECT_IDENTIFIER,
         value: Vec<ExtensionAttribute_value_Item>,
         _unrecognized: Vec<X690Element>,
@@ -3108,7 +3105,7 @@ pub struct ExtensionAttribute_value_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ExtensionAttribute_value_Item {
-    fn new(
+    pub fn new(
         mandatory: OPTIONAL<BOOLEAN>,
         critical: OPTIONAL<BOOLEAN>,
         ext: X690Element,
@@ -3268,7 +3265,7 @@ pub struct extensionSyntax_Type {
     pub _unrecognized: Vec<X690Element>,
 }
 impl extensionSyntax_Type {
-    fn new(
+    pub fn new(
         mandatory: OPTIONAL<BOOLEAN>,
         critical: OPTIONAL<BOOLEAN>,
         ext: X690Element,

@@ -114,7 +114,7 @@ pub struct ModificationParameter {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ModificationParameter {
-    fn new(secondaryShadows: Vec<SupplierAndConsumers>, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(secondaryShadows: Vec<SupplierAndConsumers>, _unrecognized: Vec<X690Element>) -> Self {
         ModificationParameter {
             secondaryShadows,
             _unrecognized,
@@ -237,7 +237,7 @@ pub struct ShadowingAgreementInfo {
     pub secondaryShadows: OPTIONAL<BOOLEAN>,
 }
 impl ShadowingAgreementInfo {
-    fn new(
+    pub fn new(
         shadowSubject: UnitOfReplication,
         updateMode: OPTIONAL<UpdateMode>,
         master: OPTIONAL<AccessPoint>,
@@ -399,7 +399,7 @@ pub struct UnitOfReplication {
     pub supplyContexts: OPTIONAL<UnitOfReplication_supplyContexts>,
 }
 impl UnitOfReplication {
-    fn new(
+    pub fn new(
         area: AreaSpecification,
         attributes: AttributeSelection,
         knowledge: OPTIONAL<Knowledge>,
@@ -587,7 +587,7 @@ pub struct AreaSpecification {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AreaSpecification {
-    fn new(
+    pub fn new(
         contextPrefix: DistinguishedName,
         replicationArea: SubtreeSpecification,
         _unrecognized: Vec<X690Element>,
@@ -692,7 +692,7 @@ pub struct Knowledge {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Knowledge {
-    fn new(
+    pub fn new(
         knowledgeType: Knowledge_knowledgeType,
         extendedKnowledge: OPTIONAL<BOOLEAN>,
         _unrecognized: Vec<X690Element>,
@@ -837,7 +837,7 @@ pub struct ClassAttributeSelection {
     pub classAttributes: OPTIONAL<ClassAttributes>,
 }
 impl ClassAttributeSelection {
-    fn new(class: OPTIONAL<OBJECT_IDENTIFIER>, classAttributes: OPTIONAL<ClassAttributes>) -> Self {
+    pub fn new(class: OPTIONAL<OBJECT_IDENTIFIER>, classAttributes: OPTIONAL<ClassAttributes>) -> Self {
         ClassAttributeSelection {
             class,
             classAttributes,
@@ -1200,7 +1200,7 @@ pub struct SchedulingParameters {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SchedulingParameters {
-    fn new(
+    pub fn new(
         periodic: OPTIONAL<PeriodicStrategy>,
         othertimes: OPTIONAL<BOOLEAN>,
         _unrecognized: Vec<X690Element>,
@@ -1327,7 +1327,7 @@ pub struct PeriodicStrategy {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PeriodicStrategy {
-    fn new(
+    pub fn new(
         beginTime: OPTIONAL<Time>,
         windowSize: INTEGER,
         updateInterval: INTEGER,
@@ -1539,7 +1539,7 @@ pub struct CoordinateShadowUpdateArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CoordinateShadowUpdateArgumentData {
-    fn new(
+    pub fn new(
         agreementID: AgreementID,
         lastUpdate: OPTIONAL<Time>,
         updateStrategy: CoordinateShadowUpdateArgumentData_updateStrategy,
@@ -1755,7 +1755,7 @@ pub struct CoordinateShadowUpdateResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl CoordinateShadowUpdateResultData {
-    fn new(
+    pub fn new(
         agreementID: AgreementID,
         lastUpdate: OPTIONAL<Time>,
         _unrecognized: Vec<X690Element>,
@@ -2059,7 +2059,7 @@ pub struct RequestShadowUpdateArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl RequestShadowUpdateArgumentData {
-    fn new(
+    pub fn new(
         agreementID: AgreementID,
         lastUpdate: OPTIONAL<Time>,
         requestedStrategy: RequestShadowUpdateArgumentData_requestedStrategy,
@@ -2276,7 +2276,7 @@ pub struct RequestShadowUpdateResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl RequestShadowUpdateResultData {
-    fn new(
+    pub fn new(
         agreementID: AgreementID,
         lastUpdate: OPTIONAL<Time>,
         _unrecognized: Vec<X690Element>,
@@ -2568,7 +2568,7 @@ pub struct UpdateShadowArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl UpdateShadowArgumentData {
-    fn new(
+    pub fn new(
         agreementID: AgreementID,
         updateTime: Time,
         updateWindow: OPTIONAL<UpdateWindow>,
@@ -2783,7 +2783,7 @@ pub struct UpdateShadowResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl UpdateShadowResultData {
-    fn new(
+    pub fn new(
         agreementID: AgreementID,
         lastUpdate: OPTIONAL<Time>,
         _unrecognized: Vec<X690Element>,
@@ -3028,7 +3028,7 @@ pub struct UpdateWindow {
     pub _unrecognized: Vec<X690Element>,
 }
 impl UpdateWindow {
-    fn new(start: Time, stop: Time, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(start: Time, stop: Time, _unrecognized: Vec<X690Element>) -> Self {
         UpdateWindow {
             start,
             stop,
@@ -3202,7 +3202,7 @@ pub struct TotalRefresh {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TotalRefresh {
-    fn new(
+    pub fn new(
         sDSE: OPTIONAL<SDSEContent>,
         subtree: OPTIONAL<Vec<Subtree>>,
         _unrecognized: Vec<X690Element>,
@@ -3348,7 +3348,7 @@ pub struct SDSEContent {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SDSEContent {
-    fn new(
+    pub fn new(
         sDSEType: SDSEType,
         subComplete: OPTIONAL<BOOLEAN>,
         attComplete: OPTIONAL<BOOLEAN>,
@@ -3580,7 +3580,7 @@ pub struct Subtree {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Subtree {
-    fn new(
+    pub fn new(
         rdn: RelativeDistinguishedName,
         sDSE: OPTIONAL<SDSEContent>,     /* REPLICATED_COMPONENT */
         subtree: OPTIONAL<Vec<Subtree>>, /* REPLICATED_COMPONENT */
@@ -3760,7 +3760,7 @@ pub struct IncrementalStepRefresh {
     pub subordinateUpdates: OPTIONAL<Vec<SubordinateChanges>>,
 }
 impl IncrementalStepRefresh {
-    fn new(
+    pub fn new(
         sDSEChanges: OPTIONAL<IncrementalStepRefresh_sDSEChanges>,
         subordinateUpdates: OPTIONAL<Vec<SubordinateChanges>>,
     ) -> Self {
@@ -3917,7 +3917,7 @@ pub struct ContentChange {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ContentChange {
-    fn new(
+    pub fn new(
         rename: OPTIONAL<ContentChange_rename>,
         attributeChanges: OPTIONAL<ContentChange_attributeChanges>,
         sDSEType: SDSEType,
@@ -4141,7 +4141,7 @@ pub struct SubordinateChanges {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SubordinateChanges {
-    fn new(
+    pub fn new(
         subordinate: RelativeDistinguishedName,
         changes: IncrementalStepRefresh,
         _unrecognized: Vec<X690Element>,
@@ -4266,7 +4266,7 @@ pub struct ShadowErrorData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ShadowErrorData {
-    fn new(
+    pub fn new(
         problem: ShadowProblem,
         lastUpdate: OPTIONAL<Time>,
         updateWindow: OPTIONAL<UpdateWindow>,
@@ -4983,11 +4983,6 @@ pub fn _encode_ContentChange_rename(value_: &ContentChange_rename) -> ASN1Result
         match value {
             ContentChange_rename::newRDN(v) => _encode_RelativeDistinguishedName(&v),
             ContentChange_rename::newDN(v) => _encode_DistinguishedName(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -5100,11 +5095,6 @@ pub fn _encode_ContentChange_attributeChanges(
                     el_1.tag_number = 1;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)

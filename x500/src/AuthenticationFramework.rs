@@ -45,7 +45,7 @@ pub struct SIGNATURE {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SIGNATURE {
-    fn new(
+    pub fn new(
         algorithmIdentifier: AlgorithmIdentifier,
         signature: BIT_STRING,
         _unrecognized: Vec<X690Element>,
@@ -154,7 +154,7 @@ pub struct SIGNED<ToBeSigned> {
     pub _unrecognized: Vec<X690Element>,
 }
 impl<ToBeSigned> SIGNED<ToBeSigned> {
-    fn new(
+    pub fn new(
         toBeSigned: ToBeSigned,
         algorithmIdentifier: AlgorithmIdentifier,
         signature: BIT_STRING,
@@ -270,7 +270,7 @@ pub struct HASH {
     pub _unrecognized: Vec<X690Element>,
 }
 impl HASH {
-    fn new(
+    pub fn new(
         algorithmIdentifier: AlgorithmIdentifier,
         hashValue: BIT_STRING,
         _unrecognized: Vec<X690Element>,
@@ -424,7 +424,7 @@ pub struct AlgorithmIdentifier {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AlgorithmIdentifier {
-    fn new(
+    pub fn new(
         algorithm: OBJECT_IDENTIFIER,
         parameters: OPTIONAL<X690Element>,
         _unrecognized: Vec<X690Element>,
@@ -546,7 +546,7 @@ pub struct FingerPrint {
     pub _unrecognized: Vec<X690Element>,
 }
 impl FingerPrint {
-    fn new(
+    pub fn new(
         algorithmIdentifier: AlgorithmIdentifier,
         fingerprint: BIT_STRING,
         _unrecognized: Vec<X690Element>,
@@ -739,7 +739,7 @@ pub struct TBSCertificate {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBSCertificate {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         serialNumber: CertificateSerialNumber,
         signature: AlgorithmIdentifier,
@@ -969,7 +969,7 @@ pub struct Validity {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Validity {
-    fn new(notBefore: Time, notAfter: Time, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(notBefore: Time, notAfter: Time, _unrecognized: Vec<X690Element>) -> Self {
         Validity {
             notBefore,
             notAfter,
@@ -1054,7 +1054,7 @@ pub struct SubjectPublicKeyInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SubjectPublicKeyInfo {
-    fn new(
+    pub fn new(
         algorithm: AlgorithmIdentifier,
         subjectPublicKey: PublicKey,
         _unrecognized: Vec<X690Element>,
@@ -1202,11 +1202,6 @@ pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
         match value {
             Time::utcTime(v) => ber_encode_utc_time(&v),
             Time::generalizedTime(v) => ber_encode_generalized_time(&v),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -1267,7 +1262,7 @@ pub struct Extension {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Extension {
-    fn new(
+    pub fn new(
         extnId: OBJECT_IDENTIFIER,
         critical: OPTIONAL<BOOLEAN>,
         extnValue: OCTET_STRING,
@@ -1434,7 +1429,7 @@ pub struct Certificates {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Certificates {
-    fn new(
+    pub fn new(
         userCertificate: Certificate,
         certificationPath: OPTIONAL<ForwardCertificationPath>,
         _unrecognized: Vec<X690Element>,
@@ -1613,7 +1608,7 @@ pub struct CertificationPath {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificationPath {
-    fn new(
+    pub fn new(
         userCertificate: Certificate,
         theCACertificates: OPTIONAL<Vec<CertificatePair>>,
         _unrecognized: Vec<X690Element>,
@@ -1811,7 +1806,7 @@ pub struct CertificateListContent {
     pub crlExtensions: OPTIONAL<Extensions>,
 }
 impl CertificateListContent {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         signature: AlgorithmIdentifier,
         issuer: Name,
@@ -2051,7 +2046,7 @@ pub struct TBSCertAVL {
     pub avlExtensions: OPTIONAL<Extensions>,
 }
 impl TBSCertAVL {
-    fn new(
+    pub fn new(
         version: OPTIONAL<Version>,
         serialNumber: OPTIONAL<AvlSerialNumber>,
         signature: AlgorithmIdentifier,
@@ -2338,7 +2333,7 @@ pub struct IssuerSerialNumber {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerSerialNumber {
-    fn new(
+    pub fn new(
         issuer: Name,
         serialNumber: CertificateSerialNumber,
         _unrecognized: Vec<X690Element>,
@@ -2471,7 +2466,7 @@ pub struct ScopeRestriction {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ScopeRestriction {
-    fn new(
+    pub fn new(
         id: OBJECT_IDENTIFIER,
         restriction: X690Element,
         _unrecognized: Vec<X690Element>,
@@ -2860,7 +2855,7 @@ pub struct CertificatePair {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificatePair {
-    fn new(
+    pub fn new(
         issuedToThisCA: OPTIONAL<Certificate>,
         issuedByThisCA: OPTIONAL<Certificate>,
         _unrecognized: Vec<X690Element>,
@@ -3158,7 +3153,7 @@ pub struct SupportedAlgorithm {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SupportedAlgorithm {
-    fn new(
+    pub fn new(
         algorithmIdentifier: AlgorithmIdentifier,
         intendedUsage: OPTIONAL<KeyUsage>,
         intendedCertificatePolicies: OPTIONAL<CertificatePoliciesSyntax>,
@@ -3457,7 +3452,7 @@ pub struct PolicySyntax {
     pub _unrecognized: Vec<X690Element>,
 }
 impl PolicySyntax {
-    fn new(
+    pub fn new(
         policyIdentifier: PolicyID,
         policySyntax: InfoSyntax,
         _unrecognized: Vec<X690Element>,
@@ -3630,7 +3625,7 @@ pub struct SupportedPublicKeyAlgorithms {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SupportedPublicKeyAlgorithms {
-    fn new(
+    pub fn new(
         algorithmIdentifier: AlgorithmIdentifier,
         minKeySize: INTEGER,
         extensions: OPTIONAL<Vec<OidOrAttr>>,
@@ -4249,7 +4244,7 @@ pub struct CertificateListContent_revokedCertificates_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl CertificateListContent_revokedCertificates_Item {
-    fn new(
+    pub fn new(
         serialNumber: CertificateSerialNumber,
         revocationDate: Time,
         crlEntryExtensions: OPTIONAL<Extensions>,
@@ -4434,7 +4429,7 @@ pub struct TBSCertAVL_entries_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBSCertAVL_entries_Item {
-    fn new(
+    pub fn new(
         idType: TBSCertAVL_entries_Item_idType,
         scope: OPTIONAL<ScopeRestrictions>,
         entryExtensions: OPTIONAL<Extensions>,
@@ -4560,7 +4555,7 @@ pub struct InfoSyntax_pointer {
     pub _unrecognized: Vec<X690Element>,
 }
 impl InfoSyntax_pointer {
-    fn new(name: GeneralNames, hash: OPTIONAL<HASH>, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(name: GeneralNames, hash: OPTIONAL<HASH>, _unrecognized: Vec<X690Element>) -> Self {
         InfoSyntax_pointer {
             name,
             hash,

@@ -19,15 +19,9 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::AVL_management::*;
-use crate::CaSubscription::*;
 use crate::PKI_Stub::*;
-use crate::TrustBroker::*;
 use crate::Wrapper::*;
 use asn1::*;
-use std::borrow::Borrow;
-use std::sync::Arc;
-use x690::*;
 
 /// ### ASN.1 Definition:
 ///

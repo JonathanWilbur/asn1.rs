@@ -199,7 +199,7 @@ pub struct EstablishOperationalBindingArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EstablishOperationalBindingArgumentData {
-    fn new(
+    pub fn new(
         bindingType: OBJECT_IDENTIFIER,
         bindingID: OPTIONAL<OperationalBindingID>,
         accessPoint: AccessPoint,
@@ -460,7 +460,7 @@ pub struct OperationalBindingID {
     pub _unrecognized: Vec<X690Element>,
 }
 impl OperationalBindingID {
-    fn new(identifier: INTEGER, version: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
+    pub fn new(identifier: INTEGER, version: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
         OperationalBindingID {
             identifier,
             version,
@@ -563,7 +563,7 @@ pub struct Validity {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Validity {
-    fn new(
+    pub fn new(
         validFrom: OPTIONAL<Validity_validFrom>,
         validUntil: OPTIONAL<Validity_validUntil>,
         _unrecognized: Vec<X690Element>,
@@ -808,7 +808,7 @@ pub struct EstablishOperationalBindingResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl EstablishOperationalBindingResultData {
-    fn new(
+    pub fn new(
         bindingType: OBJECT_IDENTIFIER,
         bindingID: OPTIONAL<OperationalBindingID>,
         accessPoint: AccessPoint,
@@ -1173,7 +1173,7 @@ pub struct ModifyOperationalBindingArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ModifyOperationalBindingArgumentData {
-    fn new(
+    pub fn new(
         bindingType: OBJECT_IDENTIFIER,
         bindingID: OperationalBindingID,
         accessPoint: OPTIONAL<AccessPoint>,
@@ -1450,7 +1450,7 @@ pub struct ModifiedValidity {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ModifiedValidity {
-    fn new(
+    pub fn new(
         validFrom: OPTIONAL<ModifiedValidity_validFrom>,
         validUntil: OPTIONAL<ModifiedValidity_validUntil>,
         _unrecognized: Vec<X690Element>,
@@ -1686,7 +1686,7 @@ pub struct ModifyOperationalBindingResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl ModifyOperationalBindingResultData {
-    fn new(
+    pub fn new(
         newBindingID: OperationalBindingID,
         bindingType: OBJECT_IDENTIFIER,
         newAgreement: X690Element,
@@ -2011,7 +2011,7 @@ pub struct TerminateOperationalBindingArgumentData {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TerminateOperationalBindingArgumentData {
-    fn new(
+    pub fn new(
         bindingType: OBJECT_IDENTIFIER,
         bindingID: OperationalBindingID,
         initiator: OPTIONAL<TerminateOperationalBindingArgumentData_initiator>,
@@ -2286,7 +2286,7 @@ pub struct TerminateOperationalBindingResultData {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl TerminateOperationalBindingResultData {
-    fn new(
+    pub fn new(
         bindingID: OperationalBindingID,
         bindingType: OBJECT_IDENTIFIER,
         terminateAt: OPTIONAL<GeneralizedTime>,
@@ -2587,7 +2587,7 @@ pub struct OpBindingErrorParam {
     pub notification: OPTIONAL<Vec<Attribute>>,           /* REPLICATED_COMPONENT */
 }
 impl OpBindingErrorParam {
-    fn new(
+    pub fn new(
         problem: OpBindingErrorParam_problem,
         bindingType: OPTIONAL<OBJECT_IDENTIFIER>,
         agreementProposal: OPTIONAL<X690Element>,
@@ -2969,11 +2969,6 @@ pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3181,11 +3176,6 @@ pub fn _encode_EstablishOperationalBindingResultData_initiator(
                     Ok(el_1)
                 }(&v)
             }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
         }
     }(&value_)
 }
@@ -3272,11 +3262,6 @@ pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
                     el_1.tag_number = 5;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)
@@ -3506,11 +3491,6 @@ pub fn _encode_TerminateOperationalBindingArgumentData_initiator(
                     el_1.tag_number = 4;
                     Ok(el_1)
                 }(&v)
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
             }
         }
     }(&value_)

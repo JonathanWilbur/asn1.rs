@@ -1526,7 +1526,7 @@ pub struct UserPwd_encrypted {
     pub _unrecognized: Vec<X690Element>,
 }
 impl UserPwd_encrypted {
-    fn new(
+    pub fn new(
         algorithmIdentifier: AlgorithmIdentifier,
         encryptedString: OCTET_STRING,
         _unrecognized: Vec<X690Element>,
