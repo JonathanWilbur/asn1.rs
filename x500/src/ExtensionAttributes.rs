@@ -146,7 +146,7 @@ pub fn _encode_ExtensionAttribute(value_: &ExtensionAttribute) -> ASN1Result<X69
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3242,7 +3242,7 @@ pub fn _encode_ExtensionAttribute_value_Item(
         }(&value_.ext)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3398,7 +3398,7 @@ pub fn _encode_extensionSyntax_Type(value_: &extensionSyntax_Type) -> ASN1Result
         }(&value_.ext)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),

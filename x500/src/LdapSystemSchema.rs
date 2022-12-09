@@ -380,7 +380,7 @@ pub fn _encode_LdapSyntaxDescription(value_: &LdapSyntaxDescription) -> ASN1Resu
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),

@@ -307,7 +307,7 @@ pub fn _encode_DirectoryInformationServiceElement(
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -3875,7 +3875,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -3978,7 +3978,7 @@ pub fn _encode_SubSchemaSyntax_Item(value_: &SubSchemaSyntax_Item) -> ASN1Result
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)

@@ -662,7 +662,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -759,7 +759,7 @@ pub fn _encode_SearchRuleId(value_: &SearchRuleId) -> ASN1Result<X690Element> {
         }(&value_.dmdId)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -1185,7 +1185,7 @@ pub fn _encode_RequestAttribute(value_: &RequestAttribute) -> ASN1Result<X690Ele
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1314,7 +1314,7 @@ pub fn _encode_ContextProfile(value_: &ContextProfile) -> ASN1Result<X690Element
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1564,7 +1564,7 @@ pub fn _encode_MatchingUse(value_: &MatchingUse) -> ASN1Result<X690Element> {
         components_.push(x690_identity(&value_.restrictionValue)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1897,7 +1897,7 @@ pub fn _encode_ResultAttribute(value_: &ResultAttribute) -> ASN1Result<X690Eleme
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2079,7 +2079,7 @@ pub fn _encode_ControlOptions(value_: &ControlOptions) -> ASN1Result<X690Element
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2176,7 +2176,7 @@ pub fn _encode_EntryLimit(value_: &EntryLimit) -> ASN1Result<X690Element> {
         components_.push(ber_encode_integer(&value_.max)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2464,7 +2464,7 @@ pub fn _encode_RelaxationPolicy(value_: &RelaxationPolicy) -> ASN1Result<X690Ele
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2657,7 +2657,7 @@ pub fn _encode_MRMapping(value_: &MRMapping) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2770,7 +2770,7 @@ pub fn _encode_Mapping(value_: &Mapping) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2917,7 +2917,7 @@ pub fn _encode_MRSubstitution(value_: &MRSubstitution) -> ASN1Result<X690Element
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3204,7 +3204,7 @@ pub fn _encode_RequestAttribute_defaultValues_Item(
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),

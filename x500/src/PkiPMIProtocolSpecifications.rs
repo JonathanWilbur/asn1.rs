@@ -191,7 +191,7 @@ pub fn _encode_AVMPcommonComponents(value_: &AVMPcommonComponents) -> ASN1Result
         components_.push(_encode_AVMPsequence(&value_.sequence)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -365,7 +365,7 @@ pub fn _encode_CertReq(value_: &CertReq) -> ASN1Result<X690Element> {
         components_.push(_encode_AVMPsequence(&value_.sequence)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -514,7 +514,7 @@ pub fn _encode_CertRsp(value_: &CertRsp) -> ASN1Result<X690Element> {
         components_.push(_encode_CertRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -596,7 +596,7 @@ pub fn _encode_CertOK(value_: &CertOK) -> ASN1Result<X690Element> {
         components_.push(_encode_Certificate(&value_.dhCert)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -699,7 +699,7 @@ pub fn _encode_CertErr(value_: &CertErr) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -886,7 +886,7 @@ pub fn _encode_AddAvlReq(value_: &AddAvlReq) -> ASN1Result<X690Element> {
         components_.push(_encode_CertAVL(&value_.certlist)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1035,7 +1035,7 @@ pub fn _encode_AddAvlRsp(value_: &AddAvlRsp) -> ASN1Result<X690Element> {
         components_.push(_encode_AddAvlRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1111,7 +1111,7 @@ pub fn _encode_AddAvlOK(value_: &AddAvlOK) -> ASN1Result<X690Element> {
         components_.push(ber_encode_null(&value_.ok)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1193,7 +1193,7 @@ pub fn _encode_AddAvlErr(value_: &AddAvlErr) -> ASN1Result<X690Element> {
         components_.push(_encode_AVMP_error(&value_.notOK)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1364,7 +1364,7 @@ pub fn _encode_ReplaceAvlReq(value_: &ReplaceAvlReq) -> ASN1Result<X690Element> 
         components_.push(_encode_CertAVL(&value_.new)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1513,7 +1513,7 @@ pub fn _encode_ReplaceAvlRsp(value_: &ReplaceAvlRsp) -> ASN1Result<X690Element> 
         components_.push(_encode_ReplaceAvlRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1589,7 +1589,7 @@ pub fn _encode_RepAvlOK(value_: &RepAvlOK) -> ASN1Result<X690Element> {
         components_.push(ber_encode_null(&value_.ok)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1671,7 +1671,7 @@ pub fn _encode_RepAvlErr(value_: &RepAvlErr) -> ASN1Result<X690Element> {
         components_.push(_encode_AVMP_error(&value_.notOK)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1828,7 +1828,7 @@ pub fn _encode_DeleteAvlReq(value_: &DeleteAvlReq) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1977,7 +1977,7 @@ pub fn _encode_DeleteAvlRsp(value_: &DeleteAvlRsp) -> ASN1Result<X690Element> {
         components_.push(_encode_DeleteAvlRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2053,7 +2053,7 @@ pub fn _encode_DelAvlOK(value_: &DelAvlOK) -> ASN1Result<X690Element> {
         components_.push(ber_encode_null(&value_.ok)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2135,7 +2135,7 @@ pub fn _encode_DelAvlErr(value_: &DelAvlErr) -> ASN1Result<X690Element> {
         components_.push(_encode_AVMP_error(&value_.notOK)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2287,7 +2287,7 @@ pub fn _encode_RejectAVL(value_: &RejectAVL) -> ASN1Result<X690Element> {
         components_.push(_encode_AVMP_error(&value_.reason)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2398,7 +2398,7 @@ pub fn _encode_CASPcommonComponents(value_: &CASPcommonComponents) -> ASN1Result
         components_.push(_encode_CASPsequence(&value_.sequence)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2599,7 +2599,7 @@ pub fn _encode_CertSubscribeReq(value_: &CertSubscribeReq) -> ASN1Result<X690Ele
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2735,7 +2735,7 @@ pub fn _encode_CertSubscribeRsp(value_: &CertSubscribeRsp) -> ASN1Result<X690Ele
         components_.push(_encode_CertSubscribeRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2911,7 +2911,7 @@ pub fn _encode_CertSubscribeErr(value_: &CertSubscribeErr) -> ASN1Result<X690Ele
         components_.push(_encode_CASP_error(&value_.code)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3076,7 +3076,7 @@ pub fn _encode_CertUnsubscribeReq(value_: &CertUnsubscribeReq) -> ASN1Result<X69
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3212,7 +3212,7 @@ pub fn _encode_CertUnsubscribeRsp(value_: &CertUnsubscribeRsp) -> ASN1Result<X69
         components_.push(_encode_CertUnsubscribeRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3337,7 +3337,7 @@ pub fn _encode_CertUnsubscribeErr(value_: &CertUnsubscribeErr) -> ASN1Result<X69
         components_.push(_encode_CASP_error(&value_.code)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3502,7 +3502,7 @@ pub fn _encode_CertReplaceReq(value_: &CertReplaceReq) -> ASN1Result<X690Element
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3638,7 +3638,7 @@ pub fn _encode_CertReplaceRsp(value_: &CertReplaceRsp) -> ASN1Result<X690Element
         components_.push(_encode_CertReplaceRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3767,7 +3767,7 @@ pub fn _encode_CertReplaceErr(value_: &CertReplaceErr) -> ASN1Result<X690Element
         components_.push(_encode_CertReplaceErr_code(&value_.code)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3933,7 +3933,7 @@ pub fn _encode_CertUpdateReq(value_: &CertUpdateReq) -> ASN1Result<X690Element> 
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -4069,7 +4069,7 @@ pub fn _encode_CertUpdateRsp(value_: &CertUpdateRsp) -> ASN1Result<X690Element> 
         components_.push(_encode_CertUpdateRsp_result(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -4194,7 +4194,7 @@ pub fn _encode_CertUpdateErr(value_: &CertUpdateErr) -> ASN1Result<X690Element> 
         components_.push(_encode_CASP_error(&value_.code)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -4333,7 +4333,7 @@ pub fn _encode_RejectCAsubscribe(value_: &RejectCAsubscribe) -> ASN1Result<X690E
         components_.push(_encode_CASP_error(&value_.reason)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -5063,7 +5063,7 @@ pub fn _encode_TBOK(value_: &TBOK) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -5179,7 +5179,7 @@ pub fn _encode_TBerror(value_: &TBerror) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -5593,7 +5593,7 @@ pub fn _encode_CertSubscribeReq_certs_Item(
         components_.push(_encode_CertificateSerialNumber(&value_.serialNumber)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -5782,7 +5782,7 @@ pub fn _encode_CertSubscribeOK_Item_ok(
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -5867,7 +5867,7 @@ pub fn _encode_CertSubscribeOK_Item_not_ok(
         components_.push(_encode_CASP_CertStatusCode(&value_.status)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -6033,7 +6033,7 @@ pub fn _encode_CertUnsubscribeReq_certs_Item(
         components_.push(_encode_CertificateSerialNumber(&value_.serialNumber)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -6203,7 +6203,7 @@ pub fn _encode_CertUnsubscribeOK_Item_ok(
         components_.push(_encode_CertificateSerialNumber(&value_.serialNumber)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -6288,7 +6288,7 @@ pub fn _encode_CertUnsubscribeOK_Item_not_ok(
         components_.push(_encode_CASP_CertStatusCode(&value_.status)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -6459,7 +6459,7 @@ pub fn _encode_CertReplaceReq_certs_Item(
         components_.push(_encode_Certificate(&value_.new)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -6619,7 +6619,7 @@ pub fn _encode_CertReplaceOK_Item_ok(value_: &CertReplaceOK_Item_ok) -> ASN1Resu
         components_.push(_encode_CertificateSerialNumber(&value_.serialNumber)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -6704,7 +6704,7 @@ pub fn _encode_CertReplaceOK_Item_not_ok(
         components_.push(_encode_CASP_CertStatusCode(&value_.status)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -6960,7 +6960,7 @@ pub fn _encode_CertUpdateReq_certs_Item(
         components_.push(_encode_CertStatus(&value_.certStatus)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -7118,7 +7118,7 @@ pub fn _encode_CertUpdateOK_Item_ok(value_: &CertUpdateOK_Item_ok) -> ASN1Result
         components_.push(_encode_CertificateSerialNumber(&value_.serialNumber)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -7201,7 +7201,7 @@ pub fn _encode_CertUpdateOK_Item_not_ok(
         components_.push(_encode_CASP_CertStatusCode(&value_.status)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),

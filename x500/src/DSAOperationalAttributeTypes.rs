@@ -447,7 +447,7 @@ pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X69
         }(&value_.agreementID)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -705,7 +705,7 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1004,7 +1004,7 @@ pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result
         }(&value_.consumers)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1407,7 +1407,7 @@ pub fn _encode_supplierOrConsumerInformationMatch_AssertionType(
         }(&value_.agreement_identifier)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)

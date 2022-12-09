@@ -165,7 +165,7 @@ pub fn _encode_OsiBind(value_: &OsiBind) -> ASN1Result<X690Element> {
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -692,7 +692,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
             );
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -956,7 +956,7 @@ pub fn _encode_OsiBindResult(value_: &OsiBindResult) -> ASN1Result<X690Element> 
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -1331,7 +1331,7 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
             );
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -2017,7 +2017,7 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -2254,7 +2254,7 @@ pub fn _encode_TheOsiUnbind(value_: &TheOsiUnbind) -> ASN1Result<X690Element> {
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -2442,7 +2442,7 @@ pub fn _encode_TheOsiUnbindRes(value_: &TheOsiUnbindRes) -> ASN1Result<X690Eleme
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -2690,7 +2690,7 @@ pub fn _encode_OsiReq(value_: &OsiReq) -> ASN1Result<X690Element> {
             components_.push(x690_identity(&value_.argument)?);
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -2776,7 +2776,7 @@ pub fn _encode_OsiRes(value_: &OsiRes) -> ASN1Result<X690Element> {
             components_.push(_encode_OsiRes_result(&value_.result)?);
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -2867,7 +2867,7 @@ pub fn _encode_OsiErr(value_: &OsiErr) -> ASN1Result<X690Element> {
             components_.push(x690_identity(&value_.error)?);
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -2964,7 +2964,7 @@ pub fn _encode_OsiRej(value_: &OsiRej) -> ASN1Result<X690Element> {
             components_.push(_encode_OsiRej_problem(&value_.problem)?);
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
@@ -3312,7 +3312,7 @@ pub fn _encode_ABRT_apdu(value_: &ABRT_apdu) -> ASN1Result<X690Element> {
             }(&value_.abort_source)?);
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(components_)),
             ))
         }(&v_1)?;
@@ -3460,7 +3460,7 @@ pub fn _encode_ARP_PPDU(value_: &ARP_PPDU) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -3612,7 +3612,7 @@ pub fn _encode_OsiBind_mode_selector(value_: &OsiBind_mode_selector) -> ASN1Resu
         }(&value_.mode_value)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -3807,7 +3807,7 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(
 	components_.push(_encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
 	Ok(X690Element::new(
 		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SET,
+		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
 		Arc::new(X690Encoding::Constructed(components_)),
 	))
 }(&value_)
@@ -4076,7 +4076,7 @@ pub fn _encode_OsiBind_normal_mode_parameters(
         )?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -4210,7 +4210,7 @@ pub fn _encode_Context_list_Item(value_: &Context_list_Item) -> ASN1Result<X690E
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -4313,7 +4313,7 @@ pub fn _encode_OsiBindResult_mode_selector(
         }(&value_.mode_value)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -4443,7 +4443,7 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_presentation_context_definit
     }(&value_.transfer_syntax_name)?);
 	Ok(X690Element::new(
 		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SET,
+		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
 		Arc::new(X690Encoding::Constructed(components_)),
 	))
 }(&value_)
@@ -4604,7 +4604,7 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
 	components_.push(_encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
 	Ok(X690Element::new(
 		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SET,
+		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
 		Arc::new(X690Encoding::Constructed(components_)),
 	))
 }(&value_)
@@ -4863,7 +4863,7 @@ pub fn _encode_OsiBindResult_normal_mode_parameters(
         )?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -5142,7 +5142,7 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
 	components_.push(_encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
 	Ok(X690Element::new(
 		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SET,
+		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
 		Arc::new(X690Encoding::Constructed(components_)),
 	))
 }(&value_)
@@ -5431,7 +5431,7 @@ pub fn _encode_OsiBindError_normal_mode_parameters(
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -5593,7 +5593,7 @@ pub fn _encode_Result_list_Item(value_: &Result_list_Item) -> ASN1Result<X690Ele
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -5784,7 +5784,7 @@ pub fn _encode_OsiUnbind_fully_encoded_data_Item(
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -5946,7 +5946,7 @@ pub fn _encode_OsiUnbindResult_fully_encoded_data_Item(
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -6116,7 +6116,7 @@ pub fn _encode_OsiOperation_fully_encoded_data_Item(
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -6187,7 +6187,7 @@ pub fn _encode_OsiRes_result(value_: &OsiRes_result) -> ASN1Result<X690Element> 
         components_.push(x690_identity(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -6417,7 +6417,7 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
 	components_.push(_encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
 	Ok(X690Element::new(
 		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SET,
+		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
 		Arc::new(X690Encoding::Constructed(components_)),
 	))
 }(&value_)
@@ -6615,7 +6615,7 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters(
         )?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -6717,7 +6717,7 @@ pub fn _encode_Presentation_context_identifier_list_Item(
         components_.push(_encode_Transfer_syntax_name(&value_.transfer_syntax_name)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)

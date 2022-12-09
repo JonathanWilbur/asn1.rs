@@ -203,7 +203,7 @@ pub fn _encode_TBSPDU_wrapper(value_: &TBSPDU_wrapper) -> ASN1Result<X690Element
         components_.push(_encode_TBSPDU_wrapper_conf(&value_.conf)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -355,7 +355,7 @@ pub fn _encode_WrappedPDUInfo(value_: &WrappedPDUInfo) -> ASN1Result<X690Element
         components_.push(x690_identity(&value_.pduInfo)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -468,7 +468,7 @@ pub fn _encode_EncryptedInfo(value_: &EncryptedInfo) -> ASN1Result<X690Element> 
         components_.push(_encode_EncryptedPduInfo(&value_.encryptedPduInfo)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -586,7 +586,7 @@ pub fn _encode_KeyAgreement(value_: &KeyAgreement) -> ASN1Result<X690Element> {
         )?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -779,7 +779,7 @@ pub fn _encode_SenderStaticInfo(value_: &SenderStaticInfo) -> ASN1Result<X690Ele
         components_.push(_encode_UserKeyingMaterial(&value_.partyAinfo)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -880,7 +880,7 @@ pub fn _encode_SenderDhPublicKey(value_: &SenderDhPublicKey) -> ASN1Result<X690E
         components_.push(ber_encode_bit_string(&value_.publicKey)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1059,7 +1059,7 @@ pub fn _encode_EncryptedPduInfo(value_: &EncryptedPduInfo) -> ASN1Result<X690Ele
         }(&value_.encryptedPdu)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1448,7 +1448,7 @@ pub fn _encode_KeyAgreement_keyEncryptionAlgorithm(
         components_.push(x690_identity(&value_.parameters)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1537,7 +1537,7 @@ pub fn _encode_EncryptedPduInfo_pduEncryptionAlgorithm(
         components_.push(x690_identity(&value_.parameter)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)

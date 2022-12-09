@@ -308,7 +308,7 @@ pub fn _encode_DsaReferralData(value_: &DsaReferralData) -> ASN1Result<X690Eleme
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1086,7 +1086,7 @@ pub fn _encode_ChainingArguments(value_: &ChainingArguments) -> ASN1Result<X690E
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1394,7 +1394,7 @@ pub fn _encode_ChainingResults(value_: &ChainingResults) -> ASN1Result<X690Eleme
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1516,7 +1516,7 @@ pub fn _encode_CrossReference(value_: &CrossReference) -> ASN1Result<X690Element
         }(&value_.accessPoint)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1648,7 +1648,7 @@ pub fn _encode_OperationProgress(value_: &OperationProgress) -> ASN1Result<X690E
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1830,7 +1830,7 @@ pub fn _encode_TraceItem(value_: &TraceItem) -> ASN1Result<X690Element> {
         }(&value_.operationProgress)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2051,7 +2051,7 @@ pub fn _encode_AccessPoint(value_: &AccessPoint) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2305,7 +2305,7 @@ pub fn _encode_MasterOrShadowAccessPoint(
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2622,7 +2622,7 @@ pub fn _encode_AccessPointInformation(value_: &AccessPointInformation) -> ASN1Re
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -2736,7 +2736,7 @@ pub fn _encode_DitBridgeKnowledge(value_: &DitBridgeKnowledge) -> ASN1Result<X69
         components_.push(_encode_MasterAndShadowAccessPoints(&value_.accessPoints)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3147,7 +3147,7 @@ pub fn _encode_ContinuationReference(value_: &ContinuationReference) -> ASN1Resu
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3308,7 +3308,7 @@ pub fn _encode_DSABindArgument(value_: &DSABindArgument) -> ASN1Result<X690Eleme
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3531,7 +3531,7 @@ pub fn _encode_Chained_ArgumentType_OPTIONALLY_PROTECTED_Parameter1(
         }(&value_.argument)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -3639,7 +3639,7 @@ pub fn _encode_Chained_ResultType_OPTIONALLY_PROTECTED_Parameter1(
         }(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            ASN1_UNIVERSAL_TAG_NUMBER_SET,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -3647,7 +3647,7 @@ pub fn _encode_Chained_ResultType_OPTIONALLY_PROTECTED_Parameter1(
 
 /// ### ASN.1 Definition
 ///
-/// ```
+/// ```asn1
 /// chained{OPERATION:operation} OPERATION ::= {
 ///     ARGUMENT    OPTIONALLY-PROTECTED {Chained-ArgumentType-OPTIONALLY-PROTECTED-Parameter1}
 ///     RESULT      OPTIONALLY-PROTECTED {Chained-ResultType-OPTIONALLY-PROTECTED-Parameter1}

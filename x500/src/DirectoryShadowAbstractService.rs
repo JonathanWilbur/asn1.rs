@@ -198,7 +198,7 @@ pub fn _encode_ModificationParameter(value_: &ModificationParameter) -> ASN1Resu
         );
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -370,7 +370,7 @@ pub fn _encode_ShadowingAgreementInfo(value_: &ShadowingAgreementInfo) -> ASN1Re
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -567,7 +567,7 @@ pub fn _encode_UnitOfReplication(value_: &UnitOfReplication) -> ASN1Result<X690E
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -667,7 +667,7 @@ pub fn _encode_AreaSpecification(value_: &AreaSpecification) -> ASN1Result<X690E
         components_.push(_encode_SubtreeSpecification(&value_.replicationArea)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -782,7 +782,7 @@ pub fn _encode_Knowledge(value_: &Knowledge) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -943,7 +943,7 @@ pub fn _encode_ClassAttributeSelection(
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -1306,7 +1306,7 @@ pub fn _encode_SchedulingParameters(value_: &SchedulingParameters) -> ASN1Result
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1426,7 +1426,7 @@ pub fn _encode_PeriodicStrategy(value_: &PeriodicStrategy) -> ASN1Result<X690Ele
         components_.push(ber_encode_integer(&value_.updateInterval)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1659,7 +1659,7 @@ pub fn _encode_CoordinateShadowUpdateArgumentData(
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
@@ -1981,7 +1981,7 @@ pub fn _encode_CoordinateShadowUpdateResultData(
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
@@ -2179,7 +2179,7 @@ pub fn _encode_RequestShadowUpdateArgumentData(
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
@@ -2502,7 +2502,7 @@ pub fn _encode_RequestShadowUpdateResultData(
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
@@ -2694,7 +2694,7 @@ pub fn _encode_UpdateShadowArgumentData(
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
@@ -3005,7 +3005,7 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
             }
             Ok(X690Element::new(
                 TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET,
+                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
                 Arc::new(X690Encoding::Constructed(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
@@ -3106,7 +3106,7 @@ pub fn _encode_UpdateWindow(value_: &UpdateWindow) -> ASN1Result<X690Element> {
         components_.push(_encode_Time(&value_.stop)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3323,7 +3323,7 @@ pub fn _encode_TotalRefresh(value_: &TotalRefresh) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3544,7 +3544,7 @@ pub fn _encode_SDSEContent(value_: &SDSEContent) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3704,7 +3704,7 @@ pub fn _encode_Subtree(value_: &Subtree) -> ASN1Result<X690Element> {
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -3888,7 +3888,7 @@ pub fn _encode_IncrementalStepRefresh(value_: &IncrementalStepRefresh) -> ASN1Re
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(components_)),
         ))
     }(&value_)
@@ -4122,7 +4122,7 @@ pub fn _encode_ContentChange(value_: &ContentChange) -> ASN1Result<X690Element> 
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -4224,7 +4224,7 @@ pub fn _encode_SubordinateChanges(value_: &SubordinateChanges) -> ASN1Result<X69
         components_.push(_encode_IncrementalStepRefresh(&value_.changes)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -4508,7 +4508,7 @@ pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Eleme
         }
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),

@@ -1603,7 +1603,7 @@ pub fn _encode_UserPwd_encrypted(value_: &UserPwd_encrypted) -> ASN1Result<X690E
         components_.push(ber_encode_octet_string(&value_.encryptedString)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),

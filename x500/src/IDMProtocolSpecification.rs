@@ -484,7 +484,7 @@ pub fn _encode_IdmBindResult(value_: &IdmBindResult) -> ASN1Result<X690Element> 
         }(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -646,7 +646,7 @@ pub fn _encode_IdmBindError(value_: &IdmBindError) -> ASN1Result<X690Element> {
         }(&value_.error)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -749,7 +749,7 @@ pub fn _encode_Request(value_: &Request) -> ASN1Result<X690Element> {
         components_.push(x690_identity(&value_.argument)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -852,7 +852,7 @@ pub fn _encode_IdmResult(value_: &IdmResult) -> ASN1Result<X690Element> {
         components_.push(x690_identity(&value_.result)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -955,7 +955,7 @@ pub fn _encode_Error(value_: &Error) -> ASN1Result<X690Element> {
         components_.push(x690_identity(&value_.error)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
@@ -1071,7 +1071,7 @@ pub fn _encode_IdmReject(value_: &IdmReject) -> ASN1Result<X690Element> {
         components_.push(_encode_IdmReject_reason(&value_.reason)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
             Arc::new(X690Encoding::Constructed(
                 [components_, value_._unrecognized.clone()].concat(),
             )),
