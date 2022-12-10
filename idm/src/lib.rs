@@ -1,5 +1,5 @@
 use std::io::{Write, Result, ErrorKind, Error};
-use std::collections::{VecDeque};
+use std::collections::VecDeque;
 
 pub type Bytes = Vec<u8>;
 
