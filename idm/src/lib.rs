@@ -49,7 +49,6 @@ impl Default for IDMSocketOptions {
 pub struct IDMSocket {
     pub version: u8, // 0 = unset
     
-    /* TODO: Document proper handling. */
     pub encoding: u16,
 
     // I tried an implementation that would not concatenate buffers for the sake
