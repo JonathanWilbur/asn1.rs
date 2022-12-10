@@ -5,4 +5,5 @@ members = [
     "x690",
     "ldap",
     "x500",
+    "idm",
 ]
