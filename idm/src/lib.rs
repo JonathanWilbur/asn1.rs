@@ -38,7 +38,6 @@ pub struct IDMSocketOptions {
 impl Default for IDMSocketOptions {
     
     fn default() -> Self {
-        // FIXME: Actually use these options.
         IDMSocketOptions {
             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
@@ -58,6 +57,8 @@ pub struct IDMSocket {
     // for the ASN.1-encoded data to be parsed anyway.
     buffer: Vec<u8>,
     segments: VecDeque<IDMSegment>,
+    byte_buffer_size: usize,
+    segment_buffer_size: usize,
 }
 
 impl IDMSocket {
@@ -68,6 +69,8 @@ impl IDMSocket {
             encoding: IDM_ENCODING_UNKNOWN,
             buffer: Vec::with_capacity(IDM_DEFAULT_BYTE_BUFFER_SIZE),
             segments: VecDeque::with_capacity(IDM_DEFAULT_SEGMENT_BUFFER_SIZE),
+            byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
+            segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
         }
     }
 
@@ -81,7 +84,7 @@ impl IDMSocket {
         if overflowed {
             return Err(Error::from(ErrorKind::InvalidData));
         }
-        if new_buffer_size > IDM_DEFAULT_BYTE_BUFFER_SIZE {
+        if new_buffer_size > self.byte_buffer_size {
             return Err(Error::from(ErrorKind::InvalidData));
         }
         self.buffer.write(&bytes)?;
@@ -166,7 +169,7 @@ impl IDMSocket {
                 encoding: 0,
                 data_bounds: [ start_of_data, end_of_frame ],
             };
-            if self.segments.len() >= IDM_DEFAULT_SEGMENT_BUFFER_SIZE {
+            if self.segments.len() >= self.segment_buffer_size {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             if self.encoding == IDM_ENCODING_UNKNOWN {
@@ -219,7 +222,7 @@ impl IDMSocket {
                 encoding,
                 data_bounds: [ start_of_data, end_of_frame ],
             };
-            if self.segments.len() >= IDM_DEFAULT_SEGMENT_BUFFER_SIZE {
+            if self.segments.len() >= self.segment_buffer_size {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             self.segments.push_back(seg);
@@ -270,6 +273,8 @@ impl From<IDMSocketOptions> for IDMSocket {
             encoding: IDM_ENCODING_UNKNOWN,
             buffer: Vec::with_capacity(opts.byte_buffer_size),
             segments: VecDeque::with_capacity(opts.segment_buffer_size),
+            byte_buffer_size: opts.byte_buffer_size,
+            segment_buffer_size: opts.segment_buffer_size,
         }
     }
 
