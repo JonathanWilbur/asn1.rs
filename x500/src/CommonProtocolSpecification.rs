@@ -128,7 +128,7 @@ pub fn _encode_Code(value_: &Code) -> ASN1Result<X690Element> {
 ///   absent   NULL,
 ///   ... }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum InvokeId {
     present(INTEGER),
     absent(NULL),

@@ -6,4 +6,5 @@ members = [
     "ldap",
     "x500",
     "idm",
+    "rose-transport",
 ]

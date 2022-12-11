@@ -1,0 +1,432 @@
+use std::io::Result;
+use asn1::{INTEGER, OBJECT_IDENTIFIER, ASN1Value};
+use x500::CommonProtocolSpecification::{Code, InvokeId};
+use x500::CertificateExtensions::GeneralName;
+// use x690::X690Element;
+
+pub type OtherRoseError = u16;
+
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum AbortReason {
+    // From IDM
+    MistypedPDU,
+    UnboundRequest,
+    InvalidPDU,
+    ResourceLimitation,
+    ConnectionFailed,
+    InvalidProtocol,
+    ReasonNotSpecified,
+    // From ACSE
+    ProtocolError,
+    AuthenticationMechanismNameNotRecognized,
+    AuthenticationMechanismNameRequired,
+    AuthenticationFailure,
+    AuthenticationRequired,
+    // From Me
+    Other,
+}
+
+impl Default for AbortReason {
+
+    fn default() -> Self {
+        AbortReason::ReasonNotSpecified
+    }
+
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum RejectReason {
+    MistypedPDU,
+    DuplicateInvokeIdRequest,
+    UnsupportedOperationRequest,
+    UnknownOperationRequest,
+    MistypedArgumentRequest,
+    ResourceLimitationRequest,
+    UnknownInvokeIdResult,
+    MistypedResultRequest,
+    UnknownInvokeIdError,
+    UnknownError,
+    MistypedParameterError,
+    UnsupportedIDMVersion,
+    UnsuitableIDMVersion,
+    InvalidIDMVersion,
+    UnrecognizedPDU,
+    BadlyStructuredPDU,
+    ReleaseInProgress,
+    Other,
+}
+
+impl Default for RejectReason {
+
+    fn default() -> Self {
+        RejectReason::UnknownError
+    }
+
+}
+
+#[derive(Debug, Clone)]
+pub struct BindParameters <ParameterType = ASN1Value> {
+    pub timeout: u32, // 0 = no timeout.
+    pub protocol_id: OBJECT_IDENTIFIER,
+    pub parameter: ParameterType,
+    pub calling_ae_title: Option<GeneralName>,
+    pub calling_ap_invocation_identifier: Option<INTEGER>,
+    pub calling_ae_invocation_identifier: Option<INTEGER>,
+    pub called_ae_title: Option<GeneralName>,
+    pub called_ap_invocation_identifier: Option<INTEGER>,
+    pub called_ae_invocation_identifier: Option<INTEGER>,
+    pub implementation_information: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BindResultOrErrorParameters <ParameterType = ASN1Value> {
+    pub protocol_id: OBJECT_IDENTIFIER,
+    pub parameter: ParameterType,
+    pub responding_ae_title: Option<GeneralName>,
+    pub responding_ap_invocation_identifier: Option<INTEGER>,
+    pub responding_ae_invocation_identifier: Option<INTEGER>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestParameters <ParameterType = ASN1Value> {
+    pub invoke_id: InvokeId,
+    pub code: Code,
+    pub parameter: ParameterType,
+    pub linked_id: Option<InvokeId>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ResultOrErrorParameters <ParameterType = ASN1Value> {
+    pub invoke_id: InvokeId,
+    pub code: Code,
+    pub parameter: ParameterType,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct RejectParameters {
+    pub invoke_id: InvokeId,
+    pub reason: RejectReason,
+}
+
+#[derive(Debug, Clone)]
+pub struct UnbindParameters <ParameterType = ASN1Value> {
+    pub timeout: u32, // 0 = no timeout.
+    pub parameter: Option<ParameterType>,
+}
+
+#[derive(Debug, Clone)]
+pub struct UnbindResultOrErrorParameters <ParameterType = ASN1Value> {
+    pub parameter: Option<ParameterType>,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct StartTLSParameters {
+    pub timeout: u32, // 0 = no timeout.
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TLSResponseParameters {
+    pub code: u8,
+}
+
+#[derive(Debug, Clone)]
+pub enum RosePDU {
+    Bind(BindParameters),
+    BindResult(BindResultOrErrorParameters),
+    BindError(BindResultOrErrorParameters),
+    Request(RequestParameters),
+    Result(ResultOrErrorParameters),
+    Error(ResultOrErrorParameters),
+    Reject(RejectParameters),
+    Unbind(UnbindParameters),
+    UnbindResult(UnbindResultOrErrorParameters),
+    UnbindError(UnbindResultOrErrorParameters),
+    Abort(AbortReason),
+    StartTLS(StartTLSParameters),
+    StartTLSResponse(TLSResponseParameters),
+}
+
+// export
+// class ROSETransportEventEmitter extends TypedEmitter<ROSETransportEvents> {
+
+// }
+
+// export
+// interface ROSEInvocationEvents {
+//     [invoke_id: string]: (outcome: OperationOutcome) -> Result<()>,
+// }
+
+// export
+// class ROSEInvocationEventEmitter extends TypedEmitter<ROSEInvocationEvents> {
+
+// }
+
+#[derive(Debug, Clone)]
+pub enum BindOutcome <BindResultType = ASN1Value, BindErrorType = ASN1Value> {
+    Result(BindResultOrErrorParameters<BindResultType>),
+    Error(BindResultOrErrorParameters<BindErrorType>),
+    Abort(AbortReason),
+    Timeout,
+    Other(OtherRoseError),
+}
+
+#[derive(Debug, Clone)]
+pub enum OperationOutcome <ResultType = ASN1Value, ErrorType = ASN1Value> {
+    Result(ResultOrErrorParameters<ResultType>),
+    Error(ResultOrErrorParameters<ErrorType>),
+    Reject(RejectParameters),
+    Abort(AbortReason),
+    Timeout,
+    Other(OtherRoseError),
+}
+
+#[derive(Debug, Clone)]
+pub enum UnbindOutcome <ResultType = ASN1Value, ErrorType = ASN1Value> {
+    Result(ResultType),
+    Error(ErrorType),
+    Abort(AbortReason),
+    Timeout,
+    Other(OtherRoseError),
+}
+
+#[derive(Debug, Clone)]
+pub enum StartTLSOutcome {
+    Response(TLSResponseParameters),
+    NotSupportedLocally,
+    AlreadyInUse,
+    Abort(AbortReason),
+    Timeout,
+    Other(OtherRoseError),
+}
+
+#[derive(Debug, Clone)]
+pub struct ROSETransportOptions {
+    pub operation_timeout_ms: u32,
+}
+
+#[derive(Debug, Clone)]
+pub struct ROSETransport {
+    pub protocol: Option<OBJECT_IDENTIFIER>,
+    // events
+    pub is_bound: bool,
+    pub options: ROSETransportOptions,
+}
+
+pub trait ROSETransmitter {
+    fn write_rose_pdu (pdu: RosePDU) -> Result<()>;
+    fn write_bind (params: BindParameters) -> Result<()>;
+    fn write_bind_result (params: BindResultOrErrorParameters) -> Result<()>;
+    fn write_bind_error (params: BindResultOrErrorParameters) -> Result<()>;
+    fn write_request (params: RequestParameters) -> Result<()>;
+    fn write_result (params: ResultOrErrorParameters) -> Result<()>;
+    fn write_error (params: ResultOrErrorParameters) -> Result<()>;
+    fn write_reject (params: RejectParameters) -> Result<()>;
+    fn write_unbind (params: Option<UnbindParameters>) -> Result<()>;
+    fn write_unbind_result (param: UnbindParameters) -> Result<()>;
+    fn write_unbind_error () -> Result<()>;
+    fn write_abort (reason: AbortReason) -> Result<()>;
+    fn write_start_tls (params: StartTLSParameters) -> Result<()>;
+    fn write_tls_response (params: TLSResponseParameters) -> Result<()>;
+}
+
+pub trait ROSEReceiver {
+    fn read_rose_pdu () -> Option<RosePDU>;
+}
+
+// trait AsyncROSEClient <BindArgumentType = ASN1Value, BindResultType = ASN1Value> {
+//     fn bind (params: BindParameters<BindArgumentType>) -> BindOutcome<BindResultType>;
+// }
+
+// export
+// interface AsyncROSEClient <BindArgumentType = ASN1Element, BindResultType = ASN1Element> {
+//     // Async/Await Client API
+//     bind: (params: BindParameters<BindArgumentType>) => Promise<BindOutcome<BindResultType>>;
+//     request: (params: RequestParameters) => Promise<OperationOutcome>;
+//     unbind: (param?: UnbindParameters) => Promise<UnbindOutcome>;
+//     startTLS?: (params?: StartTLSParameters) => Promise<StartTLSOutcome>;
+// }
+
+// export
+// interface ROSETransport extends AsyncROSEClient {
+//     socket: Socket | TLSSocket | null;
+//     protocol?: OBJECT_IDENTIFIER;
+//     events: ROSETransportEventEmitter;
+//     invocation_events: ROSEInvocationEventEmitter;
+//     is_bound: boolean;
+//     options?: ROSETransportOptions;
+
+//     // Low-Level API
+//     write_bind: (params: BindParameters) -> Result<()>,
+//     write_bind_result: (params: BindResultParameters) -> Result<()>,
+//     write_bind_error: (params: BindErrorParameters) -> Result<()>,
+//     write_request: (params: RequestParameters) -> Result<()>,
+//     write_result: (params: ResultParameters) -> Result<()>,
+//     write_error: (params: ErrorParameters) -> Result<()>,
+//     write_reject: (params: RejectParameters) -> Result<()>,
+//     write_unbind: (params?: UnbindParameters) -> Result<()>,
+//     write_unbind_result: (param?: ASN1Element) -> Result<()>,
+//     write_unbind_error: (param?: ASN1Element) -> Result<()>,
+//     write_abort: (reason: AbortReason) -> Result<()>,
+
+//     write_start_tls?: (params?: StartTLSParameters) -> Result<()>,
+//     write_tls_response?: (params?: TLSResponseParameters) -> Result<()>,
+// }
+
+// export
+// function new_rose_transport (socket?: Socket | TLSSocket): ROSETransport {
+//     const rose: ROSETransport = {
+//         socket: socket ?? null,
+//         events: new ROSETransportEventEmitter(),
+//         invocation_events: new ROSEInvocationEventEmitter(),
+//         is_bound: false,
+//         write_bind: () => {},
+//         write_bind_result: () => {},
+//         write_bind_error: () => {},
+//         write_request: () => {},
+//         write_result: () => {},
+//         write_error: () => {},
+//         write_reject: () => {},
+//         write_unbind: () => {},
+//         write_unbind_result: () => {},
+//         write_unbind_error: () => {},
+//         write_abort: () => {},
+//         bind: (params) => new Promise((resolve) => {
+//             const done = (): void => {
+//                 rose.events.off("bind_result", result_handler);
+//                 rose.events.off("bind_error", error_handler);
+//                 rose.events.off("abort", abort_handler);
+//                 rose.socket?.off("timeout", timeout_function);
+//                 rose.socket?.off("end", end_function);
+//                 if (timeout_handle) {
+//                     clearTimeout(timeout_handle);
+//                     timeout_handle = undefined;
+//                 }
+//             };
+//             const result_handler = (result: BindResultParameters) => (done(), resolve({ result }));
+//             const error_handler = (error: BindErrorParameters) => (done(), resolve({ error }));
+//             const abort_handler = (reason: AbortReason) => (done(), resolve({ abort: reason }));
+//             let timeout_handle: NodeJS.Timeout | undefined;
+//             rose.events.once("bind_result", result_handler);
+//             rose.events.once("bind_error", error_handler);
+//             rose.events.once("abort", abort_handler);
+//             const timeout_in_ms: number | undefined = params.timeout ?? rose.options?.operation_timeout_ms;
+//             const timeout_function = () => (done(), resolve({ timeout: true }));
+//             const end_function = () => (done(), resolve({ other: { message: "Socket closed." } }));
+//             if (Number.isSafeInteger(timeout_in_ms) && (timeout_in_ms! > 0)) {
+//                 timeout_handle = setTimeout(
+//                     timeout_function,
+//                     timeout_in_ms,
+//                 );
+//             }
+//             rose.socket?.once("timeout", timeout_function);
+//             rose.socket?.once("end", end_function);
+//             rose.write_bind(params);
+//         }),
+//         request: async (params) => new Promise((resolve) => {
+//             const done = (): void => {
+//                 rose.invocation_events.off(params.invoke_id.toString(), outcome_handler);
+//                 rose.events.off("abort", abort_handler);
+//                 rose.socket?.off("timeout", timeout_function);
+//                 rose.socket?.off("end", end_function);
+//                 if (timeout_handle) {
+//                     clearTimeout(timeout_handle);
+//                     timeout_handle = undefined;
+//                 }
+//             };
+//             const outcome_handler = (outcome: OperationOutcome) => (done(), resolve(outcome));
+//             const abort_handler = (reason: AbortReason) => (done(), resolve({ abort: reason }));
+//             let timeout_handle: NodeJS.Timeout | undefined;
+//             rose.invocation_events.once(params.invoke_id.toString(), outcome_handler);
+//             rose.events.once("abort", abort_handler);
+//             const timeout_in_ms: number | undefined = params.timeout ?? rose.options?.operation_timeout_ms;
+//             const timeout_function = () => (done(), resolve({ timeout: true }));
+//             const end_function = () => (done(), resolve({ other: { message: "Socket closed." } }));
+//             if (Number.isSafeInteger(timeout_in_ms) && (timeout_in_ms! > 0)) {
+//                 timeout_handle = setTimeout(
+//                     timeout_function,
+//                     timeout_in_ms,
+//                 );
+//             }
+//             rose.socket?.once("timeout", timeout_function);
+//             rose.socket?.once("end", end_function);
+//             rose.write_request(params);
+//         }),
+//         unbind: async (params) => new Promise((resolve) => {
+//             const done = (): void => {
+//                 rose.events.off("unbind_result", result_handler);
+//                 rose.events.off("unbind_error", error_handler);
+//                 rose.events.off("abort", abort_handler);
+//                 rose.socket?.off("timeout", timeout_function);
+//                 rose.socket?.off("end", end_function);
+//                 if (timeout_handle) {
+//                     clearTimeout(timeout_handle);
+//                     timeout_handle = undefined;
+//                 }
+//             };
+//             const result_handler = (result?: ASN1Element) => (done(), resolve({ result: result ?? null }));
+//             const error_handler = (error?: ASN1Element) => (done(), resolve({ error: error ?? null }));
+//             const abort_handler = (reason: AbortReason) => (done(), resolve({ abort: reason }));
+//             let timeout_handle: NodeJS.Timeout | undefined;
+//             rose.events.once("unbind_result", result_handler);
+//             rose.events.once("unbind_error", error_handler);
+//             rose.events.once("abort", abort_handler);
+//             const timeout_in_ms: number | undefined = params?.timeout ?? rose.options?.operation_timeout_ms;
+//             const timeout_function = () => (done(), resolve({ timeout: true }));
+//             const end_function = () => (done(), resolve({ other: { message: "Socket closed." } }));
+//             if (Number.isSafeInteger(timeout_in_ms) && (timeout_in_ms! > 0)) {
+//                 timeout_handle = setTimeout(
+//                     timeout_function,
+//                     timeout_in_ms,
+//                 );
+//             }
+//             rose.socket?.once("timeout", timeout_function);
+//             rose.socket?.once("end", end_function);
+//             rose.write_unbind(params);
+//         }),
+//         startTLS: async (params): Promise<StartTLSOutcome> => new Promise((resolve) => {
+//             if (!rose.write_start_tls) {
+//                 resolve({ not_supported_locally: null });
+//                 return;
+//             }
+//             if (rose.socket instanceof TLSSocket) {
+//                 resolve({ already_in_use: null });
+//                 return;
+//             }
+//             const done = (): void => {
+//                 rose.events.off("start_tls_response", response_handler);
+//                 rose.events.off("abort", abort_handler);
+//                 rose.socket?.off("timeout", timeout_function);
+//                 rose.socket?.off("end", end_function);
+//                 if (timeout_handle) {
+//                     clearTimeout(timeout_handle);
+//                     timeout_handle = undefined;
+//                 }
+//             };
+//             let timeout_handle: NodeJS.Timeout | undefined;
+//             const response_handler = (params: TLSResponseParameters) => (done(), resolve({ response: params.code }));
+//             const abort_handler = (reason: AbortReason) => (done(), resolve({ abort: reason }));
+//             const timeout_in_ms: number | undefined = params?.timeout ?? rose.options?.operation_timeout_ms;
+//             const timeout_function = () => (done(), resolve({ timeout: true }));
+//             const end_function = () => (done(), resolve({ other: { message: "Socket closed." } }));
+//             if (Number.isSafeInteger(timeout_in_ms) && (timeout_in_ms! > 0)) {
+//                 timeout_handle = setTimeout(
+//                     timeout_function,
+//                     timeout_in_ms,
+//                 );
+//             }
+//             rose.events.once("start_tls_response", response_handler);
+//             rose.events.once("abort", abort_handler);
+//             rose.socket?.once("timeout", timeout_function);
+//             rose.socket?.once("end", end_function);
+//             rose.write_start_tls();
+//         }),
+//     };
+//     rose.events.on("result", (result) => rose
+//         .invocation_events.emit(result.invoke_id.toString(), { result }));
+//     rose.events.on("error_", (error) => rose
+//         .invocation_events.emit(error.invoke_id.toString(), { error }));
+//     rose.events.on("reject", (reject) => rose
+//         .invocation_events.emit(reject.invoke_id.toString(), { reject }));
+//     return rose;
+// }
