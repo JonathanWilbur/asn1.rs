@@ -1,7 +1,5 @@
-use rose_transport::{
-    ROSETransmitter,
-    ROSEReceiver,
-};
+#![allow(non_upper_case_globals)]
+
 pub mod idm;
 
 pub struct ROSEClient<TransportType> {

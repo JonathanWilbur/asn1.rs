@@ -239,18 +239,18 @@ pub trait ROSETransmitter <ParameterType = ASN1Value>
 
     // Default implementations, since these are not guaranteed to be defined for
     // all ROSE transports.
-    async fn write_unbind_result (self: &mut Self, params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
+    async fn write_unbind_result (self: &mut Self, _params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
         where ParameterType: 'async_trait {
         Ok(0)
     }
-    async fn write_unbind_error (self: &mut Self, params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
+    async fn write_unbind_error (self: &mut Self, _params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
         where ParameterType: 'async_trait {
         Ok(0)
     }
-    async fn write_start_tls (self: &mut Self, params: StartTLSParameters) -> Result<usize> {
+    async fn write_start_tls (self: &mut Self, _params: StartTLSParameters) -> Result<usize> {
         Err(Error::from(ErrorKind::Unsupported))
     }
-    async fn write_tls_response (self: &mut Self, params: TLSResponseParameters) -> Result<usize> {
+    async fn write_tls_response (self: &mut Self, _params: TLSResponseParameters) -> Result<usize> {
         Err(Error::from(ErrorKind::Unsupported))
     }
 
@@ -274,8 +274,9 @@ pub trait ROSETransmitter <ParameterType = ASN1Value>
     }
 }
 
-pub trait ROSEReceiver {
-    fn read_rose_pdu () -> Option<RosePDU>;
+pub trait ROSEReceiver<T, E>
+    where T : Send {
+    fn read_rose_pdu (self: &mut Self) -> std::result::Result<Option<RosePDU<T>>, E>;
 }
 
 // trait AsyncROSEClient <BindArgumentType = ASN1Value, BindResultType = ASN1Value> {

@@ -3,7 +3,6 @@ use asn1::ENUMERATED;
 use idm::IDMSocket;
 use rose_transport::{
     ROSEReceiver,
-    ROSETransport,
     ROSETransmitter,
     BindParameters,
     BindResultOrErrorParameters,
@@ -11,28 +10,15 @@ use rose_transport::{
     ResultOrErrorParameters,
     RejectParameters,
     UnbindParameters,
-    AbortReason, RejectReason,
+    AbortReason,
+    RejectReason,
+    RosePDU,
+    StartTLSParameters,
+    TLSResponseParameters,
 };
 use x500::{IDMProtocolSpecification::*, CommonProtocolSpecification::InvokeId};
-// use x500::IDMProtocolSpecification::{
-//     IdmReject_reason_duplicateInvokeIDRequest,
-//     IdmReject_reason_invalidIdmVersion,
-//     IdmReject_reason_mistypedArgumentRequest,
-//     IdmReject_reason_mistypedParameterError,
-//     IdmReject_reason_mistypedPDU,
-//     IdmReject_reason_mistypedResultRequest,
-//     IdmReject_reason_resourceLimitationRequest,
-//     IdmReject_reason_unknownError,
-//     IdmReject_reason_unknownInvokeIDError,
-//     IdmReject_reason_unknownInvokeIDResult,
-//     IdmReject_reason_unknownOperationRequest,
-//     IdmReject_reason_unsuitableIdmVersion,
-//     IdmReject_reason_unsupportedIdmVersion,
-//     IdmReject_reason_unsupportedOperationRequest,
-// };
-use x690::{X690Element, write_x690_node};
+use x690::{X690Element, write_x690_node, ber_cst};
 use async_trait::async_trait;
-// use tokio::net::TcpStream;
 
 use crate::ROSEClient;
 
@@ -158,6 +144,27 @@ fn reject_reason_to_integer (rr: RejectReason) -> Option<ENUMERATED> {
 }
 
 #[inline]
+fn integer_to_reject_reason (rr: ENUMERATED) -> Option<RejectReason> {
+    match rr {
+        IdmReject_reason_duplicateInvokeIDRequest => Some(RejectReason::DuplicateInvokeIdRequest),
+        IdmReject_reason_invalidIdmVersion => Some(RejectReason::InvalidIDMVersion),
+        IdmReject_reason_mistypedArgumentRequest => Some(RejectReason::MistypedArgumentRequest),
+        IdmReject_reason_mistypedParameterError => Some(RejectReason::MistypedParameterError),
+        IdmReject_reason_mistypedPDU => Some(RejectReason::MistypedPDU),
+        IdmReject_reason_mistypedResultRequest => Some(RejectReason::MistypedResultRequest),
+        IdmReject_reason_resourceLimitationRequest => Some(RejectReason::ResourceLimitationRequest),
+        IdmReject_reason_unknownError => Some(RejectReason::UnknownError),
+        IdmReject_reason_unknownInvokeIDError => Some(RejectReason::UnknownInvokeIdError),
+        IdmReject_reason_unknownInvokeIDResult => Some(RejectReason::UnknownInvokeIdResult),
+        IdmReject_reason_unknownOperationRequest => Some(RejectReason::UnknownOperationRequest),
+        IdmReject_reason_unsuitableIdmVersion => Some(RejectReason::UnsuitableIDMVersion),
+        IdmReject_reason_unsupportedIdmVersion => Some(RejectReason::UnsupportedIDMVersion),
+        IdmReject_reason_unsupportedOperationRequest => Some(RejectReason::UnsupportedOperationRequest),
+        _ => None,
+    }
+}
+
+#[inline]
 fn abort_reason_to_integer (ar: AbortReason) -> Option<ENUMERATED> {
     match ar {
         AbortReason::MistypedPDU => Some(Abort_mistypedPDU),
@@ -173,6 +180,20 @@ fn abort_reason_to_integer (ar: AbortReason) -> Option<ENUMERATED> {
         AbortReason::AuthenticationFailure => Some(Abort_reasonNotSpecified),
         AbortReason::AuthenticationRequired => Some(Abort_reasonNotSpecified),
         AbortReason::Other => Some(Abort_reasonNotSpecified),
+    }
+}
+
+#[inline]
+fn integer_to_abort_reason (ar: ENUMERATED) -> Option<AbortReason> {
+    match ar {
+        Abort_mistypedPDU => Some(AbortReason::MistypedPDU),
+        Abort_unboundRequest => Some(AbortReason::UnboundRequest),
+        Abort_invalidPDU => Some(AbortReason::InvalidPDU),
+        Abort_resourceLimitation => Some(AbortReason::ResourceLimitation),
+        Abort_connectionFailed => Some(AbortReason::ConnectionFailed),
+        Abort_invalidProtocol => Some(AbortReason::InvalidProtocol),
+        Abort_reasonNotSpecified => Some(AbortReason::ReasonNotSpecified),
+        _ => None,
     }
 }
 
@@ -299,6 +320,119 @@ impl ROSETransmitter<X690Element> for ROSEClient<IDMSocket<Vec<u8>>> {
         write_idm_pdu(&mut self.transport, &idm_pdu).await
     }
 
+
+}
+
+impl ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IDMSocket<Vec<u8>>> {
+
+    fn read_rose_pdu (&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
+        let (encoding, idm_pdu_bytes) = match self.transport.read_pdu() {
+            Some((encoding, idm_pdu_bytes)) => (encoding, idm_pdu_bytes),
+            None => return Ok(None),
+        };
+        if
+            idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
+            && idm_pdu_bytes[0] != 0xA0 // ...and the PDU is a bind, and...
+            && encoding > 1 // ...something other than BER or DER encoding is used...
+        { // We don't support this encoding, so we return an error.
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+        let idm_pdu_element = match ber_cst(&idm_pdu_bytes) {
+            Ok((bytes_read, element)) => {
+                if bytes_read != idm_pdu_bytes.len() {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                element
+            },
+            Err(_e) => return Err(Error::from(ErrorKind::InvalidData)),
+        };
+        let pdu = match _decode_IDM_PDU(&idm_pdu_element) {
+            Ok(pdu) => pdu,
+            Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        };
+        match pdu {
+            IDM_PDU::bind(bind) => {
+                Ok(Some(RosePDU::Bind(BindParameters {
+                    protocol_id: bind.protocolID,
+                    calling_ae_title: bind.callingAETitle,
+                    called_ae_title: bind.calledAETitle,
+                    parameter: bind.argument,
+                    implementation_information: None,
+                    called_ae_invocation_identifier: None,
+                    called_ap_invocation_identifier: None,
+                    calling_ae_invocation_identifier: None,
+                    calling_ap_invocation_identifier: None,
+                    timeout: 0,
+                })))
+            },
+            IDM_PDU::bindResult(bind_result) => {
+                Ok(Some(RosePDU::BindResult(BindResultOrErrorParameters {
+                    protocol_id: bind_result.protocolID,
+                    parameter: bind_result.result,
+                    responding_ae_title: bind_result.respondingAETitle,
+                    responding_ae_invocation_identifier: None,
+                    responding_ap_invocation_identifier: None,
+                })))
+            },
+            IDM_PDU::bindError(bind_error) => {
+                Ok(Some(RosePDU::BindError(BindResultOrErrorParameters {
+                    protocol_id: bind_error.protocolID,
+                    parameter: bind_error.error,
+                    responding_ae_title: bind_error.respondingAETitle,
+                    responding_ae_invocation_identifier: None,
+                    responding_ap_invocation_identifier: None,
+                })))
+            },
+            IDM_PDU::request(request) => {
+                Ok(Some(RosePDU::Request(RequestParameters {
+                    code: request.opcode,
+                    invoke_id: InvokeId::present(request.invokeID),
+                    parameter: request.argument,
+                    linked_id: None,
+                })))
+            },
+            IDM_PDU::result(result) => {
+                Ok(Some(RosePDU::Result(ResultOrErrorParameters {
+                    code: result.opcode,
+                    invoke_id: InvokeId::present(result.invokeID),
+                    parameter: result.result,
+                })))
+            },
+            IDM_PDU::error(error) => {
+                Ok(Some(RosePDU::Error(ResultOrErrorParameters {
+                    code: error.errcode,
+                    invoke_id: InvokeId::present(error.invokeID),
+                    parameter: error.error,
+                })))
+            },
+            IDM_PDU::reject(reject) => {
+                Ok(Some(RosePDU::Reject(RejectParameters {
+                    invoke_id: InvokeId::present(reject.invokeID),
+                    reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
+                })))
+            },
+            IDM_PDU::unbind(_unbind) => {
+                Ok(Some(RosePDU::Unbind(UnbindParameters {
+                    parameter: None,
+                    timeout: 0,
+                })))
+            },
+            IDM_PDU::abort(abort) => {
+                Ok(Some(RosePDU::Abort(integer_to_abort_reason(abort).unwrap_or_default())))
+            },
+            IDM_PDU::startTLS(_start_tls) => {
+                Ok(Some(RosePDU::StartTLS(StartTLSParameters::default())))
+            },
+            IDM_PDU::tLSResponse(tls_response) => {
+                Ok(Some(RosePDU::StartTLSResponse(TLSResponseParameters {
+                    code: tls_response.max(99) as u8,
+                })))
+            },
+            IDM_PDU::_unrecognized(_unrecognized) => {
+                Err(Error::from(ErrorKind::Unsupported))
+            },
+        }
+    }
 
 }
 
