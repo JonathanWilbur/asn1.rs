@@ -1,8 +1,8 @@
-use std::io::Result;
+use std::io::{Result, Error, ErrorKind};
 use asn1::{INTEGER, OBJECT_IDENTIFIER, ASN1Value};
 use x500::CommonProtocolSpecification::{Code, InvokeId};
 use x500::CertificateExtensions::GeneralName;
-// use x690::X690Element;
+use async_trait::async_trait;
 
 pub type OtherRoseError = u16;
 
@@ -60,7 +60,7 @@ pub enum RejectReason {
 impl Default for RejectReason {
 
     fn default() -> Self {
-        RejectReason::UnknownError
+        RejectReason::MistypedPDU
     }
 
 }
@@ -116,7 +116,8 @@ pub struct UnbindParameters <ParameterType = ASN1Value> {
 }
 
 #[derive(Debug, Clone)]
-pub struct UnbindResultOrErrorParameters <ParameterType = ASN1Value> {
+pub struct UnbindResultOrErrorParameters <ParameterType = ASN1Value>
+    where ParameterType : Send {
     pub parameter: Option<ParameterType>,
 }
 
@@ -131,17 +132,18 @@ pub struct TLSResponseParameters {
 }
 
 #[derive(Debug, Clone)]
-pub enum RosePDU {
-    Bind(BindParameters),
-    BindResult(BindResultOrErrorParameters),
-    BindError(BindResultOrErrorParameters),
-    Request(RequestParameters),
-    Result(ResultOrErrorParameters),
-    Error(ResultOrErrorParameters),
+pub enum RosePDU <ParameterType = ASN1Value>
+    where ParameterType : Send {
+    Bind(BindParameters<ParameterType>),
+    BindResult(BindResultOrErrorParameters<ParameterType>),
+    BindError(BindResultOrErrorParameters<ParameterType>),
+    Request(RequestParameters<ParameterType>),
+    Result(ResultOrErrorParameters<ParameterType>),
+    Error(ResultOrErrorParameters<ParameterType>),
     Reject(RejectParameters),
-    Unbind(UnbindParameters),
-    UnbindResult(UnbindResultOrErrorParameters),
-    UnbindError(UnbindResultOrErrorParameters),
+    Unbind(UnbindParameters<ParameterType>),
+    UnbindResult(UnbindResultOrErrorParameters<ParameterType>),
+    UnbindError(UnbindResultOrErrorParameters<ParameterType>),
     Abort(AbortReason),
     StartTLS(StartTLSParameters),
     StartTLSResponse(TLSResponseParameters),
@@ -213,21 +215,63 @@ pub struct ROSETransport {
     pub options: ROSETransportOptions,
 }
 
-pub trait ROSETransmitter {
-    fn write_rose_pdu (pdu: RosePDU) -> Result<()>;
-    fn write_bind (params: BindParameters) -> Result<()>;
-    fn write_bind_result (params: BindResultOrErrorParameters) -> Result<()>;
-    fn write_bind_error (params: BindResultOrErrorParameters) -> Result<()>;
-    fn write_request (params: RequestParameters) -> Result<()>;
-    fn write_result (params: ResultOrErrorParameters) -> Result<()>;
-    fn write_error (params: ResultOrErrorParameters) -> Result<()>;
-    fn write_reject (params: RejectParameters) -> Result<()>;
-    fn write_unbind (params: Option<UnbindParameters>) -> Result<()>;
-    fn write_unbind_result (param: UnbindParameters) -> Result<()>;
-    fn write_unbind_error () -> Result<()>;
-    fn write_abort (reason: AbortReason) -> Result<()>;
-    fn write_start_tls (params: StartTLSParameters) -> Result<()>;
-    fn write_tls_response (params: TLSResponseParameters) -> Result<()>;
+#[async_trait]
+pub trait ROSETransmitter <ParameterType = ASN1Value>
+    where ParameterType: Send {
+    async fn write_bind (self: &mut Self, params: BindParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_bind_result (self: &mut Self, params: BindResultOrErrorParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_bind_error (self: &mut Self, params: BindResultOrErrorParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_request (self: &mut Self, params: RequestParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_result (self: &mut Self, params: ResultOrErrorParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_error (self: &mut Self, params: ResultOrErrorParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_reject (self: &mut Self, params: RejectParameters) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_unbind (self: &mut Self, params: UnbindParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait;
+    async fn write_abort (self: &mut Self, reason: AbortReason) -> Result<usize>
+        where ParameterType: 'async_trait;
+
+    // Default implementations, since these are not guaranteed to be defined for
+    // all ROSE transports.
+    async fn write_unbind_result (self: &mut Self, params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait {
+        Ok(0)
+    }
+    async fn write_unbind_error (self: &mut Self, params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait {
+        Ok(0)
+    }
+    async fn write_start_tls (self: &mut Self, params: StartTLSParameters) -> Result<usize> {
+        Err(Error::from(ErrorKind::Unsupported))
+    }
+    async fn write_tls_response (self: &mut Self, params: TLSResponseParameters) -> Result<usize> {
+        Err(Error::from(ErrorKind::Unsupported))
+    }
+
+    async fn write_rose_pdu (self: &mut Self, pdu: RosePDU<ParameterType>) -> Result<usize>
+        where ParameterType: 'async_trait {
+        match pdu {
+            RosePDU::Bind(params) => Self::write_bind(self, params).await,
+            RosePDU::BindResult(params) => Self::write_bind_result(self, params).await,
+            RosePDU::BindError(params) => Self::write_bind_error(self, params).await,
+            RosePDU::Request(params) => Self::write_request(self, params).await,
+            RosePDU::Result(params) => Self::write_result(self, params).await,
+            RosePDU::Error(params) => Self::write_error(self, params).await,
+            RosePDU::Reject(params) => Self::write_reject(self, params).await,
+            RosePDU::Unbind(params) => Self::write_unbind(self, params).await,
+            RosePDU::UnbindResult(params) => Self::write_unbind_result(self, params).await,
+            RosePDU::UnbindError(params) => Self::write_unbind_error(self, params).await,
+            RosePDU::Abort(params) => Self::write_abort(self, params).await,
+            RosePDU::StartTLS(params) => Self::write_start_tls(self, params).await,
+            RosePDU::StartTLSResponse(params) => Self::write_tls_response(self, params).await,
+        }
+    }
 }
 
 pub trait ROSEReceiver {

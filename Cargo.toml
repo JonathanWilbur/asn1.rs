@@ -7,4 +7,5 @@ members = [
     "x500",
     "idm",
     "rose-transport",
+    "x500-client",
 ]

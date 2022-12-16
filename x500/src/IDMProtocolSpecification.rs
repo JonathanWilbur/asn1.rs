@@ -874,14 +874,14 @@ pub fn _encode_IdmResult(value_: &IdmResult) -> ASN1Result<X690Element> {
 #[derive(Debug, Clone)]
 pub struct Error {
     pub invokeID: INTEGER,
-    pub errcode: X690Element,
+    pub errcode: Code,
     pub error: X690Element,
     pub _unrecognized: Vec<X690Element>,
 }
 impl Error {
     pub fn new(
         invokeID: INTEGER,
-        errcode: X690Element,
+        errcode: Code,
         error: X690Element,
         _unrecognized: Vec<X690Element>,
     ) -> Self {
@@ -936,7 +936,7 @@ pub fn _decode_Error(el: &X690Element) -> ASN1Result<Error> {
             _rctl2_components_for_Error,
         )?;
         let invokeID = ber_decode_integer(_components.get("invokeID").unwrap())?;
-        let errcode = x690_identity(_components.get("errcode").unwrap())?;
+        let errcode = _decode_Code(_components.get("errcode").unwrap())?;
         let error = x690_identity(_components.get("error").unwrap())?;
         Ok(Error {
             invokeID,
@@ -951,7 +951,7 @@ pub fn _encode_Error(value_: &Error) -> ASN1Result<X690Element> {
     |value_: &Error| -> ASN1Result<X690Element> {
         let mut components_: Vec<X690Element> = Vec::with_capacity(13);
         components_.push(ber_encode_integer(&value_.invokeID)?);
-        components_.push(x690_identity(&value_.errcode)?);
+        components_.push(_encode_Code(&value_.errcode)?);
         components_.push(x690_identity(&value_.error)?);
         Ok(X690Element::new(
             TagClass::UNIVERSAL,

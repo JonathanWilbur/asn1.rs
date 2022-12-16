@@ -1,5 +1,5 @@
 [package]
-name = "rose-transport"
+name = "x500-client"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,6 +7,9 @@ edition = "2021"
 
 [dependencies]
 asn1 = { path = "../asn1" }
+idm = { path = "../idm" }
+rose-transport = { path = "../rose-transport" }
 x500 = { path = "../x500" }
 x690 = { path = "../x690" }
+tokio = { version = "1", features = ["net"] }
 async-trait = "0.1.59"

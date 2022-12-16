@@ -1,5 +1,7 @@
-use std::io::{Write, Result, ErrorKind, Error};
+use std::io::{Result, ErrorKind, Error};
 use std::collections::VecDeque;
+// use tokio::io::AsyncWrite;
+use tokio::io::AsyncWriteExt;
 
 pub type Bytes = Vec<u8>;
 
@@ -30,26 +32,28 @@ pub struct IDMSegment {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct IDMSocketOptions {
+pub struct IDMSocketOptions <W : AsyncWriteExt> {
     pub byte_buffer_size: usize,
     pub segment_buffer_size: usize,
+    pub output: W,
 }
 
-impl Default for IDMSocketOptions {
+// impl Default for IDMSocketOptions {
     
-    fn default() -> Self {
-        IDMSocketOptions {
-            byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
-            segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
-        }
-    }
-}
+//     fn default() -> Self {
+//         IDMSocketOptions {
+//             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
+//             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
+//         }
+//     }
+// }
 
 #[derive(Debug)]
-pub struct IDMSocket {
+pub struct IDMSocket <W>
+    where W : AsyncWriteExt {
     pub version: u8, // 0 = unset
-    
     pub encoding: u16,
+    pub output: W,
 
     // I tried an implementation that would not concatenate buffers for the sake
     // avoiding allocations, but I realized the buffers have to be concatenated
@@ -60,9 +64,9 @@ pub struct IDMSocket {
     segment_buffer_size: usize,
 }
 
-impl IDMSocket {
+impl <W : AsyncWriteExt + Unpin> IDMSocket <W> {
 
-    pub fn new () -> Self {
+    pub fn new (output: W) -> Self {
         IDMSocket {
             version: IDM_VERSION_UNSET,
             encoding: IDM_ENCODING_UNKNOWN,
@@ -70,12 +74,41 @@ impl IDMSocket {
             segments: VecDeque::with_capacity(IDM_DEFAULT_SEGMENT_BUFFER_SIZE),
             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
+            output,
         }
     }
 
-    pub fn write_pdu <W> (output: &mut W, bytes: &[u8]) -> Result<usize>
-        where W : Write {
-        output.write(bytes)
+    pub async fn write_pdu (&mut self, bytes: &[u8], encoding: u16) -> Result<usize> {
+        if bytes.len() > u32::MAX as usize {
+            // This implementation simply will not allow you to write an IDM PDU
+            // larger than 4GB.
+            return Err(Error::from(ErrorKind::InvalidInput)); 
+        }
+        if self.version == IDM_VERSION_UNSET {
+            if encoding > IDM_ENCODING_BER {
+                self.version = IDM_VERSION_2;
+                self.output.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
+                self.output.write(u16::to_be_bytes(encoding).as_slice()).await?;
+                self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+            } else {
+                self.output.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
+                self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+            }
+        } else if self.version == IDM_VERSION_1 {
+            self.version = IDM_VERSION_1;
+            if encoding != IDM_ENCODING_BER {
+                return Err(Error::from(ErrorKind::Unsupported));
+            }
+            self.output.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
+            self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+        } else if self.version == IDM_VERSION_2 {
+            self.output.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
+            self.output.write(u16::to_be_bytes(encoding).as_slice()).await?;
+            self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+        } else {
+            return Err(Error::from(ErrorKind::Other));
+        }
+        self.output.write(bytes).await
     }
 
     pub fn receive_data (&mut self, bytes: &[u8]) -> Result<usize> {
@@ -86,7 +119,7 @@ impl IDMSocket {
         if new_buffer_size > self.byte_buffer_size {
             return Err(Error::from(ErrorKind::InvalidData));
         }
-        self.buffer.write(&bytes)?;
+        std::io::Write::write(&mut self.buffer, &bytes)?;
         let mut i: usize = 0;
         loop {
             match self.chomp_frame(i) {
@@ -264,9 +297,9 @@ impl IDMSocket {
 
 }
 
-impl From<IDMSocketOptions> for IDMSocket {
+impl <W : AsyncWriteExt> From<IDMSocketOptions<W>> for IDMSocket<W> {
 
-    fn from(opts: IDMSocketOptions) -> Self {
+    fn from(opts: IDMSocketOptions<W>) -> Self {
         IDMSocket {
             version: IDM_VERSION_UNSET,
             encoding: IDM_ENCODING_UNKNOWN,
@@ -274,6 +307,7 @@ impl From<IDMSocketOptions> for IDMSocket {
             segments: VecDeque::with_capacity(opts.segment_buffer_size),
             byte_buffer_size: opts.byte_buffer_size,
             segment_buffer_size: opts.segment_buffer_size,
+            output: opts.output,
         }
     }
 
@@ -293,7 +327,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frame) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frame.len());
@@ -325,7 +359,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frame) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frame.len());
@@ -360,7 +394,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frames) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frames.len());
@@ -408,7 +442,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frames) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frames.len());
@@ -454,7 +488,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frames[0..8]) {
             Ok(bytes_read) => {
                 // Zero should be read, because there are no full IDM frames.
@@ -514,7 +548,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frames[0..8]) {
             Ok(bytes_read) => {
                 // Zero should be read, because there are no full IDM frames.
@@ -572,7 +606,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x05, 0x06, 0x07, 0x08, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frame) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frame.len());
@@ -609,7 +643,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x05, 0x06, 0x07, 0x08, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frame) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frame.len());
@@ -640,7 +674,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frame) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frame.len());
@@ -667,7 +701,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let mut idm = IDMSocket::new();
+        let mut idm = IDMSocket::new(vec![]);
         match &idm.receive_data(&idm_frame) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frame.len());
