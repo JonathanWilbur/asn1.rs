@@ -249,7 +249,6 @@ which control how these elements are encoded.
 
 ## TODO
 
-- [ ] Use the `?` operator instead of nested matches.
 - [ ] `asn1`
   - [ ] Comparison functions for all time types
   - [ ] Comparison functions for context switching types
@@ -290,6 +289,12 @@ which control how these elements are encoded.
   - [ ] Deconstruct
   - [ ] Hash trait for `X690Element`
   - [ ] Print `asn1parse` output;
+- [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
+- [ ] `idm`
+  - [ ] Overall, I want this API to be more like Tokio's `TcpSocket`.
+        in the sense of emitting a `TcpStream`.
+  - [ ] `IDMSocket`
+  - [ ] `IDMStream`
 
 From https://doc.rust-lang.org/std/sync/struct.Arc.html:
 

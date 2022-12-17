@@ -1,7 +1,10 @@
 use std::io::{Result, ErrorKind, Error};
 use std::collections::VecDeque;
-// use tokio::io::AsyncWrite;
 use tokio::io::AsyncWriteExt;
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll, Waker};
+use std::sync::{Arc, Mutex};
 
 pub type Bytes = Vec<u8>;
 
@@ -38,19 +41,21 @@ pub struct IDMSocketOptions <W : AsyncWriteExt> {
     pub output: W,
 }
 
-// impl Default for IDMSocketOptions {
-    
-//     fn default() -> Self {
-//         IDMSocketOptions {
-//             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
-//             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
-//         }
-//     }
-// }
+// Taken from: https://rust-lang.github.io/async-book/02_execution/03_wakeups.html#applied-build-a-timer
+pub struct FutureState {
+    pub completed: bool,
+    pub waker: Option<Waker>,
+}
 
-#[derive(Debug)]
-pub struct IDMSocket <W>
-    where W : AsyncWriteExt {
+impl Default for FutureState {
+    
+    fn default() -> Self {
+        FutureState { completed: false, waker: None }
+    }
+
+}
+
+pub struct IDMSocket <W : AsyncWriteExt> {
     pub version: u8, // 0 = unset
     pub encoding: u16,
     pub output: W,
@@ -62,11 +67,32 @@ pub struct IDMSocket <W>
     segments: VecDeque<IDMSegment>,
     byte_buffer_size: usize,
     segment_buffer_size: usize,
+
+    /// Tokio says you can use the std Mutex in most cases.
+    /// See: https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html#which-kind-of-mutex-should-you-use
+    future_state: Arc<Mutex<FutureState>>,
 }
 
-impl <W : AsyncWriteExt + Unpin> IDMSocket <W> {
+impl <W : AsyncWriteExt> std::fmt::Debug for IDMSocket<W> {
 
-    pub fn new (output: W) -> Self {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "IdmSocket {{ v{}, enc {:#b}, byte_buf_size {}, seg_buf_size {}, buffer {:?}, segments {:?} }}",
+            self.version,
+            self.encoding,
+            self.byte_buffer_size,
+            self.segment_buffer_size,
+            self.buffer,
+            self.segments,
+        ))
+    }
+
+}
+
+// I think this will have to be a TCP socket so you can configure a waker.
+impl <T : AsyncWriteExt + Unpin> IDMSocket <T> {
+
+    pub fn new (output: T) -> Self {
         IDMSocket {
             version: IDM_VERSION_UNSET,
             encoding: IDM_ENCODING_UNKNOWN,
@@ -75,6 +101,7 @@ impl <W : AsyncWriteExt + Unpin> IDMSocket <W> {
             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
             output,
+            future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
 
@@ -308,9 +335,69 @@ impl <W : AsyncWriteExt> From<IDMSocketOptions<W>> for IDMSocket<W> {
             byte_buffer_size: opts.byte_buffer_size,
             segment_buffer_size: opts.segment_buffer_size,
             output: opts.output,
+            future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
 
+}
+
+impl <W : AsyncWriteExt + Unpin> Future for IDMSocket<W> {
+    type Output = (u16, Vec<u8>);
+    fn poll(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Self::Output> {
+        let mut_self = self.get_mut();
+        if let Some(pdu) = mut_self.read_pdu() {
+            Poll::Ready(pdu)
+        } else {
+            let mut future_state = mut_self.future_state.lock().unwrap();
+            future_state.waker = Some(cx.waker().clone());
+            Poll::Pending
+        }
+    }
+}
+
+/// This ONLY polls for PDUs that are immediately available.
+impl <W : AsyncWriteExt + Unpin> Iterator for IDMSocket<W> {
+    type Item = (u16, Vec<u8>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.read_pdu()
+    }
+
+}
+
+impl <W : AsyncWriteExt + Unpin> Stream for IDMSocket<W> {
+    type Item = (u16, Vec<u8>);
+
+    fn poll_next(
+        self: Pin<&mut Self>, 
+        cx: &mut Context<'_>
+    ) -> Poll<Option<Self::Item>> {
+        let mut_self = self.get_mut();
+        if let Some(pdu) = mut_self.read_pdu() {
+            Poll::Ready(Some(pdu))
+        } else {
+            let mut future_state = mut_self.future_state.lock().unwrap();
+            future_state.waker = Some(cx.waker().clone());
+            Poll::Pending
+        }
+    }
+
+}
+
+pub trait Stream {
+    type Item;
+
+    fn poll_next(
+        self: Pin<&mut Self>, 
+        cx: &mut Context<'_>
+    ) -> Poll<Option<Self::Item>>;
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, None)
+    }
 }
 
 
