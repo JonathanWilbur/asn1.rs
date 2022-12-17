@@ -23,7 +23,7 @@ use async_trait::async_trait;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use crate::ROSEClient;
+use crate::RoseStream;
 
 pub type X500ROSEPDU = rose_transport::RosePDU<X690Element>;
 
@@ -153,7 +153,7 @@ async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IdmStream<W>, pdu:
 // }
 
 #[async_trait]
-impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for ROSEClient<IdmStream<W>> {
+impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for RoseStream<IdmStream<W>> {
 
     async fn write_bind (self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
         let idm_bind = IdmBind::new(
@@ -262,7 +262,7 @@ impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for ROSECli
 
 }
 
-impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IdmStream<W>> {
+impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for RoseStream<IdmStream<W>> {
 
     fn read_rose_pdu (&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
         let (encoding, idm_pdu_bytes) = match self.transport.read_pdu() {
@@ -375,7 +375,7 @@ impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for R
 
 }
 
-impl <W : AsyncWriteExt + Unpin> Iterator for ROSEClient<IdmStream<W>> {
+impl <W : AsyncWriteExt + Unpin> Iterator for RoseStream<IdmStream<W>> {
     type Item = std::io::Result<rose_transport::RosePDU<X690Element>>;
     fn next(&mut self) -> Option<Self::Item> {
         match self.read_rose_pdu() {

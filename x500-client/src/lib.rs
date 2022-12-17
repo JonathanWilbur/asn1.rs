@@ -2,7 +2,7 @@
 
 pub mod idm;
 
-pub struct ROSEClient<TransportType> {
+pub struct RoseStream<TransportType> {
     pub transport: TransportType,
 }
 

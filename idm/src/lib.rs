@@ -35,7 +35,7 @@ pub struct IDMSegment {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct IDMSocketOptions <W : AsyncWriteExt> {
+pub struct IdmStreamOptions <W : AsyncWriteExt> {
     pub byte_buffer_size: usize,
     pub segment_buffer_size: usize,
     pub output: W,
@@ -324,9 +324,9 @@ impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
 
 }
 
-impl <W : AsyncWriteExt> From<IDMSocketOptions<W>> for IdmStream<W> {
+impl <W : AsyncWriteExt> From<IdmStreamOptions<W>> for IdmStream<W> {
 
-    fn from(opts: IDMSocketOptions<W>) -> Self {
+    fn from(opts: IdmStreamOptions<W>) -> Self {
         IdmStream {
             version: IDM_VERSION_UNSET,
             encoding: IDM_ENCODING_UNKNOWN,

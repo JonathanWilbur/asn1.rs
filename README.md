@@ -290,12 +290,10 @@ which control how these elements are encoded.
   - [ ] Hash trait for `X690Element`
   - [ ] Print `asn1parse` output;
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
-- [ ] `idm`
-  - [ ] Overall, I want this API to be more like Tokio's `TcpSocket`.
-        in the sense of emitting a `TcpStream`.
-  - [ ] `IDMSocket`
-  - [ ] `IDMStream`
-
+- [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
+      to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,
+      couldn't you implement an IDM layer that accepts only BER and DER encoding
+      for `impl ROSEReceiver<X690Element>`?
 From https://doc.rust-lang.org/std/sync/struct.Arc.html:
 
 ```
