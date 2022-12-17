@@ -16,11 +16,16 @@ use rose_transport::{
     StartTLSParameters,
     TLSResponseParameters,
 };
+use tokio::io::AsyncWriteExt;
 use x500::{IDMProtocolSpecification::*, CommonProtocolSpecification::InvokeId};
 use x690::{X690Element, write_x690_node, ber_cst};
 use async_trait::async_trait;
-
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 use crate::ROSEClient;
+
+pub type X500ROSEPDU = rose_transport::RosePDU<X690Element>;
 
 // TODO: import { protocol_id_to_rose_protocol, app_context_to_protocol_id } from "./utils";
 
@@ -107,7 +112,7 @@ fn integer_to_abort_reason (ar: ENUMERATED) -> Option<AbortReason> {
 }
 
 #[inline]
-async fn write_idm_pdu (idm: &mut IDMSocket<Vec<u8>>, pdu: &IDM_PDU) -> Result<usize> {
+async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IDMSocket<W>, pdu: &IDM_PDU) -> Result<usize> {
     // TODO: Do something more useful with these errors.
     match _encode_IDM_PDU(&pdu) {
         Ok(element) => {
@@ -121,8 +126,34 @@ async fn write_idm_pdu (idm: &mut IDMSocket<Vec<u8>>, pdu: &IDM_PDU) -> Result<u
     }
 }
 
+// pub struct X500ROSEPDUFuture <'a, T> {
+//     pub client: &'a mut ROSEClient<T>,
+// }
+
+// impl <'a, T> ROSEClient<T> {
+
+//     fn read (&mut self) -> X500ROSEPDUFuture <'a, T> {
+//         return X500ROSEPDUFuture { client: self }
+//     }
+
+// }
+
+// impl <'a, T> Future for X500ROSEPDUFuture<'a, T> {
+//     type Output = X500ROSEPDUFuture<'a, T>;
+//     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        
+//         // if Instant::now() >= self.when {
+//         //     println!("Hello world");
+//         //     Poll::Ready("done")
+//         // } else {
+//         //     cx.waker().wake_by_ref();
+//         //     Poll::Pending
+//         // }
+//     }
+// }
+
 #[async_trait]
-impl ROSETransmitter<X690Element> for ROSEClient<IDMSocket<Vec<u8>>> {
+impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for ROSEClient<IDMSocket<W>> {
 
     async fn write_bind (self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
         let idm_bind = IdmBind::new(
@@ -229,10 +260,9 @@ impl ROSETransmitter<X690Element> for ROSEClient<IDMSocket<Vec<u8>>> {
         write_idm_pdu(&mut self.transport, &idm_pdu).await
     }
 
-
 }
 
-impl ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IDMSocket<Vec<u8>>> {
+impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IDMSocket<W>> {
 
     fn read_rose_pdu (&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
         let (encoding, idm_pdu_bytes) = match self.transport.read_pdu() {
@@ -345,6 +375,22 @@ impl ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IDMSocket<Vec<u8>>
 
 }
 
+impl <W : AsyncWriteExt + Unpin> Iterator for ROSEClient<IDMSocket<W>> {
+    type Item = std::io::Result<rose_transport::RosePDU<X690Element>>;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.read_rose_pdu() {
+            Ok(pdu_or_not) => {
+                if let Some(pdu) = pdu_or_not {
+                    return Some(Ok(pdu));
+                } else {
+                    return None;
+                }
+            },
+            Err(e) => return Some(Err(e)),
+        }
+    }
+}
+
 // export
 // function rose_transport_from_idm_socket (idm: IDMConnection): ROSETransport {
 //     const rose = new_rose_transport(idm.socket);
@@ -413,105 +459,3 @@ impl ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IDMSocket<Vec<u8>>
 //     idm.events.on("tLSResponse", (code) => {
 //         rose.events.emit("start_tls_response", { code });
 //     });
-
-//     rose.write_bind = (params) => {
-//         rose.protocol = protocol_id_to_rose_protocol(params.protocol_id) ?? params.protocol_id;
-//         idm.writeBind(
-//             app_context_to_protocol_id.get(params.protocol_id.toString()) ?? params.protocol_id,
-//             params.parameter,
-//             params.calling_ae_title,
-//             params.called_ae_title,
-//         );
-//     };
-
-//     rose.write_bind_result = (params) => {
-//         rose.is_bound = true;
-//         rose.protocol = protocol_id_to_rose_protocol(params.protocol_id) ?? params.protocol_id;
-//         idm.writeBindResult(
-//             app_context_to_protocol_id.get(params.protocol_id.toString()) ?? params.protocol_id,
-//             params.parameter,
-//             params.responding_ae_title,
-//         );
-//     };
-
-//     rose.write_bind_error = (params) => {
-//         rose.is_bound = false;
-//         idm.writeBindError(
-//             app_context_to_protocol_id.get(params.protocol_id.toString()) ?? params.protocol_id,
-//             params.parameter,
-//             params.responding_ae_title,
-//         );
-//     };
-
-//     rose.write_request = (params) => {
-//         if (!("present" in params.invoke_id)) {
-//             return;
-//         }
-//         idm.writeRequest(
-//             params.invoke_id.present,
-//             params.code,
-//             params.parameter,
-//         );
-//     };
-
-//     rose.write_result = (params) => {
-//         if (!("present" in params.invoke_id)) {
-//             return;
-//         }
-//         idm.writeResult(
-//             params.invoke_id.present,
-//             params.code,
-//             params.parameter,
-//         );
-//     };
-
-//     rose.write_error = (params) => {
-//         if (!("present" in params.invoke_id)) {
-//             return;
-//         }
-//         idm.writeError(
-//             params.invoke_id.present,
-//             _encode_Code(params.code, BER),
-//             params.parameter,
-//         );
-//     };
-
-//     rose.write_reject = (params) => {
-//         if (!("present" in params.invoke_id)) {
-//             return;
-//         }
-//         idm.writeReject(
-//             params.invoke_id.present,
-//             rose_reject_to_idm_reject.get(params.problem)
-//                 ?? IdmReject_reason_unknownError,
-//         );
-//     };
-
-//     rose.write_unbind = () => {
-//         rose.is_bound = false;
-//         idm.writeUnbind();
-//     };
-
-//     rose.write_unbind_result = () => {
-//         rose.is_bound = false;
-//     };
-
-//     rose.write_unbind_error = () => {};
-
-//     rose.write_abort = (params) => {
-//         rose.is_bound = false;
-//         idm.writeAbort(
-//             rose_abort_to_idm_abort.get(params) ?? Abort_reasonNotSpecified,
-//         );
-//     };
-
-//     rose.write_start_tls = () => {
-//         idm.writeStartTLS();
-//     };
-
-//     rose.write_tls_response = (params) => {
-//         idm.writeTLSResponse(params?.code ?? 0);
-//     };
-
-//     return rose;
-// }
