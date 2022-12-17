@@ -1,6 +1,6 @@
 use std::io::{Result, ErrorKind, Error};
 use asn1::ENUMERATED;
-use idm::IDMSocket;
+use idm::IdmStream;
 use rose_transport::{
     ROSEReceiver,
     ROSETransmitter,
@@ -112,7 +112,7 @@ fn integer_to_abort_reason (ar: ENUMERATED) -> Option<AbortReason> {
 }
 
 #[inline]
-async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IDMSocket<W>, pdu: &IDM_PDU) -> Result<usize> {
+async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IdmStream<W>, pdu: &IDM_PDU) -> Result<usize> {
     // TODO: Do something more useful with these errors.
     match _encode_IDM_PDU(&pdu) {
         Ok(element) => {
@@ -153,7 +153,7 @@ async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IDMSocket<W>, pdu:
 // }
 
 #[async_trait]
-impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for ROSEClient<IDMSocket<W>> {
+impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for ROSEClient<IdmStream<W>> {
 
     async fn write_bind (self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
         let idm_bind = IdmBind::new(
@@ -262,7 +262,7 @@ impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for ROSECli
 
 }
 
-impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IDMSocket<W>> {
+impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for ROSEClient<IdmStream<W>> {
 
     fn read_rose_pdu (&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
         let (encoding, idm_pdu_bytes) = match self.transport.read_pdu() {
@@ -375,7 +375,7 @@ impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for R
 
 }
 
-impl <W : AsyncWriteExt + Unpin> Iterator for ROSEClient<IDMSocket<W>> {
+impl <W : AsyncWriteExt + Unpin> Iterator for ROSEClient<IdmStream<W>> {
     type Item = std::io::Result<rose_transport::RosePDU<X690Element>>;
     fn next(&mut self) -> Option<Self::Item> {
         match self.read_rose_pdu() {
