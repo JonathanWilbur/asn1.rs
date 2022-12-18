@@ -193,6 +193,7 @@ dependencies = [
 name = "idm"
 version = "0.1.0"
 dependencies = [
+ "mock-tcpstream",
  "tokio",
  "tokio-stream",
 ]
