@@ -5,6 +5,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, Waker};
 use std::sync::{Arc, Mutex};
+use tokio_stream::Stream;
 
 pub type Bytes = Vec<u8>;
 
@@ -43,14 +44,13 @@ pub struct IdmStreamOptions <W : AsyncWriteExt> {
 
 // Taken from: https://rust-lang.github.io/async-book/02_execution/03_wakeups.html#applied-build-a-timer
 pub struct FutureState {
-    pub completed: bool,
     pub waker: Option<Waker>,
 }
 
 impl Default for FutureState {
     
     fn default() -> Self {
-        FutureState { completed: false, waker: None }
+        FutureState { waker: None }
     }
 
 }
@@ -163,6 +163,7 @@ impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
                 Err(e) => return Err(e),
             }
         }
+        // TODO: Refactor async IdmStream impls so that they return Result<T> instead of T?
     }
 
     fn chomp_frame (&mut self, start_index: usize) -> Result<usize> {
@@ -235,6 +236,12 @@ impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
                 self.encoding = IDM_ENCODING_BER;
             }
             self.segments.push_back(seg);
+            if is_final {
+                let future_state = self.future_state.lock().unwrap();
+                if let Some(waker) = &future_state.waker {
+                    waker.wake_by_ref(); // TODO: Most inefficient way of waking used here.
+                }
+            }
             return Ok(IDM_V1_FRAME_SIZE as usize + length as usize);
         }
         else if version == 2 {
@@ -285,6 +292,12 @@ impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             self.segments.push_back(seg);
+            if is_final {
+                let future_state = self.future_state.lock().unwrap();
+                if let Some(waker) = &future_state.waker {
+                    waker.wake_by_ref(); // TODO: Most inefficient way of waking used here.
+                }
+            }
             return Ok(IDM_V2_FRAME_SIZE as usize + length as usize);
         } else {
             // This alternative should never happen.
@@ -384,22 +397,7 @@ impl <W : AsyncWriteExt + Unpin> Stream for IdmStream<W> {
             Poll::Pending
         }
     }
-
 }
-
-pub trait Stream {
-    type Item;
-
-    fn poll_next(
-        self: Pin<&mut Self>, 
-        cx: &mut Context<'_>
-    ) -> Poll<Option<Self::Item>>;
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, None)
-    }
-}
-
 
 #[cfg(test)]
 mod tests {

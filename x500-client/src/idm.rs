@@ -24,6 +24,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use crate::RoseStream;
+use tokio_stream::Stream;
 
 pub type X500ROSEPDU = rose_transport::RosePDU<X690Element>;
 
@@ -262,13 +263,10 @@ impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for RoseStr
 
 }
 
-impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for RoseStream<IdmStream<W>> {
-
-    fn read_rose_pdu (&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
-        let (encoding, idm_pdu_bytes) = match self.transport.read_pdu() {
-            Some((encoding, idm_pdu_bytes)) => (encoding, idm_pdu_bytes),
-            None => return Ok(None),
-        };
+impl <W : AsyncWriteExt + Unpin> RoseStream<IdmStream<W>> {
+    
+    pub fn receive_idm_pdu (&mut self, encoding_and_bytes: (u16, Vec<u8>)) -> Result<()> {
+        let (encoding, idm_pdu_bytes) = encoding_and_bytes;
         if
             idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
             && idm_pdu_bytes[0] != 0xA0 // ...and the PDU is a bind, and...
@@ -289,9 +287,9 @@ impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for R
             Ok(pdu) => pdu,
             Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
         };
-        match pdu {
+        let rose_pdu = match pdu {
             IDM_PDU::bind(bind) => {
-                Ok(Some(RosePDU::Bind(BindParameters {
+                Ok(RosePDU::Bind(BindParameters {
                     protocol_id: bind.protocolID,
                     calling_ae_title: bind.callingAETitle,
                     called_ae_title: bind.calledAETitle,
@@ -302,91 +300,133 @@ impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element, std::io::Error> for R
                     calling_ae_invocation_identifier: None,
                     calling_ap_invocation_identifier: None,
                     timeout: 0,
-                })))
+                }))
             },
             IDM_PDU::bindResult(bind_result) => {
-                Ok(Some(RosePDU::BindResult(BindResultOrErrorParameters {
+                Ok(RosePDU::BindResult(BindResultOrErrorParameters {
                     protocol_id: bind_result.protocolID,
                     parameter: bind_result.result,
                     responding_ae_title: bind_result.respondingAETitle,
                     responding_ae_invocation_identifier: None,
                     responding_ap_invocation_identifier: None,
-                })))
+                }))
             },
             IDM_PDU::bindError(bind_error) => {
-                Ok(Some(RosePDU::BindError(BindResultOrErrorParameters {
+                Ok(RosePDU::BindError(BindResultOrErrorParameters {
                     protocol_id: bind_error.protocolID,
                     parameter: bind_error.error,
                     responding_ae_title: bind_error.respondingAETitle,
                     responding_ae_invocation_identifier: None,
                     responding_ap_invocation_identifier: None,
-                })))
+                }))
             },
             IDM_PDU::request(request) => {
-                Ok(Some(RosePDU::Request(RequestParameters {
+                Ok(RosePDU::Request(RequestParameters {
                     code: request.opcode,
                     invoke_id: InvokeId::present(request.invokeID),
                     parameter: request.argument,
                     linked_id: None,
-                })))
+                }))
             },
             IDM_PDU::result(result) => {
-                Ok(Some(RosePDU::Result(ResultOrErrorParameters {
+                Ok(RosePDU::Result(ResultOrErrorParameters {
                     code: result.opcode,
                     invoke_id: InvokeId::present(result.invokeID),
                     parameter: result.result,
-                })))
+                }))
             },
             IDM_PDU::error(error) => {
-                Ok(Some(RosePDU::Error(ResultOrErrorParameters {
+                Ok(RosePDU::Error(ResultOrErrorParameters {
                     code: error.errcode,
                     invoke_id: InvokeId::present(error.invokeID),
                     parameter: error.error,
-                })))
+                }))
             },
             IDM_PDU::reject(reject) => {
-                Ok(Some(RosePDU::Reject(RejectParameters {
+                Ok(RosePDU::Reject(RejectParameters {
                     invoke_id: InvokeId::present(reject.invokeID),
                     reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
-                })))
+                }))
             },
             IDM_PDU::unbind(_unbind) => {
-                Ok(Some(RosePDU::Unbind(UnbindParameters {
+                Ok(RosePDU::Unbind(UnbindParameters {
                     parameter: None,
                     timeout: 0,
-                })))
+                }))
             },
             IDM_PDU::abort(abort) => {
-                Ok(Some(RosePDU::Abort(integer_to_abort_reason(abort).unwrap_or_default())))
+                Ok(RosePDU::Abort(integer_to_abort_reason(abort).unwrap_or_default()))
             },
             IDM_PDU::startTLS(_start_tls) => {
-                Ok(Some(RosePDU::StartTLS(StartTLSParameters::default())))
+                Ok(RosePDU::StartTLS(StartTLSParameters::default()))
             },
             IDM_PDU::tLSResponse(tls_response) => {
-                Ok(Some(RosePDU::StartTLSResponse(TLSResponseParameters {
+                Ok(RosePDU::StartTLSResponse(TLSResponseParameters {
                     code: tls_response.max(99) as u8,
-                })))
+                }))
             },
             IDM_PDU::_unrecognized(_unrecognized) => {
                 Err(Error::from(ErrorKind::Unsupported))
             },
+        }?;
+        self.received_pdus.push_back(rose_pdu);
+        let future_state = self.future_state.lock().unwrap();
+        if let Some(waker) = &future_state.waker {
+            waker.wake_by_ref(); // TODO: Most inefficient way of waking used here. Hover to see docs.
         }
+        Ok(())
     }
 
 }
 
-impl <W : AsyncWriteExt + Unpin> Iterator for RoseStream<IdmStream<W>> {
-    type Item = std::io::Result<rose_transport::RosePDU<X690Element>>;
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.read_rose_pdu() {
-            Ok(pdu_or_not) => {
-                if let Some(pdu) = pdu_or_not {
-                    return Some(Ok(pdu));
-                } else {
-                    return None;
-                }
+impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element> for RoseStream<IdmStream<W>> {
+
+    fn read_pdu (&mut self) -> Option<rose_transport::RosePDU<X690Element>> {
+        self.received_pdus.pop_front()
+    }
+
+}
+
+impl <W : AsyncWriteExt + Unpin> Future for RoseStream<IdmStream<W>> {
+    type Output = RosePDU<X690Element>;
+    fn poll(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Self::Output> {
+        let mut_self = self.get_mut();
+        match mut_self.read_pdu() {
+            Some(pdu) => Poll::Ready(pdu),
+            None => {
+                let mut future_state = mut_self.future_state.lock().unwrap();
+                future_state.waker = Some(cx.waker().clone());
+                Poll::Pending
             },
-            Err(e) => return Some(Err(e)),
+        }
+    }
+}
+
+impl <W : AsyncWriteExt + Unpin> Iterator for RoseStream<IdmStream<W>> {
+    type Item = rose_transport::RosePDU<X690Element>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.read_pdu()
+    }
+}
+
+impl <W : AsyncWriteExt + Unpin> Stream for RoseStream<IdmStream<W>> {
+    type Item = RosePDU<X690Element>;
+
+    fn poll_next(
+        self: Pin<&mut Self>, 
+        cx: &mut Context<'_>
+    ) -> Poll<Option<Self::Item>> {
+        let mut_self = self.get_mut();
+        match mut_self.read_pdu() {
+            Some(pdu) => Poll::Ready(Some(pdu)),
+            None => {
+                let mut future_state = mut_self.future_state.lock().unwrap();
+                future_state.waker = Some(cx.waker().clone());
+                Poll::Pending
+            },
         }
     }
 }

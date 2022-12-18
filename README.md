@@ -236,7 +236,7 @@ https://doc.rust-lang.org/reference/procedural-macros.html#attribute-macros
 Encoding controls are passed in as parameters to the `*er_encode()` functions,
 which control how these elements are encoded.
 
-## 
+##
 
 
 - `parser`
@@ -294,6 +294,8 @@ which control how these elements are encoded.
       to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,
       couldn't you implement an IDM layer that accepts only BER and DER encoding
       for `impl ROSEReceiver<X690Element>`?
+- [ ] Shouldn't the API implement a lazy technique? As, just decode PDUs as they
+      are needed? In other words, pull, rather than eagerly parse and enqueue.
 From https://doc.rust-lang.org/std/sync/struct.Arc.html:
 
 ```
