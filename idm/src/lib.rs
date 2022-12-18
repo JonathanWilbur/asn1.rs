@@ -1,6 +1,6 @@
 use std::io::{Result, ErrorKind, Error};
 use std::collections::VecDeque;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, Waker};
@@ -48,17 +48,17 @@ pub struct FutureState {
 }
 
 impl Default for FutureState {
-    
+
     fn default() -> Self {
         FutureState { waker: None }
     }
 
 }
 
-pub struct IdmStream <W : AsyncWriteExt> {
+pub struct IdmStream <W : AsyncWriteExt + AsyncReadExt> {
     pub version: u8, // 0 = unset
     pub encoding: u16,
-    pub output: W,
+    pub transport: W,
 
     // I tried an implementation that would not concatenate buffers for the sake
     // avoiding allocations, but I realized the buffers have to be concatenated
@@ -73,7 +73,7 @@ pub struct IdmStream <W : AsyncWriteExt> {
     future_state: Arc<Mutex<FutureState>>,
 }
 
-impl <W : AsyncWriteExt> std::fmt::Debug for IdmStream<W> {
+impl <W : AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
@@ -89,8 +89,7 @@ impl <W : AsyncWriteExt> std::fmt::Debug for IdmStream<W> {
 
 }
 
-// I think this will have to be a TCP socket so you can configure a waker.
-impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
+impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
 
     pub fn new (output: T) -> Self {
         IdmStream {
@@ -100,7 +99,7 @@ impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
             segments: VecDeque::with_capacity(IDM_DEFAULT_SEGMENT_BUFFER_SIZE),
             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
-            output,
+            transport: output,
             future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
@@ -109,33 +108,33 @@ impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
         if bytes.len() > u32::MAX as usize {
             // This implementation simply will not allow you to write an IDM PDU
             // larger than 4GB.
-            return Err(Error::from(ErrorKind::InvalidInput)); 
+            return Err(Error::from(ErrorKind::InvalidInput));
         }
         if self.version == IDM_VERSION_UNSET {
             if encoding > IDM_ENCODING_BER {
                 self.version = IDM_VERSION_2;
-                self.output.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
-                self.output.write(u16::to_be_bytes(encoding).as_slice()).await?;
-                self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+                self.transport.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
+                self.transport.write(u16::to_be_bytes(encoding).as_slice()).await?;
+                self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
             } else {
-                self.output.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
-                self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+                self.transport.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
+                self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
             }
         } else if self.version == IDM_VERSION_1 {
             self.version = IDM_VERSION_1;
             if encoding != IDM_ENCODING_BER {
                 return Err(Error::from(ErrorKind::Unsupported));
             }
-            self.output.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
-            self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+            self.transport.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
+            self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
         } else if self.version == IDM_VERSION_2 {
-            self.output.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
-            self.output.write(u16::to_be_bytes(encoding).as_slice()).await?;
-            self.output.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+            self.transport.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
+            self.transport.write(u16::to_be_bytes(encoding).as_slice()).await?;
+            self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
         } else {
             return Err(Error::from(ErrorKind::Other));
         }
-        self.output.write(bytes).await
+        self.transport.write(bytes).await
     }
 
     pub fn receive_data (&mut self, bytes: &[u8]) -> Result<usize> {
@@ -337,7 +336,7 @@ impl <T : AsyncWriteExt + Unpin> IdmStream <T> {
 
 }
 
-impl <W : AsyncWriteExt> From<IdmStreamOptions<W>> for IdmStream<W> {
+impl <W : AsyncWriteExt + AsyncReadExt> From<IdmStreamOptions<W>> for IdmStream<W> {
 
     fn from(opts: IdmStreamOptions<W>) -> Self {
         IdmStream {
@@ -347,14 +346,14 @@ impl <W : AsyncWriteExt> From<IdmStreamOptions<W>> for IdmStream<W> {
             segments: VecDeque::with_capacity(opts.segment_buffer_size),
             byte_buffer_size: opts.byte_buffer_size,
             segment_buffer_size: opts.segment_buffer_size,
-            output: opts.output,
+            transport: opts.output,
             future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
 
 }
 
-impl <W : AsyncWriteExt + Unpin> Future for IdmStream<W> {
+impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Future for IdmStream<W> {
     type Output = (u16, Vec<u8>);
     fn poll(
         self: Pin<&mut Self>,
@@ -372,7 +371,7 @@ impl <W : AsyncWriteExt + Unpin> Future for IdmStream<W> {
 }
 
 /// This ONLY polls for PDUs that are immediately available.
-impl <W : AsyncWriteExt + Unpin> Iterator for IdmStream<W> {
+impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Iterator for IdmStream<W> {
     type Item = (u16, Vec<u8>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -381,11 +380,11 @@ impl <W : AsyncWriteExt + Unpin> Iterator for IdmStream<W> {
 
 }
 
-impl <W : AsyncWriteExt + Unpin> Stream for IdmStream<W> {
+impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Stream for IdmStream<W> {
     type Item = (u16, Vec<u8>);
 
     fn poll_next(
-        self: Pin<&mut Self>, 
+        self: Pin<&mut Self>,
         cx: &mut Context<'_>
     ) -> Poll<Option<Self::Item>> {
         let mut_self = self.get_mut();
@@ -412,7 +411,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let mut idm = IdmStream::new(vec![]);
+        let mut idm = IdmStream::new(vec![].as_slice());
         match &idm.receive_data(&idm_frame) {
             Ok(bytes_read) => {
                 assert_eq!(*bytes_read, idm_frame.len());

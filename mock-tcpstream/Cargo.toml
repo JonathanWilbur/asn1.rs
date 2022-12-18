@@ -1,0 +1,22 @@
+[package]
+name = "mock-tcpstream"
+version = "1.0.0"
+edition = "2021"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "Mock TcpStream with Read, Write, and Tokio's async equivalents for testing"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/mock-tcpstream-tokio"
+license = "MIT"
+license-file = "LICENSE.txt"
+keywords = ["mock", "tcp", "socket", "stream", "tcpstream"]
+categories = ["development-tools::testing"]
+
+[dependencies]
+tokio = { version = "1", features = ["io-util"] }
+futures-io = "0.3"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }

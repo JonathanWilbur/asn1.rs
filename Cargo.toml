@@ -8,4 +8,5 @@ members = [
     "idm",
     "rose-transport",
     "x500-client",
+    "mock-tcpstream",
 ]
