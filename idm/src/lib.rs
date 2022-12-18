@@ -1,11 +1,8 @@
 use std::io::{Result, ErrorKind, Error};
 use std::collections::VecDeque;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
-use std::future::Future;
-use std::pin::Pin;
-use std::task::{Context, Poll, Waker};
+use std::task::Waker;
 use std::sync::{Arc, Mutex};
-use tokio_stream::Stream;
 
 pub type Bytes = Vec<u8>;
 
@@ -348,7 +345,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         self.buffer.drain(0..end_of_pdu);
         for seg in self.segments.iter_mut() {
             seg.data_bounds[0] -= std::cmp::min(seg.data_bounds[0], end_of_pdu);
-            seg.data_bounds[1] -= end_of_pdu;
+            seg.data_bounds[1] -= std::cmp::min(seg.data_bounds[1], end_of_pdu);
         }
         Ok(Some((last_seg_of_pdu.encoding, data)))
     }
@@ -456,378 +453,396 @@ mod tests {
                     },
                 }
             },
-            Err(e) => panic!("PDU error."),
+            Err(_) => panic!("PDU error."),
 
         };
     }
 
-    // #[test]
-    // fn test_idm_v2_decode() {
-    //     let idm_frame: Vec<u8> = vec![
-    //         0x02, // v2
-    //         0x01, // final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frame) {
-    //         Ok(bytes_read) => {
-    //             assert_eq!(*bytes_read, idm_frame.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 1);
-    //             assert_eq!(data.len(), 4);
-    //             assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v2_decode() {
+        let idm_frame: Vec<u8> = vec![
+            0x02, // v2
+            0x01, // final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frame) {
+            Ok(bytes_read) => {
+                assert_eq!(*bytes_read, idm_frame.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        let pdu = idm.read_pdu().await.unwrap();
+        match &pdu {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 1);
+                assert_eq!(data.len(), 4);
+                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v1_decode_back_to_back() {
-    //     let idm_frames: Vec<u8> = vec![
-    //         0x01, // v1
-    //         0x01, // final
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //         0x01, // v1
-    //         0x01, // final
-    //         0x00, 0x00, 0x00, 0x05, // length = 5
-    //         0x05, 0x06, 0x07, 0x08, 0x09, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frames) {
-    //         Ok(bytes_read) => {
-    //             assert_eq!(*bytes_read, idm_frames.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 0);
-    //             assert_eq!(data.len(), 4);
-    //             assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 0);
-    //             assert_eq!(data.len(), 5);
-    //             assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v1_decode_back_to_back() {
+        let idm_frames: Vec<u8> = vec![
+            0x01, // v1
+            0x01, // final
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+            0x01, // v1
+            0x01, // final
+            0x00, 0x00, 0x00, 0x05, // length = 5
+            0x05, 0x06, 0x07, 0x08, 0x09, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frames) {
+            Ok(bytes_read) => {
+                assert_eq!(*bytes_read, idm_frames.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        let pdu1 = &idm.read_pdu().await.unwrap();
+        match &pdu1 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 0);
+                assert_eq!(data.len(), 4);
+                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+        let pdu2 = &idm.read_pdu().await.unwrap();
+        match &pdu2 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 0);
+                assert_eq!(data.len(), 5);
+                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v2_decode_back_to_back() {
-    //     let idm_frames: Vec<u8> = vec![
-    //         0x02, // v2
-    //         0x01, // final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //         0x02, // v2
-    //         0x01, // final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x05, // length = 5
-    //         0x05, 0x06, 0x07, 0x08, 0x09, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frames) {
-    //         Ok(bytes_read) => {
-    //             assert_eq!(*bytes_read, idm_frames.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 1);
-    //             assert_eq!(data.len(), 4);
-    //             assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 1);
-    //             assert_eq!(data.len(), 5);
-    //             assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v2_decode_back_to_back() {
+        let idm_frames: Vec<u8> = vec![
+            0x02, // v2
+            0x01, // final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+            0x02, // v2
+            0x01, // final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x05, // length = 5
+            0x05, 0x06, 0x07, 0x08, 0x09, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frames) {
+            Ok(bytes_read) => {
+                assert_eq!(*bytes_read, idm_frames.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        let pdu1 = &idm.read_pdu().await.unwrap();
+        match &pdu1 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 1);
+                assert_eq!(data.len(), 4);
+                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+        let pdu2 = &idm.read_pdu().await.unwrap();
+        match &pdu2 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 1);
+                assert_eq!(data.len(), 5);
+                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v1_decode_fragmented() {
-    //     let idm_frames: Vec<u8> = vec![
-    //         0x01, // v1
-    //         0x01, // final
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //         0x01, // v1
-    //         0x01, // final
-    //         0x00, 0x00, 0x00, 0x05, // length = 5
-    //         0x05, 0x06, 0x07, 0x08, 0x09, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frames[0..8]) {
-    //         Ok(bytes_read) => {
-    //             // Zero should be read, because there are no full IDM frames.
-    //             assert_eq!(*bytes_read, 0);
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.receive_data(&idm_frames[8..]) {
-    //         Ok(bytes_read) => {
-    //             // This should return the whole length of all bytes, because
-    //             // both PDUs are completed with this chunk of bytes.
-    //             assert_eq!(*bytes_read, idm_frames.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 0);
-    //             assert_eq!(data.len(), 4);
-    //             assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 0);
-    //             assert_eq!(data.len(), 5);
-    //             assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v1_decode_fragmented() {
+        let idm_frames: Vec<u8> = vec![
+            0x01, // v1
+            0x01, // final
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+            0x01, // v1
+            0x01, // final
+            0x00, 0x00, 0x00, 0x05, // length = 5
+            0x05, 0x06, 0x07, 0x08, 0x09, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frames[0..8]) {
+            Ok(bytes_read) => {
+                // Zero should be read, because there are no full IDM frames.
+                assert_eq!(*bytes_read, 0);
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        match &idm.receive_data(&idm_frames[8..]) {
+            Ok(bytes_read) => {
+                // This should return the whole length of all bytes, because
+                // both PDUs are completed with this chunk of bytes.
+                assert_eq!(*bytes_read, idm_frames.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        let pdu1 = &idm.read_pdu().await.unwrap();
+        match &pdu1 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 0);
+                assert_eq!(data.len(), 4);
+                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+        let pdu2 = &idm.read_pdu().await.unwrap();
+        match &pdu2 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 0);
+                assert_eq!(data.len(), 5);
+                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v2_decode_fragmented() {
-    //     let idm_frames: Vec<u8> = vec![
-    //         0x02, // v2
-    //         0x01, // final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //         0x02, // v2
-    //         0x01, // final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x05, // length = 5
-    //         0x05, 0x06, 0x07, 0x08, 0x09, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frames[0..8]) {
-    //         Ok(bytes_read) => {
-    //             // Zero should be read, because there are no full IDM frames.
-    //             assert_eq!(*bytes_read, 0);
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.receive_data(&idm_frames[8..]) {
-    //         Ok(bytes_read) => {
-    //             // This should return the whole length of all bytes, because
-    //             // both PDUs are completed with this chunk of bytes.
-    //             assert_eq!(*bytes_read, idm_frames.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 1);
-    //             assert_eq!(data.len(), 4);
-    //             assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 1);
-    //             assert_eq!(data.len(), 5);
-    //             assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v2_decode_fragmented() {
+        let idm_frames: Vec<u8> = vec![
+            0x02, // v2
+            0x01, // final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+            0x02, // v2
+            0x01, // final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x05, // length = 5
+            0x05, 0x06, 0x07, 0x08, 0x09, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frames[0..8]) {
+            Ok(bytes_read) => {
+                // Zero should be read, because there are no full IDM frames.
+                assert_eq!(*bytes_read, 0);
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        match &idm.receive_data(&idm_frames[8..]) {
+            Ok(bytes_read) => {
+                // This should return the whole length of all bytes, because
+                // both PDUs are completed with this chunk of bytes.
+                assert_eq!(*bytes_read, idm_frames.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        let pdu1 = &idm.read_pdu().await.unwrap();
+        match &pdu1 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 1);
+                assert_eq!(data.len(), 4);
+                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+        let pdu2 = &idm.read_pdu().await.unwrap();
+        match &pdu2 {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 1);
+                assert_eq!(data.len(), 5);
+                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v1_decode_segmented() {
-    //     let idm_frame: Vec<u8> = vec![
-    //         0x01, // v1
-    //         0x00, // NOT final
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //         0x01, // v1
-    //         0x01, // NOT final
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x05, 0x06, 0x07, 0x08, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frame) {
-    //         Ok(bytes_read) => {
-    //             assert_eq!(*bytes_read, idm_frame.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 0);
-    //             assert_eq!(data.len(), 8);
-    //             assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v1_decode_segmented() {
+        let idm_frame: Vec<u8> = vec![
+            0x01, // v1
+            0x00, // NOT final
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+            0x01, // v1
+            0x01, // NOT final
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x05, 0x06, 0x07, 0x08, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frame) {
+            Ok(bytes_read) => {
+                assert_eq!(*bytes_read, idm_frame.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        match &idm.read_pdu().await.unwrap() {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 0);
+                assert_eq!(data.len(), 8);
+                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v2_decode_segmented() {
-    //     let idm_frame: Vec<u8> = vec![
-    //         0x02, // v2
-    //         0x00, // NOT final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //         0x02, // v2
-    //         0x01, // final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x05, 0x06, 0x07, 0x08, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frame) {
-    //         Ok(bytes_read) => {
-    //             assert_eq!(*bytes_read, idm_frame.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((encoding, data)) => {
-    //             assert_eq!(*encoding, 1);
-    //             assert_eq!(data.len(), 8);
-    //             assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 ]));
-    //         },
-    //         None => {
-    //             println!("{:?}", idm);
-    //             panic!("No PDU could be read.");
-    //         },
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v2_decode_segmented() {
+        let idm_frame: Vec<u8> = vec![
+            0x02, // v2
+            0x00, // NOT final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+            0x02, // v2
+            0x01, // final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x05, 0x06, 0x07, 0x08, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frame) {
+            Ok(bytes_read) => {
+                assert_eq!(*bytes_read, idm_frame.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        match &idm.read_pdu().await.unwrap() {
+            Some((encoding, data)) => {
+                assert_eq!(*encoding, 1);
+                assert_eq!(data.len(), 8);
+                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 ]));
+            },
+            None => {
+                println!("{:?}", idm);
+                panic!("No PDU could be read.");
+            },
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v1_decode_incomplete() {
-    //     let idm_frame: Vec<u8> = vec![
-    //         0x01, // v1
-    //         0x00, // NOT final
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frame) {
-    //         Ok(bytes_read) => {
-    //             assert_eq!(*bytes_read, idm_frame.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((_encoding, _data)) => {
-    //             panic!("PDU should NOT have been read.");
-    //         },
-    //         None => {},
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v1_decode_incomplete() {
+        let idm_frame: Vec<u8> = vec![
+            0x01, // v1
+            0x00, // NOT final
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frame) {
+            Ok(bytes_read) => {
+                assert_eq!(*bytes_read, idm_frame.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        match &idm.read_pdu().await.unwrap() {
+            Some((_encoding, _data)) => {
+                panic!("PDU should NOT have been read.");
+            },
+            None => {},
+        };
+    }
 
-    // #[test]
-    // fn test_idm_v2_decode_incomplete() {
-    //     let idm_frame: Vec<u8> = vec![
-    //         0x02, // v2
-    //         0x00, // NOT final
-    //         0x00, 0x01, // encoding = DER only
-    //         0x00, 0x00, 0x00, 0x04, // length = 4
-    //         0x01, 0x02, 0x03, 0x04, // data
-    //     ];
-    //     let mut idm = IdmStream::new(vec![]);
-    //     match &idm.receive_data(&idm_frame) {
-    //         Ok(bytes_read) => {
-    //             assert_eq!(*bytes_read, idm_frame.len());
-    //         },
-    //         Err(e) => {
-    //             println!("{:?}", idm);
-    //             panic!("{}", e);
-    //         },
-    //     };
-    //     match &idm.read_pdu() {
-    //         Some((_encoding, _data)) => {
-    //             panic!("PDU should NOT have been read.");
-    //         },
-    //         None => {},
-    //     };
-    // }
+    #[tokio::test]
+    async fn test_idm_v2_decode_incomplete() {
+        let idm_frame: Vec<u8> = vec![
+            0x02, // v2
+            0x00, // NOT final
+            0x00, 0x01, // encoding = DER only
+            0x00, 0x00, 0x00, 0x04, // length = 4
+            0x01, 0x02, 0x03, 0x04, // data
+        ];
+        let tcp = MockTcpStream::new();
+        let mut idm = IdmStream::new(tcp);
+        match &idm.receive_data(&idm_frame) {
+            Ok(bytes_read) => {
+                assert_eq!(*bytes_read, idm_frame.len());
+            },
+            Err(e) => {
+                println!("{:?}", idm);
+                panic!("{}", e);
+            },
+        };
+        match &idm.read_pdu().await.unwrap() {
+            Some((_encoding, _data)) => {
+                panic!("PDU should NOT have been read.");
+            },
+            None => {},
+        };
+    }
 
 }
