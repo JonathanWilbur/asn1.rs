@@ -134,34 +134,6 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         self.transport.write(bytes).await
     }
 
-    pub fn receive_data (&mut self, bytes: &[u8]) -> Result<usize> {
-        let (new_buffer_size, overflowed) = self.buffer.len().overflowing_add(bytes.len());
-        if overflowed {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
-        if new_buffer_size > self.byte_buffer_size {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
-        std::io::Write::write(&mut self.buffer, &bytes)?;
-        let mut i: usize = 0;
-        loop {
-            match self.chomp_frame(i) {
-                Ok(bytes_read) => {
-                    if bytes_read == 0 {
-                        return Ok(i);
-                    }
-                    let (new_i, overflowed_i) = i.overflowing_add(bytes_read);
-                    if overflowed_i {
-                        return Err(Error::from(ErrorKind::InvalidData));
-                    }
-                    i = new_i;
-                },
-                Err(e) => return Err(e),
-            }
-        }
-        // TODO: Refactor async IdmStream impls so that they return Result<T> instead of T?
-    }
-
     fn chomp_frame (&mut self, start_index: usize) -> Result<usize> {
         let (bytes_remaining, br_overflowed) = self.buffer.len().overflowing_sub(start_index);
         if br_overflowed {
@@ -428,17 +400,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frame).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frame) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frame.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         match &idm.read_pdu().await {
             Ok(pdu_or_not) => {
                 match &pdu_or_not {
@@ -467,17 +431,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frame).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frame) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frame.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         let pdu = idm.read_pdu().await.unwrap();
         match &pdu {
             Some((encoding, data)) => {
@@ -504,17 +460,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frames).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frames) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frames.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         let pdu1 = &idm.read_pdu().await.unwrap();
         match &pdu1 {
             Some((encoding, data)) => {
@@ -555,17 +503,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frames).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frames) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frames.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         let pdu1 = &idm.read_pdu().await.unwrap();
         match &pdu1 {
             Some((encoding, data)) => {
@@ -604,29 +544,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frames).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frames[0..8]) {
-            Ok(bytes_read) => {
-                // Zero should be read, because there are no full IDM frames.
-                assert_eq!(*bytes_read, 0);
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
-        match &idm.receive_data(&idm_frames[8..]) {
-            Ok(bytes_read) => {
-                // This should return the whole length of all bytes, because
-                // both PDUs are completed with this chunk of bytes.
-                assert_eq!(*bytes_read, idm_frames.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         let pdu1 = &idm.read_pdu().await.unwrap();
         match &pdu1 {
             Some((encoding, data)) => {
@@ -667,29 +587,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x05, // length = 5
             0x05, 0x06, 0x07, 0x08, 0x09, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frames).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frames[0..8]) {
-            Ok(bytes_read) => {
-                // Zero should be read, because there are no full IDM frames.
-                assert_eq!(*bytes_read, 0);
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
-        match &idm.receive_data(&idm_frames[8..]) {
-            Ok(bytes_read) => {
-                // This should return the whole length of all bytes, because
-                // both PDUs are completed with this chunk of bytes.
-                assert_eq!(*bytes_read, idm_frames.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         let pdu1 = &idm.read_pdu().await.unwrap();
         match &pdu1 {
             Some((encoding, data)) => {
@@ -728,17 +628,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x05, 0x06, 0x07, 0x08, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frame).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frame) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frame.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         match &idm.read_pdu().await.unwrap() {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 0);
@@ -766,17 +658,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x05, 0x06, 0x07, 0x08, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frame).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frame) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frame.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         match &idm.read_pdu().await.unwrap() {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 1);
@@ -798,17 +682,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frame).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frame) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frame.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         match &idm.read_pdu().await.unwrap() {
             Some((_encoding, _data)) => {
                 panic!("PDU should NOT have been read.");
@@ -826,17 +702,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x04, // length = 4
             0x01, 0x02, 0x03, 0x04, // data
         ];
-        let tcp = MockTcpStream::new();
+        let mut tcp = MockTcpStream::new();
+        tcp.receive(&idm_frame).unwrap();
         let mut idm = IdmStream::new(tcp);
-        match &idm.receive_data(&idm_frame) {
-            Ok(bytes_read) => {
-                assert_eq!(*bytes_read, idm_frame.len());
-            },
-            Err(e) => {
-                println!("{:?}", idm);
-                panic!("{}", e);
-            },
-        };
         match &idm.read_pdu().await.unwrap() {
             Some((_encoding, _data)) => {
                 panic!("PDU should NOT have been read.");
