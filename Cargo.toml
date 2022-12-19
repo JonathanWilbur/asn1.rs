@@ -9,4 +9,6 @@ members = [
     "rose-transport",
     "x500-client",
     "mock-tcpstream",
+    "tsp",
+    "cms",
 ]

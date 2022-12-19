@@ -88,6 +88,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cms"
+version = "0.1.0"
+dependencies = [
+ "asn1",
+ "x500",
+ "x690",
+]
+
+[[package]]
 name = "codespan-reporting"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -477,6 +486,16 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
+]
+
+[[package]]
+name = "tsp"
+version = "0.1.0"
+dependencies = [
+ "asn1",
+ "cms",
+ "x500",
+ "x690",
 ]
 
 [[package]]

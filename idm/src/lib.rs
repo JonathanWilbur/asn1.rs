@@ -1,8 +1,8 @@
-use std::io::{Result, ErrorKind, Error};
 use std::collections::VecDeque;
-use tokio::io::{AsyncWriteExt, AsyncReadExt};
-use std::task::Waker;
+use std::io::{Error, ErrorKind, Result};
 use std::sync::{Arc, Mutex};
+use std::task::Waker;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub type Bytes = Vec<u8>;
 
@@ -22,7 +22,9 @@ pub const IDM_ENCODING_XER: u16 = 0b0000_0000_0000_1000;
 pub const IDM_ENCODING_UNKNOWN: u16 = 0xFFFF;
 
 #[cfg(target_pointer_width = "16")]
-compile_error!("16-bit not supported, because IDM PDUs cannot be reliably sized down to fit in a u16.");
+compile_error!(
+    "16-bit not supported, because IDM PDUs cannot be reliably sized down to fit in a u16."
+);
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct IDMSegment {
@@ -33,7 +35,7 @@ pub struct IDMSegment {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct IdmStreamOptions <W : AsyncWriteExt> {
+pub struct IdmStreamOptions<W: AsyncWriteExt> {
     pub byte_buffer_size: usize,
     pub segment_buffer_size: usize,
     pub output: W,
@@ -45,14 +47,12 @@ pub struct FutureState {
 }
 
 impl Default for FutureState {
-
     fn default() -> Self {
         FutureState { waker: None }
     }
-
 }
 
-pub struct IdmStream <W : AsyncWriteExt + AsyncReadExt> {
+pub struct IdmStream<W: AsyncWriteExt + AsyncReadExt> {
     pub version: u8, // 0 = unset
     pub encoding: u16,
     pub transport: W,
@@ -70,8 +70,7 @@ pub struct IdmStream <W : AsyncWriteExt + AsyncReadExt> {
     future_state: Arc<Mutex<FutureState>>,
 }
 
-impl <W : AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
-
+impl<W: AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
             "IdmSocket {{ v{}, enc {:#b}, byte_buf_size {}, seg_buf_size {}, buffer {:?}, segments {:?} }}",
@@ -83,12 +82,10 @@ impl <W : AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
             self.segments,
         ))
     }
-
 }
 
-impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
-
-    pub fn new (output: T) -> Self {
+impl<T: AsyncWriteExt + AsyncReadExt + Unpin> IdmStream<T> {
+    pub fn new(output: T) -> Self {
         IdmStream {
             version: IDM_VERSION_UNSET,
             encoding: IDM_ENCODING_UNKNOWN,
@@ -101,7 +98,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         }
     }
 
-    pub async fn write_pdu (&mut self, bytes: &[u8], encoding: u16) -> Result<usize> {
+    pub async fn write_pdu(&mut self, bytes: &[u8], encoding: u16) -> Result<usize> {
         if bytes.len() > u32::MAX as usize {
             // This implementation simply will not allow you to write an IDM PDU
             // larger than 4GB.
@@ -110,31 +107,43 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         if self.version == IDM_VERSION_UNSET {
             if encoding > IDM_ENCODING_BER {
                 self.version = IDM_VERSION_2;
-                self.transport.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
-                self.transport.write(u16::to_be_bytes(encoding).as_slice()).await?;
-                self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+                self.transport.write(&[0x02, 0x01]).await?; // Version 2, Final
+                self.transport
+                    .write(u16::to_be_bytes(encoding).as_slice())
+                    .await?;
+                self.transport
+                    .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
+                    .await?;
             } else {
-                self.transport.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
-                self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+                self.transport.write(&[0x01, 0x01]).await?; // Version 1, Final
+                self.transport
+                    .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
+                    .await?;
             }
         } else if self.version == IDM_VERSION_1 {
             self.version = IDM_VERSION_1;
             if encoding != IDM_ENCODING_BER {
                 return Err(Error::from(ErrorKind::Unsupported));
             }
-            self.transport.write(&[ 0x01, 0x01 ]).await?; // Version 1, Final
-            self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+            self.transport.write(&[0x01, 0x01]).await?; // Version 1, Final
+            self.transport
+                .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
+                .await?;
         } else if self.version == IDM_VERSION_2 {
-            self.transport.write(&[ 0x02, 0x01 ]).await?; // Version 2, Final
-            self.transport.write(u16::to_be_bytes(encoding).as_slice()).await?;
-            self.transport.write(u32::to_be_bytes(bytes.len() as u32).as_slice()).await?;
+            self.transport.write(&[0x02, 0x01]).await?; // Version 2, Final
+            self.transport
+                .write(u16::to_be_bytes(encoding).as_slice())
+                .await?;
+            self.transport
+                .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
+                .await?;
         } else {
             return Err(Error::from(ErrorKind::Other));
         }
         self.transport.write(bytes).await
     }
 
-    fn chomp_frame (&mut self, start_index: usize) -> Result<usize> {
+    fn chomp_frame(&mut self, start_index: usize) -> Result<usize> {
         let (bytes_remaining, br_overflowed) = self.buffer.len().overflowing_sub(start_index);
         if br_overflowed {
             return Err(Error::from(ErrorKind::InvalidData));
@@ -162,7 +171,8 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         if final_ > 1 {
             return Err(Error::from(ErrorKind::InvalidData)); // Invalid "final" value.
         }
-        if version == 1 { // This is already guaranteed to at least have enough bytes for an IDMv1 frame.
+        if version == 1 {
+            // This is already guaranteed to at least have enough bytes for an IDMv1 frame.
             let length: u32 = u32::from_be_bytes([
                 self.buffer[start_index + 2],
                 self.buffer[start_index + 3],
@@ -173,16 +183,16 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             // If we haven't received the full PDU yet...
-            let (idm_frame_size, idm_frame_size_overflowed) = length
-                .overflowing_add(IDM_V1_FRAME_SIZE as u32);
+            let (idm_frame_size, idm_frame_size_overflowed) =
+                length.overflowing_add(IDM_V1_FRAME_SIZE as u32);
             if idm_frame_size_overflowed {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             if bytes_remaining < idm_frame_size as usize {
                 return Ok(0);
             }
-            let (start_of_data, sod_overflowed) = start_index
-                .overflowing_add(IDM_V1_FRAME_SIZE as usize);
+            let (start_of_data, sod_overflowed) =
+                start_index.overflowing_add(IDM_V1_FRAME_SIZE as usize);
             if sod_overflowed {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
@@ -195,7 +205,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
                 version,
                 final_: is_final,
                 encoding: 0,
-                data_bounds: [ start_of_data, end_of_frame ],
+                data_bounds: [start_of_data, end_of_frame],
             };
             if self.segments.len() >= self.segment_buffer_size {
                 return Err(Error::from(ErrorKind::InvalidData));
@@ -211,8 +221,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
                 }
             }
             return Ok(IDM_V1_FRAME_SIZE as usize + length as usize);
-        }
-        else if version == 2 {
+        } else if version == 2 {
             let length: u32 = u32::from_be_bytes([
                 self.buffer[start_index + 4],
                 self.buffer[start_index + 5],
@@ -223,25 +232,23 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             // If we haven't received the full PDU yet...
-            let (idm_frame_size, idm_frame_size_overflowed) = length
-                .overflowing_add(IDM_V2_FRAME_SIZE as u32);
+            let (idm_frame_size, idm_frame_size_overflowed) =
+                length.overflowing_add(IDM_V2_FRAME_SIZE as u32);
             if idm_frame_size_overflowed {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             if bytes_remaining < idm_frame_size as usize {
                 return Ok(0);
             }
-            let encoding: u16 = u16::from_be_bytes([
-                self.buffer[start_index + 2],
-                self.buffer[start_index + 3],
-            ]);
+            let encoding: u16 =
+                u16::from_be_bytes([self.buffer[start_index + 2], self.buffer[start_index + 3]]);
             if let Some(last_seg) = self.segments.back() {
                 if last_seg.encoding != encoding {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
-            let (start_of_data, sod_overflowed) = start_index
-                .overflowing_add(IDM_V2_FRAME_SIZE as usize);
+            let (start_of_data, sod_overflowed) =
+                start_index.overflowing_add(IDM_V2_FRAME_SIZE as usize);
             if sod_overflowed {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
@@ -254,7 +261,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
                 version,
                 final_: is_final,
                 encoding,
-                data_bounds: [ start_of_data, end_of_frame ],
+                data_bounds: [start_of_data, end_of_frame],
             };
             if self.segments.len() >= self.segment_buffer_size {
                 return Err(Error::from(ErrorKind::InvalidData));
@@ -273,7 +280,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         }
     }
 
-    pub async fn read_pdu (&mut self) -> Result<Option<(u16, Bytes)>> {
+    pub async fn read_pdu(&mut self) -> Result<Option<(u16, Bytes)>> {
         let mut receive_buffer = [0; 50000];
         let bytes_len = self.transport.read(&mut receive_buffer).await?;
         let (new_buffer_size, overflowed) = self.buffer.len().overflowing_add(bytes_len);
@@ -297,7 +304,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
                         return Err(Error::from(ErrorKind::InvalidData));
                     }
                     i = new_i;
-                },
+                }
                 Err(e) => return Err(e),
             }
         }
@@ -307,8 +314,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         };
         let last_seg_of_pdu = self.segments[end_index];
         let end_of_pdu = last_seg_of_pdu.data_bounds[1];
-        let data = self.segments
-            .make_contiguous()[0..end_index+1]
+        let data = self.segments.make_contiguous()[0..end_index + 1]
             .iter()
             .map(|s| &self.buffer[s.data_bounds[0]..s.data_bounds[1]])
             .collect::<Vec<&[u8]>>()
@@ -322,11 +328,9 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         }
         Ok(Some((last_seg_of_pdu.encoding, data)))
     }
-
 }
 
-impl <W : AsyncWriteExt + AsyncReadExt> From<IdmStreamOptions<W>> for IdmStream<W> {
-
+impl<W: AsyncWriteExt + AsyncReadExt> From<IdmStreamOptions<W>> for IdmStream<W> {
     fn from(opts: IdmStreamOptions<W>) -> Self {
         IdmStream {
             version: IDM_VERSION_UNSET,
@@ -339,7 +343,6 @@ impl <W : AsyncWriteExt + AsyncReadExt> From<IdmStreamOptions<W>> for IdmStream<
             future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
-
 }
 
 // impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Future for IdmStream<W> {
@@ -405,21 +408,18 @@ mod tests {
         tcp.receive(&idm_frame).unwrap();
         let mut idm = IdmStream::new(tcp);
         match &idm.read_pdu().await {
-            Ok(pdu_or_not) => {
-                match &pdu_or_not {
-                    Some((encoding, data)) => {
-                        assert_eq!(*encoding, 0);
-                        assert_eq!(data.len(), 4);
-                        assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-                    },
-                    None => {
-                        println!("{:?}", idm);
-                        panic!("No PDU could be read.");
-                    },
+            Ok(pdu_or_not) => match &pdu_or_not {
+                Some((encoding, data)) => {
+                    assert_eq!(*encoding, 0);
+                    assert_eq!(data.len(), 4);
+                    assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
+                }
+                None => {
+                    println!("{:?}", idm);
+                    panic!("No PDU could be read.");
                 }
             },
             Err(_) => panic!("PDU error."),
-
         };
     }
 
@@ -440,12 +440,12 @@ mod tests {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 1);
                 assert_eq!(data.len(), 4);
-                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-            },
+                assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
     }
 
@@ -469,24 +469,24 @@ mod tests {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 0);
                 assert_eq!(data.len(), 4);
-                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-            },
+                assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
         let pdu2 = &idm.read_pdu().await.unwrap();
         match &pdu2 {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 0);
                 assert_eq!(data.len(), 5);
-                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-            },
+                assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
     }
 
@@ -512,24 +512,24 @@ mod tests {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 1);
                 assert_eq!(data.len(), 4);
-                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-            },
+                assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
         let pdu2 = &idm.read_pdu().await.unwrap();
         match &pdu2 {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 1);
                 assert_eq!(data.len(), 5);
-                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-            },
+                assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
     }
 
@@ -553,24 +553,24 @@ mod tests {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 0);
                 assert_eq!(data.len(), 4);
-                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-            },
+                assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
         let pdu2 = &idm.read_pdu().await.unwrap();
         match &pdu2 {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 0);
                 assert_eq!(data.len(), 5);
-                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-            },
+                assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
     }
 
@@ -596,24 +596,24 @@ mod tests {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 1);
                 assert_eq!(data.len(), 4);
-                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04 ]));
-            },
+                assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
         let pdu2 = &idm.read_pdu().await.unwrap();
         match &pdu2 {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 1);
                 assert_eq!(data.len(), 5);
-                assert!(data.starts_with(&[ 0x05, 0x06, 0x07, 0x08, 0x09 ]));
-            },
+                assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
     }
 
@@ -636,12 +636,12 @@ mod tests {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 0);
                 assert_eq!(data.len(), 8);
-                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 ]));
-            },
+                assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
     }
 
@@ -666,12 +666,12 @@ mod tests {
             Some((encoding, data)) => {
                 assert_eq!(*encoding, 1);
                 assert_eq!(data.len(), 8);
-                assert!(data.starts_with(&[ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 ]));
-            },
+                assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]));
+            }
             None => {
                 println!("{:?}", idm);
                 panic!("No PDU could be read.");
-            },
+            }
         };
     }
 
@@ -689,8 +689,8 @@ mod tests {
         match &idm.read_pdu().await.unwrap() {
             Some((_encoding, _data)) => {
                 panic!("PDU should NOT have been read.");
-            },
-            None => {},
+            }
+            None => {}
         };
     }
 
@@ -709,9 +709,8 @@ mod tests {
         match &idm.read_pdu().await.unwrap() {
             Some((_encoding, _data)) => {
                 panic!("PDU should NOT have been read.");
-            },
-            None => {},
+            }
+            None => {}
         };
     }
-
 }

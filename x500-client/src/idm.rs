@@ -1,26 +1,16 @@
-use std::io::{Result, ErrorKind, Error};
+use crate::RoseStream;
 use asn1::ENUMERATED;
+use async_trait::async_trait;
 use idm::IdmStream;
 use rose_transport::{
-    ROSEReceiver,
-    ROSETransmitter,
-    BindParameters,
-    BindResultOrErrorParameters,
-    RequestParameters,
-    ResultOrErrorParameters,
-    RejectParameters,
-    UnbindParameters,
-    AbortReason,
-    RejectReason,
-    RosePDU,
-    StartTLSParameters,
-    TLSResponseParameters,
+    AbortReason, BindParameters, BindResultOrErrorParameters, ROSEReceiver, ROSETransmitter,
+    RejectParameters, RejectReason, RequestParameters, ResultOrErrorParameters, RosePDU,
+    StartTLSParameters, TLSResponseParameters, UnbindParameters,
 };
-use tokio::io::{AsyncWriteExt, AsyncReadExt};
-use x500::{IDMProtocolSpecification::*, CommonProtocolSpecification::InvokeId};
-use x690::{X690Element, write_x690_node, ber_cst};
-use async_trait::async_trait;
-use crate::RoseStream;
+use std::io::{Error, ErrorKind, Result};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use x500::{CommonProtocolSpecification::InvokeId, IDMProtocolSpecification::*};
+use x690::{ber_cst, write_x690_node, X690Element};
 
 pub type X500ROSEPDU = rose_transport::RosePDU<X690Element>;
 
@@ -31,11 +21,13 @@ pub type X500ROSEPDU = rose_transport::RosePDU<X690Element>;
 // }
 
 #[inline]
-fn reject_reason_to_integer (rr: RejectReason) -> Option<ENUMERATED> {
+fn reject_reason_to_integer(rr: RejectReason) -> Option<ENUMERATED> {
     match rr {
         RejectReason::MistypedPDU => Some(IdmReject_reason_mistypedPDU),
         RejectReason::DuplicateInvokeIdRequest => Some(IdmReject_reason_duplicateInvokeIDRequest),
-        RejectReason::UnsupportedOperationRequest => Some(IdmReject_reason_unsupportedOperationRequest),
+        RejectReason::UnsupportedOperationRequest => {
+            Some(IdmReject_reason_unsupportedOperationRequest)
+        }
         RejectReason::UnknownOperationRequest => Some(IdmReject_reason_unknownOperationRequest),
         RejectReason::MistypedArgumentRequest => Some(IdmReject_reason_mistypedArgumentRequest),
         RejectReason::ResourceLimitationRequest => Some(IdmReject_reason_resourceLimitationRequest),
@@ -55,7 +47,7 @@ fn reject_reason_to_integer (rr: RejectReason) -> Option<ENUMERATED> {
 }
 
 #[inline]
-fn integer_to_reject_reason (rr: ENUMERATED) -> Option<RejectReason> {
+fn integer_to_reject_reason(rr: ENUMERATED) -> Option<RejectReason> {
     match rr {
         IdmReject_reason_duplicateInvokeIDRequest => Some(RejectReason::DuplicateInvokeIdRequest),
         IdmReject_reason_invalidIdmVersion => Some(RejectReason::InvalidIDMVersion),
@@ -70,13 +62,15 @@ fn integer_to_reject_reason (rr: ENUMERATED) -> Option<RejectReason> {
         IdmReject_reason_unknownOperationRequest => Some(RejectReason::UnknownOperationRequest),
         IdmReject_reason_unsuitableIdmVersion => Some(RejectReason::UnsuitableIDMVersion),
         IdmReject_reason_unsupportedIdmVersion => Some(RejectReason::UnsupportedIDMVersion),
-        IdmReject_reason_unsupportedOperationRequest => Some(RejectReason::UnsupportedOperationRequest),
+        IdmReject_reason_unsupportedOperationRequest => {
+            Some(RejectReason::UnsupportedOperationRequest)
+        }
         _ => None,
     }
 }
 
 #[inline]
-fn abort_reason_to_integer (ar: AbortReason) -> Option<ENUMERATED> {
+fn abort_reason_to_integer(ar: AbortReason) -> Option<ENUMERATED> {
     match ar {
         AbortReason::MistypedPDU => Some(Abort_mistypedPDU),
         AbortReason::UnboundRequest => Some(Abort_unboundRequest),
@@ -95,7 +89,7 @@ fn abort_reason_to_integer (ar: AbortReason) -> Option<ENUMERATED> {
 }
 
 #[inline]
-fn integer_to_abort_reason (ar: ENUMERATED) -> Option<AbortReason> {
+fn integer_to_abort_reason(ar: ENUMERATED) -> Option<AbortReason> {
     match ar {
         Abort_mistypedPDU => Some(AbortReason::MistypedPDU),
         Abort_unboundRequest => Some(AbortReason::UnboundRequest),
@@ -109,7 +103,10 @@ fn integer_to_abort_reason (ar: ENUMERATED) -> Option<AbortReason> {
 }
 
 #[inline]
-async fn write_idm_pdu <W : AsyncWriteExt + AsyncReadExt + Unpin> (idm: &mut IdmStream<W>, pdu: &IDM_PDU) -> Result<usize> {
+async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin>(
+    idm: &mut IdmStream<W>,
+    pdu: &IDM_PDU,
+) -> Result<usize> {
     // TODO: Do something more useful with these errors.
     match _encode_IDM_PDU(&pdu) {
         Ok(element) => {
@@ -118,7 +115,7 @@ async fn write_idm_pdu <W : AsyncWriteExt + AsyncReadExt + Unpin> (idm: &mut Idm
                 return Err(Error::from(ErrorKind::InvalidInput));
             }
             idm.write_pdu(&bytes, 0).await
-        },
+        }
         Err(_e) => Err(Error::from(ErrorKind::InvalidInput)),
     }
 }
@@ -150,9 +147,10 @@ async fn write_idm_pdu <W : AsyncWriteExt + AsyncReadExt + Unpin> (idm: &mut Idm
 // }
 
 #[async_trait]
-impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Element> for RoseStream<IdmStream<W>> {
-
-    async fn write_bind (self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
+impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Element>
+    for RoseStream<IdmStream<W>>
+{
+    async fn write_bind(self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
         let idm_bind = IdmBind::new(
             params.protocol_id,
             params.calling_ae_title,
@@ -164,7 +162,10 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Eleme
         write_idm_pdu(&mut self.transport, &idm_pdu).await
     }
 
-    async fn write_bind_result (self: &mut Self, params: BindResultOrErrorParameters<X690Element>) -> Result<usize> {
+    async fn write_bind_result(
+        self: &mut Self,
+        params: BindResultOrErrorParameters<X690Element>,
+    ) -> Result<usize> {
         let idm_br = IdmBindResult::new(
             params.protocol_id,
             params.responding_ae_title,
@@ -175,7 +176,10 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Eleme
         write_idm_pdu(&mut self.transport, &idm_pdu).await
     }
 
-    async fn write_bind_error (self: &mut Self, params: BindResultOrErrorParameters<X690Element>) -> Result<usize> {
+    async fn write_bind_error(
+        self: &mut Self,
+        params: BindResultOrErrorParameters<X690Element>,
+    ) -> Result<usize> {
         let idm_be = IdmBindError::new(
             params.protocol_id,
             params.responding_ae_title,
@@ -187,15 +191,13 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Eleme
         write_idm_pdu(&mut self.transport, &idm_pdu).await
     }
 
-    async fn write_request (self: &mut Self, params: RequestParameters<X690Element>) -> Result<usize> {
+    async fn write_request(
+        self: &mut Self,
+        params: RequestParameters<X690Element>,
+    ) -> Result<usize> {
         // TODO: REVIEW: should this be required by this API?
         if let InvokeId::present(iid) = params.invoke_id {
-            let request = Request::new(
-                iid,
-                params.code,
-                params.parameter,
-                vec![],
-            );
+            let request = Request::new(iid, params.code, params.parameter, vec![]);
             let idm_pdu = IDM_PDU::request(request);
             write_idm_pdu(&mut self.transport, &idm_pdu).await
         } else {
@@ -203,14 +205,12 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Eleme
         }
     }
 
-    async fn write_result (self: &mut Self, params: ResultOrErrorParameters<X690Element>) -> Result<usize> {
+    async fn write_result(
+        self: &mut Self,
+        params: ResultOrErrorParameters<X690Element>,
+    ) -> Result<usize> {
         if let InvokeId::present(iid) = params.invoke_id {
-            let result = IdmResult::new(
-                iid,
-                params.code,
-                params.parameter,
-                vec![],
-            );
+            let result = IdmResult::new(iid, params.code, params.parameter, vec![]);
             let idm_pdu = IDM_PDU::result(result);
             write_idm_pdu(&mut self.transport, &idm_pdu).await
         } else {
@@ -218,7 +218,10 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Eleme
         }
     }
 
-    async fn write_error (self: &mut Self, params: ResultOrErrorParameters<X690Element>) -> Result<usize> {
+    async fn write_error(
+        self: &mut Self,
+        params: ResultOrErrorParameters<X690Element>,
+    ) -> Result<usize> {
         if let InvokeId::present(iid) = params.invoke_id {
             let error = x500::IDMProtocolSpecification::Error::new(
                 iid,
@@ -233,7 +236,7 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Eleme
         }
     }
 
-    async fn write_reject (self: &mut Self, params: RejectParameters) -> Result<usize> {
+    async fn write_reject(self: &mut Self, params: RejectParameters) -> Result<usize> {
         if let InvokeId::present(iid) = params.invoke_id {
             let reject = IdmReject::new(
                 iid,
@@ -247,27 +250,29 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Eleme
         }
     }
 
-    async fn write_unbind (self: &mut Self, _params: UnbindParameters<X690Element>) -> Result<usize> {
+    async fn write_unbind(
+        self: &mut Self,
+        _params: UnbindParameters<X690Element>,
+    ) -> Result<usize> {
         let idm_pdu = IDM_PDU::unbind(());
         write_idm_pdu(&mut self.transport, &idm_pdu).await
     }
 
-    async fn write_abort (self: &mut Self, reason: AbortReason) -> Result<usize> {
+    async fn write_abort(self: &mut Self, reason: AbortReason) -> Result<usize> {
         let idm_pdu = IDM_PDU::abort(abort_reason_to_integer(reason).unwrap_or_default());
         write_idm_pdu(&mut self.transport, &idm_pdu).await
     }
-
 }
 
-impl <W : AsyncWriteExt + AsyncReadExt + Unpin> RoseStream<IdmStream<W>> {
-
-    pub fn receive_idm_pdu (&mut self, encoding_and_bytes: (u16, Vec<u8>)) -> Result<()> {
+impl<W: AsyncWriteExt + AsyncReadExt + Unpin> RoseStream<IdmStream<W>> {
+    pub fn receive_idm_pdu(&mut self, encoding_and_bytes: (u16, Vec<u8>)) -> Result<()> {
         let (encoding, idm_pdu_bytes) = encoding_and_bytes;
-        if
-            idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
+        if idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
             && idm_pdu_bytes[0] != 0xA0 // ...and the PDU is a bind, and...
-            && encoding > 1 // ...something other than BER or DER encoding is used...
-        { // We don't support this encoding, so we return an error.
+            && encoding > 1
+        // ...something other than BER or DER encoding is used...
+        {
+            // We don't support this encoding, so we return an error.
             return Err(Error::from(ErrorKind::InvalidData));
         }
         let idm_pdu_element = match ber_cst(&idm_pdu_bytes) {
@@ -276,7 +281,7 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin> RoseStream<IdmStream<W>> {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
                 element
-            },
+            }
             Err(_e) => return Err(Error::from(ErrorKind::InvalidData)),
         };
         let pdu = match _decode_IDM_PDU(&idm_pdu_element) {
@@ -284,20 +289,18 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin> RoseStream<IdmStream<W>> {
             Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
         };
         let rose_pdu = match pdu {
-            IDM_PDU::bind(bind) => {
-                Ok(RosePDU::Bind(BindParameters {
-                    protocol_id: bind.protocolID,
-                    calling_ae_title: bind.callingAETitle,
-                    called_ae_title: bind.calledAETitle,
-                    parameter: bind.argument,
-                    implementation_information: None,
-                    called_ae_invocation_identifier: None,
-                    called_ap_invocation_identifier: None,
-                    calling_ae_invocation_identifier: None,
-                    calling_ap_invocation_identifier: None,
-                    timeout: 0,
-                }))
-            },
+            IDM_PDU::bind(bind) => Ok(RosePDU::Bind(BindParameters {
+                protocol_id: bind.protocolID,
+                calling_ae_title: bind.callingAETitle,
+                called_ae_title: bind.calledAETitle,
+                parameter: bind.argument,
+                implementation_information: None,
+                called_ae_invocation_identifier: None,
+                called_ap_invocation_identifier: None,
+                calling_ae_invocation_identifier: None,
+                calling_ap_invocation_identifier: None,
+                timeout: 0,
+            })),
             IDM_PDU::bindResult(bind_result) => {
                 Ok(RosePDU::BindResult(BindResultOrErrorParameters {
                     protocol_id: bind_result.protocolID,
@@ -306,64 +309,48 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin> RoseStream<IdmStream<W>> {
                     responding_ae_invocation_identifier: None,
                     responding_ap_invocation_identifier: None,
                 }))
-            },
-            IDM_PDU::bindError(bind_error) => {
-                Ok(RosePDU::BindError(BindResultOrErrorParameters {
-                    protocol_id: bind_error.protocolID,
-                    parameter: bind_error.error,
-                    responding_ae_title: bind_error.respondingAETitle,
-                    responding_ae_invocation_identifier: None,
-                    responding_ap_invocation_identifier: None,
-                }))
-            },
-            IDM_PDU::request(request) => {
-                Ok(RosePDU::Request(RequestParameters {
-                    code: request.opcode,
-                    invoke_id: InvokeId::present(request.invokeID),
-                    parameter: request.argument,
-                    linked_id: None,
-                }))
-            },
-            IDM_PDU::result(result) => {
-                Ok(RosePDU::Result(ResultOrErrorParameters {
-                    code: result.opcode,
-                    invoke_id: InvokeId::present(result.invokeID),
-                    parameter: result.result,
-                }))
-            },
-            IDM_PDU::error(error) => {
-                Ok(RosePDU::Error(ResultOrErrorParameters {
-                    code: error.errcode,
-                    invoke_id: InvokeId::present(error.invokeID),
-                    parameter: error.error,
-                }))
-            },
-            IDM_PDU::reject(reject) => {
-                Ok(RosePDU::Reject(RejectParameters {
-                    invoke_id: InvokeId::present(reject.invokeID),
-                    reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
-                }))
-            },
-            IDM_PDU::unbind(_unbind) => {
-                Ok(RosePDU::Unbind(UnbindParameters {
-                    parameter: None,
-                    timeout: 0,
-                }))
-            },
-            IDM_PDU::abort(abort) => {
-                Ok(RosePDU::Abort(integer_to_abort_reason(abort).unwrap_or_default()))
-            },
-            IDM_PDU::startTLS(_start_tls) => {
-                Ok(RosePDU::StartTLS(StartTLSParameters::default()))
-            },
+            }
+            IDM_PDU::bindError(bind_error) => Ok(RosePDU::BindError(BindResultOrErrorParameters {
+                protocol_id: bind_error.protocolID,
+                parameter: bind_error.error,
+                responding_ae_title: bind_error.respondingAETitle,
+                responding_ae_invocation_identifier: None,
+                responding_ap_invocation_identifier: None,
+            })),
+            IDM_PDU::request(request) => Ok(RosePDU::Request(RequestParameters {
+                code: request.opcode,
+                invoke_id: InvokeId::present(request.invokeID),
+                parameter: request.argument,
+                linked_id: None,
+            })),
+            IDM_PDU::result(result) => Ok(RosePDU::Result(ResultOrErrorParameters {
+                code: result.opcode,
+                invoke_id: InvokeId::present(result.invokeID),
+                parameter: result.result,
+            })),
+            IDM_PDU::error(error) => Ok(RosePDU::Error(ResultOrErrorParameters {
+                code: error.errcode,
+                invoke_id: InvokeId::present(error.invokeID),
+                parameter: error.error,
+            })),
+            IDM_PDU::reject(reject) => Ok(RosePDU::Reject(RejectParameters {
+                invoke_id: InvokeId::present(reject.invokeID),
+                reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
+            })),
+            IDM_PDU::unbind(_unbind) => Ok(RosePDU::Unbind(UnbindParameters {
+                parameter: None,
+                timeout: 0,
+            })),
+            IDM_PDU::abort(abort) => Ok(RosePDU::Abort(
+                integer_to_abort_reason(abort).unwrap_or_default(),
+            )),
+            IDM_PDU::startTLS(_start_tls) => Ok(RosePDU::StartTLS(StartTLSParameters::default())),
             IDM_PDU::tLSResponse(tls_response) => {
                 Ok(RosePDU::StartTLSResponse(TLSResponseParameters {
                     code: tls_response.max(99) as u8,
                 }))
-            },
-            IDM_PDU::_unrecognized(_unrecognized) => {
-                Err(Error::from(ErrorKind::Unsupported))
-            },
+            }
+            IDM_PDU::_unrecognized(_unrecognized) => Err(Error::from(ErrorKind::Unsupported)),
         }?;
         self.received_pdus.push_back(rose_pdu);
         let future_state = self.future_state.lock().unwrap();
@@ -372,23 +359,24 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin> RoseStream<IdmStream<W>> {
         }
         Ok(())
     }
-
 }
 
 #[async_trait]
-impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element> for RoseStream<IdmStream<W>> {
-
-    async fn read_pdu (&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
+impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element>
+    for RoseStream<IdmStream<W>>
+{
+    async fn read_pdu(&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
         let idm_frame_or_not = self.transport.read_pdu().await?;
         let (encoding, idm_pdu_bytes) = match &idm_frame_or_not {
             Some(frame) => frame,
             None => return Ok(None),
         };
-        if
-            idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
+        if idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
             && idm_pdu_bytes[0] != 0xA0 // ...and the PDU is a bind, and...
-            && *encoding > 1 // ...something other than BER or DER encoding is used...
-        { // We don't support this encoding, so we return an error.
+            && *encoding > 1
+        // ...something other than BER or DER encoding is used...
+        {
+            // We don't support this encoding, so we return an error.
             return Err(Error::from(ErrorKind::InvalidData));
         }
         let idm_pdu_element = match ber_cst(&idm_pdu_bytes) {
@@ -397,7 +385,7 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element>
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
                 element
-            },
+            }
             Err(_e) => return Err(Error::from(ErrorKind::InvalidData)),
         };
         let pdu = match _decode_IDM_PDU(&idm_pdu_element) {
@@ -405,20 +393,18 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element>
             Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
         };
         let rose_pdu = match pdu {
-            IDM_PDU::bind(bind) => {
-                Ok(RosePDU::Bind(BindParameters {
-                    protocol_id: bind.protocolID,
-                    calling_ae_title: bind.callingAETitle,
-                    called_ae_title: bind.calledAETitle,
-                    parameter: bind.argument,
-                    implementation_information: None,
-                    called_ae_invocation_identifier: None,
-                    called_ap_invocation_identifier: None,
-                    calling_ae_invocation_identifier: None,
-                    calling_ap_invocation_identifier: None,
-                    timeout: 0,
-                }))
-            },
+            IDM_PDU::bind(bind) => Ok(RosePDU::Bind(BindParameters {
+                protocol_id: bind.protocolID,
+                calling_ae_title: bind.callingAETitle,
+                called_ae_title: bind.calledAETitle,
+                parameter: bind.argument,
+                implementation_information: None,
+                called_ae_invocation_identifier: None,
+                called_ap_invocation_identifier: None,
+                calling_ae_invocation_identifier: None,
+                calling_ap_invocation_identifier: None,
+                timeout: 0,
+            })),
             IDM_PDU::bindResult(bind_result) => {
                 Ok(RosePDU::BindResult(BindResultOrErrorParameters {
                     protocol_id: bind_result.protocolID,
@@ -427,65 +413,51 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element>
                     responding_ae_invocation_identifier: None,
                     responding_ap_invocation_identifier: None,
                 }))
-            },
-            IDM_PDU::bindError(bind_error) => {
-                Ok(RosePDU::BindError(BindResultOrErrorParameters {
-                    protocol_id: bind_error.protocolID,
-                    parameter: bind_error.error,
-                    responding_ae_title: bind_error.respondingAETitle,
-                    responding_ae_invocation_identifier: None,
-                    responding_ap_invocation_identifier: None,
-                }))
-            },
-            IDM_PDU::request(request) => {
-                Ok(RosePDU::Request(RequestParameters {
-                    code: request.opcode,
-                    invoke_id: InvokeId::present(request.invokeID),
-                    parameter: request.argument,
-                    linked_id: None,
-                }))
-            },
-            IDM_PDU::result(result) => {
-                Ok(RosePDU::Result(ResultOrErrorParameters {
-                    code: result.opcode,
-                    invoke_id: InvokeId::present(result.invokeID),
-                    parameter: result.result,
-                }))
-            },
-            IDM_PDU::error(error) => {
-                Ok(RosePDU::Error(ResultOrErrorParameters {
-                    code: error.errcode,
-                    invoke_id: InvokeId::present(error.invokeID),
-                    parameter: error.error,
-                }))
-            },
-            IDM_PDU::reject(reject) => {
-                Ok(RosePDU::Reject(RejectParameters {
-                    invoke_id: InvokeId::present(reject.invokeID),
-                    reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
-                }))
-            },
-            IDM_PDU::unbind(_unbind) => {
-                Ok(RosePDU::Unbind(UnbindParameters {
-                    parameter: None,
-                    timeout: 0,
-                }))
-            },
-            IDM_PDU::abort(abort) => {
-                Ok(RosePDU::Abort(integer_to_abort_reason(abort).unwrap_or_default()))
-            },
-            IDM_PDU::startTLS(_start_tls) => {
-                Ok(RosePDU::StartTLS(StartTLSParameters::default()))
-            },
+            }
+            IDM_PDU::bindError(bind_error) => Ok(RosePDU::BindError(BindResultOrErrorParameters {
+                protocol_id: bind_error.protocolID,
+                parameter: bind_error.error,
+                responding_ae_title: bind_error.respondingAETitle,
+                responding_ae_invocation_identifier: None,
+                responding_ap_invocation_identifier: None,
+            })),
+            IDM_PDU::request(request) => Ok(RosePDU::Request(RequestParameters {
+                code: request.opcode,
+                invoke_id: InvokeId::present(request.invokeID),
+                parameter: request.argument,
+                linked_id: None,
+            })),
+            IDM_PDU::result(result) => Ok(RosePDU::Result(ResultOrErrorParameters {
+                code: result.opcode,
+                invoke_id: InvokeId::present(result.invokeID),
+                parameter: result.result,
+            })),
+            IDM_PDU::error(error) => Ok(RosePDU::Error(ResultOrErrorParameters {
+                code: error.errcode,
+                invoke_id: InvokeId::present(error.invokeID),
+                parameter: error.error,
+            })),
+            IDM_PDU::reject(reject) => Ok(RosePDU::Reject(RejectParameters {
+                invoke_id: InvokeId::present(reject.invokeID),
+                reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
+            })),
+            IDM_PDU::unbind(_unbind) => Ok(RosePDU::Unbind(UnbindParameters {
+                parameter: None,
+                timeout: 0,
+            })),
+            IDM_PDU::abort(abort) => Ok(RosePDU::Abort(
+                integer_to_abort_reason(abort).unwrap_or_default(),
+            )),
+            IDM_PDU::startTLS(_start_tls) => Ok(RosePDU::StartTLS(StartTLSParameters::default())),
             IDM_PDU::tLSResponse(tls_response) => {
                 Ok(RosePDU::StartTLSResponse(TLSResponseParameters {
                     code: tls_response.max(99) as u8,
                 }))
-            },
+            }
             IDM_PDU::_unrecognized(_unrecognized) => {
                 println!("{:?}", _unrecognized);
                 Err(Error::from(ErrorKind::Unsupported))
-            },
+            }
         }?;
         let future_state = self.future_state.lock().unwrap();
         if let Some(waker) = &future_state.waker {
@@ -493,7 +465,6 @@ impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element>
         }
         Ok(Some(rose_pdu))
     }
-
 }
 
 // impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Future for RoseStream<IdmStream<W>> {

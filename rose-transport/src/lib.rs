@@ -1,11 +1,10 @@
-use std::io::{Result, Error, ErrorKind};
-use asn1::{INTEGER, OBJECT_IDENTIFIER, ASN1Value};
-use x500::CommonProtocolSpecification::{Code, InvokeId};
-use x500::CertificateExtensions::GeneralName;
+use asn1::{ASN1Value, INTEGER, OBJECT_IDENTIFIER};
 use async_trait::async_trait;
+use std::io::{Error, ErrorKind, Result};
+use x500::CertificateExtensions::GeneralName;
+use x500::CommonProtocolSpecification::{Code, InvokeId};
 
 pub type OtherRoseError = u16;
-
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum AbortReason {
@@ -28,11 +27,9 @@ pub enum AbortReason {
 }
 
 impl Default for AbortReason {
-
     fn default() -> Self {
         AbortReason::ReasonNotSpecified
     }
-
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -58,15 +55,13 @@ pub enum RejectReason {
 }
 
 impl Default for RejectReason {
-
     fn default() -> Self {
         RejectReason::MistypedPDU
     }
-
 }
 
 #[derive(Debug, Clone)]
-pub struct BindParameters <ParameterType = ASN1Value> {
+pub struct BindParameters<ParameterType = ASN1Value> {
     pub timeout: u32, // 0 = no timeout.
     pub protocol_id: OBJECT_IDENTIFIER,
     pub parameter: ParameterType,
@@ -80,7 +75,7 @@ pub struct BindParameters <ParameterType = ASN1Value> {
 }
 
 #[derive(Debug, Clone)]
-pub struct BindResultOrErrorParameters <ParameterType = ASN1Value> {
+pub struct BindResultOrErrorParameters<ParameterType = ASN1Value> {
     pub protocol_id: OBJECT_IDENTIFIER,
     pub parameter: ParameterType,
     pub responding_ae_title: Option<GeneralName>,
@@ -89,7 +84,7 @@ pub struct BindResultOrErrorParameters <ParameterType = ASN1Value> {
 }
 
 #[derive(Debug, Clone)]
-pub struct RequestParameters <ParameterType = ASN1Value> {
+pub struct RequestParameters<ParameterType = ASN1Value> {
     pub invoke_id: InvokeId,
     pub code: Code,
     pub parameter: ParameterType,
@@ -97,7 +92,7 @@ pub struct RequestParameters <ParameterType = ASN1Value> {
 }
 
 #[derive(Debug, Clone)]
-pub struct ResultOrErrorParameters <ParameterType = ASN1Value> {
+pub struct ResultOrErrorParameters<ParameterType = ASN1Value> {
     pub invoke_id: InvokeId,
     pub code: Code,
     pub parameter: ParameterType,
@@ -110,14 +105,16 @@ pub struct RejectParameters {
 }
 
 #[derive(Debug, Clone)]
-pub struct UnbindParameters <ParameterType = ASN1Value> {
+pub struct UnbindParameters<ParameterType = ASN1Value> {
     pub timeout: u32, // 0 = no timeout.
     pub parameter: Option<ParameterType>,
 }
 
 #[derive(Debug, Clone)]
-pub struct UnbindResultOrErrorParameters <ParameterType = ASN1Value>
-    where ParameterType : Send {
+pub struct UnbindResultOrErrorParameters<ParameterType = ASN1Value>
+where
+    ParameterType: Send,
+{
     pub parameter: Option<ParameterType>,
 }
 
@@ -132,8 +129,10 @@ pub struct TLSResponseParameters {
 }
 
 #[derive(Debug, Clone)]
-pub enum RosePDU <ParameterType = ASN1Value>
-    where ParameterType : Send {
+pub enum RosePDU<ParameterType = ASN1Value>
+where
+    ParameterType: Send,
+{
     Bind(BindParameters<ParameterType>),
     BindResult(BindResultOrErrorParameters<ParameterType>),
     BindError(BindResultOrErrorParameters<ParameterType>),
@@ -165,7 +164,7 @@ pub enum RosePDU <ParameterType = ASN1Value>
 // }
 
 #[derive(Debug, Clone)]
-pub enum BindOutcome <BindResultType = ASN1Value, BindErrorType = ASN1Value> {
+pub enum BindOutcome<BindResultType = ASN1Value, BindErrorType = ASN1Value> {
     Result(BindResultOrErrorParameters<BindResultType>),
     Error(BindResultOrErrorParameters<BindErrorType>),
     Abort(AbortReason),
@@ -174,7 +173,7 @@ pub enum BindOutcome <BindResultType = ASN1Value, BindErrorType = ASN1Value> {
 }
 
 #[derive(Debug, Clone)]
-pub enum OperationOutcome <ResultType = ASN1Value, ErrorType = ASN1Value> {
+pub enum OperationOutcome<ResultType = ASN1Value, ErrorType = ASN1Value> {
     Result(ResultOrErrorParameters<ResultType>),
     Error(ResultOrErrorParameters<ErrorType>),
     Reject(RejectParameters),
@@ -184,7 +183,7 @@ pub enum OperationOutcome <ResultType = ASN1Value, ErrorType = ASN1Value> {
 }
 
 #[derive(Debug, Clone)]
-pub enum UnbindOutcome <ResultType = ASN1Value, ErrorType = ASN1Value> {
+pub enum UnbindOutcome<ResultType = ASN1Value, ErrorType = ASN1Value> {
     Result(ResultType),
     Error(ErrorType),
     Abort(AbortReason),
@@ -216,46 +215,87 @@ pub struct ROSETransport {
 }
 
 #[async_trait]
-pub trait ROSETransmitter <ParameterType = ASN1Value>
-    where ParameterType: Send {
-    async fn write_bind (self: &mut Self, params: BindParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_bind_result (self: &mut Self, params: BindResultOrErrorParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_bind_error (self: &mut Self, params: BindResultOrErrorParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_request (self: &mut Self, params: RequestParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_result (self: &mut Self, params: ResultOrErrorParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_error (self: &mut Self, params: ResultOrErrorParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_reject (self: &mut Self, params: RejectParameters) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_unbind (self: &mut Self, params: UnbindParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait;
-    async fn write_abort (self: &mut Self, reason: AbortReason) -> Result<usize>
-        where ParameterType: 'async_trait;
+pub trait ROSETransmitter<ParameterType = ASN1Value>
+where
+    ParameterType: Send,
+{
+    async fn write_bind(self: &mut Self, params: BindParameters<ParameterType>) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_bind_result(
+        self: &mut Self,
+        params: BindResultOrErrorParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_bind_error(
+        self: &mut Self,
+        params: BindResultOrErrorParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_request(
+        self: &mut Self,
+        params: RequestParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_result(
+        self: &mut Self,
+        params: ResultOrErrorParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_error(
+        self: &mut Self,
+        params: ResultOrErrorParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_reject(self: &mut Self, params: RejectParameters) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_unbind(
+        self: &mut Self,
+        params: UnbindParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
+    async fn write_abort(self: &mut Self, reason: AbortReason) -> Result<usize>
+    where
+        ParameterType: 'async_trait;
 
     // Default implementations, since these are not guaranteed to be defined for
     // all ROSE transports.
-    async fn write_unbind_result (self: &mut Self, _params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait {
+    async fn write_unbind_result(
+        self: &mut Self,
+        _params: UnbindResultOrErrorParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait,
+    {
         Ok(0)
     }
-    async fn write_unbind_error (self: &mut Self, _params: UnbindResultOrErrorParameters<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait {
+    async fn write_unbind_error(
+        self: &mut Self,
+        _params: UnbindResultOrErrorParameters<ParameterType>,
+    ) -> Result<usize>
+    where
+        ParameterType: 'async_trait,
+    {
         Ok(0)
     }
-    async fn write_start_tls (self: &mut Self, _params: StartTLSParameters) -> Result<usize> {
+    async fn write_start_tls(self: &mut Self, _params: StartTLSParameters) -> Result<usize> {
         Err(Error::from(ErrorKind::Unsupported))
     }
-    async fn write_tls_response (self: &mut Self, _params: TLSResponseParameters) -> Result<usize> {
+    async fn write_tls_response(self: &mut Self, _params: TLSResponseParameters) -> Result<usize> {
         Err(Error::from(ErrorKind::Unsupported))
     }
 
-    async fn write_rose_pdu (self: &mut Self, pdu: RosePDU<ParameterType>) -> Result<usize>
-        where ParameterType: 'async_trait {
+    async fn write_rose_pdu(self: &mut Self, pdu: RosePDU<ParameterType>) -> Result<usize>
+    where
+        ParameterType: 'async_trait,
+    {
         match pdu {
             RosePDU::Bind(params) => Self::write_bind(self, params).await,
             RosePDU::BindResult(params) => Self::write_bind_result(self, params).await,
@@ -275,8 +315,8 @@ pub trait ROSETransmitter <ParameterType = ASN1Value>
 }
 
 #[async_trait]
-pub trait ROSEReceiver<T : Send> {
-    async fn read_pdu (self: &mut Self) -> Result<Option<RosePDU<T>>>;
+pub trait ROSEReceiver<T: Send> {
+    async fn read_pdu(self: &mut Self) -> Result<Option<RosePDU<T>>>;
 }
 
 // trait AsyncROSEClient <BindArgumentType = ASN1Value, BindResultType = ASN1Value> {

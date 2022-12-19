@@ -2,17 +2,14 @@
 //!
 //! A library for mocking `std::net::TcpStream` or `tokio::net::TcpStream` in tests.
 
-use tokio::io::{AsyncWrite, AsyncRead, ReadBuf};
-use std::pin::Pin;
-use std::task::{Context, Poll};
-use std::io::{Result, Write, Read};
-use std::sync::{Arc, Mutex};
+use futures_io::{AsyncRead as FuturesIoAsyncRead, AsyncWrite as FuturesIoAsyncWrite};
 use std::cmp::min;
-use std::net::{ToSocketAddrs, SocketAddr};
-use futures_io::{
-    AsyncRead as FuturesIoAsyncRead,
-    AsyncWrite as FuturesIoAsyncWrite,
-};
+use std::io::{Read, Result, Write};
+use std::net::{SocketAddr, ToSocketAddrs};
+use std::pin::Pin;
+use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll};
+use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 
 // TODO: Implement std_async traits as well?
 // TODO: Implement Tokio Stream?
@@ -25,7 +22,6 @@ use futures_io::{
 /// creation.)
 #[derive(Debug, Clone, Default)]
 pub struct MockTcpStream {
-
     /// A buffer for all received--but yet unread--data.
     ///
     /// Even though this is a public field, you generally should not read from
@@ -57,14 +53,13 @@ pub struct MockTcpStream {
 }
 
 impl MockTcpStream {
-
     /// Returns a new `MockTcpStream`.
-    pub fn new () -> Self {
+    pub fn new() -> Self {
         MockTcpStream::default()
     }
 
     /// Receive some data in this `MockTcpStream`.
-    pub fn receive (&mut self, data: &[u8]) -> std::io::Result<usize> {
+    pub fn receive(&mut self, data: &[u8]) -> std::io::Result<usize> {
         let mut received_data = self.received_data.lock().unwrap();
         received_data.extend(data);
         Ok(data.len())
@@ -72,15 +67,13 @@ impl MockTcpStream {
 
     /// Emit data fom this `MockTcpStream`. If there is no data to be emitted,
     /// the returned `Vec` will have a length of zero.
-    pub fn transmit (&mut self) -> Vec<u8> {
+    pub fn transmit(&mut self) -> Vec<u8> {
         let transmitted_data = self.transmitted_data.lock().unwrap();
         transmitted_data.to_vec()
     }
-
 }
 
 impl PartialEq for MockTcpStream {
-
     /// Compares two `MockTcpStream`s for equality, byte-for-byte, in both the
     /// [received_data](MockTcpStream::received_data) and
     /// [transmitted_data](MockTcpStream::transmitted_data) buffers.
@@ -95,11 +88,9 @@ impl PartialEq for MockTcpStream {
         let your_tx = other.transmitted_data.lock().unwrap();
         my_tx.eq(&your_tx.to_vec())
     }
-
 }
 
 impl Read for MockTcpStream {
-
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let mut new_vec: Vec<u8> = Vec::new();
         let mut read_bytes: usize = 0;
@@ -114,11 +105,9 @@ impl Read for MockTcpStream {
         self.received_data = Arc::new(Mutex::new(new_vec));
         Ok(read_bytes)
     }
-
 }
 
 impl Write for MockTcpStream {
-
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let mut transmitted_data = self.transmitted_data.lock().unwrap();
         transmitted_data.extend(buf);
@@ -128,15 +117,10 @@ impl Write for MockTcpStream {
     fn flush(&mut self) -> Result<()> {
         Ok(())
     }
-
 }
 
 impl AsyncRead for MockTcpStream {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        _: &mut Context,
-        buf: &mut ReadBuf,
-    ) -> Poll<Result<()>> {
+    fn poll_read(self: Pin<&mut Self>, _: &mut Context, buf: &mut ReadBuf) -> Poll<Result<()>> {
         let mut new_vec: Vec<u8> = Vec::new();
         {
             let received_data = self.received_data.lock().unwrap();
@@ -151,12 +135,9 @@ impl AsyncRead for MockTcpStream {
 }
 
 impl AsyncWrite for MockTcpStream {
-    fn poll_write(
-        self: Pin<&mut Self>,
-        _: &mut Context,
-        buf: &[u8],
-    ) -> Poll<Result<usize>> {
-        { // Scope to marginally shorten the lifespan of the mutex lock.
+    fn poll_write(self: Pin<&mut Self>, _: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
+        {
+            // Scope to marginally shorten the lifespan of the mutex lock.
             let mut transmitted_data = self.transmitted_data.lock().unwrap();
             transmitted_data.extend(buf);
         }
@@ -184,7 +165,8 @@ impl AsyncWrite for MockTcpStream {
         bufs: &[std::io::IoSlice<'_>],
     ) -> std::task::Poll<Result<usize>> {
         let mut len: usize = 0;
-        { // Scope to marginally shorten the lifespan of the mutex lock.
+        {
+            // Scope to marginally shorten the lifespan of the mutex lock.
             let mut transmitted_data = self.transmitted_data.lock().unwrap();
             for buf in bufs {
                 transmitted_data.extend(buf.iter());
@@ -193,15 +175,10 @@ impl AsyncWrite for MockTcpStream {
         }
         Poll::Ready(Ok(len))
     }
-
 }
 
 impl FuturesIoAsyncRead for MockTcpStream {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        _: &mut Context,
-        buf: &mut [u8],
-    ) -> Poll<Result<usize>> {
+    fn poll_read(self: Pin<&mut Self>, _: &mut Context, buf: &mut [u8]) -> Poll<Result<usize>> {
         let mut new_vec: Vec<u8> = Vec::new();
         let mut bytes_read: usize = 0;
         {
@@ -218,13 +195,9 @@ impl FuturesIoAsyncRead for MockTcpStream {
 }
 
 impl FuturesIoAsyncWrite for MockTcpStream {
-
-    fn poll_write(
-        self: Pin<&mut Self>,
-        _: &mut Context,
-        buf: &[u8],
-    ) -> Poll<Result<usize>> {
-        { // Scope to marginally shorten the lifespan of the mutex lock.
+    fn poll_write(self: Pin<&mut Self>, _: &mut Context, buf: &[u8]) -> Poll<Result<usize>> {
+        {
+            // Scope to marginally shorten the lifespan of the mutex lock.
             let mut transmitted_data = self.transmitted_data.lock().unwrap();
             transmitted_data.extend(buf);
         }
@@ -245,7 +218,8 @@ impl FuturesIoAsyncWrite for MockTcpStream {
         bufs: &[std::io::IoSlice<'_>],
     ) -> std::task::Poll<Result<usize>> {
         let mut len: usize = 0;
-        { // Scope to marginally shorten the lifespan of the mutex lock.
+        {
+            // Scope to marginally shorten the lifespan of the mutex lock.
             let mut transmitted_data = self.transmitted_data.lock().unwrap();
             for buf in bufs {
                 transmitted_data.extend(buf.iter());
@@ -254,7 +228,6 @@ impl FuturesIoAsyncWrite for MockTcpStream {
         }
         Poll::Ready(Ok(len))
     }
-
 }
 
 impl Unpin for MockTcpStream {}
@@ -265,7 +238,6 @@ impl ToSocketAddrs for MockTcpStream {
     fn to_socket_addrs(&self) -> std::io::Result<Self::Iter> {
         Ok(self.address.into_iter())
     }
-
 }
 
 #[cfg(test)]
@@ -274,20 +246,23 @@ mod tests {
     use super::*;
 
     #[std::prelude::rust_2021::test]
-    fn test_mock_sync_write () {
+    fn test_mock_sync_write() {
         let mut stream = MockTcpStream::new();
-        std::io::Write::write(&mut stream, &[ 1, 2, 3, 4, 5 ]).unwrap();
-        { // Scoped so the mutex lock drops.
+        std::io::Write::write(&mut stream, &[1, 2, 3, 4, 5]).unwrap();
+        {
+            // Scoped so the mutex lock drops.
             let tx_data = stream.transmitted_data.lock().unwrap();
             assert_eq!(tx_data.len(), 5);
         }
-        std::io::Write::write(&mut stream, &[ 6, 7, 8, 9 ]).unwrap();
-        { // Scoped so the mutex lock drops.
+        std::io::Write::write(&mut stream, &[6, 7, 8, 9]).unwrap();
+        {
+            // Scoped so the mutex lock drops.
             let tx_data = stream.transmitted_data.lock().unwrap();
             assert_eq!(tx_data.len(), 9);
         }
         std::io::Write::flush(&mut stream).unwrap();
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let tx_data = stream.transmitted_data.lock().unwrap();
             assert_eq!(tx_data.len(), 9);
         }
@@ -305,20 +280,27 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_mock_async_write () {
+    async fn test_mock_async_write() {
         let mut stream = MockTcpStream::new();
-        tokio::io::AsyncWriteExt::write(&mut stream, &[ 1, 2, 3, 4, 5 ]).await.unwrap();
-        { // Scoped so the mutex lock drops.
+        tokio::io::AsyncWriteExt::write(&mut stream, &[1, 2, 3, 4, 5])
+            .await
+            .unwrap();
+        {
+            // Scoped so the mutex lock drops.
             let tx_data = stream.transmitted_data.lock().unwrap();
             assert_eq!(tx_data.len(), 5);
         }
-        tokio::io::AsyncWriteExt::write(&mut stream, &[ 6, 7, 8, 9 ]).await.unwrap();
-        { // Scoped so the mutex lock drops.
+        tokio::io::AsyncWriteExt::write(&mut stream, &[6, 7, 8, 9])
+            .await
+            .unwrap();
+        {
+            // Scoped so the mutex lock drops.
             let tx_data = stream.transmitted_data.lock().unwrap();
             assert_eq!(tx_data.len(), 9);
         }
         tokio::io::AsyncWriteExt::flush(&mut stream).await.unwrap();
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let tx_data = stream.transmitted_data.lock().unwrap();
             assert_eq!(tx_data.len(), 9);
         }
@@ -336,22 +318,25 @@ mod tests {
     }
 
     #[std::prelude::rust_2021::test]
-    fn test_mock_sync_read () {
-        let input = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33, 44 ];
+    fn test_mock_sync_read() {
+        let input = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33, 44];
         let mut stream = MockTcpStream::new();
         stream.receive(&input).unwrap();
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let rx_data = stream.received_data.lock().unwrap();
             assert_eq!(input.len(), rx_data.len());
         }
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let mut readbuf = [0; 7];
             let bytes_read = std::io::Read::read(&mut stream, &mut readbuf).unwrap();
             assert_eq!(bytes_read, 7);
             let rx_data = stream.received_data.lock().unwrap();
             assert_eq!(rx_data.len(), input.len() - 7);
         }
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let mut readbuf = [0; 20];
             let bytes_read = std::io::Read::read(&mut stream, &mut readbuf).unwrap();
             assert_eq!(bytes_read, input.len() - 7);
@@ -361,28 +346,34 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_mock_async_read () {
-        let input = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33, 44 ];
+    async fn test_mock_async_read() {
+        let input = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33, 44];
         let mut stream = MockTcpStream::new();
         stream.receive(&input).unwrap();
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let rx_data = stream.received_data.lock().unwrap();
             assert_eq!(input.len(), rx_data.len());
         }
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let mut readbuf = [0; 7];
-            let bytes_read = tokio::io::AsyncReadExt::read(&mut stream, &mut readbuf).await.unwrap();
+            let bytes_read = tokio::io::AsyncReadExt::read(&mut stream, &mut readbuf)
+                .await
+                .unwrap();
             assert_eq!(bytes_read, 7);
             let rx_data = stream.received_data.lock().unwrap();
             assert_eq!(rx_data.len(), input.len() - 7);
         }
-        { // Scoped so the mutex lock drops.
+        {
+            // Scoped so the mutex lock drops.
             let mut readbuf = [0; 20];
-            let bytes_read = tokio::io::AsyncReadExt::read(&mut stream, &mut readbuf).await.unwrap();
+            let bytes_read = tokio::io::AsyncReadExt::read(&mut stream, &mut readbuf)
+                .await
+                .unwrap();
             assert_eq!(bytes_read, input.len() - 7);
             let rx_data = stream.received_data.lock().unwrap();
             assert_eq!(rx_data.len(), 0);
         }
     }
-
 }

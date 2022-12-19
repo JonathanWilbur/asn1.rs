@@ -1,7 +1,7 @@
 #![allow(non_upper_case_globals)]
-use std::collections::{VecDeque};
-use std::task::Waker;
+use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
+use std::task::Waker;
 
 use rose_transport::RosePDU;
 use x690::X690Element;
@@ -10,35 +10,31 @@ pub mod idm;
 
 // Taken from: https://rust-lang.github.io/async-book/02_execution/03_wakeups.html#applied-build-a-timer
 pub struct FutureState {
-  pub waker: Option<Waker>,
+    pub waker: Option<Waker>,
 }
 
 impl Default for FutureState {
-
-  fn default() -> Self {
-    FutureState { waker: None }
-  }
-
+    fn default() -> Self {
+        FutureState { waker: None }
+    }
 }
 
 pub struct RoseStream<TransportType> {
-  pub transport: TransportType,
-  pub received_pdus: VecDeque<RosePDU<X690Element>>,
-  /// Tokio says you can use the std Mutex in most cases.
-  /// See: https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html#which-kind-of-mutex-should-you-use
-  future_state: Arc<Mutex<FutureState>>,
+    pub transport: TransportType,
+    pub received_pdus: VecDeque<RosePDU<X690Element>>,
+    /// Tokio says you can use the std Mutex in most cases.
+    /// See: https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html#which-kind-of-mutex-should-you-use
+    future_state: Arc<Mutex<FutureState>>,
 }
 
-impl <TransportType> RoseStream<TransportType> {
-
-    pub fn new (transport: TransportType) -> Self {
+impl<TransportType> RoseStream<TransportType> {
+    pub fn new(transport: TransportType) -> Self {
         RoseStream {
             transport,
             received_pdus: VecDeque::new(), // TODO: Configurable capacity for PDUs.
             future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
-
 }
 
 // pub struct DirectoryROSETransport<TransportType> {
@@ -79,23 +75,19 @@ mod tests {
 
     use super::*;
     use ::idm::IdmStream;
-    use rose_transport::{
-        ROSETransmitter,
-        BindParameters, ROSEReceiver,
-    };
-    use tokio::net::TcpSocket;
-    use x500::DirectoryIDMProtocols::id_idm_dap;
-    use x500::DirectoryAbstractService::{
-        DirectoryBindArgument,
-        _encode_DirectoryBindArgument,
-    };
-    use tokio::time::sleep;
-    use std::time::Duration;
+    use rose_transport::{BindParameters, ROSEReceiver, ROSETransmitter};
     use std::net::ToSocketAddrs;
+    use std::time::Duration;
+    use tokio::net::TcpSocket;
+    use tokio::time::sleep;
+    use x500::DirectoryAbstractService::{DirectoryBindArgument, _encode_DirectoryBindArgument};
+    use x500::DirectoryIDMProtocols::id_idm_dap;
 
     #[tokio::test]
     async fn test_bind_to_x500_dsa() {
-        let mut addrs = "dsa01.root.mkdemo.wildboar.software:4632".to_socket_addrs().unwrap();
+        let mut addrs = "dsa01.root.mkdemo.wildboar.software:4632"
+            .to_socket_addrs()
+            .unwrap();
         let socket = TcpSocket::new_v4().unwrap();
         let stream = socket.connect(addrs.next().unwrap()).await.unwrap();
 
@@ -103,18 +95,21 @@ mod tests {
         let mut rose = RoseStream::new(idm);
         let dba = DirectoryBindArgument::new(None, None, vec![]);
         let encoded_dba = _encode_DirectoryBindArgument(&dba).unwrap();
-        let bytes_written = rose.write_bind(BindParameters {
-            protocol_id: id_idm_dap(),
-            timeout: 5,
-            parameter: encoded_dba,
-            calling_ae_title: None,
-            calling_ap_invocation_identifier: None,
-            calling_ae_invocation_identifier: None,
-            called_ae_title: None,
-            called_ap_invocation_identifier: None,
-            called_ae_invocation_identifier: None,
-            implementation_information: None,
-        }).await.unwrap();
+        let bytes_written = rose
+            .write_bind(BindParameters {
+                protocol_id: id_idm_dap(),
+                timeout: 5,
+                parameter: encoded_dba,
+                calling_ae_title: None,
+                calling_ap_invocation_identifier: None,
+                calling_ae_invocation_identifier: None,
+                called_ae_title: None,
+                called_ap_invocation_identifier: None,
+                called_ae_invocation_identifier: None,
+                implementation_information: None,
+            })
+            .await
+            .unwrap();
         sleep(Duration::new(5, 0)).await;
         assert!(bytes_written.gt(&0));
         tokio::time::timeout(Duration::from_millis(10000), async {
@@ -123,11 +118,12 @@ mod tests {
                     RosePDU::BindResult(_br) => {
                         println!("Made it, big dawg.");
                         return;
-                    },
+                    }
                     _ => panic!(),
                 };
-
             }
-        }).await.unwrap();
+        })
+        .await
+        .unwrap();
     }
 }
