@@ -316,6 +316,7 @@ impl <T : AsyncWriteExt + AsyncReadExt + Unpin> IdmStream <T> {
         self.segments.drain(0..=end_index);
         self.buffer.drain(0..end_of_pdu);
         for seg in self.segments.iter_mut() {
+            // TODO: I think you could just track the
             seg.data_bounds[0] -= std::cmp::min(seg.data_bounds[0], end_of_pdu);
             seg.data_bounds[1] -= std::cmp::min(seg.data_bounds[1], end_of_pdu);
         }

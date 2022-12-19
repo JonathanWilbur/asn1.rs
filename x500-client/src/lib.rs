@@ -2,7 +2,6 @@
 use std::collections::{VecDeque};
 use std::task::Waker;
 use std::sync::{Arc, Mutex};
-use std::net::{SocketAddr, ToSocketAddrs};
 
 use rose_transport::RosePDU;
 use x690::X690Element;
@@ -82,7 +81,7 @@ mod tests {
     use ::idm::IdmStream;
     use rose_transport::{
         ROSETransmitter,
-        BindParameters,
+        BindParameters, ROSEReceiver,
     };
     use tokio::net::TcpSocket;
     use x500::DirectoryIDMProtocols::id_idm_dap;
@@ -92,34 +91,14 @@ mod tests {
     };
     use tokio::time::sleep;
     use std::time::Duration;
-    use tokio::task::spawn;
-    use tokio::io::AsyncReadExt;
+    use std::net::ToSocketAddrs;
 
     #[tokio::test]
     async fn test_bind_to_x500_dsa() {
         let mut addrs = "dsa01.root.mkdemo.wildboar.software:4632".to_socket_addrs().unwrap();
         let socket = TcpSocket::new_v4().unwrap();
-        // FIXME: I think IdmStream just needs to use the TcpStream directly for reads.
-        let mut stream = socket.connect(addrs.next().unwrap()).await.unwrap();
-        spawn(async move {
-            let mut buffer: Vec<u8> = vec![0; 4096];
-            let mut cursor: usize = 0;
-            loop {
-                let n = stream.read(&mut buffer[cursor..]).await.unwrap();
-                if 0 == n {
-                    break;
-                    // if cursor == 0 {
-                    //     // return Ok(None);
-                    //     break;
-                    // } else {
-                    //     return Err("connection reset by peer".into());
-                    // }
-                } else {
-                    // Update our cursor
-                    cursor += n;
-                }
-            }
-        });
+        let stream = socket.connect(addrs.next().unwrap()).await.unwrap();
+
         let idm = IdmStream::new(stream);
         let mut rose = RoseStream::new(idm);
         let dba = DirectoryBindArgument::new(None, None, vec![]);
@@ -138,5 +117,17 @@ mod tests {
         }).await.unwrap();
         sleep(Duration::new(5, 0)).await;
         assert!(bytes_written.gt(&0));
+        tokio::time::timeout(Duration::from_millis(10000), async {
+            while let Some(rose_pdu) = rose.read_pdu().await.unwrap() {
+                match &rose_pdu {
+                    RosePDU::BindResult(_br) => {
+                        println!("Made it, big dawg.");
+                        return;
+                    },
+                    _ => panic!(),
+                };
+
+            }
+        }).await.unwrap();
     }
 }

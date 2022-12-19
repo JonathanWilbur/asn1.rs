@@ -16,15 +16,11 @@ use rose_transport::{
     StartTLSParameters,
     TLSResponseParameters,
 };
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use x500::{IDMProtocolSpecification::*, CommonProtocolSpecification::InvokeId};
 use x690::{X690Element, write_x690_node, ber_cst};
 use async_trait::async_trait;
-use std::future::Future;
-use std::pin::Pin;
-use std::task::{Context, Poll};
 use crate::RoseStream;
-use tokio_stream::Stream;
 
 pub type X500ROSEPDU = rose_transport::RosePDU<X690Element>;
 
@@ -113,7 +109,7 @@ fn integer_to_abort_reason (ar: ENUMERATED) -> Option<AbortReason> {
 }
 
 #[inline]
-async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IdmStream<W>, pdu: &IDM_PDU) -> Result<usize> {
+async fn write_idm_pdu <W : AsyncWriteExt + AsyncReadExt + Unpin> (idm: &mut IdmStream<W>, pdu: &IDM_PDU) -> Result<usize> {
     // TODO: Do something more useful with these errors.
     match _encode_IDM_PDU(&pdu) {
         Ok(element) => {
@@ -142,7 +138,7 @@ async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IdmStream<W>, pdu:
 // impl <'a, T> Future for X500ROSEPDUFuture<'a, T> {
 //     type Output = X500ROSEPDUFuture<'a, T>;
 //     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        
+
 //         // if Instant::now() >= self.when {
 //         //     println!("Hello world");
 //         //     Poll::Ready("done")
@@ -154,7 +150,7 @@ async fn write_idm_pdu <W : AsyncWriteExt + Unpin> (idm: &mut IdmStream<W>, pdu:
 // }
 
 #[async_trait]
-impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for RoseStream<IdmStream<W>> {
+impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSETransmitter<X690Element> for RoseStream<IdmStream<W>> {
 
     async fn write_bind (self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
         let idm_bind = IdmBind::new(
@@ -263,8 +259,8 @@ impl <W : AsyncWriteExt + Unpin + Send> ROSETransmitter<X690Element> for RoseStr
 
 }
 
-impl <W : AsyncWriteExt + Unpin> RoseStream<IdmStream<W>> {
-    
+impl <W : AsyncWriteExt + AsyncReadExt + Unpin> RoseStream<IdmStream<W>> {
+
     pub fn receive_idm_pdu (&mut self, encoding_and_bytes: (u16, Vec<u8>)) -> Result<()> {
         let (encoding, idm_pdu_bytes) = encoding_and_bytes;
         if
@@ -379,57 +375,170 @@ impl <W : AsyncWriteExt + Unpin> RoseStream<IdmStream<W>> {
 
 }
 
-impl <W : AsyncWriteExt + Unpin> ROSEReceiver<X690Element> for RoseStream<IdmStream<W>> {
+#[async_trait]
+impl <W : AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element> for RoseStream<IdmStream<W>> {
 
-    fn read_pdu (&mut self) -> Option<rose_transport::RosePDU<X690Element>> {
-        self.received_pdus.pop_front()
-    }
-
-}
-
-impl <W : AsyncWriteExt + Unpin> Future for RoseStream<IdmStream<W>> {
-    type Output = RosePDU<X690Element>;
-    fn poll(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Self::Output> {
-        let mut_self = self.get_mut();
-        match mut_self.read_pdu() {
-            Some(pdu) => Poll::Ready(pdu),
-            None => {
-                let mut future_state = mut_self.future_state.lock().unwrap();
-                future_state.waker = Some(cx.waker().clone());
-                Poll::Pending
-            },
+    async fn read_pdu (&mut self) -> Result<Option<rose_transport::RosePDU<X690Element>>> {
+        let idm_frame_or_not = self.transport.read_pdu().await?;
+        let (encoding, idm_pdu_bytes) = match &idm_frame_or_not {
+            Some(frame) => frame,
+            None => return Ok(None),
+        };
+        if
+            idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
+            && idm_pdu_bytes[0] != 0xA0 // ...and the PDU is a bind, and...
+            && *encoding > 1 // ...something other than BER or DER encoding is used...
+        { // We don't support this encoding, so we return an error.
+            return Err(Error::from(ErrorKind::InvalidData));
         }
-    }
-}
-
-impl <W : AsyncWriteExt + Unpin> Iterator for RoseStream<IdmStream<W>> {
-    type Item = rose_transport::RosePDU<X690Element>;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.read_pdu()
-    }
-}
-
-impl <W : AsyncWriteExt + Unpin> Stream for RoseStream<IdmStream<W>> {
-    type Item = RosePDU<X690Element>;
-
-    fn poll_next(
-        self: Pin<&mut Self>, 
-        cx: &mut Context<'_>
-    ) -> Poll<Option<Self::Item>> {
-        let mut_self = self.get_mut();
-        match mut_self.read_pdu() {
-            Some(pdu) => Poll::Ready(Some(pdu)),
-            None => {
-                let mut future_state = mut_self.future_state.lock().unwrap();
-                future_state.waker = Some(cx.waker().clone());
-                Poll::Pending
+        let idm_pdu_element = match ber_cst(&idm_pdu_bytes) {
+            Ok((bytes_read, element)) => {
+                if bytes_read != idm_pdu_bytes.len() {
+                    return Err(Error::from(ErrorKind::InvalidData));
+                }
+                element
             },
+            Err(_e) => return Err(Error::from(ErrorKind::InvalidData)),
+        };
+        let pdu = match _decode_IDM_PDU(&idm_pdu_element) {
+            Ok(pdu) => pdu,
+            Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
+        };
+        let rose_pdu = match pdu {
+            IDM_PDU::bind(bind) => {
+                Ok(RosePDU::Bind(BindParameters {
+                    protocol_id: bind.protocolID,
+                    calling_ae_title: bind.callingAETitle,
+                    called_ae_title: bind.calledAETitle,
+                    parameter: bind.argument,
+                    implementation_information: None,
+                    called_ae_invocation_identifier: None,
+                    called_ap_invocation_identifier: None,
+                    calling_ae_invocation_identifier: None,
+                    calling_ap_invocation_identifier: None,
+                    timeout: 0,
+                }))
+            },
+            IDM_PDU::bindResult(bind_result) => {
+                Ok(RosePDU::BindResult(BindResultOrErrorParameters {
+                    protocol_id: bind_result.protocolID,
+                    parameter: bind_result.result,
+                    responding_ae_title: bind_result.respondingAETitle,
+                    responding_ae_invocation_identifier: None,
+                    responding_ap_invocation_identifier: None,
+                }))
+            },
+            IDM_PDU::bindError(bind_error) => {
+                Ok(RosePDU::BindError(BindResultOrErrorParameters {
+                    protocol_id: bind_error.protocolID,
+                    parameter: bind_error.error,
+                    responding_ae_title: bind_error.respondingAETitle,
+                    responding_ae_invocation_identifier: None,
+                    responding_ap_invocation_identifier: None,
+                }))
+            },
+            IDM_PDU::request(request) => {
+                Ok(RosePDU::Request(RequestParameters {
+                    code: request.opcode,
+                    invoke_id: InvokeId::present(request.invokeID),
+                    parameter: request.argument,
+                    linked_id: None,
+                }))
+            },
+            IDM_PDU::result(result) => {
+                Ok(RosePDU::Result(ResultOrErrorParameters {
+                    code: result.opcode,
+                    invoke_id: InvokeId::present(result.invokeID),
+                    parameter: result.result,
+                }))
+            },
+            IDM_PDU::error(error) => {
+                Ok(RosePDU::Error(ResultOrErrorParameters {
+                    code: error.errcode,
+                    invoke_id: InvokeId::present(error.invokeID),
+                    parameter: error.error,
+                }))
+            },
+            IDM_PDU::reject(reject) => {
+                Ok(RosePDU::Reject(RejectParameters {
+                    invoke_id: InvokeId::present(reject.invokeID),
+                    reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
+                }))
+            },
+            IDM_PDU::unbind(_unbind) => {
+                Ok(RosePDU::Unbind(UnbindParameters {
+                    parameter: None,
+                    timeout: 0,
+                }))
+            },
+            IDM_PDU::abort(abort) => {
+                Ok(RosePDU::Abort(integer_to_abort_reason(abort).unwrap_or_default()))
+            },
+            IDM_PDU::startTLS(_start_tls) => {
+                Ok(RosePDU::StartTLS(StartTLSParameters::default()))
+            },
+            IDM_PDU::tLSResponse(tls_response) => {
+                Ok(RosePDU::StartTLSResponse(TLSResponseParameters {
+                    code: tls_response.max(99) as u8,
+                }))
+            },
+            IDM_PDU::_unrecognized(_unrecognized) => {
+                println!("{:?}", _unrecognized);
+                Err(Error::from(ErrorKind::Unsupported))
+            },
+        }?;
+        let future_state = self.future_state.lock().unwrap();
+        if let Some(waker) = &future_state.waker {
+            waker.wake_by_ref(); // TODO: Most inefficient way of waking used here. Hover to see docs.
         }
+        Ok(Some(rose_pdu))
     }
+
 }
+
+// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Future for RoseStream<IdmStream<W>> {
+//     type Output = RosePDU<X690Element>;
+//     fn poll(
+//         self: Pin<&mut Self>,
+//         cx: &mut Context<'_>,
+//     ) -> Poll<Self::Output> {
+//         let mut_self = self.get_mut();
+//         match mut_self.read_pdu() {
+//             Some(pdu) => Poll::Ready(pdu),
+//             None => {
+//                 let mut future_state = mut_self.future_state.lock().unwrap();
+//                 future_state.waker = Some(cx.waker().clone());
+//                 Poll::Pending
+//             },
+//         }
+//     }
+// }
+
+// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Iterator for RoseStream<IdmStream<W>> {
+//     type Item = rose_transport::RosePDU<X690Element>;
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.read_pdu()
+//     }
+// }
+
+// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Stream for RoseStream<IdmStream<W>> {
+//     type Item = RosePDU<X690Element>;
+
+//     fn poll_next(
+//         self: Pin<&mut Self>,
+//         cx: &mut Context<'_>
+//     ) -> Poll<Option<Self::Item>> {
+//         let mut_self = self.get_mut();
+//         match mut_self.read_pdu() {
+//             Some(pdu) => Poll::Ready(Some(pdu)),
+//             None => {
+//                 let mut future_state = mut_self.future_state.lock().unwrap();
+//                 future_state.waker = Some(cx.waker().clone());
+//                 Poll::Pending
+//             },
+//         }
+//     }
+// }
 
 // export
 // function rose_transport_from_idm_socket (idm: IDMConnection): ROSETransport {

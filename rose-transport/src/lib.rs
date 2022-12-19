@@ -274,8 +274,9 @@ pub trait ROSETransmitter <ParameterType = ASN1Value>
     }
 }
 
+#[async_trait]
 pub trait ROSEReceiver<T : Send> {
-    fn read_pdu (self: &mut Self) -> Option<RosePDU<T>>;
+    async fn read_pdu (self: &mut Self) -> Result<Option<RosePDU<T>>>;
 }
 
 // trait AsyncROSEClient <BindArgumentType = ASN1Value, BindResultType = ASN1Value> {

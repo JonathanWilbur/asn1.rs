@@ -1782,9 +1782,9 @@ pub fn ber_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, X690Tag)> {
     let mut bytes_read = 1;
     let tag_class = match (bytes[0] & 0b1100_0000) >> 6 {
         0 => TagClass::UNIVERSAL,
-        1 => TagClass::CONTEXT,
-        2 => TagClass::PRIVATE,
-        3 => TagClass::APPLICATION,
+        1 => TagClass::APPLICATION,
+        2 => TagClass::CONTEXT,
+        3 => TagClass::PRIVATE,
         _ => panic!("Impossible tag class"),
     };
     let constructed = (bytes[0] & 0b0010_0000) > 0;
