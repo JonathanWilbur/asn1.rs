@@ -23,8 +23,6 @@ use asn1::*;
 use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
-// use crate::PKIX1Explicit88::*;
-// use crate::PKIX1Implicit88::*;
 use crate::PKIXCMP::*;
 use cms::CryptographicMessageSyntax::{ContentInfo, _decode_ContentInfo, _encode_ContentInfo};
 use x500::AuthenticationFramework::{
