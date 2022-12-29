@@ -2002,7 +2002,7 @@ pub fn deconstruct(el: &X690Element) -> ASN1Result<X690Element> {
         X690Encoding::Constructed(children) => {
             let mut deconstructed_value: Bytes = Vec::new();
             for child in children {
-                if child.tag_class != el.tag_class || child.tag_number != el.tag_number {
+                if child.tag_class != TagClass::UNIVERSAL || child.tag_number != ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING {
                     let mut err =
                         ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
                     err.component_name = el.name.clone();
