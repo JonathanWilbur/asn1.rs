@@ -131,7 +131,8 @@ pub type REAL = f64;
 pub type ENUMERATED = i64;
 pub type EMBEDDED_PDV = EmbeddedPDV;
 pub type UTF8String = String;
-pub type RELATIVE_OID = Vec<u32>;
+#[derive(Debug, Hash, Eq, PartialOrd, Ord, Clone)]
+pub struct RELATIVE_OID(pub Vec<OID_ARC>);
 pub type TIME = String;
 // type Reserved15 = None;
 pub type SEQUENCE = Vec<ASN1Value>;

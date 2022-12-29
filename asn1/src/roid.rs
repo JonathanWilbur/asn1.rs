@@ -1,10 +1,10 @@
 use std::{num::ParseIntError, str::FromStr, fmt::Display};
 use crate::{types::OBJECT_IDENTIFIER, OID_ARC, RELATIVE_OID};
 
-impl OBJECT_IDENTIFIER {
+impl RELATIVE_OID {
 
     pub fn new (nodes: &[OID_ARC]) -> Self {
-        OBJECT_IDENTIFIER(Vec::from(nodes))
+        RELATIVE_OID(Vec::from(nodes))
     }
 
     pub fn to_asn1_string (&self) -> String {
@@ -37,7 +37,7 @@ impl OBJECT_IDENTIFIER {
 
 }
 
-impl FromStr for OBJECT_IDENTIFIER {
+impl FromStr for RELATIVE_OID {
     type Err = ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -45,7 +45,7 @@ impl FromStr for OBJECT_IDENTIFIER {
         for str in s.split(".") {
             nodes.push(str.parse::<u32>()?);
         }
-        Ok(OBJECT_IDENTIFIER(nodes))
+        Ok(RELATIVE_OID(nodes))
         // Pending try_collect() stabilization.
         // Ok(OBJECT_IDENTIFIER(value
         //     .split(".")
@@ -55,7 +55,7 @@ impl FromStr for OBJECT_IDENTIFIER {
 
 }
 
-impl Display for OBJECT_IDENTIFIER {
+impl Display for RELATIVE_OID {
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.0
@@ -67,7 +67,7 @@ impl Display for OBJECT_IDENTIFIER {
 
 }
 
-impl IntoIterator for OBJECT_IDENTIFIER {
+impl IntoIterator for RELATIVE_OID {
     type Item = u32;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -77,7 +77,7 @@ impl IntoIterator for OBJECT_IDENTIFIER {
 
 }
 
-impl PartialEq for OBJECT_IDENTIFIER {
+impl PartialEq for RELATIVE_OID {
 
     fn eq(&self, other: &Self) -> bool {
         if self.0.len() != other.0.len() {
@@ -89,6 +89,14 @@ impl PartialEq for OBJECT_IDENTIFIER {
         // going in reverse is more likely to find a
         // non-match and short-circuit.
         self.0.ends_with(other.0.as_slice())
+    }
+
+}
+
+impl From<OBJECT_IDENTIFIER> for RELATIVE_OID {
+
+    fn from(oid: OBJECT_IDENTIFIER) -> Self {
+        RELATIVE_OID(oid.0.clone())
     }
 
 }

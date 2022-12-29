@@ -251,7 +251,7 @@ which control how these elements are encoded.
 - [ ] `asn1`
   - [x] Make `INTEGER` a `Vec<u8>`
   - [x] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
-  - [ ] Convert `RELATIVE-OID` to a wrapped type
+  - [x] Convert `RELATIVE-OID` to a wrapped type
   - [x] Comparison functions for all time types
   - [x] Comparison functions for context switching types
   - [x] Comparison function for elements
@@ -260,9 +260,8 @@ which control how these elements are encoded.
   - [x] Debug
   - [ ] ASN1Value to ASN.1 String
   - [ ] Duration to Milliseconds
-  - [ ] Conversion of all time types to integers
   - [ ] Conversion of all time types to strings
-  - [ ] NumericString to integer
+  - [x] ~~NumericString to integer~~
   - [x] Object Identifier to dot-delimited string
   - [x] Object Identifier to ASN.1 string
   - [x] Object Identifier extend with relative OID

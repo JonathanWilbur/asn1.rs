@@ -861,7 +861,7 @@ where
     W: Write,
 {
     let mut bytes_written: usize = 0;
-    for arc in value.iter() {
+    for arc in value.0.iter() {
         match write_base_128(output, *arc) {
             Err(e) => return Err(e),
             Ok(wrote_bytes) => {

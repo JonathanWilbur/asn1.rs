@@ -271,7 +271,7 @@ pub fn ber_decode_relative_oid_value(value_bytes: ByteSlice) -> ASN1Result<RELAT
         // Truncated.
         return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
-    Ok(nodes)
+    Ok(RELATIVE_OID(nodes))
 }
 
 pub fn ber_read_var_length_u64(bytes: ByteSlice) -> u64 {
