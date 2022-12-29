@@ -249,8 +249,9 @@ which control how these elements are encoded.
 ## TODO
 
 - [ ] `asn1`
-  - [ ] Make `INTEGER` a `Vec<u8>`
-  - [ ] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
+  - [x] Make `INTEGER` a `Vec<u8>`
+  - [x] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
+  - [ ] Convert `RELATIVE-OID` to a wrapped type
   - [x] Comparison functions for all time types
   - [x] Comparison functions for context switching types
   - [x] Comparison function for elements
@@ -260,15 +261,16 @@ which control how these elements are encoded.
   - [ ] ASN1Value to ASN.1 String
   - [ ] Duration to Milliseconds
   - [ ] Conversion of all time types to integers
+  - [ ] Conversion of all time types to strings
   - [ ] NumericString to integer
-  - [ ] Object Identifier to dot-delimited string
-  - [ ] Object Identifier to ASN.1 string
-  - [ ] Object Identifier extend with relative OID
-  - [ ] Object Identifier ends with relative OID
-  - [ ] Object Identifier compare
-  - [ ] Object Identifier sort
-  - [ ] Object Identifier from string
-  - [ ] Object Identifier compare with string
+  - [x] Object Identifier to dot-delimited string
+  - [x] Object Identifier to ASN.1 string
+  - [x] Object Identifier extend with relative OID
+  - [x] Object Identifier ends with relative OID
+  - [x] Object Identifier compare
+  - [x] Object Identifier sort
+  - [x] Object Identifier from string
+  - [x] ~~Object Identifier compare with string~~
   - [ ] Constructors
   - [x] ASN.1 value comparison?
   - [x] ~~ASN.1 Universal type names~~ (I think this could just be handled in apps.)

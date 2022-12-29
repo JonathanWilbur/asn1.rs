@@ -123,7 +123,7 @@ pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OID_ARC = u32;
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialOrd, Ord, Clone)]
 pub struct OBJECT_IDENTIFIER(pub Vec<OID_ARC>);
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
 pub type EXTERNAL = External;
