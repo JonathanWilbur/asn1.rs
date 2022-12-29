@@ -377,34 +377,6 @@ pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Resu
     Ok(ret)
 }
 
-// pub fn _decode_explicit <T> (decoder: Decoder<T>) -> T {
-//     decoder()
-// }
-
-// export function _encode_explicit (
-//     class_: ASN1TagClass | undefined,
-//     tag: number | undefined,
-//     encoderGetter: () => ASN1Encoder<any>,
-//     outer:  ASN1Encoder<any>,
-// ): ASN1Encoder<any> {
-//     return function (value: any, elGetter: ASN1Encoder<any>): ASN1Element {
-//         const ret: ASN1Element = outer(value, outer);
-//         ret.sequence = [ encoderGetter()(value, elGetter) ];
-//         ret.construction = ASN1Construction.constructed;
-//         if (class_) {
-//             ret.tagClass = class_;
-//         }
-//         if (typeof tag !== "undefined") {
-//             ret.tagNumber = tag;
-//         }
-//         return ret;
-//     };
-// }
-
-// export function _decode_explicit<T> (decoderGetter: () => (el: ASN1Element) => T): ASN1Decoder<T> {
-//     return (el: ASN1Element) => decoderGetter()(el.inner);
-// }
-
 pub fn _encode_explicit(el: X690Element, tag: Tag) -> X690Element {
     X690Element::new(
         tag.tag_class,
@@ -428,29 +400,6 @@ pub const ZXCV: fn(X690Element, Tag) -> X690Element = |el: X690Element, tag: Tag
         Arc::new(X690Encoding::EXPLICIT(Box::new(el))),
     )
 };
-
-// export function _encode_implicit (
-//     class_: ASN1TagClass | undefined,
-//     tag: number | undefined,
-//     encoderGetter: () => ASN1Encoder<any>,
-//     outer:  ASN1Encoder<any>, // eslint-disable-line
-//     // ^ This needs to remain here.
-// ): ASN1Encoder<any> {
-//     return function (value: any, elGetter: ASN1Encoder<any>): ASN1Element {
-//         const ret: ASN1Element = encoderGetter()(value, elGetter);
-//         if (class_) {
-//             ret.tagClass = class_;
-//         }
-//         if (typeof tag !== "undefined") {
-//             ret.tagNumber = tag;
-//         }
-//         return ret;
-//     };
-// }
-
-// export function _decode_implicit<T> (decoderGetter: () => (el: ASN1Element) => T): ASN1Decoder<T> {
-//     return (el: ASN1Element) => decoderGetter()(el);
-// }
 
 // TODO: Implement a deep_clone that recurses into the value as well.
 // This works as an encode and decode function.

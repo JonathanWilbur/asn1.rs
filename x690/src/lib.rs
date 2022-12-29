@@ -67,13 +67,13 @@ pub const X690_REAL_NR2: u8 = 2;
 pub const X690_REAL_NR3: u8 = 3;
 // const IEEE_754_DPFP_SIGN_MASK
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash, Copy, PartialEq, Eq)]
 pub enum X690Length {
     Definite(usize),
     Indefinite,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub enum X690Encoding {
     // TODO: Convert to ByteSlice
     IMPLICIT(Bytes), // the value bytes
@@ -84,14 +84,14 @@ pub enum X690Encoding {
     AlreadyEncoded(Bytes), // the already-encoded TLV
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct X690Tag {
     pub tag_class: TagClass,
     pub constructed: bool,
     pub tag_number: TagNumber,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct X690Element {
     pub name: Option<String>, // Not Rc or Arc, because these are typically small enough where a clone() is not a big deal.
     pub tag_class: TagClass,

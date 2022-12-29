@@ -270,10 +270,10 @@ which control how these elements are encoded.
   - [ ] Object Identifier from string
   - [ ] Object Identifier compare with string
   - [ ] Constructors
-  - [ ] ASN.1 value comparison?
-  - [ ] ASN.1 Universal type names
-  - [ ] Hash trait for `ASN1Value`
-  - [ ] Date/time constants (months, leap year, etc.)
+  - [x] ASN.1 value comparison?
+  - [x] ~~ASN.1 Universal type names~~ (I think this could just be handled in apps.)
+  - [x] ~~Hash trait for `ASN1Value`~~
+  - [x] ~~Date/time constants (months, leap year, etc.)~~
   - [x] Use `Arc` instead of `Box`?
   - [x] Function for combining bitstrings
   - [ ] `oid!` macro
