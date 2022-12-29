@@ -236,14 +236,26 @@ pub fn _parse_sequence_with_trailing_rctl<'a>(
                 break;
             }
         }
+        // TODO: Use named-label breaks: https://stackoverflow.com/questions/22905752/named-breaks-in-for-loops-in-rust
         if number_of_ext_components.is_some() {
             break;
         }
     }
+    let rctl2_found: bool = number_of_ext_components.is_some();
+    let rctl2_entirely_optional: bool = rctl2.iter().all(|s| s.optional);
+    if !rctl2_found && !rctl2_entirely_optional {
+        let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+        err.constructed = Some(true);
+        return Err(err);
+    }
     // NOTE: I deviated from the TypeScript implementation here. I don't see
     // how the value `startOfExtensions` could ever be -1.
-    let start_of_rctl2 = start_of_exts + number_of_ext_components.unwrap_or(0);
-    let (_, eal_index) =
+    // FIXME: I think the below needs to default to the end of elements.
+    let start_of_rctl2 = match number_of_ext_components {
+        Some(num) => start_of_exts + num,
+        None => elements.len(),
+    };
+    let (eal_components_read, eal_index) =
         _parse_component_type_list(eal, &elements[start_of_exts..start_of_rctl2], true)?;
     let (rctl2_components_read, rctl2_index) =
         _parse_component_type_list(rctl2, &elements[start_of_rctl2..], false)?;
@@ -252,10 +264,18 @@ pub fn _parse_sequence_with_trailing_rctl<'a>(
         err.constructed = Some(true);
         return Err(err);
     }
-    // let end_of_recognized_exts = start_of_exts + exts_read;
+    if start_of_rctl2 + rctl2_components_read != elements.len() {
+        let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+        err.constructed = Some(true);
+        return Err(err);
+    }
+    let end_of_recognized_exts = start_of_exts + eal_components_read;
     let mut ret: IndexedComponents = rctl1_index;
     ret.0.extend(eal_index.0);
     ret.1.extend(eal_index.1);
+    for ext in &elements[end_of_recognized_exts..start_of_rctl2] {
+        ret.1.push((*ext).clone());
+    }
     ret.0.extend(rctl2_index.0);
     ret.1.extend(rctl2_index.1);
     Ok(ret)
@@ -441,6 +461,7 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 #[cfg(test)]
 mod tests {
 
+    use crate::*;
     use asn1::types::{
         ASN1Value, TagClass, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING, ASN1_UNIVERSAL_TAG_NUMBER_NULL,
         ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
@@ -654,5 +675,97 @@ mod tests {
         } else {
             panic!();
         }
+    }
+
+    pub const rlrq_rctl1: [ComponentSpec; 1] = [ComponentSpec::new(
+        "reason",
+        true,
+        TagSelector::tag((TagClass::CONTEXT, 0)),
+        None,
+        None,
+    )];
+    pub const rlrq_rctl2: [ComponentSpec; 1] = [ComponentSpec::new(
+        "user-information",
+        true,
+        TagSelector::tag((TagClass::CONTEXT, 30)),
+        None,
+        None,
+    )];
+    pub const rlrq_eal: [ComponentSpec; 2] = [
+        ComponentSpec::new(
+            "aso-qualifier",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 13)),
+            None,
+            None,
+        ),
+        ComponentSpec::new(
+            "asoi-identifier",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 14)),
+            None,
+            None,
+        ),
+    ];
+
+    #[test]
+    fn test_decode_ACSE_RLRQ_APDU() {
+        let encoded_data: Vec<u8> = vec![
+            0x62, 0x0f, // RLRQ APDU
+            0x80, 0x01, 0x00, // reason: [CONTEXT 0] 0 (normal)
+            0x04, 0x0a, 0x8e, 0x44, 0x22, 0x8c, 0x90, 0x52, 0x6d, 0x5a, 0xd3,
+            0x8a, // Some unrecognized extension.
+        ];
+        let (bytes_read, root) = match ber_cst(encoded_data.as_slice()) {
+            Err(_) => panic!("asdf"),
+            Ok(result) => result,
+        };
+        assert_eq!(bytes_read, encoded_data.len());
+
+        let elements = match root.value.borrow() {
+            X690Encoding::Constructed(children) => children,
+            _ => panic!(),
+        };
+        let el_refs = elements.iter().collect::<Vec<&X690Element>>();
+
+        let (components, unrecognized) = _parse_sequence(
+            el_refs.as_slice(),
+            rlrq_rctl1.as_slice(),
+            rlrq_eal.as_slice(),
+            rlrq_rctl2.as_slice(),
+        )
+        .unwrap();
+        assert_eq!(components.len(), 1);
+        assert_eq!(unrecognized.len(), 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_decode_ACSE_RLRQ_APDU_trailing_unrecognized_component() {
+        let elements: Vec<X690Element> = vec![
+            X690Element::new(
+                TagClass::CONTEXT,
+                0,
+                Arc::new(X690Encoding::IMPLICIT(vec![0])),
+            ),
+            X690Element::new(
+                TagClass::CONTEXT,
+                30,
+                Arc::new(X690Encoding::Constructed(vec![])),
+            ),
+            X690Element::new(
+                TagClass::CONTEXT,
+                21,
+                Arc::new(X690Encoding::IMPLICIT(vec![5])),
+            ),
+        ];
+        let el_refs = elements.iter().collect::<Vec<&X690Element>>();
+        let (_, _) = _parse_sequence(
+            el_refs.as_slice(),
+            rlrq_rctl1.as_slice(),
+            rlrq_eal.as_slice(),
+            rlrq_rctl2.as_slice(),
+        )
+        .unwrap();
     }
 }
