@@ -396,7 +396,7 @@ pub fn _encode_LdapSyntaxDescription(value_: &LdapSyntaxDescription) -> ASN1Resu
 ///
 ///
 pub fn id_lat_namingContexts() -> OBJECT_IDENTIFIER {
-    [id_lat(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -407,7 +407,7 @@ pub fn id_lat_namingContexts() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_lat_altServer() -> OBJECT_IDENTIFIER {
-    [id_lat(), Vec::<u32>::from([6])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -418,7 +418,7 @@ pub fn id_lat_altServer() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_lat_supportedExtension() -> OBJECT_IDENTIFIER {
-    [id_lat(), Vec::<u32>::from([7])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -429,7 +429,7 @@ pub fn id_lat_supportedExtension() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_lat_supportedControl() -> OBJECT_IDENTIFIER {
-    [id_lat(), Vec::<u32>::from([13])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -440,7 +440,7 @@ pub fn id_lat_supportedControl() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_lat_supportedSASLMechanisms() -> OBJECT_IDENTIFIER {
-    [id_lat(), Vec::<u32>::from([14])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([14])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -451,7 +451,7 @@ pub fn id_lat_supportedSASLMechanisms() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_lat_supportedLDAPVersion() -> OBJECT_IDENTIFIER {
-    [id_lat(), Vec::<u32>::from([15])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([15])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -462,7 +462,7 @@ pub fn id_lat_supportedLDAPVersion() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_ldapSyntaxes() -> OBJECT_IDENTIFIER {
-    [id_lat(), Vec::<u32>::from([16])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([16])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -473,5 +473,5 @@ pub fn id_soa_ldapSyntaxes() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oat_supportedFeatures() -> OBJECT_IDENTIFIER {
-    [id_oat(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oat().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }

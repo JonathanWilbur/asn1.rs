@@ -664,12 +664,12 @@ pub fn _encode_DER_AttributeCertificate(
 ///
 ///
 pub fn der() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         joint_iso_itu_t,
         /* asn1 */ 1,
         /* ber-derived */ 2,
         /* distinguished-encoding */ 1,
-    ])
+    ]))
 }
 
 /// ### ASN.1 Definition:

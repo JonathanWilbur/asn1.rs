@@ -1549,7 +1549,7 @@ impl ServiceControls {
         BIT_STRING::new()
     }
     pub fn _default_value_for_priority() -> ServiceControls_priority {
-        vec![ ServiceControls_priority_medium as u8 ]
+        vec![ServiceControls_priority_medium as u8]
     }
 }
 impl Default for ServiceControls {
@@ -1966,7 +1966,7 @@ impl EntryInformationSelection {
         EntryInformationSelection_attributes::allUserAttributes(())
     }
     pub fn _default_value_for_infoTypes() -> EntryInformationSelection_infoTypes {
-        vec![ EntryInformationSelection_infoTypes_attributeTypesAndValues as u8 ]
+        vec![EntryInformationSelection_infoTypes_attributeTypesAndValues as u8]
     }
     pub fn _default_value_for_returnContexts() -> BOOLEAN {
         false
@@ -9202,7 +9202,7 @@ impl SearchArgumentData {
         }
     }
     pub fn _default_value_for_subset() -> SearchArgumentData_subset {
-        vec![ SearchArgumentData_subset_baseObject as u8 ]
+        vec![SearchArgumentData_subset_baseObject as u8]
     }
     pub fn _default_value_for_filter() -> Filter {
         Filter::and(vec![])
@@ -19367,7 +19367,7 @@ pub fn _encode_UpdateProblem(value_: &UpdateProblem) -> ASN1Result<X690Element> 
 ///
 ///
 pub fn id_at_family_information() -> OBJECT_IDENTIFIER {
-    [id_at(), Vec::<u32>::from([64])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([64])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -19610,11 +19610,9 @@ pub fn _encode_EntryInformationSelection_attributes(
 /// ```
 pub type EntryInformationSelection_infoTypes = INTEGER;
 
-pub const EntryInformationSelection_infoTypes_attributeTypesOnly:
-    i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const EntryInformationSelection_infoTypes_attributeTypesOnly: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const EntryInformationSelection_infoTypes_attributeTypesAndValues:
-    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const EntryInformationSelection_infoTypes_attributeTypesAndValues: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_EntryInformationSelection_infoTypes(
     el: &X690Element,

@@ -1822,7 +1822,7 @@ pub fn a_altSignatureValue() -> ATTRIBUTE {
 ///
 ///
 pub fn id_ce_a_subjectDirectoryAttributes() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([9, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([9, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1833,7 +1833,7 @@ pub fn id_ce_a_subjectDirectoryAttributes() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_subjectKeyIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([14, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([14, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1844,7 +1844,7 @@ pub fn id_ce_a_subjectKeyIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_keyUsage() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([15, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([15, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1855,7 +1855,7 @@ pub fn id_ce_a_keyUsage() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_privateKeyUsagePeriod() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([16, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([16, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1866,7 +1866,7 @@ pub fn id_ce_a_privateKeyUsagePeriod() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_subjectAltName() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([17, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([17, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1877,7 +1877,7 @@ pub fn id_ce_a_subjectAltName() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_issuerAltName() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([18, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([18, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1888,7 +1888,7 @@ pub fn id_ce_a_issuerAltName() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_basicConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([19, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([19, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1899,7 +1899,7 @@ pub fn id_ce_a_basicConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_cRLNumber() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([20, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([20, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1910,7 +1910,7 @@ pub fn id_ce_a_cRLNumber() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_reasonCode() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([21, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([21, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1921,7 +1921,7 @@ pub fn id_ce_a_reasonCode() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_holdInstructionCode() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([23, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([23, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1932,7 +1932,7 @@ pub fn id_ce_a_holdInstructionCode() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_invalidityDate() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([24, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([24, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1943,7 +1943,7 @@ pub fn id_ce_a_invalidityDate() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_deltaCRLIndicator() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([27, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([27, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1954,7 +1954,7 @@ pub fn id_ce_a_deltaCRLIndicator() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_issuingDistributionPoint() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([28, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([28, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1965,7 +1965,7 @@ pub fn id_ce_a_issuingDistributionPoint() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_certificateIssuer() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([29, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([29, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1976,7 +1976,7 @@ pub fn id_ce_a_certificateIssuer() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_nameConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([30, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([30, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1987,7 +1987,7 @@ pub fn id_ce_a_nameConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_cRLDistributionPoints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([31, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([31, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1998,7 +1998,7 @@ pub fn id_ce_a_cRLDistributionPoints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_certificatePolicies() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([32, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([32, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2009,7 +2009,7 @@ pub fn id_ce_a_certificatePolicies() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_policyMappings() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([33, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([33, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2020,7 +2020,7 @@ pub fn id_ce_a_policyMappings() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_authorityKeyIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([35, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([35, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2031,7 +2031,7 @@ pub fn id_ce_a_authorityKeyIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_policyConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([36, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([36, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2042,7 +2042,7 @@ pub fn id_ce_a_policyConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_extKeyUsage() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([37, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([37, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2053,7 +2053,7 @@ pub fn id_ce_a_extKeyUsage() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_authorityAttributeIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([38, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([38, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2064,7 +2064,7 @@ pub fn id_ce_a_authorityAttributeIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_roleSpecCertIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([39, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([39, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2075,7 +2075,7 @@ pub fn id_ce_a_roleSpecCertIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_cRLStreamIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([40, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([40, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2086,7 +2086,7 @@ pub fn id_ce_a_cRLStreamIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_basicAttConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([41, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([41, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2097,7 +2097,7 @@ pub fn id_ce_a_basicAttConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_delegatedNameConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([42, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([42, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2108,7 +2108,7 @@ pub fn id_ce_a_delegatedNameConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_timeSpecification() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([43, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([43, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2119,7 +2119,7 @@ pub fn id_ce_a_timeSpecification() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_cRLScope() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([44, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([44, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2130,7 +2130,7 @@ pub fn id_ce_a_cRLScope() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_statusReferrals() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([45, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([45, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2141,7 +2141,7 @@ pub fn id_ce_a_statusReferrals() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_freshestCRL() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([46, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([46, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2152,7 +2152,7 @@ pub fn id_ce_a_freshestCRL() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_orderedList() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([47, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([47, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2163,7 +2163,7 @@ pub fn id_ce_a_orderedList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_attributeDescriptor() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([48, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([48, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2174,7 +2174,7 @@ pub fn id_ce_a_attributeDescriptor() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_userNotice() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([49, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([49, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2185,7 +2185,7 @@ pub fn id_ce_a_userNotice() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_sOAIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([50, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([50, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2196,7 +2196,7 @@ pub fn id_ce_a_sOAIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_baseUpdateTime() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([51, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([51, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2207,7 +2207,7 @@ pub fn id_ce_a_baseUpdateTime() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_acceptableCertPolicies() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([52, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([52, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2218,7 +2218,7 @@ pub fn id_ce_a_acceptableCertPolicies() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_deltaInfo() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([53, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([53, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2229,7 +2229,7 @@ pub fn id_ce_a_deltaInfo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_inhibitAnyPolicy() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([54, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([54, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2240,7 +2240,7 @@ pub fn id_ce_a_inhibitAnyPolicy() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_targetingInformation() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([55, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([55, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2251,7 +2251,7 @@ pub fn id_ce_a_targetingInformation() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_noRevAvail() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([56, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([56, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2262,7 +2262,7 @@ pub fn id_ce_a_noRevAvail() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_acceptablePrivilegePolicies() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([57, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([57, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2273,7 +2273,7 @@ pub fn id_ce_a_acceptablePrivilegePolicies() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_toBeRevoked() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([58, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([58, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2284,7 +2284,7 @@ pub fn id_ce_a_toBeRevoked() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_revokedGroups() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([59, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([59, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2295,7 +2295,7 @@ pub fn id_ce_a_revokedGroups() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_expiredCertsOnCRL() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([60, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([60, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2306,7 +2306,7 @@ pub fn id_ce_a_expiredCertsOnCRL() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_indirectIssuer() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([61, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([61, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2317,7 +2317,7 @@ pub fn id_ce_a_indirectIssuer() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_noAssertion() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([62, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([62, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2328,7 +2328,7 @@ pub fn id_ce_a_noAssertion() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_aAissuingDistributionPoint() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([63, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([63, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2339,7 +2339,7 @@ pub fn id_ce_a_aAissuingDistributionPoint() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_issuedOnBehalfOf() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([64, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([64, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2350,7 +2350,7 @@ pub fn id_ce_a_issuedOnBehalfOf() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_singleUse() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([65, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([65, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2361,7 +2361,7 @@ pub fn id_ce_a_singleUse() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_groupAC() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([66, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([66, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2372,7 +2372,7 @@ pub fn id_ce_a_groupAC() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_allowedAttributeAssignments() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([67, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([67, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2383,7 +2383,7 @@ pub fn id_ce_a_allowedAttributeAssignments() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_attributeMappings() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([68, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([68, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2394,7 +2394,7 @@ pub fn id_ce_a_attributeMappings() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_holderNameConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([69, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([69, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2405,7 +2405,7 @@ pub fn id_ce_a_holderNameConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_authorizationValidation() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([70, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([70, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2416,7 +2416,7 @@ pub fn id_ce_a_authorizationValidation() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_protRestrict() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([71, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([71, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2427,7 +2427,7 @@ pub fn id_ce_a_protRestrict() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_subjectAltPublicKeyInfo() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([72, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([72, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2438,7 +2438,7 @@ pub fn id_ce_a_subjectAltPublicKeyInfo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_altSignatureAlgorithm() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([73, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([73, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2449,7 +2449,7 @@ pub fn id_ce_a_altSignatureAlgorithm() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ce_a_altSignatureValue() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([74, 1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([74, 1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2460,7 +2460,7 @@ pub fn id_ce_a_altSignatureValue() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_subjectDirectoryAttributes() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([9, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([9, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2471,7 +2471,7 @@ pub fn id_asx_subjectDirectoryAttributes() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_subjectKeyIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([14, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([14, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2482,7 +2482,7 @@ pub fn id_asx_subjectKeyIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_keyUsage() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([15, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([15, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2493,7 +2493,7 @@ pub fn id_asx_keyUsage() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_privateKeyUsagePeriod() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([16, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([16, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2504,7 +2504,7 @@ pub fn id_asx_privateKeyUsagePeriod() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_subjectAltName() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([17, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([17, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2515,7 +2515,7 @@ pub fn id_asx_subjectAltName() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_issuerAltName() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([18, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([18, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2526,7 +2526,7 @@ pub fn id_asx_issuerAltName() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_basicConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([19, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([19, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2537,7 +2537,7 @@ pub fn id_asx_basicConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_cRLNumber() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([20, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([20, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2548,7 +2548,7 @@ pub fn id_asx_cRLNumber() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_reasonCode() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([21, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([21, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2559,7 +2559,7 @@ pub fn id_asx_reasonCode() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_holdInstructionCode() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([23, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([23, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2570,7 +2570,7 @@ pub fn id_asx_holdInstructionCode() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_invalidityDate() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([24, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([24, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2581,7 +2581,7 @@ pub fn id_asx_invalidityDate() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_deltaCRLIndicator() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([27, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([27, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2592,7 +2592,7 @@ pub fn id_asx_deltaCRLIndicator() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_issuingDistributionPoint() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([28, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([28, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2603,7 +2603,7 @@ pub fn id_asx_issuingDistributionPoint() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_certificateIssuer() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([29, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([29, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2614,7 +2614,7 @@ pub fn id_asx_certificateIssuer() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_nameConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([30, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([30, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2625,7 +2625,7 @@ pub fn id_asx_nameConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_cRLDistributionPoints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([31, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([31, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2636,7 +2636,7 @@ pub fn id_asx_cRLDistributionPoints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_certificatePolicies() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([32, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([32, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2647,7 +2647,7 @@ pub fn id_asx_certificatePolicies() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_policyMappings() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([33, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([33, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2658,7 +2658,7 @@ pub fn id_asx_policyMappings() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_authorityKeyIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([35, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([35, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2669,7 +2669,7 @@ pub fn id_asx_authorityKeyIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_policyConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([36, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([36, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2680,7 +2680,7 @@ pub fn id_asx_policyConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_extKeyUsage() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([37, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([37, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2691,7 +2691,7 @@ pub fn id_asx_extKeyUsage() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_authorityAttributeIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([38, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([38, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2702,7 +2702,7 @@ pub fn id_asx_authorityAttributeIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_roleSpecCertIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([39, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([39, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2713,7 +2713,7 @@ pub fn id_asx_roleSpecCertIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_cRLStreamIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([40, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([40, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2724,7 +2724,7 @@ pub fn id_asx_cRLStreamIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_basicAttConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([41, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([41, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2735,7 +2735,7 @@ pub fn id_asx_basicAttConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_delegatedNameConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([42, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([42, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2746,7 +2746,7 @@ pub fn id_asx_delegatedNameConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_timeSpecification() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([43, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([43, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2757,7 +2757,7 @@ pub fn id_asx_timeSpecification() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_cRLScope() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([44, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([44, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2768,7 +2768,7 @@ pub fn id_asx_cRLScope() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_statusReferrals() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([45, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([45, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2779,7 +2779,7 @@ pub fn id_asx_statusReferrals() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_freshestCRL() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([46, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([46, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2790,7 +2790,7 @@ pub fn id_asx_freshestCRL() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_orderedList() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([47, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([47, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2801,7 +2801,7 @@ pub fn id_asx_orderedList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_attributeDescriptor() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([48, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([48, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2812,7 +2812,7 @@ pub fn id_asx_attributeDescriptor() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_userNotice() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([49, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([49, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2823,7 +2823,7 @@ pub fn id_asx_userNotice() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_sOAIdentifier() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([50, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([50, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2834,7 +2834,7 @@ pub fn id_asx_sOAIdentifier() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_baseUpdateTime() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([51, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([51, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2845,7 +2845,7 @@ pub fn id_asx_baseUpdateTime() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_acceptableCertPolicies() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([52, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([52, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2856,7 +2856,7 @@ pub fn id_asx_acceptableCertPolicies() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_deltaInfo() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([53, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([53, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2867,7 +2867,7 @@ pub fn id_asx_deltaInfo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_inhibitAnyPolicy() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([54, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([54, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2878,7 +2878,7 @@ pub fn id_asx_inhibitAnyPolicy() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_targetingInformation() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([55, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([55, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2889,7 +2889,7 @@ pub fn id_asx_targetingInformation() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_noRevAvail() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([56, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([56, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2900,7 +2900,7 @@ pub fn id_asx_noRevAvail() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_acceptablePrivilegePolicies() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([57, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([57, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2911,7 +2911,7 @@ pub fn id_asx_acceptablePrivilegePolicies() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_toBeRevoked() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([58, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([58, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2922,7 +2922,7 @@ pub fn id_asx_toBeRevoked() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_revokedGroups() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([59, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([59, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2933,7 +2933,7 @@ pub fn id_asx_revokedGroups() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_expiredCertsOnCRL() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([60, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([60, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2944,7 +2944,7 @@ pub fn id_asx_expiredCertsOnCRL() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_indirectIssuer() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([61, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([61, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2955,7 +2955,7 @@ pub fn id_asx_indirectIssuer() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_noAssertion() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([62, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([62, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2966,7 +2966,7 @@ pub fn id_asx_noAssertion() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_aAissuingDistributionPoint() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([63, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([63, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2977,7 +2977,7 @@ pub fn id_asx_aAissuingDistributionPoint() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_issuedOnBehalfOf() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([64, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([64, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2988,7 +2988,7 @@ pub fn id_asx_issuedOnBehalfOf() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_singleUse() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([65, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([65, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2999,7 +2999,7 @@ pub fn id_asx_singleUse() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_groupAC() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([66, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([66, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3010,7 +3010,7 @@ pub fn id_asx_groupAC() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_allowedAttributeAssignments() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([67, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([67, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3021,7 +3021,7 @@ pub fn id_asx_allowedAttributeAssignments() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_attributeMappings() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([68, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([68, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3032,7 +3032,7 @@ pub fn id_asx_attributeMappings() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_holderNameConstraints() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([69, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([69, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3043,7 +3043,7 @@ pub fn id_asx_holderNameConstraints() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_authorizationValidation() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([70, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([70, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3054,7 +3054,7 @@ pub fn id_asx_authorizationValidation() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_protRestrict() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([71, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([71, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3065,7 +3065,7 @@ pub fn id_asx_protRestrict() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_subjectAltPublicKeyInfo() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([72, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([72, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3076,7 +3076,7 @@ pub fn id_asx_subjectAltPublicKeyInfo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_altSignatureAlgorithm() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([73, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([73, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3087,7 +3087,7 @@ pub fn id_asx_altSignatureAlgorithm() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_asx_altSignatureValue() -> OBJECT_IDENTIFIER {
-    [id_ce(), Vec::<u32>::from([74, 2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ce().0, Vec::<u32>::from([74, 2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

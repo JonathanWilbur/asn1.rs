@@ -4897,32 +4897,27 @@ pub fn _encode_AARE_apdu_protocol_version(
 /// ```
 pub type Associate_source_diagnostic_acse_service_user = INTEGER;
 
-pub const Associate_source_diagnostic_acse_service_user_null:
-    i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_null: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_no_reason_given:
-    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_no_reason_given: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_application_context_name_not_supported:
     i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AP_title_not_recognized:
-    i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AP_title_not_recognized: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_calling_AP_invocation_identifier_not_recognized: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AE_qualifier_not_recognized:
-    i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AE_qualifier_not_recognized: i32 =
+    5; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_calling_AE_invocation_identifier_not_recognized: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AP_title_not_recognized:
-    i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AP_title_not_recognized: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_called_AP_invocation_identifier_not_recognized: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AE_qualifier_not_recognized:
-    i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AE_qualifier_not_recognized: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_called_AE_invocation_identifier_not_recognized: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
 
@@ -4945,14 +4940,11 @@ pub fn _encode_Associate_source_diagnostic_acse_service_user(
 /// ```
 pub type Associate_source_diagnostic_acse_service_provider = INTEGER;
 
-pub const Associate_source_diagnostic_acse_service_provider_null:
-    i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_provider_null: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_provider_no_reason_given:
-    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_provider_no_reason_given: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_provider_no_common_acse_version:
-    i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_provider_no_common_acse_version: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Associate_source_diagnostic_acse_service_provider(
     el: &X690Element,
@@ -5444,14 +5436,11 @@ pub fn _encode_OsiBindError_normal_mode_parameters(
 /// ```
 pub type Result_list_Item_provider_reason = INTEGER;
 
-pub const Result_list_Item_provider_reason_reason_not_specified: i32 =
-    0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result_list_Item_provider_reason_reason_not_specified: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result_list_Item_provider_reason_abstract_syntax_not_supported:
-    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result_list_Item_provider_reason_abstract_syntax_not_supported: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result_list_Item_provider_reason_proposed_transfer_syntaxes_not_supported:
-    i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result_list_Item_provider_reason_proposed_transfer_syntaxes_not_supported: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Result_list_Item_provider_reason(
     el: &X690Element,

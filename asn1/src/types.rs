@@ -122,7 +122,9 @@ pub struct BIT_STRING {
 pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OID_ARC = u32;
-pub type OBJECT_IDENTIFIER = Vec<OID_ARC>;
+
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+pub struct OBJECT_IDENTIFIER(pub Vec<OID_ARC>);
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
 pub type EXTERNAL = External;
 pub type REAL = f64;

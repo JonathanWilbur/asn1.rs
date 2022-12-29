@@ -228,7 +228,7 @@ pub fn dop_ip() -> IDM_PROTOCOL {
 ///
 ///
 pub fn id_idm_dap() -> OBJECT_IDENTIFIER {
-    [id_idm(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_idm().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -239,7 +239,7 @@ pub fn id_idm_dap() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_idm_dsp() -> OBJECT_IDENTIFIER {
-    [id_idm(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_idm().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -250,7 +250,7 @@ pub fn id_idm_dsp() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_idm_disp() -> OBJECT_IDENTIFIER {
-    [id_idm(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_idm().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -261,5 +261,5 @@ pub fn id_idm_disp() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_idm_dop() -> OBJECT_IDENTIFIER {
-    [id_idm(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_idm().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }

@@ -1,4 +1,3 @@
-use asn1::ENUMERATED;
 use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use asn1::types::{
     ASN1Value, ByteSlice, Bytes, CharacterString, EmbeddedPDV, ExternalEncoding,
@@ -27,6 +26,7 @@ use asn1::types::{
     DURATION_EQUIVALENT, EXTERNAL, INTEGER, MAX_IA5_STRING_CHAR_CODE, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
 };
+use asn1::ENUMERATED;
 use std::borrow::Borrow;
 use std::io::{Error, ErrorKind, Result, Write};
 use std::mem::size_of;
@@ -455,11 +455,11 @@ where
     W: Write,
 {
     // TODO: Should object identifier be a type that forces a first and second arc?
-    if value.len() < 2 {
+    if value.0.len() < 2 {
         return Err(Error::from(ErrorKind::InvalidData));
     }
-    let node0 = value[0];
-    let node1 = value[1];
+    let node0 = value.0[0];
+    let node1 = value.0[1];
     let byte0 = (node0 * 40) + node1;
     let mut bytes_written = 0;
     match output.write(&[byte0 as u8]) {
@@ -467,7 +467,7 @@ where
         _ => (),
     };
     bytes_written += 1;
-    for arc in value[2..].iter() {
+    for arc in value.0[2..].iter() {
         match write_base_128(output, *arc) {
             Err(e) => return Err(e),
             Ok(wrote_bytes) => {
@@ -2104,7 +2104,7 @@ mod tests {
     #[test]
     fn test_x690_write_object_identifier_value() {
         let mut output: Vec<u8> = Vec::new();
-        let oid: asn1::types::OBJECT_IDENTIFIER = vec![2, 5, 4, 3];
+        let oid = asn1::types::OBJECT_IDENTIFIER(vec![2, 5, 4, 3]);
         crate::x690_write_object_identifier_value(&mut output, &oid).unwrap();
         assert_eq!(output.len(), 3);
         assert!(output.starts_with(&[0x55, 0x04, 0x03]));
@@ -2250,7 +2250,7 @@ mod tests {
     fn test_ber_encode_2() {
         let asn1_data = ASN1Value::SequenceValue(vec![
             ASN1Value::BooleanValue(true),
-            ASN1Value::IntegerValue(vec![ 127 ]),
+            ASN1Value::IntegerValue(vec![127]),
         ]);
         let mut output = Vec::new();
         match ber_encode(&mut output, &asn1_data) {

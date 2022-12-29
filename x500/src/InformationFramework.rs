@@ -1044,7 +1044,7 @@ impl SubtreeSpecification {
         Vec::from([])
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        vec![ 0 ]
+        vec![0]
     }
 }
 impl Default for SubtreeSpecification {
@@ -1395,7 +1395,7 @@ impl ChopSpecification {
         }
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        vec![ 0 ]
+        vec![0]
     }
 }
 impl Default for ChopSpecification {
@@ -4750,7 +4750,7 @@ pub fn hierarchyTop() -> ATTRIBUTE {
 ///
 ///
 pub fn id_oc_top() -> OBJECT_IDENTIFIER {
-    [id_oc(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4761,7 +4761,7 @@ pub fn id_oc_top() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oc_alias() -> OBJECT_IDENTIFIER {
-    [id_oc(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4772,7 +4772,7 @@ pub fn id_oc_alias() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oc_parent() -> OBJECT_IDENTIFIER {
-    [id_oc(), Vec::<u32>::from([28])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([28])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4783,7 +4783,7 @@ pub fn id_oc_parent() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oc_child() -> OBJECT_IDENTIFIER {
-    [id_oc(), Vec::<u32>::from([29])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([29])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4794,7 +4794,7 @@ pub fn id_oc_child() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_at_objectClass() -> OBJECT_IDENTIFIER {
-    [id_at(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4805,7 +4805,7 @@ pub fn id_at_objectClass() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_at_aliasedEntryName() -> OBJECT_IDENTIFIER {
-    [id_at(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4816,7 +4816,7 @@ pub fn id_at_aliasedEntryName() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_at_pwdAttribute() -> OBJECT_IDENTIFIER {
-    [id_at(), Vec::<u32>::from([84])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([84])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4827,7 +4827,7 @@ pub fn id_at_pwdAttribute() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_mr_objectIdentifierMatch() -> OBJECT_IDENTIFIER {
-    [id_mr(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_mr().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4838,7 +4838,7 @@ pub fn id_mr_objectIdentifierMatch() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_mr_distinguishedNameMatch() -> OBJECT_IDENTIFIER {
-    [id_mr(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_mr().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4849,7 +4849,7 @@ pub fn id_mr_distinguishedNameMatch() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_excludeAllCollectiveAttributes() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4860,7 +4860,7 @@ pub fn id_oa_excludeAllCollectiveAttributes() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_createTimestamp() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4871,7 +4871,7 @@ pub fn id_oa_createTimestamp() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_modifyTimestamp() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4882,7 +4882,7 @@ pub fn id_oa_modifyTimestamp() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_creatorsName() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4893,7 +4893,7 @@ pub fn id_oa_creatorsName() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_modifiersName() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4904,7 +4904,7 @@ pub fn id_oa_modifiersName() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_administrativeRole() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4915,7 +4915,7 @@ pub fn id_oa_administrativeRole() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_subtreeSpecification() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([6])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4926,7 +4926,7 @@ pub fn id_oa_subtreeSpecification() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_collectiveExclusions() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([7])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4937,7 +4937,7 @@ pub fn id_oa_collectiveExclusions() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_subschemaTimestamp() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([8])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4948,7 +4948,7 @@ pub fn id_oa_subschemaTimestamp() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_hasSubordinates() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([9])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4959,7 +4959,7 @@ pub fn id_oa_hasSubordinates() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_subschemaSubentryList() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([10])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4970,7 +4970,7 @@ pub fn id_oa_subschemaSubentryList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_accessControlSubentryList() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([11])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4981,7 +4981,7 @@ pub fn id_oa_accessControlSubentryList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_collectiveAttributeSubentryList() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([12])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([12])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4992,7 +4992,7 @@ pub fn id_oa_collectiveAttributeSubentryList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_contextDefaultSubentryList() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([13])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5003,7 +5003,7 @@ pub fn id_oa_contextDefaultSubentryList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_contextAssertionDefault() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([14])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([14])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5014,7 +5014,7 @@ pub fn id_oa_contextAssertionDefault() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_serviceAdminSubentryList() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([15])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([15])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5025,7 +5025,7 @@ pub fn id_oa_serviceAdminSubentryList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_searchRules() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([16])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([16])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5036,7 +5036,7 @@ pub fn id_oa_searchRules() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_hierarchyLevel() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([17])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([17])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5047,7 +5047,7 @@ pub fn id_oa_hierarchyLevel() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_hierarchyBelow() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([18])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([18])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5058,7 +5058,7 @@ pub fn id_oa_hierarchyBelow() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_hierarchyParent() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([19])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([19])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5069,7 +5069,7 @@ pub fn id_oa_hierarchyParent() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_hierarchyTop() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([20])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([20])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5080,7 +5080,7 @@ pub fn id_oa_hierarchyTop() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_pwdAdminSubentryList() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([21])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([21])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5091,7 +5091,7 @@ pub fn id_oa_pwdAdminSubentryList() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_oa_allAttributeTypes() -> OBJECT_IDENTIFIER {
-    [id_oa(), Vec::<u32>::from([48])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oa().0, Vec::<u32>::from([48])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5102,7 +5102,7 @@ pub fn id_oa_allAttributeTypes() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_sc_subentry() -> OBJECT_IDENTIFIER {
-    [id_sc(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_sc().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5113,7 +5113,7 @@ pub fn id_sc_subentry() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_sc_accessControlSubentry() -> OBJECT_IDENTIFIER {
-    [id_sc(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_sc().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5124,7 +5124,7 @@ pub fn id_sc_accessControlSubentry() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_sc_collectiveAttributeSubentry() -> OBJECT_IDENTIFIER {
-    [id_sc(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_sc().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5135,7 +5135,7 @@ pub fn id_sc_collectiveAttributeSubentry() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_sc_contextAssertionSubentry() -> OBJECT_IDENTIFIER {
-    [id_sc(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_sc().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5146,7 +5146,7 @@ pub fn id_sc_contextAssertionSubentry() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_sc_serviceAdminSubentry() -> OBJECT_IDENTIFIER {
-    [id_sc(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_sc().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5157,7 +5157,7 @@ pub fn id_sc_serviceAdminSubentry() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_sc_pwdAdminSubentry() -> OBJECT_IDENTIFIER {
-    [id_sc(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_sc().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5168,7 +5168,7 @@ pub fn id_sc_pwdAdminSubentry() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_nf_subentryNameForm() -> OBJECT_IDENTIFIER {
-    [id_nf(), Vec::<u32>::from([16])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_nf().0, Vec::<u32>::from([16])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5179,7 +5179,7 @@ pub fn id_nf_subentryNameForm() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_autonomousArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5190,7 +5190,7 @@ pub fn id_ar_autonomousArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_accessControlSpecificArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5201,7 +5201,7 @@ pub fn id_ar_accessControlSpecificArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_accessControlInnerArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5212,7 +5212,7 @@ pub fn id_ar_accessControlInnerArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_subschemaAdminSpecificArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5223,7 +5223,7 @@ pub fn id_ar_subschemaAdminSpecificArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_collectiveAttributeSpecificArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5234,7 +5234,7 @@ pub fn id_ar_collectiveAttributeSpecificArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_collectiveAttributeInnerArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([6])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5245,7 +5245,7 @@ pub fn id_ar_collectiveAttributeInnerArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_contextDefaultSpecificArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([7])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5256,7 +5256,7 @@ pub fn id_ar_contextDefaultSpecificArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_serviceSpecificArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([8])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5267,7 +5267,7 @@ pub fn id_ar_serviceSpecificArea() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ar_pwdAdminSpecificArea() -> OBJECT_IDENTIFIER {
-    [id_ar(), Vec::<u32>::from([9])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_ar().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

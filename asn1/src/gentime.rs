@@ -1,4 +1,4 @@
-use crate::types::{GeneralizedTime, DATE, UTCTime};
+use crate::types::{GeneralizedTime, UTCTime, DATE};
 
 impl GeneralizedTime {
     pub fn new() -> Self {
@@ -15,7 +15,6 @@ impl GeneralizedTime {
 }
 
 impl From<UTCTime> for GeneralizedTime {
-
     fn from(other: UTCTime) -> Self {
         let date = DATE::from(other);
         GeneralizedTime {
@@ -28,11 +27,9 @@ impl From<UTCTime> for GeneralizedTime {
             utc_offset: None,
         }
     }
-
 }
 
 impl From<DATE> for GeneralizedTime {
-
     fn from(other: DATE) -> Self {
         GeneralizedTime {
             date: other,
@@ -44,21 +41,16 @@ impl From<DATE> for GeneralizedTime {
             utc_offset: None,
         }
     }
-
 }
 
 impl PartialEq<DATE> for GeneralizedTime {
-
     fn eq(&self, other: &DATE) -> bool {
         DATE::from(*self).eq(other)
     }
-
 }
 
 impl PartialEq<UTCTime> for GeneralizedTime {
-
     fn eq(&self, other: &UTCTime) -> bool {
         GeneralizedTime::from(*other).eq(self)
     }
-
 }

@@ -1164,7 +1164,7 @@ pub fn supplierAndConsumersMatch() -> MATCHING_RULE {
 ///
 ///
 pub fn id_doa_dseType() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1175,7 +1175,7 @@ pub fn id_doa_dseType() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_myAccessPoint() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1186,7 +1186,7 @@ pub fn id_doa_myAccessPoint() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_superiorKnowledge() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1197,7 +1197,7 @@ pub fn id_doa_superiorKnowledge() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_specificKnowledge() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1208,7 +1208,7 @@ pub fn id_doa_specificKnowledge() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_nonSpecificKnowledge() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1219,7 +1219,7 @@ pub fn id_doa_nonSpecificKnowledge() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_supplierKnowledge() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1230,7 +1230,7 @@ pub fn id_doa_supplierKnowledge() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_consumerKnowledge() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([6])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1241,7 +1241,7 @@ pub fn id_doa_consumerKnowledge() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_secondaryShadows() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([7])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1252,7 +1252,7 @@ pub fn id_doa_secondaryShadows() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_doa_ditBridgeKnowledge() -> OBJECT_IDENTIFIER {
-    [id_doa(), Vec::<u32>::from([8])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_doa().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1263,7 +1263,7 @@ pub fn id_doa_ditBridgeKnowledge() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_kmr_accessPointMatch() -> OBJECT_IDENTIFIER {
-    [id_kmr(), Vec::<u32>::from([0])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_kmr().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1274,7 +1274,7 @@ pub fn id_kmr_accessPointMatch() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_kmr_masterShadowMatch() -> OBJECT_IDENTIFIER {
-    [id_kmr(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_kmr().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1285,7 +1285,7 @@ pub fn id_kmr_masterShadowMatch() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_kmr_supplierConsumerMatch() -> OBJECT_IDENTIFIER {
-    [id_kmr(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_kmr().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1296,7 +1296,7 @@ pub fn id_kmr_supplierConsumerMatch() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_kmr_supplierConsumersMatch() -> OBJECT_IDENTIFIER {
-    [id_kmr(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_kmr().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

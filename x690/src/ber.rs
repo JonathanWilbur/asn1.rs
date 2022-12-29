@@ -106,19 +106,18 @@ use crate::{
     ber_cst, deconstruct, x690_write_bit_string_value, x690_write_bmp_string_value,
     x690_write_boolean_value, x690_write_character_string_value, x690_write_date_time_value,
     x690_write_date_value, x690_write_duration_value, x690_write_embedded_pdv_value,
-    x690_write_external_value, x690_write_generalized_time_value, x690_write_integer_value,
-    x690_write_object_descriptor_value, x690_write_object_identifier_value,
-    x690_write_octet_string_value, x690_write_real_value, x690_write_relative_oid_value,
-    x690_write_string_value, x690_write_tag, x690_write_time_of_day_value, x690_write_time_value,
-    x690_write_universal_string_value, x690_write_utc_time_value, x690_write_utf8_string_value,
-    x690_write_enum_value,
-    X690Element, X690Encoding, X690_REAL_BASE10, X690_REAL_BASE_16, X690_REAL_BASE_2,
-    X690_REAL_BASE_8, X690_REAL_BASE_MASK, X690_REAL_BINARY_SCALING_MASK,
-    X690_REAL_EXPONENT_FORMAT_1_OCTET, X690_REAL_EXPONENT_FORMAT_2_OCTET,
-    X690_REAL_EXPONENT_FORMAT_3_OCTET, X690_REAL_EXPONENT_FORMAT_MASK,
-    X690_REAL_EXPONENT_FORMAT_VAR_OCTET, X690_REAL_NR1, X690_REAL_NR2, X690_REAL_NR3,
-    X690_REAL_SPECIAL, X690_SPECIAL_REAL_MINUS_INFINITY, X690_SPECIAL_REAL_MINUS_ZERO,
-    X690_SPECIAL_REAL_NOT_A_NUMBER, X690_SPECIAL_REAL_PLUS_INFINITY,
+    x690_write_enum_value, x690_write_external_value, x690_write_generalized_time_value,
+    x690_write_integer_value, x690_write_object_descriptor_value,
+    x690_write_object_identifier_value, x690_write_octet_string_value, x690_write_real_value,
+    x690_write_relative_oid_value, x690_write_string_value, x690_write_tag,
+    x690_write_time_of_day_value, x690_write_time_value, x690_write_universal_string_value,
+    x690_write_utc_time_value, x690_write_utf8_string_value, X690Element, X690Encoding,
+    X690_REAL_BASE10, X690_REAL_BASE_16, X690_REAL_BASE_2, X690_REAL_BASE_8, X690_REAL_BASE_MASK,
+    X690_REAL_BINARY_SCALING_MASK, X690_REAL_EXPONENT_FORMAT_1_OCTET,
+    X690_REAL_EXPONENT_FORMAT_2_OCTET, X690_REAL_EXPONENT_FORMAT_3_OCTET,
+    X690_REAL_EXPONENT_FORMAT_MASK, X690_REAL_EXPONENT_FORMAT_VAR_OCTET, X690_REAL_NR1,
+    X690_REAL_NR2, X690_REAL_NR3, X690_REAL_SPECIAL, X690_SPECIAL_REAL_MINUS_INFINITY,
+    X690_SPECIAL_REAL_MINUS_ZERO, X690_SPECIAL_REAL_NOT_A_NUMBER, X690_SPECIAL_REAL_PLUS_INFINITY,
 };
 use asn1::bitstring::join_bit_strings;
 
@@ -178,7 +177,7 @@ pub fn ber_decode_integer_value(value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
     Ok(Vec::from(value_bytes))
 }
 
-pub fn ber_decode_i64_value (value_bytes: ByteSlice) -> ASN1Result<i64> {
+pub fn ber_decode_i64_value(value_bytes: ByteSlice) -> ASN1Result<i64> {
     let len = value_bytes.len();
     match len {
         1 => Ok(value_bytes[0] as i8 as ENUMERATED),
@@ -253,7 +252,7 @@ pub fn ber_decode_object_identifier_value(value_bytes: ByteSlice) -> ASN1Result<
     if current_node > 0 {
         return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
-    Ok(nodes)
+    Ok(OBJECT_IDENTIFIER(nodes))
 }
 
 pub fn ber_decode_relative_oid_value(value_bytes: ByteSlice) -> ASN1Result<RELATIVE_OID> {
@@ -2256,7 +2255,7 @@ mod tests {
                     Err(_) => panic!("woriyjh"),
                     Ok(result) => result,
                 };
-                assert!(oid.starts_with(&[2, 5, 4, 3]));
+                assert!(oid.0.starts_with(&[2, 5, 4, 3]));
                 // let alg_id = AlgorithmIdentifier{
                 //     algorithm: oid,
                 //     parameters: Some(children[1]),

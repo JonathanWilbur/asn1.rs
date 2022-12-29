@@ -1,4 +1,4 @@
-use crate::types::{TIME_OF_DAY, GeneralizedTime, UTCTime};
+use crate::types::{GeneralizedTime, UTCTime, TIME_OF_DAY};
 
 impl TIME_OF_DAY {
     pub fn new() -> Self {
@@ -11,7 +11,6 @@ impl TIME_OF_DAY {
 }
 
 impl From<GeneralizedTime> for TIME_OF_DAY {
-
     fn from(other: GeneralizedTime) -> Self {
         TIME_OF_DAY {
             hour: other.hour,
@@ -19,11 +18,9 @@ impl From<GeneralizedTime> for TIME_OF_DAY {
             second: other.second.unwrap_or(0),
         }
     }
-
 }
 
 impl From<UTCTime> for TIME_OF_DAY {
-
     fn from(other: UTCTime) -> Self {
         TIME_OF_DAY {
             hour: other.hour,
@@ -31,5 +28,4 @@ impl From<UTCTime> for TIME_OF_DAY {
             second: other.second.unwrap_or(0),
         }
     }
-
 }

@@ -3484,11 +3484,11 @@ pub fn _encode_AuthorizationData(value_: &AuthorizationData) -> ASN1Result<X690E
 ///
 ///
 pub fn md5_DES_CBC() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         /* iso */ 1, /* identified-organization */ 3, /* dod */ 6,
         /* internet */ 1, /* security */ 5, /* integrity */ 3,
         /* md5-DES-CBC */ 1,
-    ]) // OID_GETTER
+    ])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3500,11 +3500,11 @@ pub fn md5_DES_CBC() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sum64_DES_CBC() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         /* iso */ 1, /* identified-organization */ 3, /* dod */ 6,
         /* internet */ 1, /* security */ 5, /* integrity */ 3,
         /* sum64-DES-CBC */ 2,
-    ]) // OID_GETTER
+    ])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3516,11 +3516,11 @@ pub fn sum64_DES_CBC() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn spkm_1() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         /* iso */ 1, /* identified-organization */ 3, /* dod */ 6,
         /* internet */ 1, /* security */ 5, /* mechanisms */ 5, /* spkm */ 1,
         /* spkm-1 */ 1,
-    ]) // OID_GETTER
+    ])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3532,11 +3532,11 @@ pub fn spkm_1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn spkm_2() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         /* iso */ 1, /* identified-organization */ 3, /* dod */ 6,
         /* internet */ 1, /* security */ 5, /* mechanisms */ 5, /* spkm */ 1,
         /* spkm-2 */ 2,
-    ]) // OID_GETTER
+    ])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

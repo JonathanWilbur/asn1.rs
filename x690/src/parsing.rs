@@ -555,6 +555,7 @@ mod tests {
         assert_eq!(unrecognized.len(), 0);
         assert_eq!(
             algorithm
+                .0
                 .iter()
                 .map(|a| a.to_string())
                 .collect::<Vec<String>>()
@@ -593,6 +594,7 @@ mod tests {
         assert_eq!(
             alg_id
                 .algorithm
+                .0
                 .iter()
                 .map(|a| a.to_string())
                 .collect::<Vec<String>>()

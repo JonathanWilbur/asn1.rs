@@ -1882,7 +1882,7 @@ pub fn _encode_AttributeTypeValueContexts(
 ///
 ///
 pub fn id_oc_integrityInfo() -> OBJECT_IDENTIFIER {
-    [id_oc(), Vec::<u32>::from([40])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([40])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1893,7 +1893,7 @@ pub fn id_oc_integrityInfo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_at_clearance() -> OBJECT_IDENTIFIER {
-    [id_at(), Vec::<u32>::from([55])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([55])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1904,7 +1904,7 @@ pub fn id_at_clearance() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_at_attributeIntegrityInfo() -> OBJECT_IDENTIFIER {
-    [id_at(), Vec::<u32>::from([57])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([57])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1915,7 +1915,7 @@ pub fn id_at_attributeIntegrityInfo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_avc_attributeValueSecurityLabelContext() -> OBJECT_IDENTIFIER {
-    [id_avc(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_avc().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1926,5 +1926,5 @@ pub fn id_avc_attributeValueSecurityLabelContext() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_avc_attributeValueIntegrityInfoContext() -> OBJECT_IDENTIFIER {
-    [id_avc(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_avc().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }

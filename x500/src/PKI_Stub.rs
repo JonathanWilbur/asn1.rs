@@ -48,7 +48,7 @@ pub fn id_wrprot() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn wrapperProtocolType() -> OBJECT_IDENTIFIER {
-    [ds(), Vec::<u32>::from([43])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([ds().0, Vec::<u32>::from([43])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -59,7 +59,7 @@ pub fn wrapperProtocolType() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn ds() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([joint_iso_itu_t, /* ds */ 5]) // OID_GETTER
+    OBJECT_IDENTIFIER(Vec::<u32>::from([joint_iso_itu_t, /* ds */ 5])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -81,7 +81,7 @@ pub fn id_algo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn algorithms() -> OBJECT_IDENTIFIER {
-    [ds(), Vec::<u32>::from([44])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([ds().0, Vec::<u32>::from([44])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -371,7 +371,7 @@ pub fn _encode_AlgoInvoke(value_: &AlgoInvoke) -> ASN1Result<X690Element> {
 ///
 pub fn sha224WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
-        id: Vec::<u32>::from([1, 2, 840, 113549, 1, 11]), /* OBJECT_FIELD_SETTING */
+        id: OBJECT_IDENTIFIER(Vec::<u32>::from([1, 2, 840, 113549, 1, 11])), /* OBJECT_FIELD_SETTING */
     }
 }
 
@@ -501,7 +501,7 @@ impl TBSCertificate {
         }
     }
     pub fn _default_value_for_version() -> Version {
-        vec![ Version_v1 as u8 ]
+        vec![Version_v1 as u8]
     }
 }
 impl TryFrom<X690Element> for TBSCertificate {
@@ -1174,12 +1174,12 @@ pub fn _encode_Extension(value_: &Extension) -> ASN1Result<X690Element> {
 ///
 ///
 pub fn der() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         joint_iso_itu_t,
         /* asn1 */ 1,
         /* ber-derived */ 2,
         /* distinguished-encoding */ 1,
-    ])
+    ]))
 }
 
 /// ### ASN.1 Definition:
@@ -2794,7 +2794,7 @@ impl TBSCertAVL {
         }
     }
     pub fn _default_value_for_version() -> Version {
-        vec![ Version_v1 as u8 ]
+        vec![Version_v1 as u8]
     }
 }
 impl TryFrom<X690Element> for TBSCertAVL {

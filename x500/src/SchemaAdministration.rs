@@ -3898,7 +3898,7 @@ pub fn _encode_FriendsDescription(value_: &FriendsDescription) -> ASN1Result<X69
 ///
 ///
 pub fn id_soc_subschema() -> OBJECT_IDENTIFIER {
-    [id_soc(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soc().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3909,7 +3909,7 @@ pub fn id_soc_subschema() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_dITStructureRule() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3920,7 +3920,7 @@ pub fn id_soa_dITStructureRule() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_dITContentRules() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3931,7 +3931,7 @@ pub fn id_soa_dITContentRules() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_matchingRules() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3942,7 +3942,7 @@ pub fn id_soa_matchingRules() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_attributeTypes() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3953,7 +3953,7 @@ pub fn id_soa_attributeTypes() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_objectClasses() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([6])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3964,7 +3964,7 @@ pub fn id_soa_objectClasses() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_nameForms() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([7])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3975,7 +3975,7 @@ pub fn id_soa_nameForms() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_matchingRuleUse() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([8])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3986,7 +3986,7 @@ pub fn id_soa_matchingRuleUse() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_structuralObjectClass() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([9])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3997,7 +3997,7 @@ pub fn id_soa_structuralObjectClass() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_governingStructureRule() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([10])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4008,7 +4008,7 @@ pub fn id_soa_governingStructureRule() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_contextTypes() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([11])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4019,7 +4019,7 @@ pub fn id_soa_contextTypes() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_dITContextUse() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([12])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([12])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4030,5 +4030,5 @@ pub fn id_soa_dITContextUse() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_soa_friends() -> OBJECT_IDENTIFIER {
-    [id_soa(), Vec::<u32>::from([13])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
 }

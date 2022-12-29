@@ -89,7 +89,7 @@ impl TBSPDU_wrapper {
         }
     }
     pub fn _default_value_for_version() -> Version {
-        vec![ Version_v1 as u8 ]
+        vec![Version_v1 as u8]
     }
 }
 impl TryFrom<X690Element> for TBSPDU_wrapper {
@@ -1172,10 +1172,10 @@ pub fn contentType() -> ATTRIBUTE {
 ///
 ///
 pub fn id_contentType() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
         /* pkcs */ 1, /* pkcs9 */ 9, 3,
-    ]) // OID_GETTER
+    ])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1216,10 +1216,10 @@ pub fn messageDigest() -> ATTRIBUTE {
 ///
 ///
 pub fn id_messageDigest() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
         /* pkcs */ 1, /* pkcs9 */ 9, 4,
-    ]) // OID_GETTER
+    ])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

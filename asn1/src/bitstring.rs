@@ -151,22 +151,21 @@ impl BIT_STRING {
 }
 
 impl From<OCTET_STRING> for BIT_STRING {
-
     fn from(other: OCTET_STRING) -> Self {
         BIT_STRING {
             bytes: other.clone(),
             trailing_bits: 0,
         }
     }
-
 }
 
 impl Default for BIT_STRING {
-
     fn default() -> Self {
-        BIT_STRING { bytes: vec![], trailing_bits: 0 }
+        BIT_STRING {
+            bytes: vec![],
+            trailing_bits: 0,
+        }
     }
-
 }
 
 // impl Concat<BIT_STRING> for [BIT_STRING] {

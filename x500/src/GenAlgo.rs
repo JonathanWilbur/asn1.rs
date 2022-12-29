@@ -33,7 +33,7 @@ use x690::*;
 ///
 ///
 pub fn id_algo_mca() -> OBJECT_IDENTIFIER {
-    [id_algo(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -44,7 +44,7 @@ pub fn id_algo_mca() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_ska() -> OBJECT_IDENTIFIER {
-    [id_algo(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -55,7 +55,7 @@ pub fn id_algo_ska() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_aead() -> OBJECT_IDENTIFIER {
-    [id_algo(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -66,7 +66,7 @@ pub fn id_algo_aead() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_pka() -> OBJECT_IDENTIFIER {
-    [id_algo(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -77,7 +77,7 @@ pub fn id_algo_pka() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_ha() -> OBJECT_IDENTIFIER {
-    [id_algo(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -88,7 +88,7 @@ pub fn id_algo_ha() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_dsa() -> OBJECT_IDENTIFIER {
-    [id_algo(), Vec::<u32>::from([6])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -99,7 +99,7 @@ pub fn id_algo_dsa() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_kea() -> OBJECT_IDENTIFIER {
-    [id_algo(), Vec::<u32>::from([7])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -506,7 +506,7 @@ pub fn _encode_Payload28(value_: &Payload28) -> ASN1Result<X690Element> {
 ///
 ///
 pub fn id_algo_dhModpGr14Hkdf256Algo() -> OBJECT_IDENTIFIER {
-    [id_algo_kea(), Vec::<u32>::from([1])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -517,7 +517,7 @@ pub fn id_algo_dhModpGr14Hkdf256Algo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_dhModpGr15Hkdf384Algo() -> OBJECT_IDENTIFIER {
-    [id_algo_kea(), Vec::<u32>::from([2])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -528,7 +528,7 @@ pub fn id_algo_dhModpGr15Hkdf384Algo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_dhModpGr16Hkdf512Algo() -> OBJECT_IDENTIFIER {
-    [id_algo_kea(), Vec::<u32>::from([3])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -539,7 +539,7 @@ pub fn id_algo_dhModpGr16Hkdf512Algo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_dhModpGr17Hkdf768Algo() -> OBJECT_IDENTIFIER {
-    [id_algo_kea(), Vec::<u32>::from([4])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -550,7 +550,7 @@ pub fn id_algo_dhModpGr17Hkdf768Algo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_dhModpGr18Hkdf1024Algo() -> OBJECT_IDENTIFIER {
-    [id_algo_kea(), Vec::<u32>::from([5])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -561,7 +561,7 @@ pub fn id_algo_dhModpGr18Hkdf1024Algo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_dhModpGr23Hkdf256Algo() -> OBJECT_IDENTIFIER {
-    [id_algo_kea(), Vec::<u32>::from([10])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -572,5 +572,5 @@ pub fn id_algo_dhModpGr23Hkdf256Algo() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_algo_dhModpGr28Hkdf256Algo() -> OBJECT_IDENTIFIER {
-    [id_algo_kea(), Vec::<u32>::from([15])].concat() // OID_GETTER
+    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([15])].concat()) // OID_GETTER
 }

@@ -40,10 +40,10 @@ use x690::*;
 ///
 ///
 pub fn id_ct_TSTInfo() -> OBJECT_IDENTIFIER {
-    Vec::<u32>::from([
+    OBJECT_IDENTIFIER(Vec::<u32>::from([
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
         /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* ct */ 1, 4,
-    ]) // OID_GETTER
+    ])) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

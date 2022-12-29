@@ -1,4 +1,4 @@
-use crate::types::{DATE, UTCTime, GeneralizedTime};
+use crate::types::{GeneralizedTime, UTCTime, DATE};
 
 impl DATE {
     pub fn new() -> Self {
@@ -11,15 +11,12 @@ impl DATE {
 }
 
 impl From<GeneralizedTime> for DATE {
-
     fn from(other: GeneralizedTime) -> Self {
         other.date
     }
-
 }
 
 impl From<UTCTime> for DATE {
-
     fn from(other: UTCTime) -> Self {
         DATE {
             /* The conversion below was taken from ITU Recommendation X.509
@@ -33,21 +30,16 @@ impl From<UTCTime> for DATE {
             day: other.day,
         }
     }
-
 }
 
 impl PartialEq<GeneralizedTime> for DATE {
-
     fn eq(&self, other: &GeneralizedTime) -> bool {
         DATE::from(*other).eq(self)
     }
-
 }
 
 impl PartialEq<UTCTime> for DATE {
-
     fn eq(&self, other: &UTCTime) -> bool {
         DATE::from(*other).eq(self)
     }
-
 }

@@ -9,7 +9,6 @@ impl DURATION_EQUIVALENT {
 }
 
 impl Default for DURATION_EQUIVALENT {
-
     fn default() -> Self {
         DURATION_EQUIVALENT {
             years: 0,
@@ -22,7 +21,6 @@ impl Default for DURATION_EQUIVALENT {
             fractional_part: None,
         }
     }
-
 }
 
 impl TryFrom<Duration> for DURATION_EQUIVALENT {
@@ -34,5 +32,4 @@ impl TryFrom<Duration> for DURATION_EQUIVALENT {
             ..Default::default()
         })
     }
-
 }
