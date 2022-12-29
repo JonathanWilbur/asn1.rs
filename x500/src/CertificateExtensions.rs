@@ -1746,7 +1746,7 @@ impl GeneralSubtree {
         }
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        0
+        vec![ 0 ]
     }
 }
 impl TryFrom<X690Element> for GeneralSubtree {

@@ -1044,7 +1044,7 @@ impl SubtreeSpecification {
         Vec::from([])
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        0
+        vec![ 0 ]
     }
 }
 impl Default for SubtreeSpecification {
@@ -1395,7 +1395,7 @@ impl ChopSpecification {
         }
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        0
+        vec![ 0 ]
     }
 }
 impl Default for ChopSpecification {

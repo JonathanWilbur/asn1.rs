@@ -763,7 +763,7 @@ impl TBSCertificate {
         }
     }
     pub fn _default_value_for_version() -> Version {
-        Version_v1
+        vec![ Version_v1 as u8 ]
     }
 }
 impl TryFrom<X690Element> for TBSCertificate {
@@ -921,11 +921,11 @@ pub fn _encode_TBSCertificate(value_: &TBSCertificate) -> ASN1Result<X690Element
 /// ```
 pub type Version = INTEGER;
 
-pub const Version_v1: Version = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Version_v1: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Version_v2: Version = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Version_v2: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Version_v3: Version = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Version_v3: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Version(el: &X690Element) -> ASN1Result<Version> {
     ber_decode_integer(&el)
@@ -2068,7 +2068,7 @@ impl TBSCertAVL {
         }
     }
     pub fn _default_value_for_version() -> Version {
-        Version_v1
+        vec![ Version_v1 as u8 ]
     }
 }
 impl TryFrom<X690Element> for TBSCertAVL {

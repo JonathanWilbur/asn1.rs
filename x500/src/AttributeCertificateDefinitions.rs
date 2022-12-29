@@ -290,7 +290,7 @@ pub fn _encode_TBSAttributeCertificate(
 /// ```
 pub type AttCertVersion = INTEGER;
 
-pub const AttCertVersion_v2: AttCertVersion = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttCertVersion_v2: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_AttCertVersion(el: &X690Element) -> ASN1Result<AttCertVersion> {
     ber_decode_integer(&el)
@@ -3664,7 +3664,7 @@ impl GeneralSubtree {
         }
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        0
+        vec![ 0 ]
     }
 }
 impl TryFrom<X690Element> for GeneralSubtree {

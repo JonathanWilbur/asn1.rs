@@ -173,7 +173,7 @@ pub fn _encode_MessageID(value_: &MessageID) -> ASN1Result<X690Element> {
 /// ```
 ///
 ///
-pub const maxInt: INTEGER = 2147483647;
+pub const maxInt: i32 = 2147483647;
 
 /// ### ASN.1 Definition:
 ///

@@ -1549,7 +1549,7 @@ impl ServiceControls {
         BIT_STRING::new()
     }
     pub fn _default_value_for_priority() -> ServiceControls_priority {
-        ServiceControls_priority_medium
+        vec![ ServiceControls_priority_medium as u8 ]
     }
 }
 impl Default for ServiceControls {
@@ -1966,7 +1966,7 @@ impl EntryInformationSelection {
         EntryInformationSelection_attributes::allUserAttributes(())
     }
     pub fn _default_value_for_infoTypes() -> EntryInformationSelection_infoTypes {
-        EntryInformationSelection_infoTypes_attributeTypesAndValues
+        vec![ EntryInformationSelection_infoTypes_attributeTypesAndValues as u8 ]
     }
     pub fn _default_value_for_returnContexts() -> BOOLEAN {
         false
@@ -4074,9 +4074,9 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
 /// ```
 pub type ProtectionRequest = INTEGER;
 
-pub const ProtectionRequest_none: ProtectionRequest = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ProtectionRequest_none: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ProtectionRequest_signed: ProtectionRequest = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ProtectionRequest_signed: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ProtectionRequest(el: &X690Element) -> ASN1Result<ProtectionRequest> {
     ber_decode_integer(&el)
@@ -4145,9 +4145,9 @@ pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
 /// ```
 pub type ErrorProtectionRequest = INTEGER;
 
-pub const ErrorProtectionRequest_none: ErrorProtectionRequest = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ErrorProtectionRequest_none: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ErrorProtectionRequest_signed: ErrorProtectionRequest = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ErrorProtectionRequest_signed: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ErrorProtectionRequest(el: &X690Element) -> ASN1Result<ErrorProtectionRequest> {
     ber_decode_integer(&el)
@@ -5011,7 +5011,7 @@ pub fn _encode_SaslCredentials(value_: &SaslCredentials) -> ASN1Result<X690Eleme
 /// ```
 ///
 ///
-pub const ub_saslMechanism: INTEGER = 20;
+pub const ub_saslMechanism: i64 = 20;
 
 /// ### ASN.1 Definition:
 ///
@@ -9017,11 +9017,11 @@ pub fn _encode_PartialOutcomeQualifier(
 /// ```
 pub type LimitProblem = INTEGER;
 
-pub const LimitProblem_timeLimitExceeded: LimitProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const LimitProblem_timeLimitExceeded: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const LimitProblem_sizeLimitExceeded: LimitProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const LimitProblem_sizeLimitExceeded: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const LimitProblem_administrativeLimitExceeded: LimitProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const LimitProblem_administrativeLimitExceeded: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_LimitProblem(el: &X690Element) -> ASN1Result<LimitProblem> {
     ber_decode_integer(&el)
@@ -9202,7 +9202,7 @@ impl SearchArgumentData {
         }
     }
     pub fn _default_value_for_subset() -> SearchArgumentData_subset {
-        SearchArgumentData_subset_baseObject
+        vec![ SearchArgumentData_subset_baseObject as u8 ]
     }
     pub fn _default_value_for_filter() -> Filter {
         Filter::and(vec![])
@@ -17219,11 +17219,11 @@ pub fn _encode_AbandonFailedData(value_: &AbandonFailedData) -> ASN1Result<X690E
 /// ```
 pub type AbandonProblem = INTEGER;
 
-pub const AbandonProblem_noSuchOperation: AbandonProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const AbandonProblem_noSuchOperation: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AbandonProblem_tooLate: AbandonProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const AbandonProblem_tooLate: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AbandonProblem_cannotAbandon: AbandonProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const AbandonProblem_cannotAbandon: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_AbandonProblem(el: &X690Element) -> ASN1Result<AbandonProblem> {
     ber_decode_integer(&el)
@@ -17560,19 +17560,19 @@ pub fn _encode_AttributeErrorData(value_: &AttributeErrorData) -> ASN1Result<X69
 /// ```
 pub type AttributeProblem = INTEGER;
 
-pub const AttributeProblem_noSuchAttributeOrValue: AttributeProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttributeProblem_noSuchAttributeOrValue: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AttributeProblem_invalidAttributeSyntax: AttributeProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttributeProblem_invalidAttributeSyntax: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AttributeProblem_undefinedAttributeType: AttributeProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttributeProblem_undefinedAttributeType: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AttributeProblem_inappropriateMatching: AttributeProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttributeProblem_inappropriateMatching: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AttributeProblem_constraintViolation: AttributeProblem = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttributeProblem_constraintViolation: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AttributeProblem_attributeOrValueAlreadyExists: AttributeProblem = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttributeProblem_attributeOrValueAlreadyExists: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AttributeProblem_contextViolation: AttributeProblem = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const AttributeProblem_contextViolation: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_AttributeProblem(el: &X690Element) -> ASN1Result<AttributeProblem> {
     ber_decode_integer(&el)
@@ -17871,13 +17871,13 @@ pub fn _encode_NameErrorData(value_: &NameErrorData) -> ASN1Result<X690Element> 
 /// ```
 pub type NameProblem = INTEGER;
 
-pub const NameProblem_noSuchObject: NameProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const NameProblem_noSuchObject: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const NameProblem_aliasProblem: NameProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const NameProblem_aliasProblem: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const NameProblem_invalidAttributeSyntax: NameProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const NameProblem_invalidAttributeSyntax: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const NameProblem_aliasDereferencingProblem: NameProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const NameProblem_aliasDereferencingProblem: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_NameProblem(el: &X690Element) -> ASN1Result<NameProblem> {
     ber_decode_integer(&el)
@@ -18472,27 +18472,27 @@ pub fn _encode_SecurityErrorData(value_: &SecurityErrorData) -> ASN1Result<X690E
 /// ```
 pub type SecurityProblem = INTEGER;
 
-pub const SecurityProblem_inappropriateAuthentication: SecurityProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_inappropriateAuthentication: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_invalidCredentials: SecurityProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_invalidCredentials: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_insufficientAccessRights: SecurityProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_insufficientAccessRights: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_invalidSignature: SecurityProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_invalidSignature: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_protectionRequired: SecurityProblem = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_protectionRequired: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_noInformation: SecurityProblem = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_noInformation: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_blockedCredentials: SecurityProblem = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_blockedCredentials: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_spkmError: SecurityProblem = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_spkmError: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_unsupportedAuthenticationMethod: SecurityProblem = 10; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_unsupportedAuthenticationMethod: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_passwordExpired: SecurityProblem = 11; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_passwordExpired: i32 = 11; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityProblem_inappropriateAlgorithms: SecurityProblem = 12; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityProblem_inappropriateAlgorithms: i32 = 12; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_SecurityProblem(el: &X690Element) -> ASN1Result<SecurityProblem> {
     ber_decode_integer(&el)
@@ -18951,41 +18951,41 @@ pub fn _encode_ServiceErrorData(value_: &ServiceErrorData) -> ASN1Result<X690Ele
 /// ```
 pub type ServiceProblem = INTEGER;
 
-pub const ServiceProblem_busy: ServiceProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_busy: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_unavailable: ServiceProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_unavailable: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_unwillingToPerform: ServiceProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_unwillingToPerform: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_chainingRequired: ServiceProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_chainingRequired: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_unableToProceed: ServiceProblem = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_unableToProceed: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_invalidReference: ServiceProblem = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_invalidReference: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_timeLimitExceeded: ServiceProblem = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_timeLimitExceeded: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_administrativeLimitExceeded: ServiceProblem = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_administrativeLimitExceeded: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_loopDetected: ServiceProblem = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_loopDetected: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_unavailableCriticalExtension: ServiceProblem = 10; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_unavailableCriticalExtension: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_outOfScope: ServiceProblem = 11; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_outOfScope: i32 = 11; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_ditError: ServiceProblem = 12; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_ditError: i32 = 12; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_invalidQueryReference: ServiceProblem = 13; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_invalidQueryReference: i32 = 13; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_requestedServiceNotAvailable: ServiceProblem = 14; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_requestedServiceNotAvailable: i32 = 14; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_unsupportedMatchingUse: ServiceProblem = 15; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_unsupportedMatchingUse: i32 = 15; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_ambiguousKeyAttributes: ServiceProblem = 16; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_ambiguousKeyAttributes: i32 = 16; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_saslBindInProgress: ServiceProblem = 17; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_saslBindInProgress: i32 = 17; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceProblem_notSupportedByLDAP: ServiceProblem = 18; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceProblem_notSupportedByLDAP: i32 = 18; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ServiceProblem(el: &X690Element) -> ASN1Result<ServiceProblem> {
     ber_decode_integer(&el)
@@ -19321,35 +19321,35 @@ pub fn _encode_UpdateErrorData(value_: &UpdateErrorData) -> ASN1Result<X690Eleme
 /// ```
 pub type UpdateProblem = INTEGER;
 
-pub const UpdateProblem_namingViolation: UpdateProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_namingViolation: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_objectClassViolation: UpdateProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_objectClassViolation: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_notAllowedOnNonLeaf: UpdateProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_notAllowedOnNonLeaf: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_notAllowedOnRDN: UpdateProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_notAllowedOnRDN: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_entryAlreadyExists: UpdateProblem = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_entryAlreadyExists: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_affectsMultipleDSAs: UpdateProblem = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_affectsMultipleDSAs: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_objectClassModificationProhibited: UpdateProblem = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_objectClassModificationProhibited: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_noSuchSuperior: UpdateProblem = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_noSuchSuperior: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_notAncestor: UpdateProblem = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_notAncestor: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_parentNotAncestor: UpdateProblem = 10; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_parentNotAncestor: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_hierarchyRuleViolation: UpdateProblem = 11; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_hierarchyRuleViolation: i32 = 11; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_familyRuleViolation: UpdateProblem = 12; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_familyRuleViolation: i32 = 12; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_insufficientPasswordQuality: UpdateProblem = 13; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_insufficientPasswordQuality: i32 = 13; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_passwordInHistory: UpdateProblem = 14; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_passwordInHistory: i32 = 14; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const UpdateProblem_noPasswordSlot: UpdateProblem = 15; /* LONG_NAMED_INTEGER_VALUE */
+pub const UpdateProblem_noPasswordSlot: i32 = 15; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_UpdateProblem(el: &X690Element) -> ASN1Result<UpdateProblem> {
     ber_decode_integer(&el)
@@ -19377,11 +19377,11 @@ pub fn id_at_family_information() -> OBJECT_IDENTIFIER {
 /// ```
 pub type ServiceControls_priority = INTEGER;
 
-pub const ServiceControls_priority_low: ServiceControls_priority = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceControls_priority_low: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceControls_priority_medium: ServiceControls_priority = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceControls_priority_medium: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceControls_priority_high: ServiceControls_priority = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceControls_priority_high: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ServiceControls_priority(el: &X690Element) -> ASN1Result<ServiceControls_priority> {
     ber_decode_integer(&el)
@@ -19400,9 +19400,9 @@ pub fn _encode_ServiceControls_priority(
 /// ```
 pub type ServiceControls_scopeOfReferral = INTEGER;
 
-pub const ServiceControls_scopeOfReferral_dmd: ServiceControls_scopeOfReferral = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceControls_scopeOfReferral_dmd: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ServiceControls_scopeOfReferral_country: ServiceControls_scopeOfReferral = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ServiceControls_scopeOfReferral_country: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ServiceControls_scopeOfReferral(
     el: &X690Element,
@@ -19611,10 +19611,10 @@ pub fn _encode_EntryInformationSelection_attributes(
 pub type EntryInformationSelection_infoTypes = INTEGER;
 
 pub const EntryInformationSelection_infoTypes_attributeTypesOnly:
-    EntryInformationSelection_infoTypes = 0; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const EntryInformationSelection_infoTypes_attributeTypesAndValues:
-    EntryInformationSelection_infoTypes = 1; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_EntryInformationSelection_infoTypes(
     el: &X690Element,
@@ -21724,11 +21724,11 @@ pub fn _encode_PartialOutcomeQualifier_entryCount(
 /// ```
 pub type SearchArgumentData_subset = INTEGER;
 
-pub const SearchArgumentData_subset_baseObject: SearchArgumentData_subset = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const SearchArgumentData_subset_baseObject: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SearchArgumentData_subset_oneLevel: SearchArgumentData_subset = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const SearchArgumentData_subset_oneLevel: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SearchArgumentData_subset_wholeSubtree: SearchArgumentData_subset = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const SearchArgumentData_subset_wholeSubtree: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_SearchArgumentData_subset(
     el: &X690Element,

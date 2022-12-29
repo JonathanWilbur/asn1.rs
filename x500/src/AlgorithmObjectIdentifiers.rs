@@ -2440,10 +2440,10 @@ impl rSASSA_PSS_Type {
         }
     }
     pub fn _default_value_for_saltLength() -> INTEGER {
-        20
+        vec![ 20 ]
     }
     pub fn _default_value_for_trailerField() -> INTEGER {
-        1
+        vec![ 1 ]
     }
 }
 impl TryFrom<X690Element> for rSASSA_PSS_Type {

@@ -2232,7 +2232,7 @@ impl RelaxationPolicy {
         }
     }
     pub fn _default_value_for_minimum() -> INTEGER {
-        1
+        vec![ 1 ]
     }
 }
 impl Default for RelaxationPolicy {
@@ -2695,7 +2695,7 @@ impl Mapping {
         }
     }
     pub fn _default_value_for_level() -> INTEGER {
-        0
+        vec![ 0 ]
     }
 }
 impl TryFrom<X690Element> for Mapping {

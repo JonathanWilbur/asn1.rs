@@ -3574,15 +3574,15 @@ pub fn _encode_IssuerAndSerialNumber(value_: &IssuerAndSerialNumber) -> ASN1Resu
 /// ```
 pub type CMSVersion = INTEGER;
 
-pub const CMSVersion_v0: CMSVersion = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const CMSVersion_v0: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const CMSVersion_v1: CMSVersion = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const CMSVersion_v1: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const CMSVersion_v2: CMSVersion = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const CMSVersion_v2: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const CMSVersion_v3: CMSVersion = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const CMSVersion_v3: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const CMSVersion_v4: CMSVersion = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const CMSVersion_v4: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_CMSVersion(el: &X690Element) -> ASN1Result<CMSVersion> {
     ber_decode_integer(&el)

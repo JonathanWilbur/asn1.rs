@@ -567,17 +567,17 @@ pub fn _encode_PKIStatusInfo(value_: &PKIStatusInfo) -> ASN1Result<X690Element> 
 /// ```
 pub type PKIStatus = INTEGER;
 
-pub const PKIStatus_granted: PKIStatus = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_granted: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_grantedWithMods: PKIStatus = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_grantedWithMods: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_rejection: PKIStatus = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_rejection: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_waiting: PKIStatus = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_waiting: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_revocationWarning: PKIStatus = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_revocationWarning: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_revocationNotification: PKIStatus = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_revocationNotification: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_PKIStatus(el: &X690Element) -> ASN1Result<PKIStatus> {
     ber_decode_integer(&el)
@@ -1055,7 +1055,7 @@ pub fn _encode_Accuracy(value_: &Accuracy) -> ASN1Result<X690Element> {
 /// ```
 pub type TimeStampReq_version = INTEGER;
 
-pub const TimeStampReq_version_v1: TimeStampReq_version = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const TimeStampReq_version_v1: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_TimeStampReq_version(el: &X690Element) -> ASN1Result<TimeStampReq_version> {
     ber_decode_integer(&el)
@@ -1072,7 +1072,7 @@ pub fn _encode_TimeStampReq_version(value_: &TimeStampReq_version) -> ASN1Result
 /// ```
 pub type TSTInfo_version = INTEGER;
 
-pub const TSTInfo_version_v1: TSTInfo_version = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const TSTInfo_version_v1: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_TSTInfo_version(el: &X690Element) -> ASN1Result<TSTInfo_version> {
     ber_decode_integer(&el)

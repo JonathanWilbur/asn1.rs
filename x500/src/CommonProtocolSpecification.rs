@@ -80,7 +80,7 @@ impl ERROR {}
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub enum Code {
-    local(INTEGER),
+    local(i64),
     global(OBJECT_IDENTIFIER),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
@@ -103,7 +103,7 @@ impl<'a> TryFrom<&'a X690Element> for Code {
 pub fn _decode_Code(el: &X690Element) -> ASN1Result<Code> {
     |el: &X690Element| -> ASN1Result<Code> {
         match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 2) => Ok(Code::local(ber_decode_integer(&el)?)),
+            (TagClass::UNIVERSAL, 2) => Ok(Code::local(ber_decode_i64(&el)?)),
             (TagClass::UNIVERSAL, 6) => Ok(Code::global(ber_decode_object_identifier(&el)?)),
             _ => Ok(Code::_unrecognized(el.clone())),
         }
@@ -113,7 +113,7 @@ pub fn _decode_Code(el: &X690Element) -> ASN1Result<Code> {
 pub fn _encode_Code(value_: &Code) -> ASN1Result<X690Element> {
     |value: &Code| -> ASN1Result<X690Element> {
         match value {
-            Code::local(v) => ber_encode_integer(&v),
+            Code::local(v) => ber_encode_i64(&v),
             Code::global(v) => ber_encode_object_identifier(&v),
             Code::_unrecognized(el) => Ok(el.clone()),
         }

@@ -140,15 +140,15 @@ pub fn _encode_AssociationId(value_: &AssociationId) -> ASN1Result<X690Element> 
 /// ```
 pub type AuthenReasonSyntax = INTEGER;
 
-pub const AuthenReasonSyntax_unknownUser: AuthenReasonSyntax = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_unknownUser: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_incorrectPassword: AuthenReasonSyntax = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_incorrectPassword: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_inaccessiblePassword: AuthenReasonSyntax = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_inaccessiblePassword: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_passwordVerificationLoop: AuthenReasonSyntax = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_passwordVerificationLoop: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_unrecognizedUser: AuthenReasonSyntax = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_unrecognizedUser: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_AuthenReasonSyntax(el: &X690Element) -> ASN1Result<AuthenReasonSyntax> {
     ber_decode_integer(&el)
@@ -320,11 +320,11 @@ pub fn _encode_DirectoryInformationServiceElement(
 /// ```
 pub type DSAScopeOfChainingValue = INTEGER;
 
-pub const DSAScopeOfChainingValue_dmd: DSAScopeOfChainingValue = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfChainingValue_dmd: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfChainingValue_country: DSAScopeOfChainingValue = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfChainingValue_country: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfChainingValue_global: DSAScopeOfChainingValue = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfChainingValue_global: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_DSAScopeOfChainingValue(el: &X690Element) -> ASN1Result<DSAScopeOfChainingValue> {
     ber_decode_integer(&el)
@@ -343,11 +343,11 @@ pub fn _encode_DSAScopeOfChainingValue(
 /// ```
 pub type DSAScopeOfReferralValue = INTEGER;
 
-pub const DSAScopeOfReferralValue_dmd: DSAScopeOfReferralValue = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfReferralValue_dmd: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfReferralValue_country: DSAScopeOfReferralValue = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfReferralValue_country: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfReferralValue_global: DSAScopeOfReferralValue = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfReferralValue_global: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_DSAScopeOfReferralValue(el: &X690Element) -> ASN1Result<DSAScopeOfReferralValue> {
     ber_decode_integer(&el)
@@ -366,9 +366,9 @@ pub fn _encode_DSAScopeOfReferralValue(
 /// ```
 pub type HOBRole = INTEGER;
 
-pub const HOBRole_superior: HOBRole = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const HOBRole_superior: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const HOBRole_subordinate: HOBRole = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const HOBRole_subordinate: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_HOBRole(el: &X690Element) -> ASN1Result<HOBRole> {
     ber_decode_integer(&el)
@@ -615,13 +615,13 @@ pub fn _encode_RequestAuthenticationPolicy(
 /// ```
 pub type ResourceSyntax = INTEGER;
 
-pub const ResourceSyntax_insufficientMemory: ResourceSyntax = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_insufficientMemory: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ResourceSyntax_insufficientAssociations: ResourceSyntax = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_insufficientAssociations: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ResourceSyntax_insufficientDiskSpace: ResourceSyntax = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_insufficientDiskSpace: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ResourceSyntax_miscellaneousResourceExhausted: ResourceSyntax = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_miscellaneousResourceExhausted: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ResourceSyntax(el: &X690Element) -> ASN1Result<ResourceSyntax> {
     ber_decode_integer(&el)
@@ -692,9 +692,9 @@ pub fn _encode_SecondaryShadows(value_: &SecondaryShadows) -> ASN1Result<X690Ele
 /// ```
 pub type ShadowingRole = INTEGER;
 
-pub const ShadowingRole_supplier: ShadowingRole = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowingRole_supplier: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowingRole_consumer: ShadowingRole = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowingRole_consumer: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ShadowingRole(el: &X690Element) -> ASN1Result<ShadowingRole> {
     ber_decode_integer(&el)
@@ -808,7 +808,7 @@ pub fn _encode_SupportedApplicationContexts(
 /// ```
 ///
 ///
-pub const zero: INTEGER = 0;
+pub const zero: i64 = 0;
 
 /// ### ASN.1 Definition:
 ///

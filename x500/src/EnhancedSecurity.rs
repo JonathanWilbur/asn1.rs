@@ -485,17 +485,17 @@ pub fn _encode_SecurityPolicyIdentifier(
 /// ```
 pub type SecurityClassification = INTEGER;
 
-pub const SecurityClassification_unmarked: SecurityClassification = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityClassification_unmarked: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityClassification_unclassified: SecurityClassification = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityClassification_unclassified: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityClassification_restricted: SecurityClassification = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityClassification_restricted: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityClassification_confidential: SecurityClassification = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityClassification_confidential: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityClassification_secret: SecurityClassification = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityClassification_secret: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const SecurityClassification_top_secret: SecurityClassification = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const SecurityClassification_top_secret: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_SecurityClassification(el: &X690Element) -> ASN1Result<SecurityClassification> {
     ber_decode_integer(&el)

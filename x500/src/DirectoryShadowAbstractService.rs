@@ -4534,27 +4534,27 @@ pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Eleme
 /// ```
 pub type ShadowProblem = INTEGER;
 
-pub const ShadowProblem_invalidAgreementID: ShadowProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_invalidAgreementID: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_inactiveAgreement: ShadowProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_inactiveAgreement: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_invalidInformationReceived: ShadowProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_invalidInformationReceived: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_unsupportedStrategy: ShadowProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_unsupportedStrategy: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_missedPrevious: ShadowProblem = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_missedPrevious: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_fullUpdateRequired: ShadowProblem = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_fullUpdateRequired: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_unwillingToPerform: ShadowProblem = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_unwillingToPerform: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_unsuitableTiming: ShadowProblem = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_unsuitableTiming: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_updateAlreadyReceived: ShadowProblem = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_updateAlreadyReceived: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_invalidSequencing: ShadowProblem = 10; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_invalidSequencing: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_insufficientResources: ShadowProblem = 11; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_insufficientResources: i32 = 11; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ShadowProblem(el: &X690Element) -> ASN1Result<ShadowProblem> {
     ber_decode_integer(&el)

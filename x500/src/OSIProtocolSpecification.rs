@@ -972,11 +972,11 @@ pub fn _encode_OsiBindResult(value_: &OsiBindResult) -> ASN1Result<X690Element> 
 /// ```
 pub type Result_ = INTEGER;
 
-pub const Result__acceptance: Result_ = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result__acceptance: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result__user_rejection: Result_ = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result__user_rejection: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result__provider_rejection: Result_ = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result__provider_rejection: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Result_(el: &X690Element) -> ASN1Result<Result_> {
     ber_decode_integer(&el)
@@ -1396,11 +1396,11 @@ pub fn _encode_Association_informationBindRes(
 /// ```
 pub type Associate_result = INTEGER;
 
-pub const Associate_result_accepted: Associate_result = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_result_accepted: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_result_rejected_permanent: Associate_result = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_result_rejected_permanent: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_result_rejected_transient: Associate_result = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_result_rejected_transient: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Associate_result(el: &X690Element) -> ASN1Result<Associate_result> {
     ber_decode_integer(&el)
@@ -1642,21 +1642,21 @@ pub fn _encode_Result_list(value_: &Result_list) -> ASN1Result<X690Element> {
 /// ```
 pub type Provider_reason = INTEGER;
 
-pub const Provider_reason_reason_not_specified: Provider_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_reason_not_specified: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_temporary_congestion: Provider_reason = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_temporary_congestion: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_local_limit_exceeded: Provider_reason = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_local_limit_exceeded: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_called_presentation_address_unknown: Provider_reason = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_called_presentation_address_unknown: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_protocol_version_not_supported: Provider_reason = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_protocol_version_not_supported: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_default_context_not_supported: Provider_reason = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_default_context_not_supported: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_user_data_not_readable: Provider_reason = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_user_data_not_readable: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_no_PSAP_available: Provider_reason = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_no_PSAP_available: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Provider_reason(el: &X690Element) -> ASN1Result<Provider_reason> {
     ber_decode_integer(&el)
@@ -2271,7 +2271,7 @@ pub fn _encode_TheOsiUnbind(value_: &TheOsiUnbind) -> ASN1Result<X690Element> {
 /// ```
 pub type Release_request_reason = INTEGER;
 
-pub const Release_request_reason_normal: Release_request_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Release_request_reason_normal: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Release_request_reason(el: &X690Element) -> ASN1Result<Release_request_reason> {
     ber_decode_integer(&el)
@@ -2459,7 +2459,7 @@ pub fn _encode_TheOsiUnbindRes(value_: &TheOsiUnbindRes) -> ASN1Result<X690Eleme
 /// ```
 pub type Release_response_reason = INTEGER;
 
-pub const Release_response_reason_normal: Release_response_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Release_response_reason_normal: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Release_response_reason(el: &X690Element) -> ASN1Result<Release_response_reason> {
     ber_decode_integer(&el)
@@ -2986,11 +2986,11 @@ pub fn _encode_OsiRej(value_: &OsiRej) -> ASN1Result<X690Element> {
 /// ```
 pub type GeneralProblem = INTEGER;
 
-pub const GeneralProblem_unrecognizedPDU: GeneralProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const GeneralProblem_unrecognizedPDU: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const GeneralProblem_mistypedPDU: GeneralProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const GeneralProblem_mistypedPDU: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const GeneralProblem_badlyStructuredPDU: GeneralProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const GeneralProblem_badlyStructuredPDU: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_GeneralProblem(el: &X690Element) -> ASN1Result<GeneralProblem> {
     ber_decode_integer(&el)
@@ -3012,15 +3012,15 @@ pub fn _encode_GeneralProblem(value_: &GeneralProblem) -> ASN1Result<X690Element
 /// ```
 pub type InvokeProblem = INTEGER;
 
-pub const InvokeProblem_duplicateInvocation: InvokeProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_duplicateInvocation: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_unrecognizedOperation: InvokeProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_unrecognizedOperation: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_mistypedArgument: InvokeProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_mistypedArgument: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_resourceLimitation: InvokeProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_resourceLimitation: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_releaseInProgress: InvokeProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_releaseInProgress: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_InvokeProblem(el: &X690Element) -> ASN1Result<InvokeProblem> {
     ber_decode_integer(&el)
@@ -3040,11 +3040,11 @@ pub fn _encode_InvokeProblem(value_: &InvokeProblem) -> ASN1Result<X690Element> 
 /// ```
 pub type ReturnResultProblem = INTEGER;
 
-pub const ReturnResultProblem_unrecognizedInvocation: ReturnResultProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnResultProblem_unrecognizedInvocation: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnResultProblem_resultResponseUnexpected: ReturnResultProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnResultProblem_resultResponseUnexpected: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnResultProblem_mistypedResult: ReturnResultProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnResultProblem_mistypedResult: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ReturnResultProblem(el: &X690Element) -> ASN1Result<ReturnResultProblem> {
     ber_decode_integer(&el)
@@ -3066,15 +3066,15 @@ pub fn _encode_ReturnResultProblem(value_: &ReturnResultProblem) -> ASN1Result<X
 /// ```
 pub type ReturnErrorProblem = INTEGER;
 
-pub const ReturnErrorProblem_unrecognizedInvocation: ReturnErrorProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_unrecognizedInvocation: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_errorResponseUnexpected: ReturnErrorProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_errorResponseUnexpected: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_unrecognizedError: ReturnErrorProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_unrecognizedError: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_unexpectedError: ReturnErrorProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_unexpectedError: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_mistypedParameter: ReturnErrorProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_mistypedParameter: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ReturnErrorProblem(el: &X690Element) -> ASN1Result<ReturnErrorProblem> {
     ber_decode_integer(&el)
@@ -3331,9 +3331,9 @@ pub fn _encode_ABRT_apdu(value_: &ABRT_apdu) -> ASN1Result<X690Element> {
 /// ```
 pub type ABRT_source = INTEGER;
 
-pub const ABRT_source_acse_service_user: ABRT_source = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ABRT_source_acse_service_user: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ABRT_source_acse_service_provider: ABRT_source = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ABRT_source_acse_service_provider: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ABRT_source(el: &X690Element) -> ASN1Result<ABRT_source> {
     ber_decode_integer(&el)
@@ -3480,19 +3480,19 @@ pub fn _encode_ARP_PPDU(value_: &ARP_PPDU) -> ASN1Result<X690Element> {
 /// ```
 pub type Abort_reason = INTEGER;
 
-pub const Abort_reason_reason_not_specified: Abort_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_reason_not_specified: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unrecognized_ppdu: Abort_reason = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unrecognized_ppdu: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unexpected_ppdu: Abort_reason = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unexpected_ppdu: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unexpected_session_service_primitive: Abort_reason = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unexpected_session_service_primitive: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unrecognized_ppdu_parameter: Abort_reason = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unrecognized_ppdu_parameter: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unexpected_ppdu_parameter: Abort_reason = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unexpected_ppdu_parameter: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_invalid_ppdu_parameter_value: Abort_reason = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_invalid_ppdu_parameter_value: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Abort_reason(el: &X690Element) -> ASN1Result<Abort_reason> {
     ber_decode_integer(&el)
@@ -3517,21 +3517,21 @@ pub fn _encode_Abort_reason(value_: &Abort_reason) -> ASN1Result<X690Element> {
 /// ```
 pub type Event_identifier = INTEGER;
 
-pub const Event_identifier_cp_PPDU: Event_identifier = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_cp_PPDU: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_cpa_PPDU: Event_identifier = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_cpa_PPDU: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_cpr_PPDU: Event_identifier = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_cpr_PPDU: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_aru_PPDU: Event_identifier = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_aru_PPDU: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_arp_PPDU: Event_identifier = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_arp_PPDU: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_td_PPDU: Event_identifier = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_td_PPDU: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_s_release_indication: Event_identifier = 14; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_s_release_indication: i32 = 14; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_s_release_confirm: Event_identifier = 15; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_s_release_confirm: i32 = 15; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Event_identifier(el: &X690Element) -> ASN1Result<Event_identifier> {
     ber_decode_integer(&el)
@@ -4898,33 +4898,33 @@ pub fn _encode_AARE_apdu_protocol_version(
 pub type Associate_source_diagnostic_acse_service_user = INTEGER;
 
 pub const Associate_source_diagnostic_acse_service_user_null:
-    Associate_source_diagnostic_acse_service_user = 0; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_no_reason_given:
-    Associate_source_diagnostic_acse_service_user = 1; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_application_context_name_not_supported:
-    Associate_source_diagnostic_acse_service_user = 2; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_calling_AP_title_not_recognized:
-    Associate_source_diagnostic_acse_service_user = 3; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AP_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AP_invocation_identifier_not_recognized: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_calling_AE_qualifier_not_recognized:
-    Associate_source_diagnostic_acse_service_user = 5; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AE_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AE_invocation_identifier_not_recognized: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_called_AP_title_not_recognized:
-    Associate_source_diagnostic_acse_service_user = 7; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AP_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AP_invocation_identifier_not_recognized: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_called_AE_qualifier_not_recognized:
-    Associate_source_diagnostic_acse_service_user = 9; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AE_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 10; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AE_invocation_identifier_not_recognized: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Associate_source_diagnostic_acse_service_user(
     el: &X690Element,
@@ -4946,13 +4946,13 @@ pub fn _encode_Associate_source_diagnostic_acse_service_user(
 pub type Associate_source_diagnostic_acse_service_provider = INTEGER;
 
 pub const Associate_source_diagnostic_acse_service_provider_null:
-    Associate_source_diagnostic_acse_service_provider = 0; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_provider_no_reason_given:
-    Associate_source_diagnostic_acse_service_provider = 1; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_provider_no_common_acse_version:
-    Associate_source_diagnostic_acse_service_provider = 2; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Associate_source_diagnostic_acse_service_provider(
     el: &X690Element,
@@ -5444,14 +5444,14 @@ pub fn _encode_OsiBindError_normal_mode_parameters(
 /// ```
 pub type Result_list_Item_provider_reason = INTEGER;
 
-pub const Result_list_Item_provider_reason_reason_not_specified: Result_list_Item_provider_reason =
+pub const Result_list_Item_provider_reason_reason_not_specified: i32 =
     0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Result_list_Item_provider_reason_abstract_syntax_not_supported:
-    Result_list_Item_provider_reason = 1; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Result_list_Item_provider_reason_proposed_transfer_syntaxes_not_supported:
-    Result_list_Item_provider_reason = 2; /* LONG_NAMED_INTEGER_VALUE */
+    i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Result_list_Item_provider_reason(
     el: &X690Element,

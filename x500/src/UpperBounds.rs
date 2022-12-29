@@ -19,8 +19,6 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use asn1::*;
-
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -28,7 +26,7 @@ use asn1::*;
 /// ```
 ///
 ///
-pub const ub_answerback: INTEGER = 8;
+pub const ub_answerback: i64 = 8;
 
 /// ### ASN.1 Definition:
 ///
@@ -37,7 +35,7 @@ pub const ub_answerback: INTEGER = 8;
 /// ```
 ///
 ///
-pub const ub_business_category: INTEGER = 128;
+pub const ub_business_category: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -46,7 +44,7 @@ pub const ub_business_category: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_common_name: INTEGER = 64;
+pub const ub_common_name: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -55,7 +53,7 @@ pub const ub_common_name: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_content: INTEGER = 32768;
+pub const ub_content: i64 = 32768;
 
 /// ### ASN.1 Definition:
 ///
@@ -64,7 +62,7 @@ pub const ub_content: INTEGER = 32768;
 /// ```
 ///
 ///
-pub const ub_country_code: INTEGER = 4;
+pub const ub_country_code: i64 = 4;
 
 /// ### ASN.1 Definition:
 ///
@@ -73,7 +71,7 @@ pub const ub_country_code: INTEGER = 4;
 /// ```
 ///
 ///
-pub const ub_description: INTEGER = 1024;
+pub const ub_description: i64 = 1024;
 
 /// ### ASN.1 Definition:
 ///
@@ -82,7 +80,7 @@ pub const ub_description: INTEGER = 1024;
 /// ```
 ///
 ///
-pub const ub_destination_indicator: INTEGER = 128;
+pub const ub_destination_indicator: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -91,7 +89,7 @@ pub const ub_destination_indicator: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_directory_string_first_component_match: INTEGER = 32768;
+pub const ub_directory_string_first_component_match: i64 = 32768;
 
 /// ### ASN.1 Definition:
 ///
@@ -100,7 +98,7 @@ pub const ub_directory_string_first_component_match: INTEGER = 32768;
 /// ```
 ///
 ///
-pub const ub_domainLocalID: INTEGER = 64;
+pub const ub_domainLocalID: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -109,7 +107,7 @@ pub const ub_domainLocalID: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_international_isdn_number: INTEGER = 16;
+pub const ub_international_isdn_number: i64 = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -118,7 +116,7 @@ pub const ub_international_isdn_number: INTEGER = 16;
 /// ```
 ///
 ///
-pub const ub_knowledge_information: INTEGER = 32768;
+pub const ub_knowledge_information: i64 = 32768;
 
 /// ### ASN.1 Definition:
 ///
@@ -127,7 +125,7 @@ pub const ub_knowledge_information: INTEGER = 32768;
 /// ```
 ///
 ///
-pub const ub_labeledURI: INTEGER = 32768;
+pub const ub_labeledURI: i64 = 32768;
 
 /// ### ASN.1 Definition:
 ///
@@ -136,7 +134,7 @@ pub const ub_labeledURI: INTEGER = 32768;
 /// ```
 ///
 ///
-pub const ub_localeContextSyntax: INTEGER = 128;
+pub const ub_localeContextSyntax: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -145,7 +143,7 @@ pub const ub_localeContextSyntax: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_locality_name: INTEGER = 128;
+pub const ub_locality_name: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -154,7 +152,7 @@ pub const ub_locality_name: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_match: INTEGER = 128;
+pub const ub_match: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -163,7 +161,7 @@ pub const ub_match: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_name: INTEGER = 128;
+pub const ub_name: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -172,7 +170,7 @@ pub const ub_name: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_organization_name: INTEGER = 64;
+pub const ub_organization_name: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -181,7 +179,7 @@ pub const ub_organization_name: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_organizational_unit_name: INTEGER = 64;
+pub const ub_organizational_unit_name: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -190,7 +188,7 @@ pub const ub_organizational_unit_name: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_physical_office_name: INTEGER = 128;
+pub const ub_physical_office_name: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -199,7 +197,7 @@ pub const ub_physical_office_name: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_post_office_box: INTEGER = 40;
+pub const ub_post_office_box: i64 = 40;
 
 /// ### ASN.1 Definition:
 ///
@@ -208,7 +206,7 @@ pub const ub_post_office_box: INTEGER = 40;
 /// ```
 ///
 ///
-pub const ub_postal_code: INTEGER = 40;
+pub const ub_postal_code: i64 = 40;
 
 /// ### ASN.1 Definition:
 ///
@@ -217,7 +215,7 @@ pub const ub_postal_code: INTEGER = 40;
 /// ```
 ///
 ///
-pub const ub_postal_line: INTEGER = 6;
+pub const ub_postal_line: i64 = 6;
 
 /// ### ASN.1 Definition:
 ///
@@ -226,7 +224,7 @@ pub const ub_postal_line: INTEGER = 6;
 /// ```
 ///
 ///
-pub const ub_postal_string: INTEGER = 30;
+pub const ub_postal_string: i64 = 30;
 
 /// ### ASN.1 Definition:
 ///
@@ -235,7 +233,7 @@ pub const ub_postal_string: INTEGER = 30;
 /// ```
 ///
 ///
-pub const ub_privacy_mark_length: INTEGER = 128;
+pub const ub_privacy_mark_length: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -244,7 +242,7 @@ pub const ub_privacy_mark_length: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_pseudonym: INTEGER = 128;
+pub const ub_pseudonym: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -253,7 +251,7 @@ pub const ub_pseudonym: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_saslMechanism: INTEGER = 64;
+pub const ub_saslMechanism: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -262,7 +260,7 @@ pub const ub_saslMechanism: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_schema: INTEGER = 1024;
+pub const ub_schema: i64 = 1024;
 
 /// ### ASN.1 Definition:
 ///
@@ -271,7 +269,7 @@ pub const ub_schema: INTEGER = 1024;
 /// ```
 ///
 ///
-pub const ub_search: INTEGER = 32768;
+pub const ub_search: i64 = 32768;
 
 /// ### ASN.1 Definition:
 ///
@@ -280,7 +278,7 @@ pub const ub_search: INTEGER = 32768;
 /// ```
 ///
 ///
-pub const ub_serial_number: INTEGER = 64;
+pub const ub_serial_number: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -289,7 +287,7 @@ pub const ub_serial_number: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_state_name: INTEGER = 128;
+pub const ub_state_name: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -298,7 +296,7 @@ pub const ub_state_name: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_street_address: INTEGER = 128;
+pub const ub_street_address: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -307,7 +305,7 @@ pub const ub_street_address: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_surname: INTEGER = 64;
+pub const ub_surname: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -316,7 +314,7 @@ pub const ub_surname: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_tag: INTEGER = 64;
+pub const ub_tag: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -325,7 +323,7 @@ pub const ub_tag: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_telephone_number: INTEGER = 32;
+pub const ub_telephone_number: i64 = 32;
 
 /// ### ASN.1 Definition:
 ///
@@ -334,7 +332,7 @@ pub const ub_telephone_number: INTEGER = 32;
 /// ```
 ///
 ///
-pub const ub_teletex_terminal_id: INTEGER = 1024;
+pub const ub_teletex_terminal_id: i64 = 1024;
 
 /// ### ASN.1 Definition:
 ///
@@ -343,7 +341,7 @@ pub const ub_teletex_terminal_id: INTEGER = 1024;
 /// ```
 ///
 ///
-pub const ub_telex_number: INTEGER = 14;
+pub const ub_telex_number: i64 = 14;
 
 /// ### ASN.1 Definition:
 ///
@@ -352,7 +350,7 @@ pub const ub_telex_number: INTEGER = 14;
 /// ```
 ///
 ///
-pub const ub_title: INTEGER = 64;
+pub const ub_title: i64 = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -361,7 +359,7 @@ pub const ub_title: INTEGER = 64;
 /// ```
 ///
 ///
-pub const ub_user_password: INTEGER = 128;
+pub const ub_user_password: i64 = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -370,4 +368,4 @@ pub const ub_user_password: INTEGER = 128;
 /// ```
 ///
 ///
-pub const ub_x121_address: INTEGER = 15;
+pub const ub_x121_address: i64 = 15;

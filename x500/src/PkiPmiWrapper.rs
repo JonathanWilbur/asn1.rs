@@ -89,7 +89,7 @@ impl TBSPDU_wrapper {
         }
     }
     pub fn _default_value_for_version() -> Version {
-        Version_v1
+        vec![ Version_v1 as u8 ]
     }
 }
 impl TryFrom<X690Element> for TBSPDU_wrapper {

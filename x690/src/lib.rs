@@ -1,3 +1,4 @@
+use asn1::ENUMERATED;
 use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use asn1::types::{
     ASN1Value, ByteSlice, Bytes, CharacterString, EmbeddedPDV, ExternalEncoding,
@@ -397,18 +398,32 @@ pub fn x690_write_integer_value<W>(output: &mut W, value: &INTEGER) -> Result<us
 where
     W: Write,
 {
+    output.write(value)
+}
+
+pub fn x690_write_i64_value<W>(output: &mut W, value: i64) -> Result<usize>
+where
+    W: Write,
+{
     let bytes = value.to_be_bytes();
-    let padding_byte: u8 = if *value >= 0 { 0x00 } else { 0xFF };
+    let padding_byte: u8 = if value >= 0 { 0x00 } else { 0xFF };
     let mut number_of_padding_bytes: usize = 0;
     for byte in bytes {
         if byte == padding_byte {
             number_of_padding_bytes += 1;
         }
     }
-    if number_of_padding_bytes == size_of::<INTEGER>() {
+    if number_of_padding_bytes == size_of::<ENUMERATED>() {
         return output.write(&[padding_byte]);
     }
-    return output.write(&(bytes[number_of_padding_bytes..size_of::<INTEGER>()]));
+    return output.write(&(bytes[number_of_padding_bytes..size_of::<ENUMERATED>()]));
+}
+
+pub fn x690_write_enum_value<W>(output: &mut W, value: &ENUMERATED) -> Result<usize>
+where
+    W: Write,
+{
+    x690_write_i64_value(output, *value)
 }
 
 pub fn x690_write_bit_string_value<W>(output: &mut W, value: &BIT_STRING) -> Result<usize>
@@ -653,7 +668,7 @@ where
             }
         }
     };
-    return match x690_write_integer_value(output, &(mantissa as i64)) {
+    return match x690_write_i64_value(output, mantissa as i64) {
         Err(e) => return Err(e),
         Ok(wrote) => Ok(wrote + bytes_written),
     };
@@ -1313,7 +1328,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
         ASN1Value::EnumeratedValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED;
             let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_integer_value(&mut value_bytes, v) {
+            match x690_write_enum_value(&mut value_bytes, v) {
                 Err(e) => return Err(e),
                 _ => (),
             };
@@ -2059,7 +2074,7 @@ mod tests {
         let mut output: Vec<u8> = Vec::new();
         let mut i = 0;
         for value in -128i8..127i8 {
-            crate::x690_write_integer_value(&mut output, &i64::from(value)).unwrap();
+            crate::x690_write_enum_value(&mut output, &i64::from(value)).unwrap();
             assert_eq!(output[i] as i8, value);
             i += 1;
         }
@@ -2235,7 +2250,7 @@ mod tests {
     fn test_ber_encode_2() {
         let asn1_data = ASN1Value::SequenceValue(vec![
             ASN1Value::BooleanValue(true),
-            ASN1Value::IntegerValue(127),
+            ASN1Value::IntegerValue(vec![ 127 ]),
         ]);
         let mut output = Vec::new();
         match ber_encode(&mut output, &asn1_data) {

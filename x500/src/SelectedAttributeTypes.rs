@@ -2134,7 +2134,7 @@ impl EnhancedGuide {
         }
     }
     pub fn _default_value_for_subset() -> EnhancedGuide_subset {
-        EnhancedGuide_subset_oneLevel
+        vec![ EnhancedGuide_subset_oneLevel as u8 ]
     }
 }
 impl TryFrom<X690Element> for EnhancedGuide {
@@ -2628,7 +2628,7 @@ pub fn _encode_TelephoneNumber(value_: &TelephoneNumber) -> ASN1Result<X690Eleme
 /// ```
 ///
 ///
-pub const ub_telephone_number: INTEGER = 32;
+pub const ub_telephone_number: i64 = 32;
 
 /// ### ASN.1 Definition:
 ///
@@ -2813,7 +2813,7 @@ pub fn _encode_TelexNumber(value_: &TelexNumber) -> ASN1Result<X690Element> {
 /// ```
 ///
 ///
-pub const ub_telex_number: INTEGER = 14;
+pub const ub_telex_number: i64 = 14;
 
 /// ### ASN.1 Definition:
 ///
@@ -2822,7 +2822,7 @@ pub const ub_telex_number: INTEGER = 14;
 /// ```
 ///
 ///
-pub const ub_country_code: INTEGER = 4;
+pub const ub_country_code: i64 = 4;
 
 /// ### ASN.1 Definition:
 ///
@@ -2831,7 +2831,7 @@ pub const ub_country_code: INTEGER = 4;
 /// ```
 ///
 ///
-pub const ub_answerback: INTEGER = 8;
+pub const ub_answerback: i64 = 8;
 
 /// ### ASN.1 Definition:
 ///
@@ -3090,7 +3090,7 @@ pub fn _encode_X121Address(value_: &X121Address) -> ASN1Result<X690Element> {
 /// ```
 ///
 ///
-pub const ub_x121_address: INTEGER = 15;
+pub const ub_x121_address: i64 = 15;
 
 /// ### ASN.1 Definition:
 ///
@@ -3149,7 +3149,7 @@ pub fn _encode_InternationalISDNNumber(
 /// ```
 ///
 ///
-pub const ub_international_isdn_number: INTEGER = 16;
+pub const ub_international_isdn_number: i64 = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -9024,16 +9024,16 @@ pub fn _encode_DayTimeBand(value_: &DayTimeBand) -> ASN1Result<X690Element> {
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct DayTime {
-    pub hour: INTEGER,
-    pub minute: OPTIONAL<INTEGER>,
-    pub second: OPTIONAL<INTEGER>,
+    pub hour: i64,
+    pub minute: OPTIONAL<i64>,
+    pub second: OPTIONAL<i64>,
     pub _unrecognized: Vec<X690Element>,
 }
 impl DayTime {
     pub fn new(
-        hour: INTEGER,
-        minute: OPTIONAL<INTEGER>,
-        second: OPTIONAL<INTEGER>,
+        hour: i64,
+        minute: OPTIONAL<i64>,
+        second: OPTIONAL<i64>,
         _unrecognized: Vec<X690Element>,
     ) -> Self {
         DayTime {
@@ -9043,10 +9043,10 @@ impl DayTime {
             _unrecognized,
         }
     }
-    pub fn _default_value_for_minute() -> INTEGER {
+    pub fn _default_value_for_minute() -> i64 {
         0
     }
-    pub fn _default_value_for_second() -> INTEGER {
+    pub fn _default_value_for_second() -> i64 {
         0
     }
 }
@@ -9105,18 +9105,18 @@ pub fn _decode_DayTime(el: &X690Element) -> ASN1Result<DayTime> {
             _rctl2_components_for_DayTime,
         )?;
         let hour =
-            |el: &X690Element| -> ASN1Result<INTEGER> { Ok(ber_decode_integer(&el.inner()?)?) }(
+            |el: &X690Element| -> ASN1Result<i64> { Ok(ber_decode_i64(&el.inner()?)?) }(
                 _components.get("hour").unwrap(),
             )?;
-        let minute: OPTIONAL<INTEGER> = match _components.get("minute") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<INTEGER> {
-                Ok(ber_decode_integer(&el.inner()?)?)
+        let minute: OPTIONAL<i64> = match _components.get("minute") {
+            Some(c_) => Some(|el: &X690Element| -> ASN1Result<i64> {
+                Ok(ber_decode_i64(&el.inner()?)?)
             }(c_)?),
             _ => None,
         };
-        let second: OPTIONAL<INTEGER> = match _components.get("second") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<INTEGER> {
-                Ok(ber_decode_integer(&el.inner()?)?)
+        let second: OPTIONAL<i64> = match _components.get("second") {
+            Some(c_) => Some(|el: &X690Element| -> ASN1Result<i64> {
+                Ok(ber_decode_i64(&el.inner()?)?)
             }(c_)?),
             _ => None,
         };
@@ -9132,31 +9132,31 @@ pub fn _decode_DayTime(el: &X690Element) -> ASN1Result<DayTime> {
 pub fn _encode_DayTime(value_: &DayTime) -> ASN1Result<X690Element> {
     |value_: &DayTime| -> ASN1Result<X690Element> {
         let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-        components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+        components_.push(|v_1: &i64| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 TagClass::CONTEXT,
                 0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_integer(&v_1)?))),
+                Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_i64(&v_1)?))),
             ))
         }(&value_.hour)?);
         if let Some(v_) = &value_.minute {
             if *v_ != DayTime::_default_value_for_minute() {
-                components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+                components_.push(|v_1: &i64| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         TagClass::CONTEXT,
                         1,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_integer(&v_1)?))),
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_i64(&v_1)?))),
                     ))
                 }(&v_)?);
             }
         }
         if let Some(v_) = &value_.second {
             if *v_ != DayTime::_default_value_for_second() {
-                components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+                components_.push(|v_1: &i64| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         TagClass::CONTEXT,
                         2,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_integer(&v_1)?))),
+                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_i64(&v_1)?))),
                     ))
                 }(&v_)?);
             }
@@ -12062,11 +12062,11 @@ pub fn id_avc_ldapAttributeOption() -> OBJECT_IDENTIFIER {
 /// ```
 pub type EnhancedGuide_subset = INTEGER;
 
-pub const EnhancedGuide_subset_baseObject: EnhancedGuide_subset = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const EnhancedGuide_subset_baseObject: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const EnhancedGuide_subset_oneLevel: EnhancedGuide_subset = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const EnhancedGuide_subset_oneLevel: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const EnhancedGuide_subset_wholeSubtree: EnhancedGuide_subset = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const EnhancedGuide_subset_wholeSubtree: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_EnhancedGuide_subset(el: &X690Element) -> ASN1Result<EnhancedGuide_subset> {
     ber_decode_integer(&el)
@@ -12083,25 +12083,25 @@ pub fn _encode_EnhancedGuide_subset(value_: &EnhancedGuide_subset) -> ASN1Result
 /// ```
 pub type PreferredDeliveryMethod_Item = INTEGER;
 
-pub const PreferredDeliveryMethod_Item_any_delivery_method: PreferredDeliveryMethod_Item = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_any_delivery_method: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_mhs_delivery: PreferredDeliveryMethod_Item = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_mhs_delivery: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_physical_delivery: PreferredDeliveryMethod_Item = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_physical_delivery: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_telex_delivery: PreferredDeliveryMethod_Item = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_telex_delivery: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_teletex_delivery: PreferredDeliveryMethod_Item = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_teletex_delivery: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_g3_facsimile_delivery: PreferredDeliveryMethod_Item = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_g3_facsimile_delivery: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_g4_facsimile_delivery: PreferredDeliveryMethod_Item = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_g4_facsimile_delivery: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_ia5_terminal_delivery: PreferredDeliveryMethod_Item = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_ia5_terminal_delivery: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_videotex_delivery: PreferredDeliveryMethod_Item = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_videotex_delivery: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PreferredDeliveryMethod_Item_telephone_delivery: PreferredDeliveryMethod_Item = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const PreferredDeliveryMethod_Item_telephone_delivery: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_PreferredDeliveryMethod_Item(
     el: &X690Element,

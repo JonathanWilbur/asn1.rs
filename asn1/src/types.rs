@@ -112,7 +112,7 @@ pub struct DURATION_EQUIVALENT {
 
 // type END_OF_CONTENT = None;
 pub type BOOLEAN = bool;
-pub type INTEGER = i64;
+pub type INTEGER = Bytes;
 pub type BIT = usize;
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct BIT_STRING {

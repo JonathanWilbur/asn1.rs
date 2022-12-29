@@ -111,6 +111,7 @@ use crate::{
     x690_write_octet_string_value, x690_write_real_value, x690_write_relative_oid_value,
     x690_write_string_value, x690_write_tag, x690_write_time_of_day_value, x690_write_time_value,
     x690_write_universal_string_value, x690_write_utc_time_value, x690_write_utf8_string_value,
+    x690_write_enum_value,
     X690Element, X690Encoding, X690_REAL_BASE10, X690_REAL_BASE_16, X690_REAL_BASE_2,
     X690_REAL_BASE_8, X690_REAL_BASE_MASK, X690_REAL_BINARY_SCALING_MASK,
     X690_REAL_EXPONENT_FORMAT_1_OCTET, X690_REAL_EXPONENT_FORMAT_2_OCTET,
@@ -174,9 +175,13 @@ pub fn ber_decode_boolean_value(value_bytes: ByteSlice) -> ASN1Result<BOOLEAN> {
 }
 
 pub fn ber_decode_integer_value(value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
+    Ok(Vec::from(value_bytes))
+}
+
+pub fn ber_decode_i64_value (value_bytes: ByteSlice) -> ASN1Result<i64> {
     let len = value_bytes.len();
     match len {
-        1 => Ok(value_bytes[0] as i8 as INTEGER),
+        1 => Ok(value_bytes[0] as i8 as ENUMERATED),
         2 => Ok(i16::from_be_bytes([value_bytes[0], value_bytes[1]]) as i64),
         3 => Ok(i32::from_be_bytes([
             if value_bytes[0] & 0b1000_0000 > 0 {
@@ -201,6 +206,10 @@ pub fn ber_decode_integer_value(value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
         }
         _ => Err(ASN1Error::new(ASN1ErrorCode::value_too_big)),
     }
+}
+
+pub fn ber_decode_enum_value(value_bytes: ByteSlice) -> ASN1Result<ENUMERATED> {
+    ber_decode_i64_value(value_bytes)
 }
 
 pub fn ber_decode_bit_string_value(value_bytes: ByteSlice) -> ASN1Result<BIT_STRING> {
@@ -1034,9 +1043,16 @@ pub fn ber_decode_integer(el: &X690Element) -> ASN1Result<INTEGER> {
     }
 }
 
+pub fn ber_decode_i64(el: &X690Element) -> ASN1Result<i64> {
+    match el.value.borrow() {
+        X690Encoding::IMPLICIT(bytes) => ber_decode_i64_value(bytes.as_slice()),
+        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    }
+}
+
 pub fn ber_decode_enumerated(el: &X690Element) -> ASN1Result<ENUMERATED> {
     match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_integer_value(bytes.as_slice()),
+        X690Encoding::IMPLICIT(bytes) => ber_decode_enum_value(bytes.as_slice()),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
@@ -1679,7 +1695,7 @@ pub fn ber_decode_any(el: &X690Element) -> ASN1Result<ASN1Value> {
             Ok(v) => Ok(ASN1Value::RealValue(v)),
             Err(e) => Err(e),
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => match ber_decode_integer(el) {
+        ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => match ber_decode_enumerated(el) {
             Ok(v) => Ok(ASN1Value::EnumeratedValue(v)),
             Err(e) => Err(e),
         },
@@ -1812,9 +1828,20 @@ pub fn ber_encode_integer(value: &INTEGER) -> ASN1Result<X690Element> {
     ))
 }
 
+// TODO: Make this generic across numeric types?
+pub fn ber_encode_i64(value: &i64) -> ASN1Result<X690Element> {
+    let mut out: Bytes = Vec::new();
+    x690_write_enum_value(&mut out, &value)?;
+    Ok(X690Element::new(
+        TagClass::UNIVERSAL,
+        ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
+        Arc::new(X690Encoding::IMPLICIT(out)),
+    ))
+}
+
 pub fn ber_encode_enumerated(value: &ENUMERATED) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
-    x690_write_integer_value(&mut out, &value)?;
+    x690_write_enum_value(&mut out, &value)?;
     Ok(X690Element::new(
         TagClass::UNIVERSAL,
         ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED,
