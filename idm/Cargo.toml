@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["io-util"] }
-tokio-stream = "0.1"
 
 [dev-dependencies]
 mock-tcpstream = { path = "../mock-tcpstream" }

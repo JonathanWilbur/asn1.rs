@@ -26,7 +26,6 @@ use asn1::types::{
     DURATION_EQUIVALENT, EXTERNAL, INTEGER, MAX_IA5_STRING_CHAR_CODE, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
 };
-use num::Zero;
 use std::borrow::Borrow;
 use std::io::{Error, ErrorKind, Result, Write};
 use std::mem::size_of;
@@ -579,12 +578,16 @@ pub fn x690_write_real_value<W>(output: &mut W, value: &REAL) -> Result<usize>
 where
     W: Write,
 {
+    // This may seem like a floating precision problem, but this is how the
+    // `num` crate does it:
+    // https://github.com/rust-num/num-traits/blob/5397a1c27124af874e42d3d185f78d8ce01ecf69/src/identities.rs#L61
+    let is_zero = *value == 0.0;
     // If the real value is the value plus zero, there shall be no contents octets in the encoding.
-    if value.is_zero() {
+    if is_zero {
         return Ok(0);
     }
     // If the real value is the value minus zero, then it shall be encoded as specified in 8.5.9.
-    if value.is_zero() && value.is_sign_negative() {
+    if is_zero && value.is_sign_negative() {
         return output.write(&[X690_SPECIAL_REAL_MINUS_ZERO]);
     }
 
