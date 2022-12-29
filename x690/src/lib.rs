@@ -1943,7 +1943,6 @@ pub fn ber_cst(bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
                 tag_number,
                 Arc::new(X690Encoding::Constructed(children)),
             );
-            // bytes_read += len;
             Ok((bytes_read, el))
         }
         X690Length::Indefinite => {
@@ -2004,7 +2003,9 @@ pub fn deconstruct(el: &X690Element) -> ASN1Result<X690Element> {
             for child in children {
                 /* Just to be clear, this is 100% intentional. In ITU X.690, it says that the substrings of a string
                 type are to have OCTET STRING tags and it even has examples where it confirms this visually. */
-                if child.tag_class != TagClass::UNIVERSAL || child.tag_number != ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING {
+                if child.tag_class != TagClass::UNIVERSAL
+                    || child.tag_number != ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING
+                {
                     let mut err =
                         ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
                     err.component_name = el.name.clone();

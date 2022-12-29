@@ -19,17 +19,17 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+use crate::PKIXCMP::*;
 use asn1::*;
+use cms::CryptographicMessageSyntax::{ContentInfo, _decode_ContentInfo, _encode_ContentInfo};
 use std::borrow::Borrow;
 use std::sync::Arc;
-use x690::*;
-use crate::PKIXCMP::*;
-use cms::CryptographicMessageSyntax::{ContentInfo, _decode_ContentInfo, _encode_ContentInfo};
 use x500::AuthenticationFramework::{
     AlgorithmIdentifier, Extensions, _decode_AlgorithmIdentifier, _decode_Extensions,
     _encode_AlgorithmIdentifier, _encode_Extensions,
 };
 use x500::CertificateExtensions::{GeneralName, _decode_GeneralName, _encode_GeneralName};
+use x690::*;
 
 /// ### ASN.1 Definition:
 ///

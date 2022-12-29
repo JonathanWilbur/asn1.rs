@@ -109,7 +109,7 @@ use crate::{
     x690_write_external_value, x690_write_generalized_time_value, x690_write_integer_value,
     x690_write_object_descriptor_value, x690_write_object_identifier_value,
     x690_write_octet_string_value, x690_write_real_value, x690_write_relative_oid_value,
-    x690_write_string_value, x690_write_time_of_day_value, x690_write_time_value,
+    x690_write_string_value, x690_write_tag, x690_write_time_of_day_value, x690_write_time_value,
     x690_write_universal_string_value, x690_write_utc_time_value, x690_write_utf8_string_value,
     X690Element, X690Encoding, X690_REAL_BASE10, X690_REAL_BASE_16, X690_REAL_BASE_2,
     X690_REAL_BASE_8, X690_REAL_BASE_MASK, X690_REAL_BINARY_SCALING_MASK,
@@ -1862,16 +1862,28 @@ pub fn ber_encode_object_identifier(value: &OBJECT_IDENTIFIER) -> ASN1Result<X69
 
 pub fn ber_encode_external(value: &EXTERNAL) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
+    x690_write_tag(
+        &mut out,
+        TagClass::UNIVERSAL,
+        true,
+        ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
+    )?;
     x690_write_external_value(&mut out, &value)?;
     Ok(X690Element::new(
         TagClass::UNIVERSAL,
         ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Arc::new(X690Encoding::AlreadyEncoded(out)),
     ))
 }
 
 pub fn ber_encode_instance_of(value: &INSTANCE_OF) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
+    x690_write_tag(
+        &mut out,
+        TagClass::UNIVERSAL,
+        true,
+        ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
+    )?;
     let external = EXTERNAL {
         identification: ExternalIdentification::syntax(value.type_id.clone()),
         data_value_descriptor: None,
@@ -1881,7 +1893,7 @@ pub fn ber_encode_instance_of(value: &INSTANCE_OF) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         TagClass::UNIVERSAL,
         ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Arc::new(X690Encoding::AlreadyEncoded(out)),
     ))
 }
 
@@ -1897,21 +1909,33 @@ pub fn ber_encode_real(value: &REAL) -> ASN1Result<X690Element> {
 
 pub fn ber_encode_embedded_pdv(value: &EMBEDDED_PDV) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
+    x690_write_tag(
+        &mut out,
+        TagClass::UNIVERSAL,
+        true,
+        ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
+    )?;
     x690_write_embedded_pdv_value(&mut out, &value)?;
     Ok(X690Element::new(
         TagClass::UNIVERSAL,
         ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Arc::new(X690Encoding::AlreadyEncoded(out)),
     ))
 }
 
 pub fn ber_encode_character_string(value: &CHARACTER_STRING) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
+    x690_write_tag(
+        &mut out,
+        TagClass::UNIVERSAL,
+        true,
+        ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
+    )?;
     x690_write_character_string_value(&mut out, &value)?;
     Ok(X690Element::new(
         TagClass::UNIVERSAL,
         ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Arc::new(X690Encoding::AlreadyEncoded(out)),
     ))
 }
 
