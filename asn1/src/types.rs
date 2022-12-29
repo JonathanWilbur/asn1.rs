@@ -85,19 +85,19 @@ pub struct InstanceOf {
     pub value: Arc<ASN1Value>,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCOffset {
     pub hour: i8,
     pub minute: u8,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct DurationFractionalPart {
     pub number_of_digits: u8,
     pub fractional_value: u32,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 // Defined in ITU X.680, Section 38.4.4.2.
 pub struct DURATION_EQUIVALENT {
     pub years: u32,
@@ -144,7 +144,7 @@ pub type VideotexString = Bytes;
 pub type IA5String = String;
 // pub type UTCTime = DateTime<Utc>;
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCTime {
     pub year: u8, // Yes, u8, not u16: it is left to the application to determine which century the two-digit year identifies.
     pub month: u8,
@@ -155,7 +155,7 @@ pub struct UTCTime {
     pub utc_offset: Option<UTCOffset>,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct GeneralizedTime {
     pub date: DATE,
     pub utc: bool, // If GT ends with "Z"
@@ -174,7 +174,7 @@ pub type BMPString = String;
 pub type NULL = ();
 
 // TODO: Test the ordering produced using #[derive(PartialOrd)]
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct DATE {
     pub year: u16,
     pub month: u8,
@@ -182,14 +182,14 @@ pub struct DATE {
 }
 
 // TODO: Test the ordering produced using #[derive(PartialOrd)]
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct TIME_OF_DAY {
     pub hour: u8,
     pub minute: u8,
     pub second: u8,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct DATE_TIME {
     pub date: DATE,
     pub time: TIME_OF_DAY,

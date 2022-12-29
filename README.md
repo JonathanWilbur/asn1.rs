@@ -236,8 +236,7 @@ https://doc.rust-lang.org/reference/procedural-macros.html#attribute-macros
 Encoding controls are passed in as parameters to the `*er_encode()` functions,
 which control how these elements are encoded.
 
-##
-
+## Future libraries
 
 - `parser`
 - `ber`
@@ -250,12 +249,14 @@ which control how these elements are encoded.
 ## TODO
 
 - [ ] `asn1`
-  - [ ] Comparison functions for all time types
+  - [ ] Make `INTEGER` a `Vec<u8>`
+  - [ ] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
+  - [x] Comparison functions for all time types
   - [ ] Comparison functions for context switching types
   - [ ] Comparison function for elements
   - [ ] Weak comparison
-  - [ ] Clone
-  - [ ] Debug
+  - [x] Clone
+  - [x] Debug
   - [ ] ASN1Value to ASN.1 String
   - [ ] Duration to Milliseconds
   - [ ] Conversion of all time types to integers
@@ -296,6 +297,7 @@ which control how these elements are encoded.
       for `impl ROSEReceiver<X690Element>`?
 - [ ] Shouldn't the API implement a lazy technique? As, just decode PDUs as they
       are needed? In other words, pull, rather than eagerly parse and enqueue.
+
 From https://doc.rust-lang.org/std/sync/struct.Arc.html:
 
 ```

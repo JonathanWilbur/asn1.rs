@@ -141,10 +141,3 @@ impl PartialOrd for Tag {
         }
     }
 }
-
-// TODO: Read / Write?
-// TODO: Iterator / IntoIterator
-// TODO: ToOwned
-// TODO: Borrow
-// TODO: TryFrom
-// Send/Sync?
