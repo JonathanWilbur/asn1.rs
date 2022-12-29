@@ -252,8 +252,8 @@ which control how these elements are encoded.
   - [ ] Make `INTEGER` a `Vec<u8>`
   - [ ] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
   - [x] Comparison functions for all time types
-  - [ ] Comparison functions for context switching types
-  - [ ] Comparison function for elements
+  - [x] Comparison functions for context switching types
+  - [x] Comparison function for elements
   - [ ] Weak comparison
   - [x] Clone
   - [x] Debug
@@ -274,8 +274,8 @@ which control how these elements are encoded.
   - [ ] ASN.1 Universal type names
   - [ ] Hash trait for `ASN1Value`
   - [ ] Date/time constants (months, leap year, etc.)
-  - [ ] Use `Arc` instead of `Box`?
-  - [ ] Function for combining bitstrings
+  - [x] Use `Arc` instead of `Box`?
+  - [x] Function for combining bitstrings
   - [ ] `oid!` macro
   - [ ] `bits!` macro
   - [ ] `octs!` macro

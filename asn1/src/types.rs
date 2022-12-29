@@ -227,13 +227,6 @@ pub struct TYPE_IDENTIFIER {
     pub id: OBJECT_IDENTIFIER,
 }
 
-// Actually, I think this is unnecessary, because the tagged alternatives will
-// be of type `TaggedASN1Value`.
-// pub struct ChoiceValue <'a> {
-//     pub name: String,
-//     pub value: ASN1Value<'a>,
-// }
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum ASN1Value {
     // BuiltInValue

@@ -1,4 +1,4 @@
-use crate::types::BIT_STRING;
+use crate::{types::BIT_STRING, OCTET_STRING};
 use std::convert::TryInto;
 
 pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
@@ -67,10 +67,7 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
 
 impl BIT_STRING {
     pub fn new() -> Self {
-        BIT_STRING {
-            bytes: Vec::new(),
-            trailing_bits: 0,
-        }
+        BIT_STRING::default()
     }
 
     pub fn with_capacity(bits: usize) -> Self {
@@ -153,10 +150,35 @@ impl BIT_STRING {
     }
 }
 
+impl From<OCTET_STRING> for BIT_STRING {
+
+    fn from(other: OCTET_STRING) -> Self {
+        BIT_STRING {
+            bytes: other.clone(),
+            trailing_bits: 0,
+        }
+    }
+
+}
+
+impl Default for BIT_STRING {
+
+    fn default() -> Self {
+        BIT_STRING { bytes: vec![], trailing_bits: 0 }
+    }
+
+}
+
+// impl Concat<BIT_STRING> for [BIT_STRING] {
+
+//     fn concat(slice: &Self) -> Self::Output {
+//         join_bit_strings(slice)
+//     }
+
+// }
+
 #[cfg(test)]
 mod tests {
-
-    // use super::*;
 
     use crate::{bitstring::join_bit_strings, types::BIT_STRING};
 

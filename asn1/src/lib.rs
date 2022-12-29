@@ -13,6 +13,7 @@ pub mod tag;
 pub mod time_of_day;
 pub mod types;
 pub mod utctime;
+pub mod external;
 
 pub use crate::bitstring::*;
 pub use crate::constants::*;
@@ -25,6 +26,7 @@ pub use crate::tag::*;
 pub use crate::time_of_day::*;
 pub use crate::types::*;
 pub use crate::utctime::*;
+pub use crate::external::*;
 
 pub const TRUE: bool = true;
 pub const FALSE: bool = false;
