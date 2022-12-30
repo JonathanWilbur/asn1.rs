@@ -253,6 +253,10 @@ which control how these elements are encoded.
   - [x] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
   - [x] Convert `RELATIVE-OID` to a wrapped type
   - [ ] Should `SET`, `SEQUENCE`, `SET OF` and `SEQUENCE OF` be wrapped types?
+  - [x] Context switching types should be generic so you can use X690Element.
+  - [x] Implement `Display` for `BIT_STRING`
+  - [x] Implement `Display` for context switching types
+  - [x] Conversion between `INSTANCE OF` and `EXTERNAL`
   - [x] Comparison functions for all time types
   - [x] Comparison functions for context switching types
   - [x] Comparison function for elements
@@ -261,7 +265,7 @@ which control how these elements are encoded.
   - [x] Require fields in time type constructors
   - [x] Clone
   - [x] Debug
-  - [ ] ASN1Value to ASN.1 String
+  - [x] ASN1Value to ASN.1 String
   - [x] ~~Duration to Milliseconds~~ (Cannot be done, because the length of a month is not known.)
   - [x] Conversion of all time types to strings
   - [x] ~~NumericString to integer~~

@@ -89,6 +89,7 @@ use asn1::types::{
     TIME,
     TIME_OF_DAY,
 };
+use asn1::utils::read_i64;
 use asn1::{
     InstanceOf, ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME, ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME,
     ENUMERATED, INSTANCE_OF, NULL,
@@ -175,32 +176,9 @@ pub fn ber_decode_integer_value(value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
 }
 
 pub fn ber_decode_i64_value(value_bytes: ByteSlice) -> ASN1Result<i64> {
-    let len = value_bytes.len();
-    match len {
-        1 => Ok(value_bytes[0] as i8 as ENUMERATED),
-        2 => Ok(i16::from_be_bytes([value_bytes[0], value_bytes[1]]) as i64),
-        3 => Ok(i32::from_be_bytes([
-            if value_bytes[0] & 0b1000_0000 > 0 {
-                0xFF
-            } else {
-                0x00
-            },
-            value_bytes[0],
-            value_bytes[1],
-            value_bytes[2],
-        ]) as i64),
-        4 => Ok(i32::from_be_bytes([
-            value_bytes[0],
-            value_bytes[1],
-            value_bytes[2],
-            value_bytes[3],
-        ]) as i64),
-        5..=8 => {
-            let mut buf: [u8; 8] = [0; 8];
-            buf[8 - len..].copy_from_slice(value_bytes);
-            Ok(i64::from_be_bytes(buf))
-        }
-        _ => Err(ASN1Error::new(ASN1ErrorCode::value_too_big)),
+    match read_i64(value_bytes) {
+        Ok(v) => Ok(v),
+        Err(_) => Err(ASN1Error::new(ASN1ErrorCode::value_too_big)),
     }
 }
 

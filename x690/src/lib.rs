@@ -1027,8 +1027,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             encoded_value = Arc::new(X690Encoding::IMPLICIT((*v.clone()).clone()));
         }
         ASN1Value::TaggedValue(v) => {
-            tag_class = v.tag_class;
-            tag_number = v.tag_number;
+            tag_class = v.tag.tag_class;
+            tag_number = v.tag.tag_number;
             if v.explicit {
                 match create_x690_cst(&v.value) {
                     Ok(cst) => {
@@ -1260,8 +1260,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL;
             let type_id = ASN1Value::ObjectIdentifierValue(v.type_id.clone());
             let val = TaggedASN1Value {
-                tag_class: TagClass::CONTEXT,
-                tag_number: 0,
+                tag: Tag::new(TagClass::CONTEXT, 0),
                 explicit: true,
                 value: v.value.clone(),
             };
@@ -1922,9 +1921,8 @@ mod tests {
     fn test_ber_encode() {
         let mut output: Vec<u8> = Vec::new();
         let val = TaggedASN1Value {
-            tag_class: TagClass::APPLICATION,
+            tag: Tag::new(TagClass::APPLICATION, 5),
             explicit: true,
-            tag_number: 5,
             value: Arc::new(ASN1Value::BooleanValue(true)),
         };
         let value: ASN1Value = ASN1Value::TaggedValue(val);
@@ -1936,15 +1934,13 @@ mod tests {
     #[test]
     fn test_ber_encode_deep_tagging_1() {
         let inner_val = TaggedASN1Value {
-            tag_class: TagClass::CONTEXT,
+            tag: Tag::new(TagClass::CONTEXT, 7),
             explicit: true,
-            tag_number: 7,
             value: Arc::from(ASN1Value::BooleanValue(false)),
         };
         let outer_val = TaggedASN1Value {
-            tag_class: TagClass::APPLICATION,
+            tag: Tag::new(TagClass::APPLICATION, 5),
             explicit: true,
-            tag_number: 5,
             value: Arc::from(ASN1Value::TaggedValue(inner_val)),
         };
         let mut output: Vec<u8> = Vec::new();
@@ -1971,15 +1967,13 @@ mod tests {
     fn test_ber_encode_deep_tagging_2() {
         let mut output: Vec<u8> = Vec::new();
         let inner_val = TaggedASN1Value {
-            tag_class: TagClass::CONTEXT,
+            tag: Tag::new(TagClass::CONTEXT, 7),
             explicit: false,
-            tag_number: 7,
             value: Arc::new(ASN1Value::BooleanValue(false)),
         };
         let outer_val = TaggedASN1Value {
-            tag_class: TagClass::APPLICATION,
+            tag: Tag::new(TagClass::APPLICATION, 5),
             explicit: false,
-            tag_number: 5,
             value: Arc::new(ASN1Value::TaggedValue(inner_val)),
         };
         let value: ASN1Value = ASN1Value::TaggedValue(outer_val);

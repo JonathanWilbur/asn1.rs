@@ -1,4 +1,4 @@
-use std::{sync::Arc, vec::Vec};
+use std::{fmt::Debug, sync::Arc, vec::Vec};
 
 pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a [u8];
@@ -60,17 +60,17 @@ pub enum ExternalIdentification {
 
 #[derive(Debug, Clone, PartialEq)]
 // See ITU Recommendation X.690, Section 8.18.
-pub enum ExternalEncoding {
-    single_ASN1_type(Arc<ASN1Value>),
+pub enum ExternalEncoding<Asn1Type: Sized = Arc<ASN1Value>> {
+    single_ASN1_type(Asn1Type),
     octet_aligned(OCTET_STRING),
     arbitrary(BIT_STRING),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct External {
+pub struct External<Asn1Type: Sized = Arc<ASN1Value>> {
     pub identification: ExternalIdentification,
     pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
-    pub data_value: ExternalEncoding,
+    pub data_value: ExternalEncoding<Asn1Type>,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
@@ -255,8 +255,7 @@ pub struct Tag {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaggedASN1Value {
-    pub tag_class: TagClass,
-    pub tag_number: TagNumber,
+    pub tag: Tag,
     pub explicit: bool,
     pub value: Arc<ASN1Value>,
 }
@@ -269,8 +268,7 @@ impl TaggedASN1Value {
         value: Arc<ASN1Value>,
     ) -> Self {
         TaggedASN1Value {
-            tag_class,
-            tag_number,
+            tag: Tag::new(tag_class, tag_number),
             explicit,
             value,
         }

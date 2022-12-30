@@ -1,5 +1,5 @@
 use crate::{types::BIT_STRING, OCTET_STRING};
-use std::convert::TryInto;
+use std::{convert::TryInto, fmt::Display};
 
 pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     if strs.len() == 0 {
@@ -176,6 +176,43 @@ impl Default for BIT_STRING {
 
 // }
 
+fn write_bin(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let bins = v.iter().map(|b| format!("{:08b}", b).to_string());
+    for bin in bins {
+        f.write_str(bin.as_str())?;
+    }
+    Ok(())
+}
+
+impl Display for BIT_STRING {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.bytes.len() == 0 {
+            return f.write_str("''B");
+        }
+        if self.trailing_bits == 0 {
+            f.write_str("'")?;
+            write_bin(&self.bytes, f)?;
+            return f.write_str("'B");
+        }
+        let len = self.bytes.len();
+
+        // Print the trailing bits.
+        let last_byte: u8 = self.bytes[len - 1];
+        let (zero_mask, _) = (0b1111_1111 as u8).overflowing_shl(self.trailing_bits as u32);
+        let last_byte_str = format!("{:08b}", last_byte & zero_mask).to_string();
+        let last_bits = unsafe {
+            String::from_utf8_unchecked(Vec::from(
+                &last_byte_str.as_bytes()[(0..8 - self.trailing_bits as usize)],
+            ))
+        };
+
+        f.write_str("'")?;
+        write_bin(&self.bytes[..len - 1], f)?;
+        f.write_str(last_bits.as_str())?;
+        f.write_str("'B")
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -333,5 +370,14 @@ mod tests {
             0b1001_0111,
             0b1101_0000,
         ]));
+    }
+
+    #[test]
+    fn test_bit_string_display() {
+        let bs1 = BIT_STRING {
+            bytes: vec![0b1010_0101, 0b1111_0111],
+            trailing_bits: 5,
+        };
+        assert_eq!(bs1.to_string().as_str(), "'10100101111'B");
     }
 }
