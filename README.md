@@ -255,12 +255,14 @@ which control how these elements are encoded.
   - [x] Comparison functions for all time types
   - [x] Comparison functions for context switching types
   - [x] Comparison function for elements
+  - [ ] `is_zero()` for time types
   - [ ] Weak comparison
+  - [ ] Require fields in time type constructors
   - [x] Clone
   - [x] Debug
   - [ ] ASN1Value to ASN.1 String
-  - [ ] Duration to Milliseconds
-  - [ ] Conversion of all time types to strings
+  - [x] ~~Duration to Milliseconds~~ (Cannot be done, because the length of a month is not known.)
+  - [x] Conversion of all time types to strings
   - [x] ~~NumericString to integer~~
   - [x] Object Identifier to dot-delimited string
   - [x] Object Identifier to ASN.1 string
@@ -277,12 +279,10 @@ which control how these elements are encoded.
   - [x] ~~Date/time constants (months, leap year, etc.)~~
   - [x] Use `Arc` instead of `Box`?
   - [x] Function for combining bitstrings
+  - [x] Traits for `DATE-TIME`
   - [ ] `oid!` macro
   - [ ] `bits!` macro
   - [ ] `octs!` macro
-  - [ ] `real!` macro
-  - [ ] `external!` macro
-  - [ ] `embedded_pdv!` macro
   - [ ] `ASN1Error::relate_tlv(X690Element)`
   - [ ] `ASN1Error::relate_spec(ComponentSpec)`
   - [ ] `ASN1Error::relate_value(ASN1Value)`
@@ -298,11 +298,3 @@ which control how these elements are encoded.
       for `impl ROSEReceiver<X690Element>`?
 - [ ] Shouldn't the API implement a lazy technique? As, just decode PDUs as they
       are needed? In other words, pull, rather than eagerly parse and enqueue.
-
-From https://doc.rust-lang.org/std/sync/struct.Arc.html:
-
-```
-Rc<T> is a safe default, because the compiler will catch any attempt to send an
-Rc<T> between threads. However, a library might choose Arc<T> in order to give
-library consumers more flexibility.
-```

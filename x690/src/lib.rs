@@ -872,7 +872,6 @@ where
     Ok(bytes_written)
 }
 
-// TODO: Validate
 pub fn x690_write_time_value<W>(output: &mut W, value: &TIME) -> Result<usize>
 where
     W: Write,
@@ -884,59 +883,7 @@ pub fn x690_write_utc_time_value<W>(output: &mut W, value: &UTCTime) -> Result<u
 where
     W: Write,
 {
-    if value.year > 99
-        || value.month > 12
-        || value.month == 0
-        || value.day > 31
-        || value.day == 0
-        || value.hour > 23
-        || value.minute > 59
-    {
-        return Err(Error::from(ErrorKind::InvalidData));
-    }
-    let str_form = format!(
-        "{:02}{:02}{:02}{:02}{:02}",
-        value.year % 100,
-        value.month,
-        value.day,
-        value.hour,
-        value.minute,
-    );
-    match output.write(str_form.as_bytes()) {
-        Err(e) => return Err(e),
-        _ => (),
-    };
-    let mut bytes_written: usize = 10;
-    match value.second {
-        Some(sec) => {
-            if sec > 59 {
-                return Err(Error::from(ErrorKind::InvalidData));
-            }
-            match output.write(format!("{:02}", sec).as_bytes()) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            bytes_written += 2;
-        }
-        _ => (),
-    };
-    match &value.utc_offset {
-        Some(offset) => {
-            if offset.hour > 23 {
-                return Err(Error::from(ErrorKind::InvalidData));
-            }
-            if offset.minute > 59 {
-                return Err(Error::from(ErrorKind::InvalidData));
-            }
-            match output.write(format!("{:+03}{:02}", offset.hour, offset.minute).as_bytes()) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            bytes_written += 5;
-        }
-        _ => (),
-    };
-    Ok(bytes_written)
+    output.write(value.to_string().as_bytes())
 }
 
 pub fn x690_write_generalized_time_value<W>(
@@ -946,88 +893,7 @@ pub fn x690_write_generalized_time_value<W>(
 where
     W: Write,
 {
-    if value.date.month > 12
-        || value.date.month == 0
-        || value.date.day > 31
-        || value.date.day == 0
-        || value.hour > 23
-    {
-        return Err(Error::from(ErrorKind::InvalidData));
-    }
-    let str_form = format!(
-        "{:04}{:02}{:02}{:02}",
-        value.date.year % 10000,
-        value.date.month,
-        value.date.day,
-        value.hour,
-    );
-    match output.write(str_form.as_bytes()) {
-        Err(e) => return Err(e),
-        _ => (),
-    };
-    let mut bytes_written: usize = 10;
-    match value.minute {
-        Some(min) => {
-            if min > 59 {
-                return Err(Error::from(ErrorKind::InvalidData));
-            }
-            match output.write(format!("{:02}", min).as_bytes()) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            bytes_written += 2;
-            match value.second {
-                Some(sec) => {
-                    if sec > 59 {
-                        return Err(Error::from(ErrorKind::InvalidData));
-                    }
-                    match output.write(format!("{:02}", sec).as_bytes()) {
-                        Err(e) => return Err(e),
-                        _ => (),
-                    };
-                    bytes_written += 2;
-                    match value.fraction {
-                        Some(ms) => {
-                            if ms > 999 {
-                                return Err(Error::from(ErrorKind::InvalidData));
-                            }
-                            match output.write(format!(".{:03}", ms).as_bytes()) {
-                                Err(e) => return Err(e),
-                                _ => (),
-                            };
-                            bytes_written += 4;
-                        }
-                        _ => (),
-                    };
-                }
-                _ => (),
-            };
-        }
-        _ => (),
-    };
-    match &value.utc_offset {
-        Some(offset) => {
-            if offset.hour > 23 {
-                return Err(Error::from(ErrorKind::InvalidData));
-            }
-            if offset.minute > 59 {
-                return Err(Error::from(ErrorKind::InvalidData));
-            }
-            match output.write(format!("{:+03}{:02}", offset.hour, offset.minute).as_bytes()) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            bytes_written += 5;
-        }
-        None => {
-            match output.write("Z".as_bytes()) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            bytes_written += 1;
-        }
-    };
-    Ok(bytes_written)
+    output.write(value.to_string().as_bytes())
 }
 
 pub fn x690_write_universal_string_value<W>(
@@ -1123,13 +989,7 @@ where
     if value.month > 12 || value.month == 0 || value.day > 31 || value.day == 0 {
         return Err(Error::from(ErrorKind::InvalidData));
     }
-    let str_form = format!(
-        "{:04}-{:02}-{:02}",
-        value.year % 10000,
-        value.month,
-        value.day,
-    );
-    output.write(str_form.as_bytes())
+    output.write(value.to_string().as_bytes())
 }
 
 pub fn x690_write_time_of_day_value<W>(output: &mut W, value: &TIME_OF_DAY) -> Result<usize>
@@ -1139,92 +999,21 @@ where
     if value.hour > 23 || value.minute > 59 || value.second > 59 {
         return Err(Error::from(ErrorKind::InvalidData));
     }
-    let str_form = format!("{:02}:{:02}:{:02}", value.hour, value.minute, value.second,);
-    output.write(str_form.as_bytes())
+    output.write(value.to_string().as_bytes())
 }
 
 pub fn x690_write_date_time_value<W>(output: &mut W, value: &DATE_TIME) -> Result<usize>
 where
     W: Write,
 {
-    if value.date.year > 9999
-        || value.date.month > 12
-        || value.date.month == 0
-        || value.date.day > 31
-        || value.date.day == 0
-        || value.time.hour > 23
-        || value.time.minute > 59
-        || value.time.second > 59
-    {
-        return Err(Error::from(ErrorKind::InvalidData));
-    }
-    let str_form = format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
-        value.date.year,
-        value.date.month,
-        value.date.day,
-        value.time.hour,
-        value.time.minute,
-        value.time.second,
-    );
-    output.write(str_form.as_bytes())
+    output.write(value.to_string().as_bytes())
 }
 
 pub fn x690_write_duration_value<W>(output: &mut W, value: &DURATION_EQUIVALENT) -> Result<usize>
 where
     W: Write,
 {
-    let mut parts: Vec<String> = vec![String::from("P")];
-    if value.years > 0 {
-        parts.push(format!("{}Y", value.years));
-    }
-    if value.months > 0 {
-        parts.push(format!("{}M", value.months));
-    }
-    if value.weeks > 0 {
-        parts.push(format!("{}W", value.weeks));
-    }
-    if value.days > 0 {
-        parts.push(format!("{}D", value.days));
-    }
-    if value.hours > 0 {
-        parts.push(format!("{}H", value.hours));
-    }
-    if value.minutes > 0 {
-        parts.push(format!("{}M", value.minutes));
-    }
-    if value.seconds > 0 {
-        parts.push(format!("{}S", value.seconds));
-    }
-    // TODO: This definitely needs some testing.
-    if let Some(frac) = &value.fractional_part {
-        let last_part = parts.last_mut();
-        match last_part {
-            Some(part) => {
-                let last_char = part.pop();
-                match last_char {
-                    Some(c) => {
-                        parts.push(format!(
-                            ".{:>width$}{}",
-                            frac.fractional_value,
-                            c,
-                            width = frac.number_of_digits as usize
-                        ));
-                    }
-                    None => return Err(Error::from(ErrorKind::InvalidData)),
-                }
-            }
-            None => {
-                parts.push(format!(
-                    "0.{:>width$}S",
-                    frac.fractional_value,
-                    width = frac.number_of_digits as usize
-                ));
-            }
-        };
-    }
-    let str_form = parts.join("");
-    output.write(str_form.as_bytes())
+    output.write(value.to_string().as_bytes())
 }
 
 // TODO: Add check for infinite recursion

@@ -1,40 +1,44 @@
-use std::{num::ParseIntError, str::FromStr, fmt::Display};
 use crate::{types::OBJECT_IDENTIFIER, OID_ARC, RELATIVE_OID};
+use std::{fmt::Display, num::ParseIntError, str::FromStr};
 
 impl RELATIVE_OID {
-
-    pub fn new (nodes: &[OID_ARC]) -> Self {
+    pub fn new(nodes: &[OID_ARC]) -> Self {
         RELATIVE_OID(Vec::from(nodes))
     }
 
-    pub fn to_asn1_string (&self) -> String {
-        format!("{{ {} }}", self.0
-            .iter()
-            .map(|n| n.to_string())
-            .collect::<Vec<String>>()
-            .join(" "))
+    pub fn to_asn1_string(&self) -> String {
+        format!(
+            "{{ {} }}",
+            self.0
+                .iter()
+                .map(|n| n.to_string())
+                .collect::<Vec<String>>()
+                .join(" ")
+        )
     }
 
-    pub fn to_iri_string (&self) -> String {
-        format!("/{}", self.0
-            .iter()
-            .map(|n| n.to_string())
-            .collect::<Vec<String>>()
-            .join("/"))
+    pub fn to_iri_string(&self) -> String {
+        format!(
+            "/{}",
+            self.0
+                .iter()
+                .map(|n| n.to_string())
+                .collect::<Vec<String>>()
+                .join("/")
+        )
     }
 
-    pub fn extend (&mut self, roid: &RELATIVE_OID) -> () {
+    pub fn extend(&mut self, roid: &RELATIVE_OID) -> () {
         self.0.extend(roid.0.as_slice())
     }
 
-    pub fn starts_with (&mut self, roid: &RELATIVE_OID) -> bool {
+    pub fn starts_with(&mut self, roid: &RELATIVE_OID) -> bool {
         self.0.starts_with(roid.0.as_slice())
     }
 
-    pub fn ends_with (&mut self, roid: &RELATIVE_OID) -> bool {
+    pub fn ends_with(&mut self, roid: &RELATIVE_OID) -> bool {
         self.0.ends_with(roid.0.as_slice())
     }
-
 }
 
 impl FromStr for RELATIVE_OID {
@@ -52,19 +56,19 @@ impl FromStr for RELATIVE_OID {
         //     .map(|s| s.parse::<u32>())
         //     .try_collect::<Vec<u32>>()?))
     }
-
 }
 
 impl Display for RELATIVE_OID {
-
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0
-            .iter()
-            .map(|n| n.to_string())
-            .collect::<Vec<String>>()
-            .join(".").as_str())
+        f.write_str(
+            self.0
+                .iter()
+                .map(|n| n.to_string())
+                .collect::<Vec<String>>()
+                .join(".")
+                .as_str(),
+        )
     }
-
 }
 
 impl IntoIterator for RELATIVE_OID {
@@ -74,11 +78,9 @@ impl IntoIterator for RELATIVE_OID {
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
-
 }
 
 impl PartialEq for RELATIVE_OID {
-
     fn eq(&self, other: &Self) -> bool {
         if self.0.len() != other.0.len() {
             return false;
@@ -90,13 +92,10 @@ impl PartialEq for RELATIVE_OID {
         // non-match and short-circuit.
         self.0.ends_with(other.0.as_slice())
     }
-
 }
 
 impl From<OBJECT_IDENTIFIER> for RELATIVE_OID {
-
     fn from(oid: OBJECT_IDENTIFIER) -> Self {
         RELATIVE_OID(oid.0.clone())
     }
-
 }

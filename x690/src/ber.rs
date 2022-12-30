@@ -24,7 +24,6 @@ use asn1::types::{
     T61String,
     Tag,
     TagClass,
-    UTCOffset,
     // GeneralizedTime,
     UTCTime,
     UTF8String,
@@ -71,7 +70,6 @@ use asn1::types::{
     DATE,
     DATE_TIME,
     DURATION,
-    DURATION_EQUIVALENT,
     EMBEDDED_PDV,
     EXTERNAL,
     INTEGER,
@@ -96,7 +94,6 @@ use asn1::{
     ENUMERATED, INSTANCE_OF, NULL,
 };
 use std::borrow::Borrow;
-use std::cmp::min;
 use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -470,279 +467,11 @@ pub fn ber_decode_ia5_string_value(value_bytes: ByteSlice) -> ASN1Result<IA5Stri
 }
 
 pub fn ber_decode_utc_time_value(value_bytes: ByteSlice) -> ASN1Result<UTCTime> {
-    let len = value_bytes.len();
-    if len < 10 {
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    if len > 17 {
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    for byte in value_bytes[0..10].iter() {
-        if !byte.is_ascii_digit() {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-    }
-    let s = match String::from_utf8(value_bytes.to_vec()) {
-        Ok(r) => r,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let mut ret = UTCTime::new();
-    ret.year = match u8::from_str(&s[0..2]) {
-        Ok(u) => u,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_year)),
-    };
-    ret.month = match u8::from_str(&s[2..4]) {
-        Ok(u) => {
-            if u == 0 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
-            }
-            if u > 12 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_month)),
-    };
-    ret.day = match u8::from_str(&s[4..6]) {
-        Ok(u) => {
-            if u == 0 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
-            }
-            if u > 31 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_day)),
-    };
-    ret.hour = match u8::from_str(&s[6..8]) {
-        Ok(u) => {
-            if u > 23 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour)),
-    };
-    ret.minute = match u8::from_str(&s[8..10]) {
-        Ok(u) => {
-            if u > 59 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute)),
-    };
-    if (len > 12) && value_bytes[10].is_ascii_digit() {
-        // Seconds component is present.
-        if !value_bytes[11].is_ascii_digit() {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-        }
-        ret.second = match u8::from_str(&s[10..12]) {
-            Ok(u) => {
-                if u > 59 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-                }
-                Some(u)
-            }
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_second)),
-        };
-    }
-    if value_bytes[len - 1] as char != 'Z' {
-        if (value_bytes[len - 5] as char != '+') && (value_bytes[len - 5] as char != '-') {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-        }
-        for byte in value_bytes[len - 4..len].iter() {
-            if !byte.is_ascii_digit() {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-            }
-        }
-        let offset_hour = match i8::from_str(&s[len - 4..len - 2]) {
-            Ok(u) => {
-                if u > 12 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-                }
-                u
-            }
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
-        };
-        let offset_minute = match u8::from_str(&s[len - 2..len]) {
-            Ok(u) => {
-                if u > 59 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-                }
-                u
-            }
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
-        };
-        ret.utc_offset = Some(UTCOffset {
-            hour: if value_bytes[len - 5] as char == '-' {
-                -1 * offset_hour
-            } else {
-                offset_hour
-            },
-            minute: offset_minute,
-        });
-    }
-    Ok(ret)
+    UTCTime::try_from(value_bytes)
 }
 
 pub fn ber_decode_generalized_time_value(value_bytes: ByteSlice) -> ASN1Result<GeneralizedTime> {
-    let len = value_bytes.len();
-    if len < 10 {
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    // There is technically no limit on how big a GeneralizedTime can be, but
-    // we have to set a reasonable limit here.
-    if len > 32 {
-        return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
-    }
-    for byte in value_bytes[0..10].iter() {
-        if !byte.is_ascii_digit() {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-    }
-    let s = match String::from_utf8(value_bytes.to_vec()) {
-        Ok(r) => r,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let mut date = DATE::new();
-    let mut ret = GeneralizedTime::new();
-    date.year = match u16::from_str(&s[0..4]) {
-        Ok(u) => u,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_year)),
-    };
-    date.month = match u8::from_str(&s[4..6]) {
-        Ok(u) => {
-            if u == 0 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
-            }
-            if u > 12 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_month)),
-    };
-    date.day = match u8::from_str(&s[6..8]) {
-        Ok(u) => {
-            if u == 0 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
-            }
-            if u > 31 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_day)),
-    };
-    ret.hour = match u8::from_str(&s[8..10]) {
-        Ok(u) => {
-            if u > 23 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour)),
-    };
-    if (len > 12) && value_bytes[10].is_ascii_digit() {
-        if !value_bytes[11].is_ascii_digit() {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
-        }
-        ret.minute = match u8::from_str(&s[10..12]) {
-            Ok(u) => {
-                if u > 59 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
-                }
-                Some(u)
-            }
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute)),
-        };
-    }
-
-    if let Some(_) = ret.minute {
-        // Normal "if"s cannot be combined with "if let"s.
-        if (len > 14) && value_bytes[12].is_ascii_digit() {
-            // Seconds component is present.
-            if !value_bytes[13].is_ascii_digit() {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-            }
-            ret.second = match u8::from_str(&s[12..14]) {
-                Ok(u) => {
-                    if u > 59 {
-                        return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-                    }
-                    Some(u)
-                }
-                Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_second)),
-            };
-        }
-    }
-
-    if let Some(_) = ret.second {
-        if (len >= 16) && ((value_bytes[14] as char == '.') || (value_bytes[14] as char == ',')) {
-            // let frac_byte = value_bytes[15];
-            let mut i = 15;
-            while i < len && value_bytes[i].is_ascii_digit() {
-                i += 1;
-            }
-            let end = min(i, 19); // We can only tolerate four digits of precision.
-                                  // FIXME: Pad with zeroes or whatever to make units consistent.
-            ret.fraction = match u16::from_str(&s[12..end]) {
-                Ok(u) => {
-                    if u > 9999 {
-                        return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
-                    }
-                    Some(u)
-                }
-                Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds)),
-            };
-        }
-    }
-
-    if value_bytes[len - 1] as char == 'Z' {
-        // ret.utc = true; // This is the default.
-        return Ok(ret); // UTCTime
-    }
-
-    if (value_bytes[len - 5] as char != '+') && (value_bytes[len - 5] as char != '-') {
-        ret.utc = false;
-        return Ok(ret); // Local Time
-    }
-
-    // For the rest of this function, we are parsing the UTC Offset.
-    for byte in value_bytes[len - 4..len].iter() {
-        if !byte.is_ascii_digit() {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-        }
-    }
-    let offset_hour = match i8::from_str(&s[len - 4..len - 2]) {
-        Ok(u) => {
-            if u > 12 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
-    };
-    let offset_minute = match u8::from_str(&s[len - 2..len]) {
-        Ok(u) => {
-            if u > 59 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-            }
-            u
-        }
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
-    };
-    ret.utc_offset = Some(UTCOffset {
-        hour: if value_bytes[len - 5] as char == '-' {
-            -1 * offset_hour
-        } else {
-            offset_hour
-        },
-        minute: offset_minute,
-    });
-    Ok(ret)
+    GeneralizedTime::try_from(value_bytes)
 }
 
 pub fn ber_decode_graphic_string_value(value_bytes: ByteSlice) -> ASN1Result<GraphicString> {
@@ -819,213 +548,19 @@ pub fn ber_decode_bmp_string_value(value_bytes: ByteSlice) -> ASN1Result<BMPStri
 }
 
 pub fn ber_decode_date_value(value_bytes: ByteSlice) -> ASN1Result<DATE> {
-    if value_bytes.len() != 10 {
-        // "YYYY-MM-DD".len()
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    let str_ = match String::from_utf8(value_bytes.to_vec()) {
-        Ok(s) => s,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let year = match u16::from_str(&str_[0..4]) {
-        Ok(x) => x,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let month = match u8::from_str(&str_[5..7]) {
-        Ok(x) => x,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let day = match u8::from_str(&str_[8..]) {
-        Ok(x) => x,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    if month > 12 || month == 0 {
-        return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
-    }
-    if day > 31 || day == 0 {
-        return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
-    }
-    return Ok(DATE { year, month, day });
+    DATE::try_from(value_bytes)
 }
 
 pub fn ber_decode_time_of_day_value(value_bytes: ByteSlice) -> ASN1Result<TIME_OF_DAY> {
-    if value_bytes.len() != 8 {
-        // "HH:MM:SS".len()
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    let str_ = match String::from_utf8(value_bytes.to_vec()) {
-        Ok(s) => s,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let hour = match u8::from_str(&str_[0..2]) {
-        Ok(x) => x,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let minute = match u8::from_str(&str_[3..5]) {
-        Ok(x) => x,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    let second = match u8::from_str(&str_[6..]) {
-        Ok(x) => x,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-    };
-    if hour > 23 {
-        return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
-    }
-    if minute > 59 {
-        return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
-    }
-    if second > 59 {
-        return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-    }
-    return Ok(TIME_OF_DAY {
-        hour,
-        minute,
-        second,
-    });
+    TIME_OF_DAY::try_from(value_bytes)
 }
 
 pub fn ber_decode_date_time_value(value_bytes: ByteSlice) -> ASN1Result<DATE_TIME> {
-    if value_bytes.len() != 19 {
-        // "YYYY-MM-DDTHH:MM:SS".len()
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    let date = ber_decode_date_value(&value_bytes[0..10])?;
-    let time = ber_decode_time_of_day_value(&value_bytes[11..19])?;
-    return Ok(DATE_TIME { date, time });
+    DATE_TIME::try_from(value_bytes)
 }
 
-const DURATION_COMPONENT_YEARS: u8 = 0b0000_0001;
-const DURATION_COMPONENT_MONTHS: u8 = 0b0000_0010;
-const DURATION_COMPONENT_WEEKS: u8 = 0b0000_0100;
-const DURATION_COMPONENT_DAYS: u8 = 0b0000_1000;
-const DURATION_COMPONENT_HOURS: u8 = 0b0001_0000;
-const DURATION_COMPONENT_MINUTES: u8 = 0b0010_0000;
-const DURATION_COMPONENT_SECONDS: u8 = 0b0100_0000;
-
 pub fn ber_decode_duration_value(value_bytes: ByteSlice) -> ASN1Result<DURATION> {
-    if value_bytes.len() < 3 {
-        // The smallest duration string, e.g. P1Y
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    if value_bytes[0] as char != 'P' {
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    let mut ret = DURATION_EQUIVALENT::new();
-    let mut start_of_last_digit = 0;
-    let mut processing_time_components: bool = false;
-    let mut index_of_period = 0; // 0 means NULL in this case.
-    let mut encountered: u8 = 0;
-    for i in 1..value_bytes.len() {
-        let char_ = value_bytes[i];
-        if !char_.is_ascii_digit() {
-            if start_of_last_digit == i {
-                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-            }
-            match char_ as char {
-                '.' => {
-                    index_of_period = i;
-                }
-                'Y' | 'W' | 'M' | 'D' | 'H' | 'S' => {
-                    if index_of_period > 0 {
-                        if i != (value_bytes.len() - 1) {
-                            // Extra data after the last permitted unit.
-                            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                        }
-                    }
-                    let end_index = if index_of_period > 0 {
-                        index_of_period
-                    } else {
-                        i
-                    };
-                    let component_str = match String::from_utf8(
-                        value_bytes[start_of_last_digit..end_index].to_vec(),
-                    ) {
-                        Ok(s) => s,
-                        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-                    };
-                    let component_value = match u32::from_str(&component_str) {
-                        Ok(v) => v,
-                        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-                    };
-                    start_of_last_digit = i + 1;
-                    match char_ as char {
-                        'Y' => {
-                            if processing_time_components {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            if encountered > 0 {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            encountered |= DURATION_COMPONENT_YEARS;
-                            ret.years = component_value;
-                        }
-                        'M' => {
-                            if processing_time_components {
-                                if encountered > DURATION_COMPONENT_HOURS {
-                                    return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                                }
-                                encountered |= DURATION_COMPONENT_MINUTES;
-                                ret.minutes = component_value;
-                            } else {
-                                if encountered > DURATION_COMPONENT_YEARS {
-                                    return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                                }
-                                encountered |= DURATION_COMPONENT_MONTHS;
-                                ret.months = component_value;
-                            }
-                        }
-                        'W' => {
-                            if processing_time_components {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            if encountered > DURATION_COMPONENT_MONTHS {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            encountered |= DURATION_COMPONENT_WEEKS;
-                            ret.weeks = component_value;
-                        }
-                        'D' => {
-                            if processing_time_components {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            if encountered > DURATION_COMPONENT_WEEKS {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            encountered |= DURATION_COMPONENT_DAYS;
-                            ret.days = component_value;
-                        }
-                        'H' => {
-                            if !processing_time_components {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            if encountered > DURATION_COMPONENT_DAYS {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            encountered |= DURATION_COMPONENT_HOURS;
-                            ret.hours = component_value;
-                        }
-                        'S' => {
-                            if !processing_time_components {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            if encountered > DURATION_COMPONENT_MINUTES {
-                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                            }
-                            encountered |= DURATION_COMPONENT_SECONDS;
-                            ret.seconds = component_value;
-                        }
-                        _ => panic!("Impossible code reached."),
-                    };
-                }
-                'T' => {
-                    processing_time_components = true;
-                }
-                _ => (),
-            }
-        }
-    }
-    Ok(ret)
+    DURATION::try_from(value_bytes)
 }
 
 pub fn ber_decode_boolean(el: &X690Element) -> ASN1Result<BOOLEAN> {
