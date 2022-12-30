@@ -2,7 +2,7 @@ use crate::types::{TagClass, TagNumber};
 
 // This is recursively-defined using references instead of `Box` so that it can
 // be constructed statically / as a constant.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub enum TagSelector<'a> {
     tag((TagClass, TagNumber)),
     class(TagClass),
@@ -13,7 +13,7 @@ pub enum TagSelector<'a> {
     any,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub struct ComponentSpec<'a> {
     pub name: &'a str,
     pub optional: bool,

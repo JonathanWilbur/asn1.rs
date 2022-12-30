@@ -35,6 +35,15 @@ impl PartialOrd for TagClass {
     }
 }
 
+impl Tag {
+    pub fn new(tag_class: TagClass, tag_number: TagNumber) -> Self {
+        Tag {
+            tag_class,
+            tag_number,
+        }
+    }
+}
+
 impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.tag_class {

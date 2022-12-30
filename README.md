@@ -252,6 +252,7 @@ which control how these elements are encoded.
   - [x] Make `INTEGER` a `Vec<u8>`
   - [x] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
   - [x] Convert `RELATIVE-OID` to a wrapped type
+  - [ ] Should `SET`, `SEQUENCE`, `SET OF` and `SEQUENCE OF` be wrapped types?
   - [x] Comparison functions for all time types
   - [x] Comparison functions for context switching types
   - [x] Comparison function for elements
@@ -272,7 +273,7 @@ which control how these elements are encoded.
   - [x] Object Identifier sort
   - [x] Object Identifier from string
   - [x] ~~Object Identifier compare with string~~
-  - [ ] Constructors
+  - [x] Constructors
   - [x] ASN.1 value comparison?
   - [x] ~~ASN.1 Universal type names~~ (I think this could just be handled in apps.)
   - [x] ~~Hash trait for `ASN1Value`~~

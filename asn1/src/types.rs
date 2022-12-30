@@ -24,10 +24,28 @@ pub struct IdentificationSyntaxes {
     pub transfer: OBJECT_IDENTIFIER,
 }
 
+impl IdentificationSyntaxes {
+    pub fn new(r#abstract: OBJECT_IDENTIFIER, transfer: OBJECT_IDENTIFIER) -> Self {
+        IdentificationSyntaxes {
+            r#abstract,
+            transfer,
+        }
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
 pub struct ContextNegotiation {
     pub presentation_context_id: INTEGER,
     pub transfer_syntax: OBJECT_IDENTIFIER,
+}
+
+impl ContextNegotiation {
+    pub fn new(presentation_context_id: INTEGER, transfer_syntax: OBJECT_IDENTIFIER) -> Self {
+        ContextNegotiation {
+            presentation_context_id,
+            transfer_syntax,
+        }
+    }
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
@@ -85,16 +103,43 @@ pub struct InstanceOf {
     pub value: Arc<ASN1Value>,
 }
 
+impl InstanceOf {
+    pub fn new(type_id: OBJECT_IDENTIFIER, value: Arc<ASN1Value>) -> Self {
+        InstanceOf { type_id, value }
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCOffset {
     pub hour: i8,
     pub minute: u8,
 }
 
+impl UTCOffset {
+    pub fn new(hour: i8, minute: u8) -> Self {
+        UTCOffset { hour, minute }
+    }
+}
+
+impl Default for UTCOffset {
+    fn default() -> Self {
+        UTCOffset { hour: 0, minute: 0 }
+    }
+}
+
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct DurationFractionalPart {
     pub number_of_digits: u8,
     pub fractional_value: u32,
+}
+
+impl DurationFractionalPart {
+    pub fn new(number_of_digits: u8, fractional_value: u32) -> Self {
+        DurationFractionalPart {
+            number_of_digits,
+            fractional_value,
+        }
+    }
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
@@ -145,7 +190,6 @@ pub type T61String = Bytes;
 pub type TeletexString = T61String;
 pub type VideotexString = Bytes;
 pub type IA5String = String;
-// pub type UTCTime = DateTime<Utc>;
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCTime {
@@ -209,21 +253,28 @@ pub struct Tag {
     pub tag_number: TagNumber,
 }
 
-impl Tag {
-    pub fn new(tag_class: TagClass, tag_number: TagNumber) -> Self {
-        Tag {
-            tag_class,
-            tag_number,
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaggedASN1Value {
     pub tag_class: TagClass,
     pub tag_number: TagNumber,
     pub explicit: bool,
     pub value: Arc<ASN1Value>,
+}
+
+impl TaggedASN1Value {
+    pub fn new(
+        tag_class: TagClass,
+        tag_number: TagNumber,
+        explicit: bool,
+        value: Arc<ASN1Value>,
+    ) -> Self {
+        TaggedASN1Value {
+            tag_class,
+            tag_number,
+            explicit,
+            value,
+        }
+    }
 }
 
 pub struct TYPE_IDENTIFIER {
