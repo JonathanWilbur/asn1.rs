@@ -15,6 +15,29 @@ impl UTCTime {
             utc_offset: None,
         }
     }
+
+    pub fn is_zero(&self) -> bool {
+        self.year == 0
+            && self.month <= 1
+            && self.day <= 1
+            && self.hour == 0
+            && self.minute == 0
+            && self.second.unwrap_or(0) == 0
+    }
+}
+
+impl Default for UTCTime {
+    fn default() -> Self {
+        UTCTime {
+            year: 0,
+            month: 1,
+            day: 0,
+            hour: 0,
+            minute: 0,
+            second: None,
+            utc_offset: None,
+        }
+    }
 }
 
 impl From<GeneralizedTime> for UTCTime {

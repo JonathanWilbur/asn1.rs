@@ -5,11 +5,21 @@ use std::str::FromStr;
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME};
 
 impl DATE {
-    pub fn new() -> Self {
+    pub fn new(year: u16, month: u8, day: u8) -> Self {
+        DATE { year, month, day }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.year == 0 && self.month <= 1 && self.day == 0
+    }
+}
+
+impl Default for DATE {
+    fn default() -> Self {
         DATE {
             year: 0,
-            month: 0,
-            day: 0,
+            month: 1,
+            day: 1,
         }
     }
 }

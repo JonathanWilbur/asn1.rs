@@ -255,9 +255,9 @@ which control how these elements are encoded.
   - [x] Comparison functions for all time types
   - [x] Comparison functions for context switching types
   - [x] Comparison function for elements
-  - [ ] `is_zero()` for time types
+  - [x] `is_zero()` for time types
   - [ ] Weak comparison
-  - [ ] Require fields in time type constructors
+  - [x] Require fields in time type constructors
   - [x] Clone
   - [x] Debug
   - [ ] ASN1Value to ASN.1 String

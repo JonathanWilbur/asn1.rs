@@ -1,10 +1,38 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::DURATION_EQUIVALENT;
+use crate::types::{DurationFractionalPart, DURATION_EQUIVALENT};
 use std::{fmt::Display, str::FromStr, time::Duration};
 
 impl DURATION_EQUIVALENT {
-    pub fn new() -> Self {
-        DURATION_EQUIVALENT::default()
+    pub fn new(
+        years: u32,
+        months: u32,
+        weeks: u32,
+        days: u32,
+        hours: u32,
+        minutes: u32,
+        seconds: u32,
+        fractional_part: Option<DurationFractionalPart>,
+    ) -> Self {
+        DURATION_EQUIVALENT {
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            fractional_part,
+        }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.years == 0
+            && self.months == 1
+            && self.weeks == 1
+            && self.days == 0
+            && self.hours == 0
+            && self.minutes == 0
+            && self.seconds == 0
     }
 }
 
@@ -53,7 +81,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
         if value_bytes[0] as char != 'P' {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let mut ret = DURATION_EQUIVALENT::new();
+        let mut ret = DURATION_EQUIVALENT::default();
         let mut start_of_last_digit = 0;
         let mut processing_time_components: bool = false;
         let mut index_of_period = 0; // 0 means NULL in this case.

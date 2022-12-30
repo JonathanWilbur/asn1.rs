@@ -7,12 +7,35 @@ use std::str::FromStr;
 impl GeneralizedTime {
     pub fn new() -> Self {
         GeneralizedTime {
-            date: DATE::new(),
+            date: DATE::default(),
             utc: true,
             hour: 0,
             minute: None,
             second: None,
             fraction: None,
+            utc_offset: None,
+        }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.date.year == 0
+            && self.date.month <= 1
+            && self.date.day <= 1
+            && self.hour == 0
+            && self.minute.unwrap_or(0) == 0
+            && self.second.unwrap_or(0) == 0
+    }
+}
+
+impl Default for GeneralizedTime {
+    fn default() -> Self {
+        GeneralizedTime {
+            date: DATE::default(),
+            hour: 0,
+            minute: None,
+            second: None,
+            fraction: None,
+            utc: true,
             utc_offset: None,
         }
     }
@@ -95,7 +118,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             Ok(r) => r,
             Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
         };
-        let mut date = DATE::new();
+        let mut date = DATE::default();
         let mut ret = GeneralizedTime::new();
         date.year = match u16::from_str(&s[0..4]) {
             Ok(u) => u,

@@ -4,7 +4,21 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 impl TIME_OF_DAY {
-    pub fn new() -> Self {
+    pub fn new(hour: u8, minute: u8, second: u8) -> Self {
+        TIME_OF_DAY {
+            hour,
+            minute,
+            second,
+        }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.hour == 0 && self.minute == 0 && self.second == 0
+    }
+}
+
+impl Default for TIME_OF_DAY {
+    fn default() -> Self {
         TIME_OF_DAY {
             hour: 0,
             minute: 0,

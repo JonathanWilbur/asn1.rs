@@ -5,18 +5,32 @@ use std::str::FromStr;
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, TIME_OF_DAY};
 
 impl DATE_TIME {
-    pub fn new() -> Self {
+    pub fn new(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Self {
         DATE_TIME {
-            date: DATE {
-                year: 0,
-                month: 0,
-                day: 0,
-            },
+            date: DATE { year, month, day },
             time: crate::TIME_OF_DAY {
-                hour: 0,
-                minute: 0,
-                second: 0,
+                hour,
+                minute,
+                second,
             },
+        }
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.date.year == 0
+            && self.date.month <= 1
+            && self.date.day <= 1
+            && self.time.hour == 0
+            && self.time.minute == 0
+            && self.time.second == 0
+    }
+}
+
+impl Default for DATE_TIME {
+    fn default() -> Self {
+        DATE_TIME {
+            date: DATE::default(),
+            time: TIME_OF_DAY::default(),
         }
     }
 }
