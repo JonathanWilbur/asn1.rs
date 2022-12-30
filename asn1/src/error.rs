@@ -1,3 +1,4 @@
+use crate::{ASN1Value, ComponentSpec};
 use crate::types::Tag;
 use std::fmt;
 use std::io::Error;
@@ -93,6 +94,19 @@ impl ASN1Error {
             io_error: None,
         }
     }
+
+    pub fn relate_value (&mut self, value: &ASN1Value) {
+        self.value_preview = Some(value.to_string());
+    }
+
+    pub fn relate_tag (&mut self, tag: &Tag) {
+        self.tag = Some(*tag);
+    }
+
+    pub fn relate_spec (&mut self, spec: &ComponentSpec<'_>) {
+        self.component_name = Some(String::from(spec.name));
+    }
+
 }
 
 impl From<Error> for ASN1Error {

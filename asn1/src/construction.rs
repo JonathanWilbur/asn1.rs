@@ -39,11 +39,3 @@ impl<'a> ComponentSpec<'a> {
         }
     }
 }
-
-// const TAG_SEL: TagSelector = TagSelector::any;
-
-// const TAG_SEL_1: TagSelector = TagSelector::or(&[
-//     &TagSelector::any,
-// ]);
-
-// const C: ComponentSpec = ComponentSpec::new("name", false, TagSelector::any, None, None);

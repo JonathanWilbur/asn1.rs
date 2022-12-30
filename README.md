@@ -252,7 +252,8 @@ which control how these elements are encoded.
   - [x] Make `INTEGER` a `Vec<u8>`
   - [x] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
   - [x] Convert `RELATIVE-OID` to a wrapped type
-  - [ ] Should `SET`, `SEQUENCE`, `SET OF` and `SEQUENCE OF` be wrapped types?
+  - [x] ~~Should `SET`, `SEQUENCE`, `SET OF` and `SEQUENCE OF` be wrapped types?~~
+    - This might have been a good idea at first, but too late now!
   - [x] Context switching types should be generic so you can use X690Element.
   - [x] Implement `Display` for `BIT_STRING`
   - [x] Implement `Display` for context switching types
@@ -289,9 +290,9 @@ which control how these elements are encoded.
   - [ ] `bits!` macro
   - [ ] `octs!` macro
   - [ ] `ASN1Error::relate_tlv(X690Element)`
-  - [ ] `ASN1Error::relate_spec(ComponentSpec)`
-  - [ ] `ASN1Error::relate_value(ASN1Value)`
-  - [ ] `ASN1Error::relate_tag(Tag)`
+  - [x] `ASN1Error::relate_spec(ComponentSpec)`
+  - [x] `ASN1Error::relate_value(ASN1Value)`
+  - [x] `ASN1Error::relate_tag(Tag)`
 - [ ] `x690`
   - [ ] Deconstruct
   - [ ] Hash trait for `X690Element`
