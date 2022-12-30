@@ -2,6 +2,17 @@
 name = "idm"
 version = "0.1.0"
 edition = "2021"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "Internet Directly-Mapped (IDM) Protocol, per ITU Rec. X.519"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/idm"
+license = "MIT"
+license-file = "LICENSE.txt"
+keywords = ["idm", "x500"]
+categories = ["network-programming"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

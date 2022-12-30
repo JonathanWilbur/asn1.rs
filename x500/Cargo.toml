@@ -3,6 +3,17 @@ name = "x500"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.65"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "X.500 directory data structures and functionality"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/x500"
+license = "MIT"
+license-file = "LICENSE.txt"
+keywords = ["x500", "directory", "ldap"]
+categories = ["network-programming"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

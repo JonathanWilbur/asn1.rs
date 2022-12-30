@@ -1,9 +1,14 @@
 # Wildboar Rust ASN.1 Libraries
 
+This monorepo is a sort of "incubator" for ASN.1 / ITU / cryptography-related
+projects in Rust. It started off as just an ASN.1-related monorepo, but I
+started using it in other libraries to see if it was adequate for its intended
+purpose.
 
-##
+This is very much a work in progress. There is almost no documentation now, but
+it will be very well documented once it is all stabilized.
 
-Decisions to make:
+## Decisions to make
 
 - Should `BIT STRING` just be a simple array of bytes and a length field, like in Go?
   - I think this should be fine. This would even work well for PER and JER.
@@ -249,50 +254,10 @@ which control how these elements are encoded.
 ## TODO
 
 - [ ] `asn1`
-  - [x] Make `INTEGER` a `Vec<u8>`
-  - [x] Should `OBJECT_IDENTIFIER` be a `struct(Vec<u32>)`?
-  - [x] Convert `RELATIVE-OID` to a wrapped type
-  - [x] ~~Should `SET`, `SEQUENCE`, `SET OF` and `SEQUENCE OF` be wrapped types?~~
-    - This might have been a good idea at first, but too late now!
-  - [x] Context switching types should be generic so you can use X690Element.
-  - [x] Implement `Display` for `BIT_STRING`
-  - [x] Implement `Display` for context switching types
-  - [x] Conversion between `INSTANCE OF` and `EXTERNAL`
-  - [x] Comparison functions for all time types
-  - [x] Comparison functions for context switching types
-  - [x] Comparison function for elements
-  - [x] `is_zero()` for time types
-  - [ ] Weak comparison
-  - [x] Require fields in time type constructors
-  - [x] Clone
-  - [x] Debug
-  - [x] ASN1Value to ASN.1 String
-  - [x] ~~Duration to Milliseconds~~ (Cannot be done, because the length of a month is not known.)
-  - [x] Conversion of all time types to strings
-  - [x] ~~NumericString to integer~~
-  - [x] Object Identifier to dot-delimited string
-  - [x] Object Identifier to ASN.1 string
-  - [x] Object Identifier extend with relative OID
-  - [x] Object Identifier ends with relative OID
-  - [x] Object Identifier compare
-  - [x] Object Identifier sort
-  - [x] Object Identifier from string
-  - [x] ~~Object Identifier compare with string~~
-  - [x] Constructors
-  - [x] ASN.1 value comparison?
-  - [x] ~~ASN.1 Universal type names~~ (I think this could just be handled in apps.)
-  - [x] ~~Hash trait for `ASN1Value`~~
-  - [x] ~~Date/time constants (months, leap year, etc.)~~
-  - [x] Use `Arc` instead of `Box`?
-  - [x] Function for combining bitstrings
-  - [x] Traits for `DATE-TIME`
   - [ ] `oid!` macro
   - [ ] `bits!` macro
   - [ ] `octs!` macro
   - [ ] `ASN1Error::relate_tlv(X690Element)`
-  - [x] `ASN1Error::relate_spec(ComponentSpec)`
-  - [x] `ASN1Error::relate_value(ASN1Value)`
-  - [x] `ASN1Error::relate_tag(Tag)`
 - [ ] `x690`
   - [ ] Deconstruct
   - [ ] Hash trait for `X690Element`
