@@ -10,7 +10,6 @@ description = "RFC 3161 Time-Stamp Protocol (TSP) data structures"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/tsp"
 license = "MIT"
-license-file = "LICENSE.txt"
 keywords = ["timestamping", "rfc3161", "trusted", "timestamp", "time"]
 categories = ["network-programming"]
 

@@ -159,6 +159,15 @@ impl From<OCTET_STRING> for BIT_STRING {
     }
 }
 
+impl From<&[u8]> for BIT_STRING {
+    fn from(other: &[u8]) -> Self {
+        BIT_STRING {
+            bytes: Vec::from(other),
+            trailing_bits: 0,
+        }
+    }
+}
+
 impl Default for BIT_STRING {
     fn default() -> Self {
         BIT_STRING {

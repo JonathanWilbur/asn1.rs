@@ -226,7 +226,7 @@ impl PartialEq for X690Element {
     }
 }
 
-fn get_x690_tag_and_length_length(bytes: &Bytes) -> usize {
+pub fn get_x690_tag_and_length_length(bytes: &Bytes) -> usize {
     if bytes.len() == 0 {
         return 0;
     }

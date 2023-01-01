@@ -10,6 +10,5 @@ description = "Abstract Syntax Notation 1 (ASN.1)"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/asn1"
 license = "MIT"
-license-file = "LICENSE.txt"
 keywords = ["asn", "asn1", "abstract", "syntax", "notation"]
 categories = ["encoding"]

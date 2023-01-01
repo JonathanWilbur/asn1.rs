@@ -10,7 +10,6 @@ description = "Mock TcpStream with Read, Write, and Tokio's async equivalents fo
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/mock-tcpstream-tokio"
 license = "MIT"
-license-file = "LICENSE.txt"
 keywords = ["mock", "tcp", "socket", "stream", "tcpstream"]
 categories = ["development-tools::testing"]
 

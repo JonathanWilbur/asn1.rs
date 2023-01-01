@@ -10,7 +10,6 @@ description = "X.500 directory data structures and functionality"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/x500-client"
 license = "MIT"
-license-file = "LICENSE.txt"
 keywords = ["x500", "directory", "ldap", "client"]
 categories = ["network-programming"]
 

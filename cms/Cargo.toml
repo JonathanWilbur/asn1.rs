@@ -10,7 +10,6 @@ description = "Cryptographic Message Syntax (CMS) Structures"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/cms"
 license = "MIT"
-license-file = "LICENSE.txt"
 keywords = ["cms", "cryptography", "message", "syntax", "cades"]
 categories = ["cryptography"]
 

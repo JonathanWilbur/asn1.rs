@@ -10,7 +10,6 @@ description = "Internet Directly-Mapped (IDM) Protocol, per ITU Rec. X.519"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/idm"
 license = "MIT"
-license-file = "LICENSE.txt"
 keywords = ["idm", "x500"]
 categories = ["network-programming"]
 

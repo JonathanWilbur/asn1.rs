@@ -11,4 +11,5 @@ members = [
     "mock-tcpstream",
     "tsp",
     "cms",
+    "tsp-server",
 ]

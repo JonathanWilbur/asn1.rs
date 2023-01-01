@@ -10,7 +10,6 @@ description = "Remote Operation Service Element (ROSE) transport abstraction"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/rose-transport"
 license = "MIT"
-license-file = "LICENSE.txt"
 keywords = ["rose", "rpc", "remote", "operation"]
 categories = ["network-programming"]
 

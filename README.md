@@ -259,8 +259,6 @@ which control how these elements are encoded.
   - [ ] `octs!` macro
   - [ ] `ASN1Error::relate_tlv(X690Element)`
 - [ ] `x690`
-  - [ ] Deconstruct
-  - [ ] Hash trait for `X690Element`
   - [ ] Print `asn1parse` output;
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
 - [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
