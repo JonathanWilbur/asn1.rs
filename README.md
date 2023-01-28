@@ -258,6 +258,7 @@ which control how these elements are encoded.
   - [ ] `bits!` macro
   - [ ] `octs!` macro
   - [ ] `ASN1Error::relate_tlv(X690Element)`
+  - [ ] Conversion of `ASN1Error` to and from `std::io::Error`
 - [ ] `x690`
   - [ ] Print `asn1parse` output;
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?

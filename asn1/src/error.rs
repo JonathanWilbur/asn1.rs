@@ -64,6 +64,8 @@ pub struct ASN1Error {
     pub io_error: Option<Error>,
 }
 
+impl std::error::Error for ASN1Error {}
+
 impl fmt::Display for ASN1ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

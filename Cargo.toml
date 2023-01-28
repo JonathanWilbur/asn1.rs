@@ -12,4 +12,5 @@ members = [
     "tsp",
     "cms",
     "tsp-server",
+    "x500dsa",
 ]

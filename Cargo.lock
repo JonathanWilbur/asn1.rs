@@ -1946,17 +1946,21 @@ dependencies = [
  "clap",
  "cms",
  "ecdsa",
+ "elliptic-curve",
  "k256",
  "log",
  "log4rs",
  "p256",
  "p384",
+ "pem-rfc7468",
+ "pkcs1",
  "rand",
  "rsa",
  "scrypt",
  "serde",
  "serde_derive",
  "sha2",
+ "signature",
  "tokio",
  "toml",
  "tsp",
@@ -2205,6 +2209,18 @@ dependencies = [
  "rose-transport",
  "tokio",
  "tokio-stream",
+ "x500",
+ "x690",
+]
+
+[[package]]
+name = "x500dsa"
+version = "0.1.0"
+dependencies = [
+ "asn1",
+ "idm",
+ "ldap",
+ "rose-transport",
  "x500",
  "x690",
 ]
