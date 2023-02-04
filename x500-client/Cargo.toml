@@ -24,3 +24,5 @@ x690 = { path = "../x690" }
 tokio = { version = "1", features = ["net", "macros", "rt", "time"] }
 async-trait = "0.1.59"
 tokio-stream = "0.1"
+tokio-rustls = { version = "0.23.4", features = ["dangerous_configuration"] }
+webpki = "0.22.0"

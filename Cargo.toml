@@ -13,4 +13,6 @@ members = [
     "cms",
     "tsp-server",
     "x500dsa",
+    "dirstudio",
+    "dirstudio/src-tauri"
 ]

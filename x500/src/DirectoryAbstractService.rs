@@ -21631,7 +21631,7 @@ pub fn _encode_ListResultData_listInfo(
 /// ```asn1
 /// PartialOutcomeQualifier-entryCount ::= CHOICE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PartialOutcomeQualifier_entryCount {
     bestEstimate(INTEGER),
     lowEstimate(INTEGER),

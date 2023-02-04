@@ -19,6 +19,7 @@ impl Default for FutureState {
     }
 }
 
+// TODO: Move to ROSE library?
 pub struct RoseStream<TransportType> {
     pub transport: TransportType,
     pub received_pdus: VecDeque<RosePDU<X690Element>>,
@@ -84,7 +85,7 @@ mod tests {
     use x500::DirectoryIDMProtocols::id_idm_dap;
 
     #[tokio::test]
-    async fn test_bind_to_x500_dsa() {
+    async fn test_bind_to_x500_dsa_via_idm() {
         let mut addrs = "dsa01.root.mkdemo.wildboar.software:4632"
             .to_socket_addrs()
             .unwrap();
@@ -92,6 +93,92 @@ mod tests {
         let stream = socket.connect(addrs.next().unwrap()).await.unwrap();
 
         let idm = IdmStream::new(stream);
+        let mut rose = RoseStream::new(idm);
+        let dba = DirectoryBindArgument::new(None, None, vec![]);
+        let encoded_dba = _encode_DirectoryBindArgument(&dba).unwrap();
+        let bytes_written = rose
+            .write_bind(BindParameters {
+                protocol_id: id_idm_dap(),
+                timeout: 5,
+                parameter: encoded_dba,
+                calling_ae_title: None,
+                calling_ap_invocation_identifier: None,
+                calling_ae_invocation_identifier: None,
+                called_ae_title: None,
+                called_ap_invocation_identifier: None,
+                called_ae_invocation_identifier: None,
+                implementation_information: None,
+            })
+            .await
+            .unwrap();
+        sleep(Duration::new(5, 0)).await;
+        assert!(bytes_written.gt(&0));
+        tokio::time::timeout(Duration::from_millis(10000), async {
+            while let Some(rose_pdu) = rose.read_pdu().await.unwrap() {
+                match &rose_pdu {
+                    RosePDU::BindResult(_br) => {
+                        println!("Made it, big dawg.");
+                        return;
+                    }
+                    _ => panic!(),
+                };
+            }
+        })
+        .await
+        .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_bind_to_x500_dsa_via_idms() {
+        use tokio_rustls::TlsConnector;
+        use tokio_rustls::rustls::{
+            ClientConfig,
+            RootCertStore,
+            ServerName,
+            Certificate,
+            Error as TLSError,
+        };
+        use tokio_rustls::rustls::client::{
+            ServerCertVerifier,
+            ServerCertVerified,
+        };
+        use std::time::SystemTime;
+
+        struct NoCertVerifier {}
+
+        impl ServerCertVerifier for NoCertVerifier {
+            fn verify_server_cert(
+                &self,
+                _: &Certificate,
+                _: &[Certificate],
+                _: &ServerName,
+                _: &mut dyn Iterator<Item = &[u8]>,
+                _: &[u8],
+                _: SystemTime,
+            ) -> Result<ServerCertVerified, TLSError> {
+                Ok(ServerCertVerified::assertion())
+            }
+        }
+
+        let root_store = RootCertStore::empty();
+        let mut config = ClientConfig::builder()
+            .with_safe_defaults()
+            .with_root_certificates(root_store)
+            .with_no_client_auth()
+            ;
+        config
+            .dangerous()
+            .set_certificate_verifier(Arc::new(NoCertVerifier {}));
+
+        let tls_connector = TlsConnector::from(Arc::new(config));
+        let server_name = ServerName::try_from("dsa01.root.mkdemo.wildboar.software").unwrap();
+        let mut addrs = "dsa01.root.mkdemo.wildboar.software:44632"
+            .to_socket_addrs()
+            .unwrap();
+        let socket = TcpSocket::new_v4().unwrap();
+        let stream = socket.connect(addrs.next().unwrap()).await.unwrap();
+        let tls_stream = tls_connector.connect(server_name, stream).await.unwrap();
+        let idm = IdmStream::new(tls_stream);
         let mut rose = RoseStream::new(idm);
         let dba = DirectoryBindArgument::new(None, None, vec![]);
         let encoded_dba = _encode_DirectoryBindArgument(&dba).unwrap();

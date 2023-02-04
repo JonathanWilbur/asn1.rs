@@ -283,6 +283,7 @@ Value: ?
   attribute_completeness   Boolean?
   subordinates_driver u16 or u32? (Probably u16)
 You could probably get rid of this table entirely if you just define operational attributes for the above values.
+- Entry attribute values that are incomplete from shadowing
 
 Format of values:
 Key: | Entry ID u32 | 1 byte: type OID length, N | N bytes: DER-encoded type OID, reversed* | X.690 tag class + constructed flag | X.690 tag number | DER-encoded, normalized value
@@ -294,6 +295,39 @@ because directories are not good with handling large values anyway. You might
 WANT a low limit (e.g. 65535 bytes) on value sizes.
 Values that don't have a normalizer will just have to be queried by attribute, then filtered in-memory.
 
+EnqueuedSearchResults Table:
+Key: | Connection ID u128 | Result Index u32 |
+Value: The BER-encoded EntryInformation
+
+EnqueuedListResults Table:
+Key: | Connection ID u128 | Result Index u32 |
+Value: The BER-encoded EntryInformation
+
+PasswordDictionaryItem Table:
+Key: | Normalized Password |
+Value: | Flags: geo, person, dictionary, etc. |
+
+Operational Binding Table:
+Key: | binding_type, binding_identifier, binding_version |
+Value: | The entire BER-encoded DOP argument |
+
+NameToOID: Key = normalized name, value = binary OID
+OidToName: Key = binary OID, value = normalized name
+One small objection I have to storing OIDs in the database is that it might be
+really hard to modify them if you've found an error in your data. This could be
+solved by something in the web admin console, but it will still be a pain in the
+ass.
+
+AccessPoint table?
+AccessPointCredentials table?
+
+Version history table: Key = installed version ID, Value = time
+
+Access Point Credentials Table?
+
 This seems like it could be really simple and elegant.
+To every value, you could (optionally) add a createTime INTEGER field.
+
+Can you use multithreading with a storage engine???
 
 */
