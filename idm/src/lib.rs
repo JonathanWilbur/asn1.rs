@@ -67,7 +67,7 @@ pub struct IdmStream<W: AsyncWriteExt + AsyncReadExt> {
 
     /// Tokio says you can use the std Mutex in most cases.
     /// See: https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html#which-kind-of-mutex-should-you-use
-    future_state: Arc<Mutex<FutureState>>,
+    pub future_state: Arc<Mutex<FutureState>>,
 }
 
 impl<W: AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
@@ -84,7 +84,7 @@ impl<W: AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
     }
 }
 
-impl<T: AsyncWriteExt + AsyncReadExt + Unpin> IdmStream<T> {
+impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
     pub fn new(output: T) -> Self {
         IdmStream {
             version: IDM_VERSION_UNSET,
@@ -310,7 +310,10 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin> IdmStream<T> {
         }
         let end_index = match self.segments.iter().position(|s| s.final_) {
             Some(end_index_) => end_index_,
-            None => return Ok(None),
+            None => {
+                println!("no end index");
+                return Ok(None)
+            },
         };
         let last_seg_of_pdu = self.segments[end_index];
         let end_of_pdu = last_seg_of_pdu.data_bounds[1];

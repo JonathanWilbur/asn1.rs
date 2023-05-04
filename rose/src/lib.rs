@@ -169,8 +169,8 @@ pub enum OperationOutcome<ResultType = ASN1Value, ErrorType = ASN1Value> {
 
 #[derive(Debug, Clone)]
 pub enum UnbindOutcome<ResultType = ASN1Value, ErrorType = ASN1Value> {
-    Result(ResultType),
-    Error(ErrorType),
+    Result(Option<ResultType>),
+    Error(Option<ErrorType>),
     Abort(AbortReason),
     Timeout,
     Other(OtherRoseError),
@@ -215,7 +215,7 @@ where
         ParameterType: 'async_trait;
     async fn write_request(
         self: &mut Self,
-        params: &'static RequestParameters<ParameterType>,
+        params: RequestParameters<ParameterType>,
     ) -> Result<usize>
     where
         ParameterType: 'async_trait;
@@ -318,4 +318,9 @@ where
     async fn start_tls(self: &mut Self, params: StartTLSParameters) -> Result<StartTLSOutcome>
     where
         ParameterType: 'async_trait;
+}
+
+pub trait ROSEReceiver<ParameterType: Send> {
+    fn new() -> Self;
+    // Result<Option<RosePDU<ParameterType>>>;
 }

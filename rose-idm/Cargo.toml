@@ -1,0 +1,18 @@
+[package]
+name = "rose-idm"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+asn1 = { path = "../asn1" }
+idm = { path = "../idm" }
+rose = { path = "../rose" }
+x500 = { path = "../x500" }
+x690 = { path = "../x690" }
+async-trait = "0.1.59"
+tokio = { version = "1", features = ["net", "macros", "rt", "time"] }
+tokio-stream = "0.1"
+tokio-rustls = { version = "0.23.4", features = ["dangerous_configuration"] }
+webpki = "0.22.0"

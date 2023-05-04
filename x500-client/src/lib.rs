@@ -1,10 +1,17 @@
 #![allow(non_upper_case_globals)]
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashMap};
+use tokio::net::TcpStream;
 use std::sync::{Arc, Mutex};
 use std::task::Waker;
 
-use rose_transport::RosePDU;
+use asn1::INTEGER;
+use ::idm::IdmStream;
+use rose_transport::{RosePDU, RequestParameters, InvokeIdInt, OperationOutcome,ROSETransmitter, ROSEReceiver, BindParameters};
+use x500::CommonProtocolSpecification::InvokeId;
 use x690::X690Element;
+use tokio::sync::mpsc::{channel, Sender, Receiver};
+use tokio::sync::oneshot::{Sender as OneSender};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub mod idm;
 
@@ -20,21 +27,63 @@ impl Default for FutureState {
 }
 
 // TODO: Move to ROSE library?
-pub struct RoseStream<TransportType> {
+pub struct RoseStream<X: Send, TransportType> {
     pub transport: TransportType,
-    pub received_pdus: VecDeque<RosePDU<X690Element>>,
+    pub received_pdus: VecDeque<RosePDU<X>>,
     /// Tokio says you can use the std Mutex in most cases.
     /// See: https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html#which-kind-of-mutex-should-you-use
     future_state: Arc<Mutex<FutureState>>,
+    // request_tx: Sender<RequestParameters>,
+    // request_rx: Receiver<RequestParameters>,
+
+    // I don't think this has to be Arc'd or Mutex'd, because it is only used by one task.
+    // IIDs could just get inserted with the write_request() function.
+    outstanding_reqs: HashMap<INTEGER, OneSender<OperationOutcome<X, X>>>,
+
+    // TODO: Incorporate these from ROSETransport
+    // pub protocol: Option<OBJECT_IDENTIFIER>,
+    // pub is_bound: bool,
+    // pub options: ROSETransportOptions,
 }
 
-impl<TransportType> RoseStream<TransportType> {
-    pub fn new(transport: TransportType) -> Self {
-        RoseStream {
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + 'static> RoseStream<X690Element, IdmStream<W>> {
+    pub fn new(transport: IdmStream<W>) -> Self {
+        let (req_tx, mut req_rx) = channel::<(OneSender<OperationOutcome<X690Element, X690Element>>, RequestParameters<X690Element>)>(32);
+
+        let mut ret = RoseStream::<X690Element, IdmStream<W>> {
             transport,
             received_pdus: VecDeque::new(), // TODO: Configurable capacity for PDUs.
             future_state: Arc::new(Mutex::new(FutureState::default())),
-        }
+            // request_rx: rx,
+            // request_tx: tx,
+            outstanding_reqs: HashMap::new(),
+        };
+
+        let requests_thread = tokio::spawn(async move {
+            while let Some((resp_tx, req)) = req_rx.recv().await {
+                if let InvokeId::present(iid) = req.invoke_id {
+                    ret.outstanding_reqs.insert(iid, resp_tx);
+                }
+                let write_outcome = ret.write_request(req).await;
+                if write_outcome.is_err() {
+                    break;
+                }
+            }
+        });
+        let responses_thread = tokio::spawn(async move {
+            while let Ok(pdu_or_not) = ret.read_pdu().await {
+                if let Some(pdu) = pdu_or_not {
+                    match pdu {
+                        // RosePDU::Result(res) => {
+                        //     // res
+                        // },
+                        _ => {},
+                    }
+                }
+            }
+        });
+
+        ret
     }
 }
 

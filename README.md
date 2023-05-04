@@ -259,8 +259,16 @@ which control how these elements are encoded.
   - [ ] `octs!` macro
   - [ ] `ASN1Error::relate_tlv(X690Element)`
   - [ ] Conversion of `ASN1Error` to and from `std::io::Error`
+  - [ ] ~~Make all bytes `Cow`?~~
+    - `Arc::make_mut()` provides this already, but you are not using it!
+  - [ ] Use `AsRef` in generics
 - [ ] `x690`
   - [ ] Print `asn1parse` output;
+  - [ ] ~~Make all bytes `Cow`?~~
+    - `Arc::make_mut()` provides this already, but you are not using it!
+  - [ ] Use `AsRef` in generics
+- [ ] `x500-client`
+  - [ ] Apply recommendations from: https://github.com/inejge/ldap3/issues/98
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
 - [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
       to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,

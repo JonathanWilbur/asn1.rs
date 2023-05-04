@@ -15,5 +15,9 @@ members = [
     "x500dsa",
     "dirstudio",
     "dirstudio/src-tauri",
-    "tpkt"
+    "tpkt",
+    "x691",
+    "rose",
+    "rose-idm",
+    "rose-client",
 ]
