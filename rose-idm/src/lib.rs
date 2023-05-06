@@ -1,27 +1,45 @@
-use asn1::ENUMERATED;
+#![allow(non_upper_case_globals)]
+
+use asn1::{ENUMERATED, read_i64};
 use async_trait::async_trait;
 use idm::IdmStream;
 use rose::{
-    AbortReason, BindParameters, BindResultOrErrorParameters, ROSEReceiver, ROSETransmitter,
-    RejectParameters, RejectReason, RequestParameters, ResultOrErrorParameters, RosePDU,
-    StartTLSParameters, TLSResponseParameters, UnbindParameters, AsyncRoseClient,
-    BindOutcome, OperationOutcome, UnbindOutcome, StartTLSOutcome,
+    AbortReason,
+    BindParameters,
+    BindResultOrErrorParameters,
+    ROSEReceiver,
+    ROSETransmitter,
+    RejectParameters,
+    RejectReason,
+    RequestParameters,
+    ResultOrErrorParameters,
+    RosePDU,
+    StartTLSParameters,
+    TLSResponseParameters,
+    UnbindParameters,
+    BindOutcome,
+    OperationOutcome,
+    UnbindOutcome,
+    StartTLSOutcome,
+    InvokeIdInt,
+    Resettable,
+    RoseAbort,
+    RoseEngine,
+    LoopMode,
+    BindArgAndTx,
+    RequestArgAndTx,
+    UnbindArgAndTx,
+    StartTlsArgAndTx, UnbindResultOrErrorParameters,
 };
 use std::io::{Error, ErrorKind, Result};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::oneshot;
+use tokio::sync::{oneshot, Mutex};
 use x500::{CommonProtocolSpecification::InvokeId, IDMProtocolSpecification::*};
 use x690::{ber_cst, write_x690_node, X690Element};
-use std::sync::{Arc, RwLock, Mutex};
-use std::future::Future;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 pub type X500ROSEPDU = rose::RosePDU<X690Element>;
-
-// TODO: import { protocol_id_to_rose_protocol, app_context_to_protocol_id } from "./utils";
-
-// TODO: pub fn rose_transport_from_idm_socket (idm: &mut IDMSocket) -> ROSETransport {
-
-// }
 
 #[inline]
 fn reject_reason_to_integer(rr: RejectReason) -> Option<ENUMERATED> {
@@ -107,7 +125,7 @@ fn integer_to_abort_reason(ar: ENUMERATED) -> Option<AbortReason> {
 
 #[inline]
 async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync>(
-    idm: &mut RoseIdmStream<W>,
+    stream: &mut RoseIdmStream<W>,
     pdu: &IDM_PDU,
 ) -> Result<usize> {
     // TODO: Do something more useful with these errors.
@@ -117,15 +135,300 @@ async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync>(
             if let Err(_e) = write_x690_node(&mut bytes, &element) {
                 return Err(Error::from(ErrorKind::InvalidInput));
             }
-            // let mut stream = idm.0.lock().map_err(|_| Error::from(ErrorKind::Other))?;
-            // stream.write_pdu(&bytes, 0).await
-            idm.0.write_pdu(&bytes, 0).await
+            let mut idm_stream = stream.idm.lock().await;
+            idm_stream.write_pdu(&bytes, 0).await
         }
         Err(_e) => Err(Error::from(ErrorKind::InvalidInput)),
     }
 }
 
-pub struct RoseIdmStream<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync>(pub IdmStream<W>);
+pub struct RoseIdmStream<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> {
+    pub idm: Arc<Mutex<IdmStream<W>>>,
+    pub outstanding_requests: HashMap<InvokeIdInt, oneshot::Sender<OperationOutcome<X690Element, X690Element>>>,
+    pub concurrency: u32,
+    bound: bool,
+    outstanding_bind_req: Option<oneshot::Sender<BindOutcome<X690Element, X690Element>>>,
+    outstanding_unbind_req: Option<oneshot::Sender<UnbindOutcome<X690Element, X690Element>>>,
+    outstanding_starttls_req: Option<oneshot::Sender<StartTLSOutcome>>,
+}
+
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseIdmStream<W> {
+
+    pub fn new (idm: Arc<Mutex<IdmStream<W>>>) -> Self {
+        RoseIdmStream {
+            idm,
+            outstanding_requests: HashMap::new(),
+            concurrency: 5,
+            bound: false,
+            outstanding_bind_req: None,
+            outstanding_unbind_req: None,
+            outstanding_starttls_req: None,
+        }
+    }
+
+}
+
+#[async_trait]
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Element> for RoseIdmStream<W> {
+
+    /// Repeatedly poll the connection until it exits.
+    async fn drive(
+        &mut self,
+        outbound_binds: BindArgAndTx<X690Element>,
+        outbound_requests: RequestArgAndTx<X690Element>,
+        outbound_unbinds: UnbindArgAndTx<X690Element>,
+        outbound_start_tls: StartTlsArgAndTx,
+    ) -> Result<()> {
+        self.turn(
+            LoopMode::Continuous,
+            outbound_binds,
+            outbound_requests,
+            outbound_unbinds,
+            outbound_start_tls,
+        ).await
+    }
+
+    async fn turn(
+        &mut self,
+        mode: LoopMode,
+        mut outbound_binds: BindArgAndTx<X690Element>,
+        mut outbound_requests: RequestArgAndTx<X690Element>,
+        mut outbound_unbinds: UnbindArgAndTx<X690Element>,
+        mut outbound_start_tls: StartTlsArgAndTx,
+    ) -> Result<()> {
+        loop {
+            tokio::select! {
+                // TODO: Receive requests
+                maybe_outbound_bind = outbound_binds.recv() => {
+                    if maybe_outbound_bind.is_none() {
+                        continue;
+                    }
+                    let (bind_req, bind_tx) = maybe_outbound_bind.unwrap();
+                    self.outstanding_bind_req = Some(bind_tx);
+                    self.write_bind(bind_req).await?;
+                },
+                maybe_outbound_req = outbound_requests.recv() => {
+                    if maybe_outbound_req.is_none() {
+                        continue;
+                    }
+                    let (req, req_tx) = maybe_outbound_req.unwrap();
+                    let iid = match &req.invoke_id {
+                        InvokeId::present(i) => i,
+                        _ => continue, // We simply ignore requests from the client that do not include an InvokeId.
+                    };
+                    let iid64 = read_i64(&iid).map_err(|_| Error::from(ErrorKind::InvalidData))?;
+                    self.outstanding_requests.insert(iid64, req_tx);
+                    self.write_request(req).await?;
+                },
+                maybe_outbound_unbind = outbound_unbinds.recv() => {
+                    if maybe_outbound_unbind.is_none() {
+                        continue;
+                    }
+                    let (unbind, unbind_tx) = maybe_outbound_unbind.unwrap();
+                    self.outstanding_unbind_req = Some(unbind_tx);
+                    self.write_unbind(unbind).await?;
+                },
+                maybe_outbound_start_tls = outbound_start_tls.recv() => {
+                    if maybe_outbound_start_tls.is_none() {
+                        continue;
+                    }
+                    let (start_tls, start_tls_tx) = maybe_outbound_start_tls.unwrap();
+                    self.outstanding_starttls_req = Some(start_tls_tx);
+                    self.write_start_tls(start_tls).await?;
+                },
+                fallible_rose_pdu_or_not = self.read_pdu() => {
+                    let rose_pdu_or_not = fallible_rose_pdu_or_not?;
+                    // TODO: Auto-abort on encountering giant invoke IDs or
+                    if let Some(rose_pdu) = rose_pdu_or_not {
+                        match rose_pdu {
+                            // TODO: Is there any way to make this work as a server too?
+                            // Maybe just make this forward the RosePDUs to a receiver.
+                            RosePDU::Bind(params) => {
+                                // TODO: Abort with invalidProtocol. We are the client.
+                            },
+                            /* It seems to be implied in X.519 that only one
+                            bind request may be outstanding at any time, so we'll run with that. */
+                            RosePDU::BindResult(params) => {
+                                if let Some(pending) = self.outstanding_bind_req.take() {
+                                    // It sucks cloning this much, but these are not
+                                    // too expensive to clone unless the user
+                                    // supplied freakishly huge AE-titles, protocol
+                                    // IDs, opcodes, etc.
+                                    pending.send(BindOutcome::Result(params))
+                                        .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+                                } else {
+                                    self.abort(AbortReason::InvalidProtocol).await?;
+                                }
+                            },
+                            RosePDU::BindError(params) => {
+                                if let Some(pending) = self.outstanding_bind_req.take() {
+                                    // It sucks cloning this much, but these are not
+                                    // too expensive to clone unless the user
+                                    // supplied freakishly huge AE-titles, protocol
+                                    // IDs, opcodes, etc.
+                                    pending.send(BindOutcome::Error(params))
+                                        .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+                                } else {
+                                    self.abort(AbortReason::InvalidProtocol).await?;
+                                }
+                            },
+                            RosePDU::Request(params) => {
+                                // TODO: Abort with invalidProtocol. We are the client.
+                            },
+                            RosePDU::Result(ref params) => {
+                                let rejection = RejectParameters {
+                                    invoke_id: params.invoke_id.clone(),
+                                    reason: RejectReason::UnknownInvokeIdResult,
+                                };
+                                let invoke_id = match &params.invoke_id {
+                                    InvokeId::present(i) => i,
+                                    _ => {
+                                        self.write_reject(rejection).await?;
+                                        continue;
+                                    },
+                                };
+                                let invoke_id_int = match read_i64(&invoke_id) {
+                                    Ok(i) => i,
+                                    _ => { // Usually if the invokeID was huge.
+                                        self.write_reject(rejection).await?;
+                                        continue;
+                                    },
+                                };
+                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id_int) {
+                                    Some(o) => o,
+                                    _ => { // No request with this InvokeID.
+                                        self.write_reject(rejection).await?;
+                                        continue;
+                                    },
+                                };
+                                outstanding_req.send(OperationOutcome::Result(params.clone()))
+                                    .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+                            },
+                            RosePDU::Error(ref params) => {
+                                let rejection = RejectParameters {
+                                    invoke_id: params.invoke_id.clone(),
+                                    reason: RejectReason::UnknownInvokeIdError,
+                                };
+                                let invoke_id = match &params.invoke_id {
+                                    InvokeId::present(i) => i,
+                                    _ => {
+                                        self.write_reject(rejection).await?;
+                                        continue;
+                                    },
+                                };
+                                let invoke_id_int = match read_i64(&invoke_id) {
+                                    Ok(i) => i,
+                                    _ => { // Usually if the invokeID was huge.
+                                        self.write_reject(rejection).await?;
+                                        continue;
+                                    },
+                                };
+                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id_int) {
+                                    Some(o) => o,
+                                    _ => { // No request with this InvokeID.
+                                        self.write_reject(rejection).await?;
+                                        continue;
+                                    },
+                                };
+                                outstanding_req.send(OperationOutcome::Error(params.clone()))
+                                    .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+                            },
+                            RosePDU::Reject(ref params) => {
+                                let invoke_id = match &params.invoke_id {
+                                    InvokeId::present(i) => i,
+                                    _ => {
+                                        self.abort(AbortReason::Other).await?;
+                                        continue;
+                                    },
+                                };
+                                let invoke_id_int = match read_i64(&invoke_id) {
+                                    Ok(i) => i,
+                                    _ => { // Usually if the invokeID was huge.
+                                        self.abort(AbortReason::Other).await?;
+                                        continue;
+                                    },
+                                };
+                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id_int) {
+                                    Some(o) => o,
+                                    _ => { // No request with this InvokeID.
+                                        self.abort(AbortReason::Other).await?;
+                                        continue;
+                                    },
+                                };
+                                outstanding_req.send(OperationOutcome::Reject(params.clone()))
+                                    .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+                            },
+                            RosePDU::Unbind(params) => {
+
+                            },
+                            RosePDU::UnbindResult(params) => {
+                                if let Some(pending) = self.outstanding_unbind_req.take() {
+                                    // It sucks cloning this much, but these are not
+                                    // too expensive to clone unless the user
+                                    // supplied freakishly huge AE-titles, protocol
+                                    // IDs, opcodes, etc.
+                                    pending.send(UnbindOutcome::Result(params.parameter.clone()))
+                                        .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+                                } else {
+                                    self.abort(AbortReason::InvalidProtocol).await?;
+                                }
+                            },
+                            RosePDU::UnbindError(params) => {
+                                if let Some(pending) = self.outstanding_unbind_req.take() {
+                                    // It sucks cloning this much, but these are not
+                                    // too expensive to clone unless the user
+                                    // supplied freakishly huge AE-titles, protocol
+                                    // IDs, opcodes, etc.
+                                    pending.send(UnbindOutcome::Error(params.parameter.clone()))
+                                        .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+                                } else {
+                                    self.abort(AbortReason::InvalidProtocol).await?;
+                                }
+                            },
+                            RosePDU::Abort(params) => {
+                                // TODO: The connection should be automatically closed when an abort is received.
+                                self.reset();
+                            },
+                            _ => {}, // NOOP for StartTLS and StartTLSResponse. Those are handled at lower layers.
+                            // RosePDU::StartTLS(params) => {
+
+                            // },
+                            // RosePDU::StartTLSResponse(params) => {
+
+                            // },
+                        }
+                    } else { // We simply do not have a ROSE PDU ready yet.
+                        break;
+                    }
+                },
+            };
+            if let LoopMode::SingleOp = mode {
+                break;
+            }
+        }
+        Ok(())
+    }
+
+}
+
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> Resettable for RoseIdmStream<W> {
+    fn reset (&mut self) {
+        self.bound = false;
+        self.outstanding_bind_req = None;
+        self.outstanding_requests.clear();
+    }
+}
+
+#[async_trait]
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseAbort for RoseIdmStream<W> {
+
+    async fn abort (&mut self, reason: AbortReason) -> Result<usize> {
+        // TODO: .write_abort() should close the connection.
+        self.reset();
+        self.write_abort(reason).await
+    }
+
+}
 
 #[async_trait]
 impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSETransmitter<X690Element>
@@ -236,7 +539,19 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSETransmitter<X690
         _params: UnbindParameters<X690Element>,
     ) -> Result<usize> {
         let idm_pdu = IDM_PDU::unbind(());
-        write_idm_pdu(self, &idm_pdu).await
+        let bytes_written = write_idm_pdu(self, &idm_pdu).await?;
+        if let Some(pending) = self.outstanding_unbind_req.take() {
+            // It sucks cloning this much, but these are not
+            // too expensive to clone unless the user
+            // supplied freakishly huge AE-titles, protocol
+            // IDs, opcodes, etc.
+            pending.send(UnbindOutcome::Result(None))
+                .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+            Ok(bytes_written)
+        } else {
+            self.abort(AbortReason::InvalidProtocol).await?;
+            Ok(bytes_written)
+        }
     }
 
     // FIXME: Close the connection.
@@ -246,108 +561,13 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSETransmitter<X690
     }
 }
 
-// impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseIdmStream<W> {
-//     pub fn receive_idm_pdu(&mut self, encoding_and_bytes: (u16, Vec<u8>)) -> Result<()> {
-//         let (encoding, idm_pdu_bytes) = encoding_and_bytes;
-//         if idm_pdu_bytes.len() > 0 // If there is at least a first byte to the framed IDM PDU...
-//             && idm_pdu_bytes[0] != 0xA0 // ...and the PDU is a bind, and...
-//             && encoding > 1
-//         // ...something other than BER or DER encoding is used...
-//         {
-//             // We don't support this encoding, so we return an error.
-//             return Err(Error::from(ErrorKind::InvalidData));
-//         }
-//         let idm_pdu_element = match ber_cst(&idm_pdu_bytes) {
-//             Ok((bytes_read, element)) => {
-//                 if bytes_read != idm_pdu_bytes.len() {
-//                     return Err(Error::from(ErrorKind::InvalidData));
-//                 }
-//                 element
-//             }
-//             Err(_e) => return Err(Error::from(ErrorKind::InvalidData)),
-//         };
-//         let pdu = match _decode_IDM_PDU(&idm_pdu_element) {
-//             Ok(pdu) => pdu,
-//             Err(_) => return Err(Error::from(ErrorKind::InvalidData)),
-//         };
-//         let rose_pdu = match pdu {
-//             IDM_PDU::bind(bind) => Ok(RosePDU::Bind(BindParameters {
-//                 protocol_id: bind.protocolID,
-//                 calling_ae_title: bind.callingAETitle,
-//                 called_ae_title: bind.calledAETitle,
-//                 parameter: bind.argument,
-//                 implementation_information: None,
-//                 called_ae_invocation_identifier: None,
-//                 called_ap_invocation_identifier: None,
-//                 calling_ae_invocation_identifier: None,
-//                 calling_ap_invocation_identifier: None,
-//                 timeout: 0,
-//             })),
-//             IDM_PDU::bindResult(bind_result) => {
-//                 Ok(RosePDU::BindResult(BindResultOrErrorParameters {
-//                     protocol_id: bind_result.protocolID,
-//                     parameter: bind_result.result,
-//                     responding_ae_title: bind_result.respondingAETitle,
-//                     responding_ae_invocation_identifier: None,
-//                     responding_ap_invocation_identifier: None,
-//                 }))
-//             }
-//             IDM_PDU::bindError(bind_error) => Ok(RosePDU::BindError(BindResultOrErrorParameters {
-//                 protocol_id: bind_error.protocolID,
-//                 parameter: bind_error.error,
-//                 responding_ae_title: bind_error.respondingAETitle,
-//                 responding_ae_invocation_identifier: None,
-//                 responding_ap_invocation_identifier: None,
-//             })),
-//             IDM_PDU::request(request) => Ok(RosePDU::Request(RequestParameters {
-//                 code: request.opcode,
-//                 invoke_id: InvokeId::present(request.invokeID),
-//                 parameter: request.argument,
-//                 linked_id: None,
-//             })),
-//             IDM_PDU::result(result) => Ok(RosePDU::Result(ResultOrErrorParameters {
-//                 code: result.opcode,
-//                 invoke_id: InvokeId::present(result.invokeID),
-//                 parameter: result.result,
-//             })),
-//             IDM_PDU::error(error) => Ok(RosePDU::Error(ResultOrErrorParameters {
-//                 code: error.errcode,
-//                 invoke_id: InvokeId::present(error.invokeID),
-//                 parameter: error.error,
-//             })),
-//             IDM_PDU::reject(reject) => Ok(RosePDU::Reject(RejectParameters {
-//                 invoke_id: InvokeId::present(reject.invokeID),
-//                 reason: integer_to_reject_reason(reject.reason).unwrap_or_default(),
-//             })),
-//             IDM_PDU::unbind(_unbind) => Ok(RosePDU::Unbind(UnbindParameters {
-//                 parameter: None,
-//                 timeout: 0,
-//             })),
-//             IDM_PDU::abort(abort) => Ok(RosePDU::Abort(
-//                 integer_to_abort_reason(abort).unwrap_or_default(),
-//             )),
-//             IDM_PDU::startTLS(_start_tls) => Ok(RosePDU::StartTLS(StartTLSParameters::default())),
-//             IDM_PDU::tLSResponse(tls_response) => {
-//                 Ok(RosePDU::StartTLSResponse(TLSResponseParameters {
-//                     code: tls_response.max(99) as u8,
-//                 }))
-//             }
-//             IDM_PDU::_unrecognized(_unrecognized) => Err(Error::from(ErrorKind::Unsupported)),
-//         }?;
-//         let future_state = self.0.future_state.lock().unwrap();
-//         if let Some(waker) = &future_state.waker {
-//             waker.wake_by_ref(); // TODO: Most inefficient way of waking used here. Hover to see docs.
-//         }
-//         Ok(())
-//     }
-// }
-
 #[async_trait]
 impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSEReceiver<X690Element>
     for RoseIdmStream<W>
 {
-    async fn read_pdu(&mut self) -> Result<Option<rose::RosePDU<X690Element>>> {
-        let idm_frame_or_not = self.0.read_pdu().await?;
+    async fn read_pdu(&self) -> Result<Option<rose::RosePDU<X690Element>>> {
+        let mut idm_stream = self.idm.lock().await;
+        let idm_frame_or_not = idm_stream.read_pdu().await?;
         let (encoding, idm_pdu_bytes) = match &idm_frame_or_not {
             Some(frame) => frame,
             None => return Ok(None),
@@ -440,151 +660,10 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSEReceiver<X690Ele
                 Err(Error::from(ErrorKind::Unsupported))
             }
         }?;
-        let future_state = self.0.future_state.lock().unwrap();
+        let future_state = idm_stream.future_state.lock().unwrap();
         if let Some(waker) = &future_state.waker {
             waker.wake_by_ref(); // TODO: Most inefficient way of waking used here. Hover to see docs.
         }
         Ok(Some(rose_pdu))
     }
 }
-
-// #[async_trait]
-// impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send> AsyncRoseClient<X690Element>
-//     for RoseStream<X690Element, IdmStream<W>> {
-
-//     async fn bind(self: &mut Self, params: BindParameters<X690Element>) -> Result<BindOutcome<X690Element, X690Element>> {
-
-//     }
-
-//     async fn request(self: &mut Self, params: BindParameters<X690Element>) -> Result<OperationOutcome<X690Element, X690Element>> {
-//         let (resp_tx, resp_rx) = oneshot::channel::<OperationOutcome<X690Element, X690Element>>();
-//         let req_tx = self.request_tx.clone();
-//         tokio::spawn(async move {
-//             self.write_request(params);
-//             req_tx.send(params);
-//         });
-//         let resp = resp_rx.await;
-//     }
-
-//     async fn unbind(self: &mut Self, params: BindParameters<X690Element>) -> Result<UnbindOutcome<X690Element, X690Element>> {
-
-//     }
-
-//     async fn start_tls(self: &mut Self, params: BindParameters<X690Element>) -> Result<StartTLSOutcome> {
-
-//     }
-
-// }
-
-// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Future for RoseStream<IdmStream<W>> {
-//     type Output = RosePDU<X690Element>;
-//     fn poll(
-//         self: Pin<&mut Self>,
-//         cx: &mut Context<'_>,
-//     ) -> Poll<Self::Output> {
-//         let mut_self = self.get_mut();
-//         match mut_self.read_pdu() {
-//             Some(pdu) => Poll::Ready(pdu),
-//             None => {
-//                 let mut future_state = mut_self.future_state.lock().unwrap();
-//                 future_state.waker = Some(cx.waker().clone());
-//                 Poll::Pending
-//             },
-//         }
-//     }
-// }
-
-// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Iterator for RoseStream<IdmStream<W>> {
-//     type Item = rose_transport::RosePDU<X690Element>;
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.read_pdu()
-//     }
-// }
-
-// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Stream for RoseStream<IdmStream<W>> {
-//     type Item = RosePDU<X690Element>;
-
-//     fn poll_next(
-//         self: Pin<&mut Self>,
-//         cx: &mut Context<'_>
-//     ) -> Poll<Option<Self::Item>> {
-//         let mut_self = self.get_mut();
-//         match mut_self.read_pdu() {
-//             Some(pdu) => Poll::Ready(Some(pdu)),
-//             None => {
-//                 let mut future_state = mut_self.future_state.lock().unwrap();
-//                 future_state.waker = Some(cx.waker().clone());
-//                 Poll::Pending
-//             },
-//         }
-//     }
-// }
-
-// export
-// function rose_transport_from_idm_socket (idm: IDMConnection): ROSETransport {
-//     const rose = new_rose_transport(idm.socket);
-//     idm.events.on("bind", (params) => {
-//         rose.events.emit("bind", {
-//             protocol_id: params.protocolID,
-//             parameter: params.argument,
-//             called_ae_title: params.calledAETitle,
-//             calling_ae_title: params.callingAETitle,
-//         });
-//     });
-//     idm.events.on("bindResult", (params) => {
-//         rose.is_bound = true;
-//         rose.events.emit("bind_result", {
-//             protocol_id: params.protocolID,
-//             responding_ae_title: params.respondingAETitle,
-//             parameter: params.result,
-//         });
-//     });
-//     idm.events.on("bindError", (params) => {
-//         rose.events.emit("bind_error", {
-//             protocol_id: params.protocolID,
-//             responding_ae_title: params.respondingAETitle,
-//             parameter: params.error,
-//         });
-//     });
-//     idm.events.on("request", (params) => {
-//         rose.events.emit("request", {
-//             invoke_id: {
-//                 present: params.invokeID,
-//             },
-//             code: params.opcode,
-//             parameter: params.argument,
-//         });
-//     });
-//     idm.events.on("result", (params) => {
-//         rose.events.emit("result", {
-//             invoke_id: {
-//                 present: params.invokeID,
-//             },
-//             code: params.opcode,
-//             parameter: params.result,
-//         });
-//     });
-//     idm.events.on("error_", (params) => {
-//         rose.events.emit("error_", {
-//             invoke_id: {
-//                 present: params.invokeID,
-//             },
-//             code: params.errcode,
-//             parameter: params.error,
-//         });
-//     });
-//     idm.events.on("reject", (params) => {
-//         rose.events.emit("reject", {
-//             invoke_id: {
-//                 present: params.invokeID,
-//             },
-//             problem: idm_reject_to_rose_reject.get(params.reason)
-//                 ?? RejectReason.other,
-//         });
-//     });
-//     idm.events.on("unbind", () => rose.events.emit("unbind"));
-//     idm.events.on("abort", (params) => rose.events
-//         .emit("abort", (idm_abort_to_rose_abort.get(params) ?? AbortReason.other)));
-//     idm.events.on("tLSResponse", (code) => {
-//         rose.events.emit("start_tls_response", { code });
-//     });

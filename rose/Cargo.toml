@@ -10,3 +10,4 @@ asn1 = { path = "../asn1" }
 x500 = { path = "../x500" }
 x690 = { path = "../x690" }
 async-trait = "0.1.59"
+tokio = "1"

@@ -3,6 +3,7 @@ use std::io::{Error, ErrorKind, Result};
 use std::sync::{Arc, Mutex};
 use std::task::Waker;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use bytes::{BytesMut, Buf};
 
 pub type Bytes = Vec<u8>;
 
@@ -60,7 +61,7 @@ pub struct IdmStream<W: AsyncWriteExt + AsyncReadExt> {
     // I tried an implementation that would not concatenate buffers for the sake
     // avoiding allocations, but I realized the buffers have to be concatenated
     // for the ASN.1-encoded data to be parsed anyway.
-    buffer: Vec<u8>,
+    buffer: BytesMut,
     segments: VecDeque<IDMSegment>,
     byte_buffer_size: usize,
     segment_buffer_size: usize,
@@ -89,7 +90,7 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
         IdmStream {
             version: IDM_VERSION_UNSET,
             encoding: IDM_ENCODING_UNKNOWN,
-            buffer: Vec::with_capacity(IDM_DEFAULT_BYTE_BUFFER_SIZE),
+            buffer: BytesMut::with_capacity(IDM_DEFAULT_BYTE_BUFFER_SIZE),
             segments: VecDeque::with_capacity(IDM_DEFAULT_SEGMENT_BUFFER_SIZE),
             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
@@ -281,8 +282,7 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
     }
 
     pub async fn read_pdu(&mut self) -> Result<Option<(u16, Bytes)>> {
-        let mut receive_buffer = [0; 50000];
-        let bytes_len = self.transport.read(&mut receive_buffer).await?;
+        let bytes_len = self.transport.read_buf(&mut self.buffer).await?;
         let (new_buffer_size, overflowed) = self.buffer.len().overflowing_add(bytes_len);
         if overflowed {
             return Err(Error::from(ErrorKind::InvalidData));
@@ -291,7 +291,6 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
             return Err(Error::from(ErrorKind::InvalidData));
         }
         // TODO: Use .extend() instead?
-        std::io::Write::write(&mut self.buffer, &receive_buffer[0..bytes_len])?;
         let mut i: usize = 0;
         loop {
             match self.chomp_frame(i) {
@@ -308,6 +307,7 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
                 Err(e) => return Err(e),
             }
         }
+        println!("{:?}", self.segments);
         let end_index = match self.segments.iter().position(|s| s.final_) {
             Some(end_index_) => end_index_,
             None => {
@@ -323,7 +323,7 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
             .collect::<Vec<&[u8]>>()
             .concat();
         self.segments.drain(0..=end_index);
-        self.buffer.drain(0..end_of_pdu);
+        self.buffer.advance(end_of_pdu);
         for seg in self.segments.iter_mut() {
             // TODO: I think you could just track the
             seg.data_bounds[0] -= std::cmp::min(seg.data_bounds[0], end_of_pdu);
@@ -338,7 +338,7 @@ impl<W: AsyncWriteExt + AsyncReadExt> From<IdmStreamOptions<W>> for IdmStream<W>
         IdmStream {
             version: IDM_VERSION_UNSET,
             encoding: IDM_ENCODING_UNKNOWN,
-            buffer: Vec::with_capacity(opts.byte_buffer_size),
+            buffer: BytesMut::with_capacity(opts.byte_buffer_size),
             segments: VecDeque::with_capacity(opts.segment_buffer_size),
             byte_buffer_size: opts.byte_buffer_size,
             segment_buffer_size: opts.segment_buffer_size,

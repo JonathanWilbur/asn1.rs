@@ -3,8 +3,30 @@ use async_trait::async_trait;
 use std::io::{Error, ErrorKind, Result};
 use x500::CertificateExtensions::GeneralName;
 use x500::CommonProtocolSpecification::{Code, InvokeId};
+use tokio::sync::{oneshot, mpsc};
 
 pub type OtherRoseError = u16;
+
+pub type BindOutcomeSender<ParameterType> = oneshot::Sender<BindOutcome<ParameterType, ParameterType>>;
+pub type OperationOutcomeSender<ParameterType> = oneshot::Sender<OperationOutcome<ParameterType, ParameterType>>;
+pub type UnbindOutcomeSender<ParameterType> = oneshot::Sender<UnbindOutcome<ParameterType, ParameterType>>;
+pub type StartTLSOutcomeSender = oneshot::Sender<StartTLSOutcome>;
+
+pub type BindArgAndTx<ParameterType> = mpsc::UnboundedReceiver<(BindParameters<ParameterType>, BindOutcomeSender<ParameterType>)>;
+pub type RequestArgAndTx<ParameterType> = mpsc::UnboundedReceiver<(RequestParameters<ParameterType>, OperationOutcomeSender<ParameterType>)>;
+pub type UnbindArgAndTx<ParameterType> = mpsc::UnboundedReceiver<(UnbindParameters<ParameterType>, UnbindOutcomeSender<ParameterType>)>;
+pub type StartTlsArgAndTx = mpsc::UnboundedReceiver<(StartTLSParameters, oneshot::Sender<StartTLSOutcome>)>;
+
+pub type BindRequestSender<ParameterType> = mpsc::UnboundedSender<(BindParameters<ParameterType>, BindOutcomeSender<ParameterType>)>;
+pub type RequestSender<ParameterType> = mpsc::UnboundedSender<(RequestParameters<ParameterType>, OperationOutcomeSender<ParameterType>)>;
+pub type UnbindSender<ParameterType> = mpsc::UnboundedSender<(UnbindParameters<ParameterType>, UnbindOutcomeSender<ParameterType>)>;
+pub type StartTlsSender = mpsc::UnboundedSender<(StartTLSParameters, oneshot::Sender<StartTLSOutcome>)>;
+
+pub enum LoopMode {
+    #[allow(dead_code)]
+    SingleOp,
+    Continuous,
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum AbortReason {
@@ -295,7 +317,7 @@ where
 
 #[async_trait]
 pub trait ROSEReceiver<ParameterType: Send> {
-    async fn read_pdu(self: &mut Self) -> Result<Option<RosePDU<ParameterType>>>;
+    async fn read_pdu(self: &Self) -> Result<Option<RosePDU<ParameterType>>>;
 }
 
 #[async_trait]
@@ -320,7 +342,45 @@ where
         ParameterType: 'async_trait;
 }
 
-pub trait ROSEReceiver<ParameterType: Send> {
-    fn new() -> Self;
-    // Result<Option<RosePDU<ParameterType>>>;
+pub trait Resettable {
+    fn reset (&mut self);
+}
+
+#[async_trait]
+pub trait RoseAbort {
+    async fn abort(self: &mut Self, reason: AbortReason) -> Result<usize>;
+}
+
+#[async_trait]
+pub trait RoseEngine<ParameterType = ASN1Value>
+    where
+        Self: Sized,
+        ParameterType: Sync + Send {
+
+    async fn turn(
+        &mut self,
+        mode: LoopMode,
+        mut outbound_binds: BindArgAndTx<ParameterType>,
+        mut outbound_requests: RequestArgAndTx<ParameterType>,
+        mut outbound_unbinds: UnbindArgAndTx<ParameterType>,
+        mut outbound_start_tls: StartTlsArgAndTx,
+    ) -> Result<()>
+        where ParameterType: 'async_trait;
+
+    async fn drive(
+        &mut self,
+        outbound_binds: BindArgAndTx<ParameterType>,
+        outbound_requests: RequestArgAndTx<ParameterType>,
+        outbound_unbinds: UnbindArgAndTx<ParameterType>,
+        outbound_start_tls: StartTlsArgAndTx,
+    ) -> Result<()>
+    where ParameterType: 'async_trait {
+        self.turn(
+            LoopMode::Continuous,
+            outbound_binds,
+            outbound_requests,
+            outbound_unbinds,
+            outbound_start_tls,
+        ).await
+    }
 }
