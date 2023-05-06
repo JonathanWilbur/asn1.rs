@@ -1,3 +1,20 @@
+//! Codec support for ASN.1 Types.
+
+#![allow(dead_code)]
+mod per;
+
+#[doc(inline)]
+pub use per::PerCodecData;
+
+#[doc(inline)]
+pub use per::PerCodecError;
+
+#[doc(inline)]
+pub use per::aper;
+
+#[doc(inline)]
+pub use per::uper;
+
 use asn1::{BOOLEAN, INTEGER, read_i64};
 use bitvec::prelude::*;
 use std::io::{Result, ErrorKind, Error};
@@ -136,25 +153,25 @@ pub fn x691_write_constrained_whole_number (
     }
 }
 
-pub fn x691_write_normally_small_non_negative_whole_number (out: &mut BitSink, value: INTEGER) -> Result<usize> {
+// pub fn x691_write_normally_small_non_negative_whole_number (out: &mut BitSink, value: INTEGER) -> Result<usize> {
 
-}
+// }
 
-pub fn x691_write_semi_constrained_whole_number (out: &mut BitSink, value: INTEGER) -> Result<usize> {
+// pub fn x691_write_semi_constrained_whole_number (out: &mut BitSink, value: INTEGER) -> Result<usize> {
 
-}
+// }
 
-pub fn x691_write_unconstrained_whole_number (out: &mut BitSink, value: INTEGER) -> Result<usize> {
+// pub fn x691_write_unconstrained_whole_number (out: &mut BitSink, value: INTEGER) -> Result<usize> {
 
-}
+// }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    // #[test]
-    // fn it_works() {
-    //     let result = add(2, 2);
-    //     assert_eq!(result, 4);
-    // }
-}
+//     // #[test]
+//     // fn it_works() {
+//     //     let result = add(2, 2);
+//     //     assert_eq!(result, 4);
+//     // }
+// }
