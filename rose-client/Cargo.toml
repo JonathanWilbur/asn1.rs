@@ -11,7 +11,7 @@ rose = { path = "../rose" }
 x500 = { path = "../x500" }
 x690 = { path = "../x690" }
 async-trait = "0.1.59"
-tower-service = "0.3.2"
+tower = { version = "0.4.13", features = ["timeout", "limit", "util"] }
 tokio = { version = "1", features = ["net", "macros", "rt", "time"] }
 rose-idm = { path = "../rose-idm" }
 idm = { path = "../idm" }
