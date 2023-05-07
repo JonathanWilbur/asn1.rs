@@ -435,7 +435,6 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send> ROSEReceiver<X690Element>
                 }))
             }
             IDM_PDU::_unrecognized(_unrecognized) => {
-                println!("{:?}", _unrecognized);
                 Err(Error::from(ErrorKind::Unsupported))
             }
         }?;
