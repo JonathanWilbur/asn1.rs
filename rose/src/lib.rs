@@ -320,28 +320,6 @@ pub trait ROSEReceiver<ParameterType: Send> {
     async fn read_pdu(self: &Self) -> Result<Option<RosePDU<ParameterType>>>;
 }
 
-#[async_trait]
-pub trait AsyncRoseClient<ParameterType = ASN1Value>
-where
-    ParameterType: Send
-{
-    async fn bind(self: &mut Self, params: BindParameters<ParameterType>) -> Result<BindOutcome<ParameterType, ParameterType>>
-    where
-        ParameterType: 'async_trait;
-
-    async fn request(self: &mut Self, params: RequestParameters<ParameterType>) -> Result<OperationOutcome<ParameterType, ParameterType>>
-    where
-        ParameterType: 'async_trait;
-
-    async fn unbind(self: &mut Self, params: UnbindParameters<ParameterType>) -> Result<UnbindOutcome<ParameterType, ParameterType>>
-    where
-        ParameterType: 'async_trait;
-
-    async fn start_tls(self: &mut Self, params: StartTLSParameters) -> Result<StartTLSOutcome>
-    where
-        ParameterType: 'async_trait;
-}
-
 pub trait Resettable {
     fn reset (&mut self);
 }
