@@ -405,18 +405,24 @@ pub fn x690_write_i64_value<W>(output: &mut W, value: i64) -> Result<usize>
 where
     W: Write,
 {
-    let bytes = value.to_be_bytes();
+    let bytes: [u8; 8] = value.to_be_bytes();
     let padding_byte: u8 = if value >= 0 { 0x00 } else { 0xFF };
     let mut number_of_padding_bytes: usize = 0;
     for byte in bytes {
         if byte == padding_byte {
             number_of_padding_bytes += 1;
+        } else {
+            break;
         }
     }
-    if number_of_padding_bytes == size_of::<ENUMERATED>() {
-        return output.write(&[padding_byte]);
+    let mut bytes_written: usize = 0;
+    if (number_of_padding_bytes == size_of::<i64>())
+        || (value >= 0 && ((bytes[number_of_padding_bytes] & 0b1000_0000) > 0))
+        || (value < 0 && ((bytes[number_of_padding_bytes] & 0b1000_0000) == 0)) {
+        bytes_written += output.write(&[padding_byte])?;
     }
-    return output.write(&(bytes[number_of_padding_bytes..size_of::<ENUMERATED>()]));
+    bytes_written += output.write(&(bytes[number_of_padding_bytes..size_of::<i64>()]))?;
+    Ok(bytes_written)
 }
 
 pub fn x690_write_enum_value<W>(output: &mut W, value: &ENUMERATED) -> Result<usize>
