@@ -3,7 +3,7 @@ use std::io::{Error, ErrorKind, Result};
 use std::sync::{Arc, Mutex};
 use std::task::Waker;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use bytes::{BytesMut, Buf};
+use bytes::{BytesMut, Buf, BufMut};
 
 pub type Bytes = Vec<u8>;
 
@@ -105,43 +105,35 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
             // larger than 4GB.
             return Err(Error::from(ErrorKind::InvalidInput));
         }
+        let mut out_buf = BytesMut::with_capacity(8 + bytes.len());
         if self.version == IDM_VERSION_UNSET {
             if encoding > IDM_ENCODING_BER {
                 self.version = IDM_VERSION_2;
-                self.transport.write(&[0x02, 0x01]).await?; // Version 2, Final
-                self.transport
-                    .write(u16::to_be_bytes(encoding).as_slice())
-                    .await?;
-                self.transport
-                    .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
-                    .await?;
+                out_buf.put_slice(&[0x02, 0x01]); // Version 2, Final
+                out_buf.put_u16(encoding);
+                out_buf.put_u32(bytes.len() as u32);
             } else {
-                self.transport.write(&[0x01, 0x01]).await?; // Version 1, Final
-                self.transport
-                    .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
-                    .await?;
+                out_buf.put_slice(&[0x01, 0x01]); // Version 1, Final
+                out_buf.put_u32(bytes.len() as u32);
             }
         } else if self.version == IDM_VERSION_1 {
             self.version = IDM_VERSION_1;
             if encoding != IDM_ENCODING_BER {
                 return Err(Error::from(ErrorKind::Unsupported));
             }
-            self.transport.write(&[0x01, 0x01]).await?; // Version 1, Final
-            self.transport
-                .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
-                .await?;
+            out_buf.put_slice(&[0x01, 0x01]); // Version 1, Final
+            out_buf.put_u32(bytes.len() as u32);
         } else if self.version == IDM_VERSION_2 {
-            self.transport.write(&[0x02, 0x01]).await?; // Version 2, Final
-            self.transport
-                .write(u16::to_be_bytes(encoding).as_slice())
-                .await?;
-            self.transport
-                .write(u32::to_be_bytes(bytes.len() as u32).as_slice())
-                .await?;
+            out_buf.put_slice(&[0x02, 0x01]); // Version 2, Final
+            out_buf.put_u16(encoding);
+            out_buf.put_u32(bytes.len() as u32);
         } else {
             return Err(Error::from(ErrorKind::Other));
         }
-        self.transport.write(bytes).await
+        out_buf.put_slice(&bytes);
+        let bytes_written = out_buf.len();
+        self.transport.write_all_buf(&mut out_buf).await?;
+        Ok(bytes_written)
     }
 
     fn chomp_frame(&mut self, start_index: usize) -> Result<usize> {
@@ -307,11 +299,9 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
                 Err(e) => return Err(e),
             }
         }
-        println!("{:?}", self.segments);
         let end_index = match self.segments.iter().position(|s| s.final_) {
             Some(end_index_) => end_index_,
             None => {
-                println!("no end index");
                 return Ok(None)
             },
         };
@@ -418,7 +408,6 @@ mod tests {
                     assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
                 }
                 None => {
-                    println!("{:?}", idm);
                     panic!("No PDU could be read.");
                 }
             },
@@ -446,7 +435,6 @@ mod tests {
                 assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -475,7 +463,6 @@ mod tests {
                 assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -487,7 +474,6 @@ mod tests {
                 assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -518,7 +504,6 @@ mod tests {
                 assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -530,7 +515,6 @@ mod tests {
                 assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -559,7 +543,6 @@ mod tests {
                 assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -571,7 +554,6 @@ mod tests {
                 assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -602,7 +584,6 @@ mod tests {
                 assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -614,7 +595,6 @@ mod tests {
                 assert!(data.starts_with(&[0x05, 0x06, 0x07, 0x08, 0x09]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -642,7 +622,6 @@ mod tests {
                 assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
@@ -672,7 +651,6 @@ mod tests {
                 assert!(data.starts_with(&[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]));
             }
             None => {
-                println!("{:?}", idm);
                 panic!("No PDU could be read.");
             }
         };
