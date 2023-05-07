@@ -1,5 +1,4 @@
 use rose::{
-    AsyncRoseClient,
     BindParameters,
     BindOutcome,
     RequestParameters,
@@ -14,35 +13,157 @@ use rose::{
     StartTlsSender,
     RoseEngine,
 };
-use x690::X690Element;
-use async_trait::async_trait;
+use x690::{X690Element, x690_write_i64_value};
 use std::io::{Error, ErrorKind, Result};
+use std::time::Duration;
 use tokio::sync::*;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use rose_idm::RoseIdmStream;
 use idm::IdmStream;
 use std::sync::Arc;
+use tower::timeout::{Timeout, TimeoutLayer, error::Elapsed};
+use tower::limit::{ConcurrencyLimit, ConcurrencyLimitLayer};
+use tower::{Service, Layer, ServiceExt};
+use std::pin::Pin;
+use std::future::Future;
+use std::task::{Poll, Context};
+use tokio::task::JoinSet;
 
-// TODO: Somehow make this generic over the ROSEReceiver's ParameterType.
+struct RequestFuture(pub tokio::sync::oneshot::Receiver<OperationOutcome<X690Element, X690Element>>);
+
+impl Future for RequestFuture {
+    type Output = std::io::Result<OperationOutcome<X690Element, X690Element>>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let b = Pin::new(&mut self.0);
+        match b.poll(cx) {
+            Poll::Ready(r) => Poll::Ready(r.map_err(|_| Error::from(ErrorKind::BrokenPipe))),
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
+#[derive(Clone)]
+struct BindService(pub BindRequestSender<X690Element>);
+#[derive(Clone)]
+struct RequestService(pub RequestSender<X690Element>);
+#[derive(Clone)]
+struct UnbindService(pub UnbindSender<X690Element>);
+#[derive(Clone)]
+struct StartTLSService(pub StartTlsSender);
+
+impl Service<BindParameters<X690Element>> for BindService {
+
+    type Response = BindOutcome<X690Element, X690Element>;
+    type Error = std::io::Error;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
+
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: BindParameters<X690Element>) -> Self::Future {
+        let (tx, rx) = oneshot::channel();
+        let r = self.0.send((req, tx));
+        Box::pin(async {
+            r.map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+            rx.await.map_err(|_| Error::from(ErrorKind::BrokenPipe))
+        })
+    }
+
+}
+
+impl Service<RequestParameters<X690Element>> for RequestService {
+
+    type Response = OperationOutcome<X690Element, X690Element>;
+    type Error = std::io::Error;
+    // type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
+    type Future = RequestFuture;
+
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: RequestParameters<X690Element>) -> Self::Future {
+        let (tx, rx) = oneshot::channel();
+
+        let r = self.0.send((req, tx));
+        RequestFuture(rx)
+    }
+
+}
+
+// impl ServiceExt<RequestParameters<X690Element>> for RequestService { }
+
+impl Service<UnbindParameters<X690Element>> for UnbindService {
+
+    type Response = UnbindOutcome<X690Element, X690Element>;
+    type Error = std::io::Error;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
+
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: UnbindParameters<X690Element>) -> Self::Future {
+        let (tx, rx) = oneshot::channel();
+        let r = self.0.send((req, tx));
+        Box::pin(async {
+            r.map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+            rx.await.map_err(|_| Error::from(ErrorKind::BrokenPipe))
+        })
+    }
+
+}
+
+impl Service<StartTLSParameters> for StartTLSService {
+
+    type Response = StartTLSOutcome;
+    type Error = std::io::Error;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
+
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, req: StartTLSParameters) -> Self::Future {
+        let (tx, rx) = oneshot::channel();
+        let r = self.0.send((req, tx));
+        let fut = async {
+            r.map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+            rx.await.map_err(|_| Error::from(ErrorKind::BrokenPipe))
+        };
+        Box::pin(fut)
+    }
+
+}
+
+#[derive(Clone)]
 pub struct RoseClient {
-    pub outbound_binds: BindRequestSender<X690Element>,
-    pub outbound_requests: RequestSender<X690Element>,
-    pub outbound_unbinds: UnbindSender<X690Element>,
-    pub outbound_start_tls: StartTlsSender,
+    bind_service: Timeout<BindService>,
+    req_service: ConcurrencyLimit<Timeout<RequestService>>,
+    unbind_service: Timeout<UnbindService>,
+    start_tls_service: Timeout<StartTLSService>,
 }
 
 impl RoseClient {
 
-    pub fn from_idm <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + 'static> (idm: IdmStream<W>) -> Self {
+    pub fn from_idm <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + 'static> (
+        idm: IdmStream<W>,
+        timeout: Duration,
+        concurrency: usize,
+    ) -> Self {
+        let timeout_layer = TimeoutLayer::new(timeout);
+        let concurrency_layer = ConcurrencyLimitLayer::new(concurrency);
         let (outbound_binds_tx, outbound_binds_rx) = mpsc::unbounded_channel();
         let (outbound_requests_tx, outbound_requests_rx) = mpsc::unbounded_channel();
         let (outbound_unbinds_tx, outbound_unbinds_rx) = mpsc::unbounded_channel();
         let (outbound_start_tls_tx, outbound_start_tls_rx) = mpsc::unbounded_channel();
         let rose_client = RoseClient {
-            outbound_binds: outbound_binds_tx,
-            outbound_requests: outbound_requests_tx,
-            outbound_unbinds: outbound_unbinds_tx,
-            outbound_start_tls: outbound_start_tls_tx,
+            bind_service: timeout_layer.layer(BindService(outbound_binds_tx)),
+            req_service: concurrency_layer.layer(timeout_layer.layer(RequestService(outbound_requests_tx))),
+            unbind_service: timeout_layer.layer(UnbindService(outbound_unbinds_tx)),
+            start_tls_service: timeout_layer.layer(StartTLSService(outbound_start_tls_tx)),
         };
         let mut engine = RoseIdmStream::new(Arc::new(Mutex::new(idm)));
         tokio::spawn(async move {
@@ -53,37 +174,65 @@ impl RoseClient {
         rose_client
     }
 
-}
-
-#[async_trait]
-impl AsyncRoseClient<X690Element> for RoseClient {
-
-    async fn bind(self: &mut Self, params: BindParameters<X690Element>) -> Result<BindOutcome<X690Element, X690Element>> {
-        let (tx, rx) = oneshot::channel();
-        self.outbound_binds.send((params, tx))
-            .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
-        rx.await.map_err(|_| Error::from(ErrorKind::BrokenPipe))
+    pub async fn bind(self: &mut Self, params: BindParameters<X690Element>) -> Result<BindOutcome<X690Element, X690Element>> {
+        let outcome = self.bind_service.call(params).await;
+        if let Err(typeless_error) = outcome.as_ref() {
+            if let Some(_) = typeless_error.downcast_ref::<Elapsed>() { // If the error was, in fact, Elapsed...
+                return Err(Error::from(ErrorKind::TimedOut));
+            }
+        }
+        outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
     }
 
-    async fn request(self: &mut Self, params: RequestParameters<X690Element>) -> Result<OperationOutcome<X690Element, X690Element>> {
-        let (tx, rx) = oneshot::channel();
-        self.outbound_requests.send((params, tx))
-            .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
-        rx.await.map_err(|_| Error::from(ErrorKind::BrokenPipe))
+    pub async fn request(self: &mut Self, params: RequestParameters<X690Element>) -> Result<OperationOutcome<X690Element, X690Element>> {
+        let outcome = self.req_service.ready().await
+            // TODO: How would this error (or any error) happen from merely polling for readiness?
+            // We do not downcast, because I don't understand the behavior of this, and we don't want a panic.
+            .map_err(|_| std::io::Error::from(ErrorKind::Other))?
+            .call(params).await;
+        if let Err(typeless_error) = outcome.as_ref() {
+            if let Some(_) = typeless_error.downcast_ref::<Elapsed>() { // If the error was, in fact, Elapsed...
+                return Err(Error::from(ErrorKind::TimedOut));
+            }
+        }
+        outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
     }
 
-    async fn unbind(self: &mut Self, params: UnbindParameters<X690Element>) -> Result<UnbindOutcome<X690Element, X690Element>> {
-        let (tx, rx) = oneshot::channel();
-        self.outbound_unbinds.send((params, tx))
-            .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
-        rx.await.map_err(|_| Error::from(ErrorKind::BrokenPipe))
+    // pub fn request(self: &mut Self, params: RequestParameters<X690Element>) -> RequestFuture {
+    //     let mut s = self.clone();
+    //     let f = async move {
+    //         let outcome = s.req_service.call(params).await;
+    //         if let Err(typeless_error) = outcome.as_ref() {
+    //             if let Some(_) = typeless_error.downcast_ref::<Elapsed>() { // If the error was, in fact, Elapsed...
+    //                 return Err(Error::from(ErrorKind::TimedOut));
+    //             }
+    //         }
+    //         outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
+    //         RequestFuture()
+    //     };
+
+
+    //     // outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
+    // }
+
+    pub async fn unbind(self: &mut Self, params: UnbindParameters<X690Element>) -> Result<UnbindOutcome<X690Element, X690Element>> {
+        let outcome = self.unbind_service.call(params).await;
+        if let Err(typeless_error) = outcome.as_ref() {
+            if let Some(_) = typeless_error.downcast_ref::<Elapsed>() { // If the error was, in fact, Elapsed...
+                return Err(Error::from(ErrorKind::TimedOut));
+            }
+        }
+        outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
     }
 
-    async fn start_tls(self: &mut Self, params: StartTLSParameters) -> Result<StartTLSOutcome> {
-        let (tx, rx) = oneshot::channel();
-        self.outbound_start_tls.send((params, tx))
-            .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
-        rx.await.map_err(|_| Error::from(ErrorKind::BrokenPipe))
+    pub async fn start_tls(self: &mut Self, params: StartTLSParameters) -> Result<StartTLSOutcome> {
+        let outcome = self.start_tls_service.call(params).await;
+        if let Err(typeless_error) = outcome.as_ref() {
+            if let Some(_) = typeless_error.downcast_ref::<Elapsed>() { // If the error was, in fact, Elapsed...
+                return Err(Error::from(ErrorKind::TimedOut));
+            }
+        }
+        outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
     }
 
 }
@@ -106,12 +255,17 @@ mod tests {
         _decode_ListResult,
         list,
         ListResultData,
+        ReadArgument,
+        ReadArgumentData,
+        ReadResult,
+        ReadResultData,
+        _decode_ReadResult,
+        read, _encode_ReadArgument,
     };
     use x500::InformationFramework::{
         Name,
     };
     use x500::DirectoryIDMProtocols::id_idm_dap;
-    pub use tokio;
 
     #[tokio::test]
     async fn it_works() {
@@ -120,7 +274,11 @@ mod tests {
             .unwrap();
         let socket = tokio::net::TcpSocket::new_v4().unwrap();
         let stream = socket.connect(addrs.next().unwrap()).await.unwrap();
-        let mut rose = RoseClient::from_idm(IdmStream::new(stream));
+        let mut rose = RoseClient::from_idm(
+            IdmStream::new(stream),
+            Duration::from_millis(5000),
+            5,
+        );
         let dba = DirectoryBindArgument::new(None, None, vec![]);
         let encoded_dba = _encode_DirectoryBindArgument(&dba).unwrap();
         let bind_outcome = rose.bind(BindParameters {
@@ -165,21 +323,71 @@ mod tests {
             parameter: _encode_ListArgument(&arg).unwrap(),
             linked_id: None,
         }).await.unwrap();
-        match outcome {
+        let info = match outcome {
             OperationOutcome::Result(res) => {
                 let result = _decode_ListResult(&res.parameter).unwrap();
                 let data = match result {
                     OPTIONALLY_PROTECTED::unsigned(unsigned) => unsigned,
                     OPTIONALLY_PROTECTED::signed(signed) => signed.toBeSigned,
                 };
-                let list_info = match &data {
+                let list_info = match data {
                     ListResultData::listInfo(info) => info,
                     _ => panic!(),
                 };
-                println!("The root DSE has {} subordinates.", list_info.subordinates.len());
+                list_info
             },
             _ => panic!(),
         };
+        println!("The root DSE has {} subordinates.", info.subordinates.len());
+        let mut iid: i64 = 5;
+        let mut join_handles = JoinSet::new();
+        for sub in info.subordinates {
+            iid += 1;
+            let read_arg = ReadArgument::unsigned(ReadArgumentData::new(
+                Name::rdnSequence(vec![ sub.rdn ]),
+                None,
+                None,
+                vec![],
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ));
+            let mut r = rose.clone();
+            join_handles.spawn(async move {
+                let mut iid_bytes = vec![];
+                x690_write_i64_value(&mut iid_bytes, iid).unwrap();
+                let f = r.request(RequestParameters {
+                    invoke_id: InvokeId::present(iid_bytes),
+                    code: read().operationCode.unwrap(),
+                    parameter: _encode_ReadArgument(&read_arg).unwrap(),
+                    linked_id: None,
+                });
+                let read_outcome = f.await.unwrap();
+                match read_outcome {
+                    OperationOutcome::Result(res) => {
+                        let result = _decode_ReadResult(&res.parameter).unwrap();
+                        match result {
+                            OPTIONALLY_PROTECTED::unsigned(unsigned) => unsigned,
+                            OPTIONALLY_PROTECTED::signed(signed) => signed.toBeSigned,
+                        };
+                        println!("Completed operation {}", iid);
+                    },
+                    _ => {
+                        println!("Failed operation {}", iid);
+                    },
+                };
+            });
+        }
+        while let Some(_) = join_handles.join_next().await {}
         let unbind_outcome = rose.unbind(UnbindParameters { timeout: 5, parameter: None }).await.unwrap();
         let ures = match unbind_outcome {
             UnbindOutcome::Result(r) => r,
