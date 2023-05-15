@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use std::io::{Error, ErrorKind, Result};
 use x500::CertificateExtensions::GeneralName;
 use x500::CommonProtocolSpecification::{Code, InvokeId};
-use tokio::sync::{oneshot, mpsc};
+use tokio::sync::{oneshot, mpsc, mpsc::UnboundedSender};
 
 pub type OtherRoseError = u16;
 
@@ -342,6 +342,7 @@ pub trait RoseEngine<ParameterType = ASN1Value>
         mut outbound_requests: RequestArgAndTx<ParameterType>,
         mut outbound_unbinds: UnbindArgAndTx<ParameterType>,
         mut outbound_start_tls: StartTlsArgAndTx,
+        mut inbound_rose_pdus_tx: UnboundedSender<RosePDU<ParameterType>>,
     ) -> Result<()>
         where ParameterType: 'async_trait;
 
@@ -351,6 +352,7 @@ pub trait RoseEngine<ParameterType = ASN1Value>
         outbound_requests: RequestArgAndTx<ParameterType>,
         outbound_unbinds: UnbindArgAndTx<ParameterType>,
         outbound_start_tls: StartTlsArgAndTx,
+        inbound_rose_pdus_tx: UnboundedSender<RosePDU<ParameterType>>,
     ) -> Result<()>
     where ParameterType: 'async_trait {
         self.turn(
@@ -359,6 +361,7 @@ pub trait RoseEngine<ParameterType = ASN1Value>
             outbound_requests,
             outbound_unbinds,
             outbound_start_tls,
+            inbound_rose_pdus_tx,
         ).await
     }
 }

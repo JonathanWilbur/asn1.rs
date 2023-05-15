@@ -2,7 +2,7 @@
 
 use asn1::{ENUMERATED, read_i64};
 use async_trait::async_trait;
-use idm::IdmStream;
+use idm::{IdmStream, TryReadBuf};
 use rose::{
     AbortReason,
     BindParameters,
@@ -29,8 +29,9 @@ use rose::{
     BindArgAndTx,
     RequestArgAndTx,
     UnbindArgAndTx,
-    StartTlsArgAndTx, UnbindResultOrErrorParameters,
+    StartTlsArgAndTx,
 };
+use tokio::sync::mpsc::UnboundedSender;
 use std::io::{Error, ErrorKind, Result};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::{oneshot, Mutex};
@@ -124,7 +125,7 @@ fn integer_to_abort_reason(ar: ENUMERATED) -> Option<AbortReason> {
 }
 
 #[inline]
-async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync>(
+async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf>(
     stream: &mut RoseIdmStream<W>,
     pdu: &IDM_PDU,
 ) -> Result<usize> {
@@ -169,7 +170,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseIdmStream<W> {
 }
 
 #[async_trait]
-impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Element> for RoseIdmStream<W> {
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> RoseEngine<X690Element> for RoseIdmStream<W> {
 
     /// Repeatedly poll the connection until it exits.
     async fn drive(
@@ -178,6 +179,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
         outbound_requests: RequestArgAndTx<X690Element>,
         outbound_unbinds: UnbindArgAndTx<X690Element>,
         outbound_start_tls: StartTlsArgAndTx,
+        inbound_rose_pdus_tx: UnboundedSender<RosePDU<X690Element>>,
     ) -> Result<()> {
         self.turn(
             LoopMode::Continuous,
@@ -185,6 +187,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
             outbound_requests,
             outbound_unbinds,
             outbound_start_tls,
+            inbound_rose_pdus_tx,
         ).await
     }
 
@@ -195,6 +198,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
         mut outbound_requests: RequestArgAndTx<X690Element>,
         mut outbound_unbinds: UnbindArgAndTx<X690Element>,
         mut outbound_start_tls: StartTlsArgAndTx,
+        mut inbound_rose_pdus_tx: UnboundedSender<RosePDU<X690Element>>,
     ) -> Result<()> {
         loop {
             tokio::select! {
@@ -240,6 +244,11 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                     let rose_pdu_or_not = fallible_rose_pdu_or_not?;
                     // TODO: Auto-abort on encountering giant invoke IDs or
                     if let Some(rose_pdu) = rose_pdu_or_not {
+                        if !inbound_rose_pdus_tx.is_closed() { // TODO: Is it worth checking, or just ignore the error?
+                            // If we drop the receiver, it just means we don't
+                            // care about receiving requests (we are a client).
+                            _ = inbound_rose_pdus_tx.send(rose_pdu.clone());
+                        }
                         match rose_pdu {
                             // TODO: Is there any way to make this work as a server too?
                             // Maybe just make this forward the RosePDUs to a receiver.
@@ -249,6 +258,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                             /* It seems to be implied in X.519 that only one
                             bind request may be outstanding at any time, so we'll run with that. */
                             RosePDU::BindResult(params) => {
+                                println!("asdf");
                                 if let Some(pending) = self.outstanding_bind_req.take() {
                                     // It sucks cloning this much, but these are not
                                     // too expensive to clone unless the user
@@ -359,7 +369,9 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                     .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
                             },
                             RosePDU::Unbind(params) => {
-
+                                // TODO: The connection should be automatically closed when an unbind is received.
+                                // No response is needed. Just close the connection.
+                                self.reset();
                             },
                             RosePDU::UnbindResult(params) => {
                                 if let Some(pending) = self.outstanding_unbind_req.take() {
@@ -385,7 +397,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                     self.abort(AbortReason::InvalidProtocol).await?;
                                 }
                             },
-                            RosePDU::Abort(params) => {
+                            RosePDU::Abort(_) => {
                                 // TODO: The connection should be automatically closed when an abort is received.
                                 self.reset();
                             },
@@ -420,7 +432,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> Resettable for Rose
 }
 
 #[async_trait]
-impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseAbort for RoseIdmStream<W> {
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> RoseAbort for RoseIdmStream<W> {
 
     async fn abort (&mut self, reason: AbortReason) -> Result<usize> {
         // TODO: .write_abort() should close the connection.
@@ -431,7 +443,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseAbort for RoseI
 }
 
 #[async_trait]
-impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSETransmitter<X690Element>
+impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> ROSETransmitter<X690Element>
     for RoseIdmStream<W>
 {
     async fn write_bind(self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
@@ -562,7 +574,7 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSETransmitter<X690
 }
 
 #[async_trait]
-impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSEReceiver<X690Element>
+impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> ROSEReceiver<X690Element>
     for RoseIdmStream<W>
 {
     async fn read_pdu(&self) -> Result<Option<rose::RosePDU<X690Element>>> {

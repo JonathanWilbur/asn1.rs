@@ -13,13 +13,14 @@ use rose::{
     StartTlsSender,
     RoseEngine,
 };
+use tokio::sync::mpsc::UnboundedReceiver;
 use x690::{X690Element, x690_write_i64_value};
 use std::io::{Error, ErrorKind, Result};
 use std::time::Duration;
 use tokio::sync::*;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use rose_idm::RoseIdmStream;
-use idm::IdmStream;
+use idm::{IdmStream, TryReadBuf};
 use std::sync::Arc;
 use tower::timeout::{Timeout, TimeoutLayer, error::Elapsed};
 use tower::limit::{ConcurrencyLimit, ConcurrencyLimitLayer};
@@ -27,14 +28,20 @@ use tower::{Service, Layer, ServiceExt};
 use std::pin::Pin;
 use std::future::Future;
 use std::task::{Poll, Context};
-use tokio::task::JoinSet;
+use rose::RosePDU;
 
-struct RequestFuture(pub tokio::sync::oneshot::Receiver<OperationOutcome<X690Element, X690Element>>);
+struct RequestFuture(
+    pub tokio::sync::oneshot::Receiver<OperationOutcome<X690Element, X690Element>>,
+    pub std::result::Result<(), tokio::sync::mpsc::error::SendError<(RequestParameters<X690Element>, tokio::sync::oneshot::Sender<OperationOutcome<X690Element, X690Element>>)>>,
+);
 
 impl Future for RequestFuture {
     type Output = std::io::Result<OperationOutcome<X690Element, X690Element>>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.1.is_err() {
+            return Poll::Ready(Err(Error::from(ErrorKind::BrokenPipe)));
+        }
         let b = Pin::new(&mut self.0);
         match b.poll(cx) {
             Poll::Ready(r) => Poll::Ready(r.map_err(|_| Error::from(ErrorKind::BrokenPipe))),
@@ -88,7 +95,7 @@ impl Service<RequestParameters<X690Element>> for RequestService {
         let (tx, rx) = oneshot::channel();
 
         let r = self.0.send((req, tx));
-        RequestFuture(rx)
+        RequestFuture(rx, r)
     }
 
 }
@@ -148,17 +155,18 @@ pub struct RoseClient {
 
 impl RoseClient {
 
-    pub fn from_idm <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + 'static> (
+    pub fn from_idm <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + 'static + TryReadBuf> (
         idm: IdmStream<W>,
         timeout: Duration,
         concurrency: usize,
-    ) -> Self {
+    ) -> (Self, UnboundedReceiver<RosePDU<X690Element>>) {
         let timeout_layer = TimeoutLayer::new(timeout);
         let concurrency_layer = ConcurrencyLimitLayer::new(concurrency);
         let (outbound_binds_tx, outbound_binds_rx) = mpsc::unbounded_channel();
         let (outbound_requests_tx, outbound_requests_rx) = mpsc::unbounded_channel();
         let (outbound_unbinds_tx, outbound_unbinds_rx) = mpsc::unbounded_channel();
         let (outbound_start_tls_tx, outbound_start_tls_rx) = mpsc::unbounded_channel();
+        let (inbound_rose_pdus_tx, inbound_rose_pdus_rx) = mpsc::unbounded_channel();
         let rose_client = RoseClient {
             bind_service: timeout_layer.layer(BindService(outbound_binds_tx)),
             req_service: concurrency_layer.layer(timeout_layer.layer(RequestService(outbound_requests_tx))),
@@ -167,11 +175,17 @@ impl RoseClient {
         };
         let mut engine = RoseIdmStream::new(Arc::new(Mutex::new(idm)));
         tokio::spawn(async move {
-            if let Err(e) = engine.drive(outbound_binds_rx, outbound_requests_rx, outbound_unbinds_rx, outbound_start_tls_rx).await {
+            if let Err(e) = engine.drive(
+                outbound_binds_rx,
+                outbound_requests_rx,
+                outbound_unbinds_rx,
+                outbound_start_tls_rx,
+                inbound_rose_pdus_tx,
+            ).await {
                 println!("ROSE transport error: {}", e);
             }
         });
-        rose_client
+        (rose_client, inbound_rose_pdus_rx)
     }
 
     pub async fn bind(self: &mut Self, params: BindParameters<X690Element>) -> Result<BindOutcome<X690Element, X690Element>> {
@@ -266,6 +280,7 @@ mod tests {
         Name,
     };
     use x500::DirectoryIDMProtocols::id_idm_dap;
+    use tokio::task::JoinSet;
 
     #[tokio::test]
     async fn it_works() {
@@ -274,7 +289,7 @@ mod tests {
             .unwrap();
         let socket = tokio::net::TcpSocket::new_v4().unwrap();
         let stream = socket.connect(addrs.next().unwrap()).await.unwrap();
-        let mut rose = RoseClient::from_idm(
+        let (mut rose, _) = RoseClient::from_idm(
             IdmStream::new(stream),
             Duration::from_millis(5000),
             5,

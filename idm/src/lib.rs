@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::task::Waker;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use bytes::{BytesMut, Buf, BufMut};
+use tokio::net::TcpStream;
 
 pub type Bytes = Vec<u8>;
 
@@ -85,7 +86,22 @@ impl<W: AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
     }
 }
 
-impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
+pub trait TryReadBuf {
+
+    fn try_read_buf<B: BufMut>(&self, buf: &mut B) -> Result<usize>;
+
+}
+
+impl TryReadBuf for TcpStream {
+
+    #[inline]
+    fn try_read_buf<B: BufMut>(&self, buf: &mut B) -> Result<usize> {
+        self.try_read_buf(buf)
+    }
+
+}
+
+impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send + TryReadBuf> IdmStream<T> {
     pub fn new(output: T) -> Self {
         IdmStream {
             version: IDM_VERSION_UNSET,
@@ -274,7 +290,15 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
     }
 
     pub async fn read_pdu(&mut self) -> Result<Option<(u16, Bytes)>> {
-        let bytes_len = self.transport.read_buf(&mut self.buffer).await?;
+        // FIXME: This needs to be moved somewhere that it will not block
+        // subsequent IDM PDUs within a TCP segment.
+        // loop, read, loop?
+        let bytes_len = match self.transport.try_read_buf(&mut self.buffer) {
+            Ok(0) => return Ok(None),
+            Ok(n) => n,
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => 0,
+            Err(e) => return Err(e),
+        };
         let (new_buffer_size, overflowed) = self.buffer.len().overflowing_add(bytes_len);
         if overflowed {
             return Err(Error::from(ErrorKind::InvalidData));
@@ -282,7 +306,6 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
         if new_buffer_size > self.byte_buffer_size {
             return Err(Error::from(ErrorKind::InvalidData));
         }
-        // TODO: Use .extend() instead?
         let mut i: usize = 0;
         loop {
             match self.chomp_frame(i) {
@@ -388,6 +411,19 @@ mod tests {
 
     use super::*;
     use mock_tcpstream::MockTcpStream;
+
+    impl TryReadBuf for MockTcpStream {
+
+        #[inline]
+        fn try_read_buf<B: BufMut>(&self, buf: &mut B) -> Result<usize> {
+            let unlocked = self.received_data.lock()
+                .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
+            let len = unlocked.len();
+            buf.put(unlocked.as_slice());
+            Ok(len)
+        }
+
+    }
 
     #[tokio::test]
     async fn test_idm_v1_decode() {
