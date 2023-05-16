@@ -2,7 +2,7 @@
 
 use asn1::{ENUMERATED, read_i64};
 use async_trait::async_trait;
-use idm::{IdmStream, TryReadBuf};
+use idm::IdmStream;
 use rose::{
     AbortReason,
     BindParameters,
@@ -125,7 +125,7 @@ fn integer_to_abort_reason(ar: ENUMERATED) -> Option<AbortReason> {
 }
 
 #[inline]
-async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf>(
+async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync>(
     stream: &mut RoseIdmStream<W>,
     pdu: &IDM_PDU,
 ) -> Result<usize> {
@@ -170,7 +170,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseIdmStream<W> {
 }
 
 #[async_trait]
-impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> RoseEngine<X690Element> for RoseIdmStream<W> {
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Element> for RoseIdmStream<W> {
 
     /// Repeatedly poll the connection until it exits.
     async fn drive(
@@ -198,7 +198,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> RoseEn
         mut outbound_requests: RequestArgAndTx<X690Element>,
         mut outbound_unbinds: UnbindArgAndTx<X690Element>,
         mut outbound_start_tls: StartTlsArgAndTx,
-        mut inbound_rose_pdus_tx: UnboundedSender<RosePDU<X690Element>>,
+        inbound_rose_pdus_tx: UnboundedSender<RosePDU<X690Element>>,
     ) -> Result<()> {
         loop {
             tokio::select! {
@@ -431,7 +431,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> Resettable for Rose
 }
 
 #[async_trait]
-impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> RoseAbort for RoseIdmStream<W> {
+impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseAbort for RoseIdmStream<W> {
 
     async fn abort (&mut self, reason: AbortReason) -> Result<usize> {
         // TODO: .write_abort() should close the connection.
@@ -442,7 +442,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> RoseAb
 }
 
 #[async_trait]
-impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> ROSETransmitter<X690Element>
+impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSETransmitter<X690Element>
     for RoseIdmStream<W>
 {
     async fn write_bind(self: &mut Self, params: BindParameters<X690Element>) -> Result<usize> {
@@ -573,7 +573,7 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> ROSETra
 }
 
 #[async_trait]
-impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> ROSEReceiver<X690Element>
+impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSEReceiver<X690Element>
     for RoseIdmStream<W>
 {
     async fn read_pdu(&self) -> Result<Option<rose::RosePDU<X690Element>>> {
@@ -670,10 +670,6 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> ROSERec
                 Err(Error::from(ErrorKind::Unsupported))
             }
         }?;
-        let future_state = idm_stream.future_state.lock().unwrap();
-        if let Some(waker) = &future_state.waker {
-            waker.wake_by_ref(); // TODO: Most inefficient way of waking used here. Hover to see docs.
-        }
         Ok(Some(rose_pdu))
     }
 }

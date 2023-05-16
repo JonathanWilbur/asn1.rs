@@ -14,13 +14,13 @@ use rose::{
     RoseEngine,
 };
 use tokio::sync::mpsc::UnboundedReceiver;
-use x690::{X690Element, x690_write_i64_value};
+use x690::X690Element;
 use std::io::{Error, ErrorKind, Result};
 use std::time::Duration;
 use tokio::sync::*;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use rose_idm::RoseIdmStream;
-use idm::{IdmStream, TryReadBuf};
+use idm::IdmStream;
 use std::sync::Arc;
 use tower::timeout::{Timeout, TimeoutLayer, error::Elapsed};
 use tower::limit::{ConcurrencyLimit, ConcurrencyLimitLayer};
@@ -84,7 +84,6 @@ impl Service<RequestParameters<X690Element>> for RequestService {
 
     type Response = OperationOutcome<X690Element, X690Element>;
     type Error = std::io::Error;
-    // type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
     type Future = RequestFuture;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
@@ -93,14 +92,11 @@ impl Service<RequestParameters<X690Element>> for RequestService {
 
     fn call(&mut self, req: RequestParameters<X690Element>) -> Self::Future {
         let (tx, rx) = oneshot::channel();
-
         let r = self.0.send((req, tx));
         RequestFuture(rx, r)
     }
 
 }
-
-// impl ServiceExt<RequestParameters<X690Element>> for RequestService { }
 
 impl Service<UnbindParameters<X690Element>> for UnbindService {
 
@@ -155,7 +151,7 @@ pub struct RoseClient {
 
 impl RoseClient {
 
-    pub fn from_idm <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + 'static + TryReadBuf> (
+    pub fn from_idm <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + 'static> (
         idm: IdmStream<W>,
         timeout: Duration,
         concurrency: usize,
@@ -271,8 +267,6 @@ mod tests {
         ListResultData,
         ReadArgument,
         ReadArgumentData,
-        ReadResult,
-        ReadResultData,
         _decode_ReadResult,
         read, _encode_ReadArgument,
     };
@@ -281,6 +275,7 @@ mod tests {
     };
     use x500::DirectoryIDMProtocols::id_idm_dap;
     use tokio::task::JoinSet;
+    use x690::x690_write_i64_value;
 
     #[tokio::test]
     async fn it_works() {

@@ -1,10 +1,7 @@
 use std::collections::VecDeque;
 use std::io::{Error, ErrorKind, Result};
-use std::sync::{Arc, Mutex};
-use std::task::Waker;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use bytes::{BytesMut, Buf, BufMut};
-use tokio::net::TcpStream;
 
 pub type Bytes = Vec<u8>;
 
@@ -43,17 +40,7 @@ pub struct IdmStreamOptions<W: AsyncWriteExt> {
     pub output: W,
 }
 
-// Taken from: https://rust-lang.github.io/async-book/02_execution/03_wakeups.html#applied-build-a-timer
-pub struct FutureState {
-    pub waker: Option<Waker>,
-}
-
-impl Default for FutureState {
-    fn default() -> Self {
-        FutureState { waker: None }
-    }
-}
-
+#[derive(Debug)]
 pub struct IdmStream<W: AsyncWriteExt + AsyncReadExt> {
     pub version: u8, // 0 = unset
     pub encoding: u16,
@@ -66,43 +53,9 @@ pub struct IdmStream<W: AsyncWriteExt + AsyncReadExt> {
     segments: VecDeque<IDMSegment>,
     byte_buffer_size: usize,
     segment_buffer_size: usize,
-
-    // TODO: This is entirely unused.
-    /// Tokio says you can use the std Mutex in most cases.
-    /// See: https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html#which-kind-of-mutex-should-you-use
-    pub future_state: Arc<Mutex<FutureState>>,
 }
 
-impl<W: AsyncWriteExt + AsyncReadExt> std::fmt::Debug for IdmStream<W> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!(
-            "IdmSocket {{ v{}, enc {:#b}, byte_buf_size {}, seg_buf_size {}, buffer {:?}, segments {:?} }}",
-            self.version,
-            self.encoding,
-            self.byte_buffer_size,
-            self.segment_buffer_size,
-            self.buffer,
-            self.segments,
-        ))
-    }
-}
-
-pub trait TryReadBuf {
-
-    fn try_read_buf<B: BufMut>(&self, buf: &mut B) -> Result<usize>;
-
-}
-
-impl TryReadBuf for TcpStream {
-
-    #[inline]
-    fn try_read_buf<B: BufMut>(&self, buf: &mut B) -> Result<usize> {
-        self.try_read_buf(buf)
-    }
-
-}
-
-impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send + TryReadBuf> IdmStream<T> {
+impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send> IdmStream<T> {
     pub fn new(output: T) -> Self {
         IdmStream {
             version: IDM_VERSION_UNSET,
@@ -112,7 +65,6 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send + TryReadBuf> IdmStream<T> {
             byte_buffer_size: IDM_DEFAULT_BYTE_BUFFER_SIZE,
             segment_buffer_size: IDM_DEFAULT_SEGMENT_BUFFER_SIZE,
             transport: output,
-            future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
 
@@ -224,12 +176,6 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send + TryReadBuf> IdmStream<T> {
                 self.encoding = IDM_ENCODING_BER;
             }
             self.segments.push_back(seg);
-            if is_final {
-                let future_state = self.future_state.lock().unwrap();
-                if let Some(waker) = &future_state.waker {
-                    waker.wake_by_ref(); // TODO: Most inefficient way of waking used here.
-                }
-            }
             return Ok(IDM_V1_FRAME_SIZE as usize + length as usize);
         } else if version == 2 {
             let length: u32 = u32::from_be_bytes([
@@ -277,12 +223,6 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send + TryReadBuf> IdmStream<T> {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             self.segments.push_back(seg);
-            if is_final {
-                let future_state = self.future_state.lock().unwrap();
-                if let Some(waker) = &future_state.waker {
-                    waker.wake_by_ref(); // TODO: Most inefficient way of waking used here.
-                }
-            }
             return Ok(IDM_V2_FRAME_SIZE as usize + length as usize);
         } else {
             // This alternative should never happen.
@@ -359,74 +299,15 @@ impl<W: AsyncWriteExt + AsyncReadExt> From<IdmStreamOptions<W>> for IdmStream<W>
             byte_buffer_size: opts.byte_buffer_size,
             segment_buffer_size: opts.segment_buffer_size,
             transport: opts.output,
-            future_state: Arc::new(Mutex::new(FutureState::default())),
         }
     }
 }
-
-// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Future for IdmStream<W> {
-//     type Output = (u16, Vec<u8>);
-//     fn poll(
-//         self: Pin<&mut Self>,
-//         cx: &mut Context<'_>,
-//     ) -> Poll<Self::Output> {
-//         let mut_self = self.get_mut();
-//         if let Some(pdu) = mut_self.read_pdu() {
-//             Poll::Ready(pdu)
-//         } else {
-//             let mut future_state = mut_self.future_state.lock().unwrap();
-//             future_state.waker = Some(cx.waker().clone());
-//             Poll::Pending
-//         }
-//     }
-// }
-
-// /// This ONLY polls for PDUs that are immediately available.
-// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Iterator for IdmStream<W> {
-//     type Item = (u16, Vec<u8>);
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.read_pdu()
-//     }
-
-// }
-
-// impl <W : AsyncWriteExt + AsyncReadExt + Unpin> Stream for IdmStream<W> {
-//     type Item = (u16, Vec<u8>);
-
-//     fn poll_next(
-//         self: Pin<&mut Self>,
-//         cx: &mut Context<'_>
-//     ) -> Poll<Option<Self::Item>> {
-//         let mut_self = self.get_mut();
-//         if let Some(pdu) = mut_self.read_pdu() {
-//             Poll::Ready(Some(pdu))
-//         } else {
-//             let mut future_state = mut_self.future_state.lock().unwrap();
-//             future_state.waker = Some(cx.waker().clone());
-//             Poll::Pending
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
     use mock_tcpstream::MockTcpStream;
-
-    impl TryReadBuf for MockTcpStream {
-
-        #[inline]
-        fn try_read_buf<B: BufMut>(&self, buf: &mut B) -> Result<usize> {
-            let unlocked = self.received_data.lock()
-                .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
-            let len = unlocked.len();
-            buf.put(unlocked.as_slice());
-            Ok(len)
-        }
-
-    }
 
     #[tokio::test]
     async fn test_idm_v1_decode() {
