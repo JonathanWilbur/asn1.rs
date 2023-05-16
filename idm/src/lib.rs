@@ -67,6 +67,7 @@ pub struct IdmStream<W: AsyncWriteExt + AsyncReadExt> {
     byte_buffer_size: usize,
     segment_buffer_size: usize,
 
+    // TODO: This is entirely unused.
     /// Tokio says you can use the std Mutex in most cases.
     /// See: https://docs.rs/tokio/latest/tokio/sync/struct.Mutex.html#which-kind-of-mutex-should-you-use
     pub future_state: Arc<Mutex<FutureState>>,
@@ -289,24 +290,9 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send + TryReadBuf> IdmStream<T> {
         }
     }
 
-    pub async fn read_pdu(&mut self) -> Result<Option<(u16, Bytes)>> {
-        // FIXME: This needs to be moved somewhere that it will not block
-        // subsequent IDM PDUs within a TCP segment.
-        // loop, read, loop?
-        let bytes_len = match self.transport.try_read_buf(&mut self.buffer) {
-            Ok(0) => return Ok(None),
-            Ok(n) => n,
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => 0,
-            Err(e) => return Err(e),
-        };
-        let (new_buffer_size, overflowed) = self.buffer.len().overflowing_add(bytes_len);
-        if overflowed {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
-        if new_buffer_size > self.byte_buffer_size {
-            return Err(Error::from(ErrorKind::InvalidData));
-        }
-        let mut i: usize = 0;
+    fn read_idm_message (&mut self) -> Result<Option<(u16, Bytes)>> {
+        // Start chomping frames from the end of the last parsed frame.
+        let mut i: usize = self.segments.back().map_or(0, |x| x.data_bounds[1]);
         loop {
             match self.chomp_frame(i) {
                 Ok(bytes_read) => {
@@ -338,11 +324,28 @@ impl<T: AsyncWriteExt + AsyncReadExt + Unpin + Send + TryReadBuf> IdmStream<T> {
         self.segments.drain(0..=end_index);
         self.buffer.advance(end_of_pdu);
         for seg in self.segments.iter_mut() {
-            // TODO: I think you could just track the
-            seg.data_bounds[0] -= std::cmp::min(seg.data_bounds[0], end_of_pdu);
-            seg.data_bounds[1] -= std::cmp::min(seg.data_bounds[1], end_of_pdu);
+            seg.data_bounds[0] -= end_of_pdu;
+            seg.data_bounds[1] -= end_of_pdu;
         }
         Ok(Some((last_seg_of_pdu.encoding, data)))
+    }
+
+    pub async fn read_pdu(&mut self) -> Result<Option<(u16, Bytes)>> {
+        loop { // This code was ripped off of this page: https://tokio.rs/tokio/tutorial/framing
+            // let idm_message_or_not = self.read_idm_message();
+            while let Some(message) = self.read_idm_message()? {
+                return Ok(Some(message));
+            }
+
+            let bytes_len = self.transport.read_buf(&mut self.buffer).await?;
+            let (new_buffer_size, overflowed) = self.buffer.len().overflowing_add(bytes_len);
+            if overflowed {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+            if new_buffer_size > self.byte_buffer_size {
+                return Err(Error::from(ErrorKind::InvalidData));
+            }
+        }
     }
 }
 

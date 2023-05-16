@@ -458,7 +458,10 @@ mod tests {
             });
         }
         while let Some(_) = join_handles.join_next().await {}
-        let unbind_outcome = dap.unbind(UnbindParameters { timeout: 5, parameter: None }).await.unwrap();
+        let unbind_outcome = dap.unbind(UnbindParameters {
+            timeout: 5,
+            parameter: None,
+        }).await.unwrap();
         let ures = match unbind_outcome {
             UnbindOutcome::Result(r) => r,
             _ => panic!(),

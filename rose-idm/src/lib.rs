@@ -258,7 +258,6 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> RoseEn
                             /* It seems to be implied in X.519 that only one
                             bind request may be outstanding at any time, so we'll run with that. */
                             RosePDU::BindResult(params) => {
-                                println!("asdf");
                                 if let Some(pending) = self.outstanding_bind_req.take() {
                                     // It sucks cloning this much, but these are not
                                     // too expensive to clone unless the user
@@ -599,7 +598,7 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync + TryReadBuf> ROSERec
                 }
                 element
             }
-            Err(_e) => return Err(Error::from(ErrorKind::InvalidData)),
+            Err(_e) => return Err(Error::from(ErrorKind::AddrNotAvailable)),
         };
         let pdu = match _decode_IDM_PDU(&idm_pdu_element) {
             Ok(pdu) => pdu,
