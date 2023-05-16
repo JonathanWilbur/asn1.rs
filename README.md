@@ -267,12 +267,10 @@ which control how these elements are encoded.
   - [ ] ~~Make all bytes `Cow`?~~
     - `Arc::make_mut()` provides this already, but you are not using it!
   - [ ] Use `AsRef` in generics
-- [ ] `x500-client`
-  - [ ] Apply recommendations from: https://github.com/inejge/ldap3/issues/98
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
 - [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
       to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,
       couldn't you implement an IDM layer that accepts only BER and DER encoding
       for `impl ROSEReceiver<X690Element>`?
 - [ ] Shouldn't the API implement a lazy technique? As, just decode PDUs as they
-      are needed? In other words, pull, rather than eagerly parse and enqueue.
+      are needed? In other words, pull, rather than eagerly parse and enqueue.d
