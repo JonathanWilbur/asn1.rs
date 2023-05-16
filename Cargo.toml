@@ -6,7 +6,6 @@ members = [
     "ldap",
     "x500",
     "idm",
-    "rose-transport",
     "x500-client",
     "mock-tcpstream",
     "tsp",

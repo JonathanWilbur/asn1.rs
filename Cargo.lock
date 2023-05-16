@@ -970,7 +970,6 @@ version = "0.0.0"
 dependencies = [
  "asn1",
  "idm",
- "rose-transport",
  "serde",
  "serde_json",
  "tauri",
@@ -3245,16 +3244,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rose-transport"
-version = "0.1.0"
-dependencies = [
- "asn1",
- "async-trait",
- "x500",
- "x690",
-]
-
-[[package]]
 name = "rsa"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5029,7 +5018,6 @@ dependencies = [
  "asn1",
  "idm",
  "ldap",
- "rose-transport",
  "x500",
  "x690",
 ]

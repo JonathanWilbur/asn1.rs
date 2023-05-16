@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 asn1 = { path = "../asn1" }
 idm = { path = "../idm" }
-rose-transport = { path = "../rose-transport" }
 x500 = { path = "../x500" }
 x690 = { path = "../x690" }
 ldap = { path = "../ldap" }

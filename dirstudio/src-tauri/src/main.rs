@@ -10,7 +10,7 @@ use tauri::Manager;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 use ::idm::IdmStream;
-use rose_transport::BindParameters;
+use rose_client::BindParameters;
 use std::net::ToSocketAddrs;
 use std::time::Duration;
 use tokio::net::TcpSocket;
