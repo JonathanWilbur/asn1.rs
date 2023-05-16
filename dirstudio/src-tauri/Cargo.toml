@@ -23,6 +23,8 @@ idm = { path = "../../idm" }
 x500 = { path = "../../x500" }
 x690 = { path = "../../x690" }
 x500-client = { path = "../../x500-client" }
+rose = { path = "../../rose" }
+rose-stream = { path = "../../rose-stream" }
 
 [features]
 # by default Tauri runs in production mode

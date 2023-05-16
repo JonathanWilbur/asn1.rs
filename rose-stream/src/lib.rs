@@ -65,7 +65,7 @@ impl Service<BindParameters<X690Element>> for BindService {
     type Error = std::io::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))
     }
 
@@ -86,7 +86,7 @@ impl Service<RequestParameters<X690Element>> for RequestService {
     type Error = std::io::Error;
     type Future = RequestFuture;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))
     }
 
@@ -104,7 +104,7 @@ impl Service<UnbindParameters<X690Element>> for UnbindService {
     type Error = std::io::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))
     }
 
@@ -125,7 +125,7 @@ impl Service<StartTLSParameters> for StartTLSService {
     type Error = std::io::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))
     }
 
@@ -178,6 +178,7 @@ impl RoseClient {
                 outbound_start_tls_rx,
                 inbound_rose_pdus_tx,
             ).await {
+                // TODO: Find something else to do.
                 println!("ROSE transport error: {}", e);
             }
         });
@@ -207,23 +208,6 @@ impl RoseClient {
         }
         outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
     }
-
-    // pub fn request(self: &mut Self, params: RequestParameters<X690Element>) -> RequestFuture {
-    //     let mut s = self.clone();
-    //     let f = async move {
-    //         let outcome = s.req_service.call(params).await;
-    //         if let Err(typeless_error) = outcome.as_ref() {
-    //             if let Some(_) = typeless_error.downcast_ref::<Elapsed>() { // If the error was, in fact, Elapsed...
-    //                 return Err(Error::from(ErrorKind::TimedOut));
-    //             }
-    //         }
-    //         outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
-    //         RequestFuture()
-    //     };
-
-
-    //     // outcome.map_err(|e| *e.downcast::<std::io::Error>().unwrap())
-    // }
 
     pub async fn unbind(self: &mut Self, params: UnbindParameters<X690Element>) -> Result<UnbindOutcome<X690Element, X690Element>> {
         let outcome = self.unbind_service.call(params).await;

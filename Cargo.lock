@@ -970,6 +970,8 @@ version = "0.0.0"
 dependencies = [
  "asn1",
  "idm",
+ "rose",
+ "rose-stream",
  "serde",
  "serde_json",
  "tauri",

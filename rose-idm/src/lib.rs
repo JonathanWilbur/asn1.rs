@@ -250,11 +250,6 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                             _ = inbound_rose_pdus_tx.send(rose_pdu.clone());
                         }
                         match rose_pdu {
-                            // TODO: Is there any way to make this work as a server too?
-                            // Maybe just make this forward the RosePDUs to a receiver.
-                            RosePDU::Bind(params) => {
-                                // TODO: Abort with invalidProtocol. We are the client.
-                            },
                             /* It seems to be implied in X.519 that only one
                             bind request may be outstanding at any time, so we'll run with that. */
                             RosePDU::BindResult(params) => {
@@ -280,9 +275,6 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                 } else {
                                     self.abort(AbortReason::InvalidProtocol).await?;
                                 }
-                            },
-                            RosePDU::Request(params) => {
-                                // TODO: Abort with invalidProtocol. We are the client.
                             },
                             RosePDU::Result(ref params) => {
                                 let rejection = RejectParameters {
@@ -367,7 +359,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                 outstanding_req.send(OperationOutcome::Reject(params.clone()))
                                     .map_err(|_| Error::from(ErrorKind::BrokenPipe))?;
                             },
-                            RosePDU::Unbind(params) => {
+                            RosePDU::Unbind(_) => {
                                 // TODO: The connection should be automatically closed when an unbind is received.
                                 // No response is needed. Just close the connection.
                                 self.reset();
@@ -401,12 +393,6 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                 self.reset();
                             },
                             _ => {}, // NOOP for StartTLS and StartTLSResponse. Those are handled at lower layers.
-                            // RosePDU::StartTLS(params) => {
-
-                            // },
-                            // RosePDU::StartTLSResponse(params) => {
-
-                            // },
                         }
                     } else { // We simply do not have a ROSE PDU ready yet.
                         break;
