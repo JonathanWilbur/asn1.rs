@@ -3213,21 +3213,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rose-client"
-version = "0.1.0"
-dependencies = [
- "asn1",
- "async-trait",
- "idm",
- "rose",
- "rose-idm",
- "tokio",
- "tower",
- "x500",
- "x690",
-]
-
-[[package]]
 name = "rose-idm"
 version = "0.1.0"
 dependencies = [
@@ -3239,6 +3224,21 @@ dependencies = [
  "tokio-rustls",
  "tokio-stream",
  "webpki",
+ "x500",
+ "x690",
+]
+
+[[package]]
+name = "rose-stream"
+version = "0.1.0"
+dependencies = [
+ "asn1",
+ "async-trait",
+ "idm",
+ "rose",
+ "rose-idm",
+ "tokio",
+ "tower",
  "x500",
  "x690",
 ]
@@ -5001,8 +5001,8 @@ dependencies = [
  "async-trait",
  "idm",
  "rose",
- "rose-client",
  "rose-idm",
+ "rose-stream",
  "tokio",
  "tokio-rustls",
  "tokio-stream",

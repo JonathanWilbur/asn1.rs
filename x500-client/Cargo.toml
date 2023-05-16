@@ -20,7 +20,7 @@ asn1 = { path = "../asn1" }
 idm = { path = "../idm" }
 rose = { path = "../rose" }
 rose-idm = { path = "../rose-idm" }
-rose-client = { path = "../rose-client" }
+rose-stream = { path = "../rose-stream" }
 x500 = { path = "../x500" }
 x690 = { path = "../x690" }
 tokio = { version = "1", features = ["net", "macros", "rt", "time"] }

@@ -82,7 +82,7 @@ use x500::EnhancedSecurity::{
     _decode_OPTIONALLY_PROTECTED,
 };
 use std::io::{Result, Error, ErrorKind};
-use rose_client::RoseClient;
+use rose_stream::RoseClient;
 use x690::{X690Element, x690_write_i64_value};
 use std::sync::atomic::AtomicI32;
 use std::sync::Arc;

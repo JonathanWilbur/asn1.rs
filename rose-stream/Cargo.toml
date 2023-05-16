@@ -1,5 +1,5 @@
 [package]
-name = "rose-client"
+name = "rose-stream"
 version = "0.1.0"
 edition = "2021"
 

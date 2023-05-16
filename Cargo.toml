@@ -18,5 +18,5 @@ members = [
     "x691",
     "rose",
     "rose-idm",
-    "rose-client",
+    "rose-stream",
 ]
