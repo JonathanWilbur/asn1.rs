@@ -273,4 +273,7 @@ which control how these elements are encoded.
       couldn't you implement an IDM layer that accepts only BER and DER encoding
       for `impl ROSEReceiver<X690Element>`?
 - [ ] Shouldn't the API implement a lazy technique? As, just decode PDUs as they
-      are needed? In other words, pull, rather than eagerly parse and enqueue.d
+      are needed? In other words, pull, rather than eagerly parse and enqueue.
+- [ ] ROSE client
+  - [ ] StartTLS
+  - [ ] Implicit TLS

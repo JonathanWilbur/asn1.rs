@@ -376,3 +376,15 @@ pub const ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI: TagNumber = 35;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI: TagNumber = 36;
 
 pub const MAX_IA5_STRING_CHAR_CODE: u8 = 0x0000_007F;
+
+pub trait ObjectIdentifierIntoDescriptor {
+
+    fn get_oid_descriptor (&self, oid: &OBJECT_IDENTIFIER) -> Option<String>;
+
+}
+
+pub trait ObjectIdentifierFromDescriptor {
+
+    fn get_oid (&self, desc: &str) -> Option<OBJECT_IDENTIFIER>;
+
+}

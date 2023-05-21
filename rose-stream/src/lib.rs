@@ -63,7 +63,7 @@ impl Service<BindParameters<X690Element>> for BindService {
 
     type Response = BindOutcome<X690Element, X690Element>;
     type Error = std::io::Error;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>> + Send>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))
@@ -102,7 +102,7 @@ impl Service<UnbindParameters<X690Element>> for UnbindService {
 
     type Response = UnbindOutcome<X690Element, X690Element>;
     type Error = std::io::Error;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>> + Send>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))
@@ -123,7 +123,7 @@ impl Service<StartTLSParameters> for StartTLSService {
 
     type Response = StartTLSOutcome;
     type Error = std::io::Error;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>>>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response>> + Send>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))

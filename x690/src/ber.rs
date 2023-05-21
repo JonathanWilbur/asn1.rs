@@ -1520,7 +1520,7 @@ pub fn ber_encode_object_descriptor(value: &ObjectDescriptor) -> ASN1Result<X690
     ))
 }
 
-pub fn ber_encode_utf8_string(value: &UTF8String) -> ASN1Result<X690Element> {
+pub fn ber_encode_utf8_string(value: &str) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
     x690_write_utf8_string_value(&mut out, &value)?;
     Ok(X690Element::new(
@@ -1530,7 +1530,7 @@ pub fn ber_encode_utf8_string(value: &UTF8String) -> ASN1Result<X690Element> {
     ))
 }
 
-pub fn ber_encode_numeric_string(value: &NumericString) -> ASN1Result<X690Element> {
+pub fn ber_encode_numeric_string(value: &str) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
@@ -1540,7 +1540,7 @@ pub fn ber_encode_numeric_string(value: &NumericString) -> ASN1Result<X690Elemen
     ))
 }
 
-pub fn ber_encode_printable_string(value: &PrintableString) -> ASN1Result<X690Element> {
+pub fn ber_encode_printable_string(value: &str) -> ASN1Result<X690Element> {
     let mut out: Bytes = Vec::new();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(

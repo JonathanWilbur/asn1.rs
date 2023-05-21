@@ -211,6 +211,46 @@ impl X690Element {
         }
     }
 
+    // This is expensive because it might clone the content octets!
+    pub fn content_octets (&self) -> ASN1Result<Vec<u8>> {
+        match self.value.borrow() {
+            X690Encoding::IMPLICIT(content) => {
+                return Ok(content.clone());
+            },
+            X690Encoding::Constructed(components) => {
+                let mut ret: Vec<u8> = Vec::new();
+                for component in components {
+                    // We simply ignore this error. This should not fail at all,
+                    // and if it does,
+                    write_x690_node(&mut ret, &component)?;
+                }
+                Ok(ret)
+            },
+            X690Encoding::EXPLICIT(inner) => {
+                let mut ret: Vec<u8> = Vec::new();
+                write_x690_node(&mut ret, &inner)?; // This actually should not fail.
+                Ok(ret)
+            },
+            X690Encoding::AlreadyEncoded(bytes) => {
+                let ignore_len = get_x690_tag_and_length_length(&bytes);
+                return Ok(Vec::from(&bytes[ignore_len..]));
+            },
+        }
+    }
+
+    pub fn to_asn1_error (&self, errcode: ASN1ErrorCode) -> ASN1Error {
+        ASN1Error {
+            error_code: errcode,
+            component_name: self.name.clone(),
+            tag: Some(Tag::new(self.tag_class, self.tag_number)),
+            length: Some(self.len()),
+            constructed: Some(self.is_constructed()),
+            value_preview: None,
+            bytes_read: None,
+            values_read: None,
+            io_error: None,
+        }
+    }
     // TODO: is_empty()
 }
 
@@ -855,7 +895,7 @@ where
     Ok(bytes_written)
 }
 
-pub fn x690_write_utf8_string_value<W>(output: &mut W, value: &UTF8String) -> Result<usize>
+pub fn x690_write_utf8_string_value<W>(output: &mut W, value: &str) -> Result<usize>
 where
     W: Write,
 {
@@ -981,7 +1021,7 @@ where
 
 // This does not do any validation.
 #[inline]
-pub fn x690_write_string_value<W>(output: &mut W, value: &String) -> Result<usize>
+pub fn x690_write_string_value<W>(output: &mut W, value: &str) -> Result<usize>
 where
     W: Write,
 {

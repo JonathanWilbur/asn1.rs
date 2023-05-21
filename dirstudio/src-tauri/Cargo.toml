@@ -25,6 +25,11 @@ x690 = { path = "../../x690" }
 x500-client = { path = "../../x500-client" }
 rose = { path = "../../rose" }
 rose-stream = { path = "../../rose-stream" }
+dirstudio-api-types = { path = "../../dirstudio-api-types" }
+anyhow = "1.0.71"
+log = "0.4.17"
+wasm-logger = "0.2.0"
+hex = "0.4.3"
 
 [features]
 # by default Tauri runs in production mode

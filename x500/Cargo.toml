@@ -20,3 +20,4 @@ categories = ["network-programming"]
 asn1 = { path = "../asn1" }
 x690 = { path = "../x690" }
 ldap = { path = "../ldap" }
+hex = "0.4.3"
