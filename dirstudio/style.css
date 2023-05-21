@@ -109,6 +109,8 @@ ul {
     width: 100%;
     box-sizing: border-box;
     padding: 3px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .tree-item:hover {
@@ -125,7 +127,7 @@ ul {
 }
 
 .nav-node-text {
-    text-overflow: ellipsis;
+    text-overflow: clip;
     overflow: hidden;
 }
 
