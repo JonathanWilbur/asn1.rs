@@ -349,8 +349,8 @@ pub trait DisplayX500AttributeType {
     }
 
     fn attr_type_to_name (self: &Self, attr_type: &AttributeType) -> Option<String> {
-        self.attr_type_to_long_name(attr_type)
-            .or(self.attr_type_to_short_name(attr_type)
+        self.attr_type_to_short_name(attr_type)
+            .or(self.attr_type_to_long_name(attr_type)
                 .or(self.attr_type_to_descriptor(attr_type)))
     }
 

@@ -1,6 +1,6 @@
 :root {
   font-family: Monaco, 'Courier New', Courier, monospace;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 24px;
   font-weight: 400;
 
@@ -40,11 +40,15 @@ body {
 
 #nav-column {
     background-color: #202020;
-    min-width: 200px;
+    min-width: 20vw;
     width: 20vw;
     height: 100%;
     text-align: left;
     padding: 10px;
+    resize: horizontal;
+    box-sizing: border-box;
+    border: 1px solid black;
+    overflow: auto;
 }
 
 a {
@@ -118,6 +122,11 @@ ul {
 
 .even {
     background-color: #404040;
+}
+
+.nav-node-text {
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 @media (prefers-color-scheme: dark) {

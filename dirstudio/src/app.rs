@@ -90,6 +90,7 @@ pub fn app() -> Html {
         .map(|(i, sub)| {
             html!{
                 <TreeNode
+                    session_id={sub.text.clone()}
                     node={sub.clone()}
                     depth={0}
                     alternation={(i % 2) == 0}
@@ -149,9 +150,9 @@ pub fn app() -> Html {
         <main class="container">
             <div id="nav-column">
                 <div>
-                    <label for="session-select">
-                        <h2>{"Sessions"}</h2>
-                    </label>
+                    // <label for="session-select">
+                    //     <h2>{"Sessions"}</h2>
+                    // </label>
                     <select
                         id="session-select"
                         onchange={create_session}

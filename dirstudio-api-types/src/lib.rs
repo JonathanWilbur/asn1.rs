@@ -129,7 +129,7 @@ pub enum ApiGeneralName {
 
 #[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
 pub struct SubordinateInfo {
-    pub dn: DistinguishedName,
+    pub rdn: RDN,
     pub entry: bool,
     pub alias: bool,
     // pub performer: Option<String>,
@@ -265,14 +265,14 @@ impl NavTreeNode {
 
 #[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
 pub struct ListArgument {
-    pub session_id: String,
-    pub object: DistinguishedName,
+    pub sessionId: String,
+    pub object: DirectoryName,
     pub family: bool,
 }
 
 #[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
 pub struct ListResult {
-    pub name: DistinguishedName,
+    pub name: DirectoryName,
     pub subordinates: Vec<NavTreeNode>,
     // pub signature_valid: bool,
     // pub signature_error: Option<Error>
@@ -592,8 +592,9 @@ impl <T> IntoApiAtav for T
         let value: String = self
             .value_to_string(&atav.type_, &atav.value)
             .map_err(|_| std::fmt::Error)?
-            .ok_or_else(|| self.unrecognized_value_to_string(&atav.value))
-            .unwrap();
+            .unwrap_or(self.unrecognized_value_to_string(&atav.value));
+            // .ok_or_else(|| self.unrecognized_value_to_string(&atav.value))
+            // .unwrap();
         Ok(Atav {
             attr_type: OidInfo {
                 numeric: atav.type_.0.clone(),
