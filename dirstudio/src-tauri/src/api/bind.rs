@@ -10,7 +10,7 @@ use dirstudio_api_types::{
     ApiGeneralName,
     IntoApiGeneralName,
 };
-use crate::state::{SessionId, ServerSideState};
+use crate::state::{SessionId, ServerSideState, SessionState};
 use rose::BindOutcome;
 use ::idm::IdmStream;
 use rose::BindParameters;
@@ -26,7 +26,8 @@ use x500::DirectoryAbstractService::{
 use x500::DirectoryIDMProtocols::id_idm_dap;
 use rose_stream::RoseClient;
 use x500_client::DAPClient;
-
+use std::sync::Arc;
+use tauri::async_runtime::Mutex;
 
 async fn bind_idm (state: &ServerSideState, address: &str) -> Result<BindResult, DirectoryClientError> {
     let mut addrs = address.to_socket_addrs().map_err(|_| DirectoryClientError::MalformedUrl)?;
@@ -175,6 +176,10 @@ async fn bind_idm (state: &ServerSideState, address: &str) -> Result<BindResult,
                 responding_ap_invocation_identifier,
                 responding_ae_invocation_identifier,
             };
+            let mut sessions = state.sessions.lock().await;
+            sessions.insert(String::from("REPLACE_ME"), SessionState{
+                client: Arc::new(Mutex::new(dap)),
+            });
             Ok(b)
         },
         _ => return Err(DirectoryClientError::ApplicationAssociationRejected) // TODO: Change this.

@@ -277,3 +277,10 @@ which control how these elements are encoded.
 - [ ] ROSE client
   - [ ] StartTLS
   - [ ] Implicit TLS
+  - [ ] Generate and track InvokeIds
+- [ ] X.500
+  - Defaults for structs (how did I miss this?)
+  - Validators
+  - `.inner_data()` for `OPTIONALLY-PROTECTED` types.
+  - Iterator for `ListResult` and `SearchResult`
+  - Preserve bytes of `SIGNED`

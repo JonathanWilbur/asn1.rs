@@ -6,6 +6,8 @@ pub mod api;
 pub mod menu;
 pub mod state;
 use std::collections::HashMap;
+use std::sync::{Arc};
+use tauri::async_runtime::Mutex;
 
 use crate::api::{bind::bind, list::list, read::read};
 use crate::menu::get_menu;
@@ -15,7 +17,7 @@ fn main() {
     tauri::Builder::default()
         .menu(get_menu())
         .manage(ServerSideState {
-            sessions: HashMap::new(),
+            sessions: Arc::new(Mutex::new(HashMap::new())),
         })
         // It seems like you add the handlers in one call. If you call this
         // multiple times, newer calls overwrite older ones.

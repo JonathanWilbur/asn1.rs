@@ -231,9 +231,15 @@ pub struct PoqInfo {
     pub entry_count: Option<EntryCount>,
 }
 
+#[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
+pub struct SessionInfo {
+    pub id: SessionId,
+}
+
 #[derive(Clone, PartialEq, Hash, Eq, serde::Deserialize, serde::Serialize)]
 pub enum NavTreeNodeContent {
     Test,
+    Session(SessionInfo),
     Subordinate(SubordinateInfo),
     POQ(PoqInfo),
     ContinuationRef(ContinuationRefInfo),
@@ -312,12 +318,17 @@ pub struct ModifyRight {
 
 #[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
 pub struct ReadResult {
-    pub name: DistinguishedName,
     pub entry: EntryInformation,
     pub modify_rights: Vec<ModifyRight>,
     pub performer: Option<DistinguishedName>,
     pub alias_dereferenced: bool,
     pub ldap_message: Option<String>,
+}
+
+#[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
+pub struct ReadArgument {
+    pub sessionId: SessionId,
+    pub object: DirectoryName,
 }
 
 // Used for RemoveEntry, ChangePassword, and AdministerPassword.

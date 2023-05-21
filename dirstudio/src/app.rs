@@ -4,12 +4,20 @@ use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 // use crate::tree::TreeNode;
 // use web_sys::ev
-use dirstudio_api_types::{BindArgument, BindResult, SessionId};
+use dirstudio_api_types::{
+    BindArgument,
+    BindResult,
+    SessionId,
+    NavTreeNode,
+    SessionInfo,
+    SubordinateInfo,
+    ReadResult, ReadArgument,
+};
 use serde_wasm_bindgen::{to_value, from_value};
-use crate::ipc::invoke;
+use crate::{ipc::invoke, tree};
 use wasm_bindgen_futures::spawn_local;
 use log::{info, warn, error};
-// use crate::tree::NavTreeNodeComponent;
+use crate::tree::TreeNode;
 
 #[wasm_bindgen]
 extern "C" {
@@ -24,6 +32,7 @@ extern "C" {
 #[function_component(App)]
 pub fn app() -> Html {
     let sessions = use_state(|| Vec::<SessionId>::from([String::from("asdf")]));
+    let tree_roots = use_state(|| Vec::<NavTreeNode>::new());
     // let onclick = {
     //     let counter = counter.clone();
     //     Callback::from(move |_| counter.set(*counter + 1))
@@ -75,6 +84,20 @@ pub fn app() -> Html {
     //     invoke("bind_via_url", to_value(&String::from("idm://dsa01.root.mkdemo.wildboar.software:4632")).unwrap());
     // });
 
+    let children = tree_roots
+        .iter()
+        .enumerate()
+        .map(|(i, sub)| {
+            html!{
+                <TreeNode
+                    node={sub.clone()}
+                    depth={0}
+                    alternation={(i % 2) == 0}
+                    />
+            }
+        })
+        .collect::<Html>();
+
     let session_options = sessions
         .iter()
         .map(|sess| {
@@ -85,7 +108,7 @@ pub fn app() -> Html {
         .collect::<Html>();
 
     let create_session = Callback::from(move |e| {
-        info!("Called the callback");
+        let tree_roots = tree_roots.clone();
         let sessions = sessions.clone();
         spawn_local(async move {
             let outcome = invoke("bind", to_value(&BindArgument{
@@ -99,9 +122,20 @@ pub fn app() -> Html {
             match outcome {
                 Ok(js_result) => {
                     let r: BindResult = from_value(js_result).unwrap(); // FIXME: Handle errors.
-                    sessions.set([
-                        sessions.as_slice(),
-                        &[ r.session_id ],
+                    // sessions.set([
+                    //     sessions.as_slice(),
+                    //     &[ r.session_id ],
+                    // ].concat());
+                    let session_id = r.session_id.clone();
+                    let new_node = NavTreeNode { // TODO: Do not clone so much.
+                        text: session_id.clone(),
+                        content: dirstudio_api_types::NavTreeNodeContent::Session(SessionInfo {
+                            id: session_id,
+                        }),
+                    };
+                    tree_roots.set([
+                        tree_roots.as_slice(),
+                        &[ new_node ],
                     ].concat());
                 },
                 Err(e) => {
@@ -127,11 +161,7 @@ pub fn app() -> Html {
                     </select>
                 </div>
                 <hr />
-                // <TreeNode
-                //     node={tree}
-                //     depth={0}
-                //     alternation={true}
-                //     />
+                {children}
             </div>
         </main>
     }

@@ -8,17 +8,19 @@ use x500::types::{
 };
 use x690::{X690Element, write_x690_node};
 use asn1::{ObjectIdentifierIntoDescriptor, ObjectIdentifierFromDescriptor};
+use std::sync::Arc;
+use tauri::async_runtime::Mutex;
 
 pub type SessionId = String;
 
 #[derive(Clone)]
 pub struct SessionState {
-    pub client: DAPClient,
+    pub client: Arc<Mutex<DAPClient>>,
 }
 
 #[derive(Clone)]
 pub struct ServerSideState {
-    pub sessions: HashMap<SessionId, SessionState>,
+    pub sessions: Arc<Mutex<HashMap<SessionId, SessionState>>>,
 }
 
 impl ParseX500AttributeType for ServerSideState {  }
