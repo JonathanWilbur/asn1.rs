@@ -1006,6 +1006,7 @@ version = "0.0.0"
 dependencies = [
  "asn1",
  "dirstudio-api-types",
+ "gloo",
  "hex",
  "js-sys",
  "log",

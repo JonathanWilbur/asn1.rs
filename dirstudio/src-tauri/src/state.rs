@@ -5,6 +5,8 @@ use x500::types::{
     ParseX500Value,
     DisplayX500AttributeType,
     DisplayX500Value,
+    parse_value,
+    value_to_string,
 };
 use x690::{X690Element, write_x690_node};
 use asn1::{ObjectIdentifierIntoDescriptor, ObjectIdentifierFromDescriptor};
@@ -27,9 +29,8 @@ impl ParseX500AttributeType for ServerSideState {  }
 
 impl ParseX500Value<X690Element> for ServerSideState {
 
-    // TODO:
     fn parse_value (&self, attr_type: &x500::InformationFramework::AttributeType, s: &str) -> Result<Option<X690Element>, std::fmt::Error> {
-        Ok(None)
+        parse_value(self, attr_type, s)
     }
 
 }
@@ -57,8 +58,7 @@ impl DisplayX500AttributeType for ServerSideState {  }
 impl DisplayX500Value<X690Element> for ServerSideState {
 
     fn value_to_string (self: &Self, attr_type: &x500::InformationFramework::AttributeType, value: &X690Element) -> Result<Option<String>, asn1::ASN1Error> {
-        // TODO:
-        Ok(None)
+        value_to_string(self, attr_type, value)
     }
 
     fn unrecognized_value_to_string (self: &Self, value: &X690Element) -> String {

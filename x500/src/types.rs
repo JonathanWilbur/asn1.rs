@@ -63,7 +63,7 @@ use x690::{
     ber_decode_generalized_time,
     ber_decode_duration,
     ber_decode_oid_iri,
-    ber_decode_relative_oid_iri, ber_encode_utf8_string, ber_encode_printable_string, ber_encode_numeric_string, ber_encode_object_identifier,
+    ber_decode_relative_oid_iri, ber_encode_utf8_string, ber_encode_printable_string, ber_encode_numeric_string, ber_encode_object_identifier, ber_cst,
 };
 use asn1::utils::read_i64;
 use crate::SelectedAttributeTypes::{
@@ -349,6 +349,13 @@ pub trait DisplayX500AttributeType {
     }
 
     fn attr_type_to_name (self: &Self, attr_type: &AttributeType) -> Option<String> {
+        self.attr_type_to_long_name(attr_type)
+            .or(self.attr_type_to_short_name(attr_type)
+                .or(self.attr_type_to_descriptor(attr_type)))
+    }
+
+    // Same as `attr_type_to_name`, but it prefers shorter names.
+    fn attr_type_to_shortest_name (self: &Self, attr_type: &AttributeType) -> Option<String> {
         self.attr_type_to_short_name(attr_type)
             .or(self.attr_type_to_long_name(attr_type)
                 .or(self.attr_type_to_descriptor(attr_type)))
@@ -481,6 +488,159 @@ pub trait DisplayX500Value <OpenType> {
 pub struct DefaultX500ValueDisplayer;
 pub struct DefaultX500ValueParser;
 
+pub fn value_to_string <E, K> (
+    k: &K,
+    attr_type: &AttributeType,
+    value: &X690Element,
+) -> Result<Option<String>, ASN1Error>
+    where
+        K: DisplayX500AttributeType + DisplayX500Value<E> {
+    if value.tag_class != TagClass::UNIVERSAL {
+        return Ok(None);
+    }
+    match value.tag_number {
+        // ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => {},
+        ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => {
+            let v = ber_decode_boolean(value)?;
+            if v {
+                Ok(Some(String::from("TRUE")))
+            } else {
+                Ok(Some(String::from("FALSE")))
+            }
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_INTEGER => {
+            let integ = ber_decode_integer(value)?;
+            if let Ok(i) = read_i64(&integ) {
+                return Ok(Some(format!("{}", i).to_string()));
+            } else {
+                return Ok(None);
+            }
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING => {
+            let v = ber_decode_bit_string(value)?;
+            Ok(Some(format!("{}", v).to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING => {
+            let v = ber_decode_octet_string(value)?;
+            // NOTE: This is not the LDAP syntax. The LDAP syntax is just the raw octets.
+            Ok(Some(hex::encode(v)))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_NULL => {
+            Ok(Some(String::from("NULL")))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER => {
+            let v = ber_decode_object_identifier(value)?;
+            Ok(Some(v.to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR => {
+            let v = ber_decode_object_descriptor(value)?;
+            Ok(Some(v))
+        },
+        // ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => {},
+        ASN1_UNIVERSAL_TAG_NUMBER_REAL => {
+            let v = ber_decode_real(value)?;
+            Ok(Some(v.to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => {
+            let v = ber_decode_enumerated(value)?;
+            Ok(Some(v.to_string()))
+        },
+        // ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => {},
+        ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING => {
+            let v = ber_decode_utf8_string(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID => {
+            let v = ber_decode_relative_oid(value)?;
+            Ok(Some(v.to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_TIME => {
+            let v = ber_decode_time(value)?;
+            Ok(Some(v))
+        },
+        // ASN1_UNIVERSAL_TAG_NUMBER_RESERVED_15 => {},
+        // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE => {},
+        // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF => {},
+        // ASN1_UNIVERSAL_TAG_NUMBER_SET => {},
+        // ASN1_UNIVERSAL_TAG_NUMBER_SET_OF => {},
+        ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING => {
+            let v = ber_decode_numeric_string(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING => {
+            let v = ber_decode_printable_string(value)?;
+            Ok(Some(v))
+        },
+        // ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING => {},
+        // ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING => {},
+        ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING => {
+            let v = ber_decode_ia5_string(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME => {
+            let v = ber_decode_utc_time(value)?;
+            Ok(Some(v.to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME => {
+            let v = ber_decode_generalized_time(value)?;
+            Ok(Some(v.to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING => {
+            let v = ber_decode_graphic_string(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING => {
+            let v = ber_decode_visible_string(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING => {
+            let v = ber_decode_general_string(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING => {
+            let v = ber_decode_universal_string(value)?;
+            Ok(Some(v))
+        },
+        // ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => {},
+        ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING => {
+            let v = ber_decode_bmp_string(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_DATE => {
+            let v = ber_decode_date(value)?;
+            Ok(Some(format!("{}-{}-{}", v.year, v.month, v.day).to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY => {
+            let v = ber_decode_time_of_day(value)?;
+            Ok(Some(format!("{}:{}:{}", v.hour, v.minute, v.second).to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME => {
+            let v = ber_decode_date_time(value)?;
+            Ok(Some(format!("{}-{}-{}T{}:{}:{}",
+                v.date.year,
+                v.date.month,
+                v.date.day,
+                v.time.hour,
+                v.time.minute,
+                v.time.second
+            ).to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_DURATION => {
+            let v = ber_decode_duration(value)?;
+            Ok(Some(v.to_string()))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI => {
+            let v = ber_decode_oid_iri(value)?;
+            Ok(Some(v))
+        },
+        ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI => {
+            let v = ber_decode_relative_oid_iri(value)?;
+            Ok(Some(v))
+        },
+        _ => Ok(None)
+    }
+}
+
 impl DisplayX500Value<X690Element> for DefaultX500ValueDisplayer {
 
     fn unrecognized_value_to_string (self: &Self, value: &X690Element) -> String {
@@ -494,150 +654,7 @@ impl DisplayX500Value<X690Element> for DefaultX500ValueDisplayer {
         attr_type: &AttributeType,
         value: &X690Element,
     ) -> Result<Option<String>, ASN1Error> {
-        if value.tag_class != TagClass::UNIVERSAL {
-            return Ok(None);
-        }
-        match value.tag_number {
-            // ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => {},
-            ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => {
-                let v = ber_decode_boolean(value)?;
-                if v {
-                    Ok(Some(String::from("TRUE")))
-                } else {
-                    Ok(Some(String::from("FALSE")))
-                }
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_INTEGER => {
-                let integ = ber_decode_integer(value)?;
-                if let Ok(i) = read_i64(&integ) {
-                    return Ok(Some(format!("{}", i).to_string()));
-                } else {
-                    return Ok(None);
-                }
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING => {
-                let v = ber_decode_bit_string(value)?;
-                Ok(Some(format!("{}", v).to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING => {
-                let v = ber_decode_octet_string(value)?;
-                // NOTE: This is not the LDAP syntax. The LDAP syntax is just the raw octets.
-                Ok(Some(hex::encode(v)))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_NULL => {
-                Ok(Some(String::from("NULL")))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER => {
-                let v = ber_decode_object_identifier(value)?;
-                Ok(Some(v.to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR => {
-                let v = ber_decode_object_descriptor(value)?;
-                Ok(Some(v))
-            },
-            // ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => {},
-            ASN1_UNIVERSAL_TAG_NUMBER_REAL => {
-                let v = ber_decode_real(value)?;
-                Ok(Some(v.to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => {
-                let v = ber_decode_enumerated(value)?;
-                Ok(Some(v.to_string()))
-            },
-            // ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => {},
-            ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING => {
-                let v = ber_decode_utf8_string(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID => {
-                let v = ber_decode_relative_oid(value)?;
-                Ok(Some(v.to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_TIME => {
-                let v = ber_decode_time(value)?;
-                Ok(Some(v))
-            },
-            // ASN1_UNIVERSAL_TAG_NUMBER_RESERVED_15 => {},
-            // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE => {},
-            // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF => {},
-            // ASN1_UNIVERSAL_TAG_NUMBER_SET => {},
-            // ASN1_UNIVERSAL_TAG_NUMBER_SET_OF => {},
-            ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING => {
-                let v = ber_decode_numeric_string(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING => {
-                let v = ber_decode_printable_string(value)?;
-                Ok(Some(v))
-            },
-            // ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING => {},
-            // ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING => {},
-            ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING => {
-                let v = ber_decode_ia5_string(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME => {
-                let v = ber_decode_utc_time(value)?;
-                Ok(Some(v.to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME => {
-                let v = ber_decode_generalized_time(value)?;
-                Ok(Some(v.to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING => {
-                let v = ber_decode_graphic_string(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING => {
-                let v = ber_decode_visible_string(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING => {
-                let v = ber_decode_general_string(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING => {
-                let v = ber_decode_universal_string(value)?;
-                Ok(Some(v))
-            },
-            // ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => {},
-            ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING => {
-                let v = ber_decode_bmp_string(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_DATE => {
-                let v = ber_decode_date(value)?;
-                Ok(Some(format!("{}-{}-{}", v.year, v.month, v.day).to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY => {
-                let v = ber_decode_time_of_day(value)?;
-                Ok(Some(format!("{}:{}:{}", v.hour, v.minute, v.second).to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME => {
-                let v = ber_decode_date_time(value)?;
-                Ok(Some(format!("{}-{}-{}T{}:{}:{}",
-                    v.date.year,
-                    v.date.month,
-                    v.date.day,
-                    v.time.hour,
-                    v.time.minute,
-                    v.time.second
-                ).to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_DURATION => {
-                let v = ber_decode_duration(value)?;
-                Ok(Some(v.to_string()))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI => {
-                let v = ber_decode_oid_iri(value)?;
-                Ok(Some(v))
-            },
-            ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI => {
-                let v = ber_decode_relative_oid_iri(value)?;
-                Ok(Some(v))
-            },
-            _ => Ok(None)
-        }
+        value_to_string(self, attr_type, value)
     }
 
 }
@@ -962,122 +979,132 @@ pub trait ParseGeneralName {
 
 impl ParseX500AttributeType for DefaultX500ValueParser {  }
 
+// Exported separately so it can be used by other implementations, if desired.
+pub fn parse_value <K: ParseX500AttributeType> (k: &K, attr_type: &AttributeType, s: &str) -> Result<Option<X690Element>, std::fmt::Error> {
+    if s.starts_with("#") {
+        let bytes = hex::decode(&s[1..]).map_err(|_| std::fmt::Error)?;
+        let cst = ber_cst(&bytes).map_err(|_| std::fmt::Error)?;
+        return Ok(Some(cst.1));
+    }
+    if attr_type.0.len() == 4 && attr_type.0.starts_with(&[ 2, 5, 4 ]) {
+        match attr_type.0[3] {
+            2 // knowledgeInformation
+            | 3 // commonName
+            | 4 // surname
+            | 7 // localityName
+            | 8 // stateOrProvinceName
+            | 10 // organizationName
+            | 11 // organizationalUnitName
+            | 12 // title
+            | 13 // description
+            | 15 // businessCategory
+            | 17 // postalCode
+            | 18 // postOfficeBox
+            | 19 // physicalDeliveryOfficeName
+            | 41 // name
+            | 42 // givenName
+            | 43 // initials
+            | 44 // generationQualifier
+            | 51 // houseIdentifier
+            | 54 // dmdName
+            | 65 // pseudonym
+            | 81 // contentUrl
+            | 83 // uri
+            | 86 // urn
+            | 87 // url
+            | 97 // organizationIdentifier
+            | 100 // dnsName
+            | 104 // intEmail
+            | 105 // jid
+            => return Ok(Some(ber_encode_utf8_string(s).map_err(|_| std::fmt::Error)?)),
+
+            5 // serialNumber
+            | 6 // countryName
+            | 20 // telephoneNumber
+            | 27 // destinationIndicator
+            | 46 // dnQualifier
+            | 89 // urnC
+            | 98 // countryCode3c
+            => return Ok(Some(ber_encode_printable_string(s).map_err(|_| std::fmt::Error)?)),
+
+            24 // x121Address
+            | 25 // internationalISDNNumber
+            | 99 // countryCode3n
+            => return Ok(Some(ber_encode_numeric_string(s).map_err(|_| std::fmt::Error)?)),
+
+            0 // TODO: objectClass
+            | 30 // supportedApplicationContext
+            | 66 // communicationsService
+            | 67 // communicationsNetwork
+            | 78 // tagOid
+            | 84 // pwdAttribute
+            | 106 // objectIdentifier
+            => {
+                let oid = OBJECT_IDENTIFIER::from_str(s).map_err(|_| std::fmt::Error)?;
+                return Ok(Some(ber_encode_object_identifier(&oid).map_err(|_| std::fmt::Error)?));
+            },
+
+            1 // aliasedEntryName
+            | 31 // member
+            | 32 // owner
+            | 33 // roleOccupant
+            | 34 // seeAlso
+            | 49 // distinguishedName
+            => {
+                // TODO: Implement ParseX500DistinguishedName for this type
+            },
+
+            // BIT STRING
+            // uniqueIdentifier
+            // uii
+            // epc
+
+            // Fax:
+            // facsimileTelephoneNumber
+
+            // OCTET STRING
+            // tagAfi
+
+            // Postal Address:
+            // postalAddress
+            // registeredAddress
+
+            // searchGuide: guide
+
+            // uniqueMember: nameAndOptionalUID
+
+            // presentationAddress?
+
+            _ => return Ok(None),
+
+        }
+    }
+    Ok(None)
+    // "collectivelocalityname" => Some(id_at_collectiveLocalityName()),
+    // "collectiveorganizationalunitname" => Some(id_at_collectiveOrganizationalUnitName()),
+    // "collectiveorganizationname" => Some(id_at_collectiveOrganizationName()),
+    // "collectivephysicaldeliveryofficename" => Some(id_at_collectivePhysicalDeliveryOfficeName()),
+    // "collectivepostalcode" => Some(id_at_collectivePostalCode()),
+    // "collectivepostofficebox" => Some(id_at_collectivePostOfficeBox()),
+    // "collectivestateorprovincename" => Some(id_at_collectiveStateOrProvinceName()),
+    // "internationalisdnnumber" => Some(id_at_internationalISDNNumber()),
+
+
+    // Not ITU.
+    // "uid" => Some(id_coat_uid()),
+
+    // Under a different OID. All have INTEGER syntax.
+    // oidC1
+    // oidC2
+    // oidC
+
+    // TODO: Most operational attribute types
+}
+
 impl ParseX500Value<X690Element> for DefaultX500ValueParser {
 
     fn parse_value (&self, attr_type: &AttributeType, s: &str) -> Result<Option<X690Element>, std::fmt::Error> {
-        if attr_type.0.len() == 4 && attr_type.0.starts_with(&[ 2, 5, 4 ]) {
-            match attr_type.0[3] {
-                2 // knowledgeInformation
-                | 3 // commonName
-                | 4 // surname
-                | 7 // localityName
-                | 8 // stateOrProvinceName
-                | 10 // organizationName
-                | 11 // organizationalUnitName
-                | 12 // title
-                | 13 // description
-                | 15 // businessCategory
-                | 17 // postalCode
-                | 18 // postOfficeBox
-                | 19 // physicalDeliveryOfficeName
-                | 41 // name
-                | 42 // givenName
-                | 43 // initials
-                | 44 // generationQualifier
-                | 51 // houseIdentifier
-                | 54 // dmdName
-                | 65 // pseudonym
-                | 81 // contentUrl
-                | 83 // uri
-                | 86 // urn
-                | 87 // url
-                | 97 // organizationIdentifier
-                | 100 // dnsName
-                | 104 // intEmail
-                | 105 // jid
-                => return Ok(Some(ber_encode_utf8_string(s).map_err(|_| std::fmt::Error)?)),
-
-                5 // serialNumber
-                | 6 // countryName
-                | 20 // telephoneNumber
-                | 27 // destinationIndicator
-                | 46 // dnQualifier
-                | 89 // urnC
-                | 98 // countryCode3c
-                => return Ok(Some(ber_encode_printable_string(s).map_err(|_| std::fmt::Error)?)),
-
-                24 // x121Address
-                | 25 // internationalISDNNumber
-                | 99 // countryCode3n
-                => return Ok(Some(ber_encode_numeric_string(s).map_err(|_| std::fmt::Error)?)),
-
-                0 // TODO: objectClass
-                | 30 // supportedApplicationContext
-                | 66 // communicationsService
-                | 67 // communicationsNetwork
-                | 78 // tagOid
-                | 84 // pwdAttribute
-                | 106 // objectIdentifier
-                => {
-                    let oid = OBJECT_IDENTIFIER::from_str(s).map_err(|_| std::fmt::Error)?;
-                    return Ok(Some(ber_encode_object_identifier(&oid).map_err(|_| std::fmt::Error)?));
-                },
-
-                1 // aliasedEntryName
-                | 31 // member
-                | 32 // owner
-                | 33 // roleOccupant
-                | 34 // seeAlso
-                | 49 // distinguishedName
-                => {
-                    // TODO: Implement ParseX500DistinguishedName for this type
-                },
-
-                // BIT STRING
-                // uniqueIdentifier
-                // uii
-                // epc
-
-                // Fax:
-                // facsimileTelephoneNumber
-
-                // OCTET STRING
-                // tagAfi
-
-                // Postal Address:
-                // postalAddress
-                // registeredAddress
-
-                // searchGuide: guide
-
-                // uniqueMember: nameAndOptionalUID
-
-                // presentationAddress?
-
-                _ => return Ok(None),
-
-            }
-        }
-        Ok(None)
-        // "collectivelocalityname" => Some(id_at_collectiveLocalityName()),
-        // "collectiveorganizationalunitname" => Some(id_at_collectiveOrganizationalUnitName()),
-        // "collectiveorganizationname" => Some(id_at_collectiveOrganizationName()),
-        // "collectivephysicaldeliveryofficename" => Some(id_at_collectivePhysicalDeliveryOfficeName()),
-        // "collectivepostalcode" => Some(id_at_collectivePostalCode()),
-        // "collectivepostofficebox" => Some(id_at_collectivePostOfficeBox()),
-        // "collectivestateorprovincename" => Some(id_at_collectiveStateOrProvinceName()),
-        // "internationalisdnnumber" => Some(id_at_internationalISDNNumber()),
-
-
-        // Not ITU.
-        // "uid" => Some(id_coat_uid()),
-
-        // Under a different OID. All have INTEGER syntax.
-        // oidC1
-        // oidC2
-        // oidC
-
-        // TODO: Most operational attribute types
+        parse_value(self, attr_type, s)
     }
 
 }

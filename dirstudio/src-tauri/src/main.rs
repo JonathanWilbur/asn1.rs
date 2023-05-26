@@ -9,7 +9,12 @@ use std::collections::HashMap;
 use std::sync::{Arc};
 use tauri::async_runtime::Mutex;
 
-use crate::api::{bind::bind, list::list, read::read};
+use crate::api::{
+    bind::bind,
+    copy_to_clipboard::copy_to_clipboard,
+    list::list,
+    read::read,
+};
 use crate::menu::get_menu;
 use crate::state::ServerSideState;
 
@@ -23,6 +28,7 @@ fn main() {
         // multiple times, newer calls overwrite older ones.
         .invoke_handler(tauri::generate_handler![
             bind,
+            copy_to_clipboard,
             list,
             read,
         ])

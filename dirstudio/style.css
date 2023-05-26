@@ -51,6 +51,26 @@ body {
     overflow: auto;
 }
 
+#details-column {
+    min-width: 30vw;
+    width: 60vw;
+    height: 100%;
+    text-align: left;
+    padding: 10px;
+    resize: horizontal;
+    box-sizing: border-box;
+    border: 1px solid black;
+    overflow: auto;
+}
+
+#details-dn {
+    font-size: 16px;
+    /* text-overflow: ellipsis; */
+    /* overflow: scroll; */
+    direction: rtl;
+    overflow: hidden;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -131,6 +151,72 @@ ul {
     overflow: hidden;
 }
 
+.detail-row {
+    margin: 0px;
+    padding-left: 10px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+}
+
+.detail-cell-text {
+    width: 95%;
+    display: inline-block;
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+.detail-row.enabled:hover {
+    background-color: #555555;
+}
+
+.detail-row pre {
+    margin: 0px;
+    display: inline;
+}
+
+.detail-row.disabled {
+    color: #AAAAAA;
+    font-weight: lighter;
+}
+
+.detail-row.selected {
+    /* Important overrides even / odd */
+    background-color: #396cd8 !important;
+    font-weight: bolder;
+}
+
+/* Make all Material UI icons white. */
+.mui-icon {
+    filter: brightness(0) invert(1);
+}
+
+.detail-node-chevron {
+    height: 100%;
+    width: auto;
+    padding: 2px;
+    padding-right: 5px;
+    box-sizing: border-box;
+    display: inline;
+    vertical-align: middle;
+}
+
+.row-icon {
+    vertical-align: middle;
+}
+
+.row-icon-button:hover, .row-icon-button.disabled {
+    filter: brightness(0) invert(0.5);
+}
+
+.detail-cell {
+    overflow-x: hidden;
+    text-overflow: clip;
+    word-wrap: none;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f6f6f6;
@@ -146,4 +232,69 @@ ul {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 0px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+
+    top: 100%;
+    left: 50%;
+    margin-left: -60px;
+    transition: 0s visibility;
+}
+
+.tooltip:hover .tooltip-text {
+    transition-delay: 0.5s;
+    visibility: visible;
+}
+
+.tooltip .tooltip-text::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;  /* At the top of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+
+#context-menu {
+    position: fixed;
+    z-index: 10000;
+    width: 150px;
+    background: #1b1a1a;
+    border-radius: 5px;
+    transform: scale(0);
+    transform-origin: top left;
+}
+
+#context-menu.visible {
+    transform: scale(1);
+    transition: transform 30ms ease-in-out;
+}
+
+.context-menu-item {
+    padding: 8px;
+    color: white;
+    cursor: pointer;
+    border-radius: inherit;
+}
+
+.context-menu-item:hover {
+    background: #343434;
 }

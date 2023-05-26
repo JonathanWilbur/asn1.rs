@@ -23,7 +23,9 @@ use x500::CertificateExtensions::{
 };
 use x500::SelectedAttributeTypes::UnboundedDirectoryString;
 use asn1::{OID_ARC, ObjectIdentifierIntoDescriptor, OBJECT_IDENTIFIER};
+use std::fmt::Display;
 use std::net::{ToSocketAddrs, SocketAddr};
+use std::rc::Rc;
 use rose::{InvokeIdInt};
 use x690::X690Element;
 pub type Base64String = String;
@@ -90,6 +92,18 @@ pub struct OidInfo {
     pub name: Option<String>,
 }
 
+impl Display for OidInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(name) = &self.name {
+            let oid = OBJECT_IDENTIFIER::new(&self.numeric);
+            f.write_fmt(format_args!("{} ({})", &name, &oid))
+        } else {
+            let oid = OBJECT_IDENTIFIER::new(&self.numeric);
+            f.write_str(&oid.to_string())
+        }
+    }
+}
+
 pub type AttributeType = OidInfo;
 pub type ContextType = OidInfo;
 
@@ -151,7 +165,7 @@ pub struct AttributeValue {
 
 #[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
 pub struct Attribute {
-    pub attr_type: String,
+    pub attr_type: OidInfo,
     pub binary: bool, // If true, values are base64.
     pub values: Vec<AttributeValue>,
 }
@@ -170,6 +184,21 @@ pub struct EntryInformation {
     pub incomplete: bool,
     pub partial_name: bool,
     pub derived: bool,
+}
+
+impl Default for EntryInformation {
+
+    fn default() -> Self {
+        EntryInformation {
+            name: DirectoryName::RdnSequence(vec![]),
+            from_entry: false,
+            info: vec![],
+            incomplete: false,
+            partial_name: false,
+            derived: false,
+        }
+    }
+
 }
 
 #[derive(Clone, PartialEq, Properties, Hash, Eq, serde::Deserialize, serde::Serialize)]
@@ -525,6 +554,25 @@ pub struct BindResult {
     pub responding_ae_invocation_identifier: Option<u32>,
 }
 
+//   FamilyEntry ::= SEQUENCE {
+//     rdn            RelativeDistinguishedName,
+//     information    SEQUENCE OF CHOICE {
+//       attributeType  AttributeType,
+//       attribute      Attribute{{SupportedAttributes}},
+//       ...},
+//     family-info    SEQUENCE SIZE (1..MAX) OF FamilyEntries OPTIONAL,
+//     ... }
+
+#[derive(Clone, PartialEq, Hash, Eq, serde::Deserialize, serde::Serialize)]
+pub enum EntryInfoNodeContent {
+    AttributeType(AttributeType),
+    AttributeValue(String),
+    ContextType((ContextType, bool)),
+    ContextValue(String),
+    Family(OidInfo),
+    FamilyMember(RDN),
+}
+
 pub trait IntoApiAtav {
 
     fn serialize_x500_atav (&self, atav: &AttributeTypeAndValue) -> Result<Atav, std::fmt::Error>;
@@ -598,7 +646,7 @@ impl <T> IntoApiAtav for T
         Ok(Atav {
             attr_type: OidInfo {
                 numeric: atav.type_.0.clone(),
-                name: self.attr_type_to_name(&atav.type_),
+                name: self.attr_type_to_shortest_name(&atav.type_),
             },
             value,
         })

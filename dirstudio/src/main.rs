@@ -1,4 +1,6 @@
 mod app;
+mod components;
+mod info3;
 mod ipc;
 mod tree;
 
