@@ -38,6 +38,7 @@ pub fn attribute_node(props: &AttributeNodeProps) -> Html {
     let selected: UseStateHandle<bool> = use_state(|| false);
     let enabled: UseStateHandle<bool> = use_state(|| true);
     let expanded: UseStateHandle<bool> = use_state(|| true);
+    let show_context_menu: UseStateHandle<bool> = use_state(|| false);
     let alt_class = if props.alternation { "odd" } else { "even" };
     let sel_class = if *selected.deref() { "selected" } else { "unselected" };
     let ena_class = if *enabled.deref() { "enabled" } else { "disabled" };
@@ -102,27 +103,73 @@ pub fn attribute_node(props: &AttributeNodeProps) -> Html {
         {
             let node_ref = node_ref.clone();
             let context_menu_ref = context_menu_ref.clone();
+            let show_context_menu = show_context_menu.clone();
+            let context_menu_ref_2 = context_menu_ref.clone();
+            let show_context_menu_2 = show_context_menu.clone();
+            let show_context_menu_3 = show_context_menu.clone();
             move |_| {
                 let mut context_menu_listener = None;
+                let mut context_menu_click_away_listener = None;
+                let mut context_menu_move_listener = None;
+
                 if let Some(element) = node_ref.cast::<HtmlElement>() {
+                    let tr_element = element.clone();
+                    let on_click_away = Callback::from(move |e: Event| -> Result<(), ()> {
+                        let mouse_event = e.dyn_ref::<MouseEvent>().ok_or(())?;
+                        // See: https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons
+                        let is_right_click: bool = mouse_event.button() == 2;
+                        let target = e.target().ok_or(())?;
+                        let target_el = target.dyn_ref::<HtmlElement>().ok_or(())?;
+                        let menu_node = context_menu_ref.get().ok_or(())?;
+                        let menu_el = menu_node.dyn_into::<HtmlElement>().map_err(|_| ())?;
+                        let offset_parent = target_el.offset_parent().ok_or(())?;
+                        if offset_parent != *menu_el.as_ref() // If we did not click on the context menu itself...
+                            && ( // ...and this click didn't originate from within this row, or...
+                                !tr_element.contains(Some(&target_el.as_ref()))
+                                // ...it wasn't a right click.
+                                || !is_right_click
+                            )
+                            {
+                            show_context_menu.set(false);
+                        }
+                        Ok(())
+                    });
                     let on_context_menu = Callback::from(move |e: Event| {
                         if let Ok(mouse_event) = e.dyn_into::<MouseEvent>() {
                             mouse_event.prevent_default();
                             let x = mouse_event.client_x();
                             let y = mouse_event.client_y();
+                            let context_menu_ref = context_menu_ref_2.clone();
+                            let show_context_menu = show_context_menu_2.clone();
                             if let Some(cm_node) = context_menu_ref.get() {
                                 if let Ok(cm_html_el) = cm_node.dyn_into::<HtmlElement>() {
                                     let style = cm_html_el.style();
                                     style.set_property("top",  format!("{}px", y).as_str());
                                     style.set_property("left", format!("{}px", x).as_str());
-                                    let cls = cm_html_el.class_name();
-                                    cm_html_el.set_class_name(format!("{} visible", cls).as_str());
+                                    show_context_menu.set(true);
                                 }
                             }
                         } else {
                             error!("Could not convert Event to a MouseEvent");
                         }
                     });
+                    if *show_context_menu_3.deref() {
+                        if let Some(body) = document().body() {
+                            let on_click_away_2 = on_click_away.clone();
+                            let listener1 = EventListener::new(
+                                &body,
+                                "click",
+                                move |e| { on_click_away.emit(e.clone()); }
+                            );
+                            context_menu_click_away_listener = Some(listener1);
+                            let listener2 = EventListener::new(
+                                &body,
+                                "contextmenu",
+                                move |e| { on_click_away_2.emit(e.clone()); }
+                            );
+                            context_menu_move_listener = Some(listener2);
+                        }
+                    }
                     let listener = EventListener::new_with_options(
                         &element,
                         "contextmenu",
@@ -134,41 +181,14 @@ pub fn attribute_node(props: &AttributeNodeProps) -> Html {
                     );
                     context_menu_listener = Some(listener);
                 }
-                move || drop(context_menu_listener)
-            }
-        },
-        [node_ref.clone(), context_menu_ref.clone()],
-    );
-
-    use_effect_with_deps(
-        {
-            let node_ref = node_ref.clone();
-            let context_menu_ref = context_menu_ref.clone();
-            move |_| {
-                let mut context_menu_unlistener = None;
-                if let Some(body) = document().body() {
-                    let on_click_away = Callback::from(move |e: Event| -> Result<(), ()> {
-                        let target = e.target().ok_or(())?;
-                        let target_el = target.dyn_ref::<HtmlElement>().ok_or(())?;
-                        let menu_node = context_menu_ref.get().ok_or(())?;
-                        let menu_el = menu_node.dyn_into::<HtmlElement>().map_err(|_| ())?;
-                        let offset_parent = target_el.offset_parent().ok_or(())?;
-                        if &offset_parent != menu_el.as_ref() {
-                            menu_el.set_class_name("");
-                        }
-                        Ok(())
-                    });
-                    let unlistener = EventListener::new(
-                        &body,
-                        "click",
-                        move |e| { on_click_away.emit(e.clone()); }
-                    );
-                    context_menu_unlistener = Some(unlistener);
+                move || {
+                    drop(context_menu_click_away_listener);
+                    drop(context_menu_move_listener);
+                    drop(context_menu_listener)
                 }
-                move || drop(context_menu_unlistener)
             }
         },
-        [node_ref.clone(), context_menu_ref.clone()],
+        (node_ref.clone(), context_menu_ref.clone(), show_context_menu.clone()),
     );
 
     let subordinates = if *expanded.deref() {
@@ -198,6 +218,7 @@ pub fn attribute_node(props: &AttributeNodeProps) -> Html {
         <>
             <ContextMenu
                 r#ref={context_menu_ref}
+                visible={*show_context_menu.deref()}
                 />
             <tr
                 class={classes!([
