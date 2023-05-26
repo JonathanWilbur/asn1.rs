@@ -276,9 +276,7 @@ ul {
 #context-menu {
     position: fixed;
     z-index: 10000;
-    width: 150px;
     background: #1b1a1a;
-    border-radius: 5px;
     transform: scale(0);
     transform-origin: top left;
 }
@@ -292,7 +290,6 @@ ul {
     padding: 8px;
     color: white;
     cursor: pointer;
-    border-radius: inherit;
 }
 
 .context-menu-item:hover {

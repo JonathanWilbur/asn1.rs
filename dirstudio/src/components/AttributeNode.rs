@@ -18,7 +18,7 @@ use log::{info, error};
 use asn1::OBJECT_IDENTIFIER;
 use crate::components::AttributeValueNode::AttributeValueNode;
 use crate::components::IconButton::IconButton;
-use crate::components::ContextMenu::ContextMenu;
+use crate::components::ContextMenu::{ContextMenu, ContextMenuOption};
 use crate::ipc::CopyToClipboardCommand;
 use gloo::events::{EventListener, EventListenerOptions};
 use yew::functional::use_effect_with_deps;
@@ -97,8 +97,8 @@ pub fn attribute_node(props: &AttributeNodeProps) -> Html {
     };
 
     let node_ref = use_node_ref();
-    let context_menu_ref = use_node_ref();
 
+    let context_menu_ref = use_node_ref();
     use_effect_with_deps(
         {
             let node_ref = node_ref.clone();
@@ -134,26 +134,30 @@ pub fn attribute_node(props: &AttributeNodeProps) -> Html {
                         }
                         Ok(())
                     });
+                    // TODO: Make this avoid flowing out of bounds.
                     let on_context_menu = Callback::from(move |e: Event| {
-                        if let Ok(mouse_event) = e.dyn_into::<MouseEvent>() {
-                            mouse_event.prevent_default();
-                            let x = mouse_event.client_x();
-                            let y = mouse_event.client_y();
-                            let context_menu_ref = context_menu_ref_2.clone();
-                            let show_context_menu = show_context_menu_2.clone();
-                            if let Some(cm_node) = context_menu_ref.get() {
-                                if let Ok(cm_html_el) = cm_node.dyn_into::<HtmlElement>() {
-                                    let style = cm_html_el.style();
-                                    style.set_property("top",  format!("{}px", y).as_str());
-                                    style.set_property("left", format!("{}px", x).as_str());
-                                    show_context_menu.set(true);
-                                }
+                        let mouse_event = match e.dyn_into::<MouseEvent>() {
+                            Ok(e) => e,
+                            Err(e) => {
+                                error!("Could not convert Event to a MouseEvent: {:?}", e);
+                                return;
+                            },
+                        };
+                        mouse_event.prevent_default();
+                        let x = mouse_event.client_x();
+                        let y = mouse_event.client_y();
+                        let context_menu_ref = context_menu_ref_2.clone();
+                        let show_context_menu = show_context_menu_2.clone();
+                        if let Some(cm_node) = context_menu_ref.get() {
+                            if let Ok(cm_html_el) = cm_node.dyn_into::<HtmlElement>() {
+                                let style = cm_html_el.style();
+                                style.set_property("top",  format!("{}px", y).as_str());
+                                style.set_property("left", format!("{}px", x).as_str());
+                                show_context_menu.set(true);
                             }
-                        } else {
-                            error!("Could not convert Event to a MouseEvent");
                         }
                     });
-                    if *show_context_menu_3.deref() {
+                    if *show_context_menu_3.deref() { // Only attach these listeners if we are displaying a context menu.
                         if let Some(body) = document().body() {
                             let on_click_away_2 = on_click_away.clone();
                             let listener1 = EventListener::new(
@@ -219,6 +223,65 @@ pub fn attribute_node(props: &AttributeNodeProps) -> Html {
             <ContextMenu
                 r#ref={context_menu_ref}
                 visible={*show_context_menu.deref()}
+                options={vec![
+                    ContextMenuOption{
+                        text: AttrValue::from("Yeet"),
+                        disabled: false,
+                        handler: Callback::from(|_| {
+                            info!("I dun yate.");
+                        }),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Copy Numeric OID"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Copy OID Descriptor"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Copy Human Friendly Name"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Copy BER-encoded attribute"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Copy BER-encoded attribute as base64"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Copy BER-encoded attribute as hex"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from(""),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Delete Attribute"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Alter Values"),
+                        disabled: true,
+                        handler: Callback::from(|_| {}),
+                    },
+                    ContextMenuOption{
+                        text: AttrValue::from("Reset Values"),
+                        disabled: false,
+                        handler: Callback::from(|_| {}),
+                    },
+                ]}
                 />
             <tr
                 class={classes!([
