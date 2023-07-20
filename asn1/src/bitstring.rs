@@ -1,4 +1,4 @@
-use crate::{types::BIT_STRING, OCTET_STRING};
+use crate::types::BIT_STRING;
 use std::{convert::TryInto, fmt::Display};
 
 pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
@@ -148,21 +148,29 @@ impl BIT_STRING {
         }
         bs
     }
-}
 
-impl From<OCTET_STRING> for BIT_STRING {
-    fn from(other: OCTET_STRING) -> Self {
-        BIT_STRING {
-            bytes: other.clone(),
-            trailing_bits: 0,
+    pub fn from_bits(bits: &[u8]) -> BIT_STRING {
+        let bit_size =  bits.len();
+        let byte_size = bits.len() >> 3;
+        let bytes: Vec<u8> = Vec::with_capacity(byte_size);
+        let trailing_bits = (8 - (bit_size % 8)) as u8;
+        let mut bs = BIT_STRING {
+            bytes,
+            trailing_bits,
+        };
+        for (i, bit) in bits.iter().enumerate() {
+            bs.set(i, *bit > 0);
         }
+        bs
     }
+
 }
 
-impl From<&[u8]> for BIT_STRING {
-    fn from(other: &[u8]) -> Self {
+impl <T> From<T> for BIT_STRING
+    where T: AsRef<[u8]> {
+    fn from(other: T) -> Self {
         BIT_STRING {
-            bytes: Vec::from(other),
+            bytes: Vec::from(other.as_ref()),
             trailing_bits: 0,
         }
     }
@@ -220,6 +228,17 @@ impl Display for BIT_STRING {
         f.write_str(last_bits.as_str())?;
         f.write_str("'B")
     }
+}
+
+// TODO: https://github.com/rust-lang/rust/issues/83527
+#[macro_export]
+macro_rules! bits {
+    ( $( $x:expr ),* ) => {
+        {
+            use super::BIT_STRING;
+            BIT_STRING::from_bits(&[ $($x,)* ])
+        }
+    };
 }
 
 #[cfg(test)]
@@ -388,5 +407,13 @@ mod tests {
             trailing_bits: 5,
         };
         assert_eq!(bs1.to_string().as_str(), "'10100101111'B");
+    }
+
+    // TODO: https://github.com/rust-lang/rust/issues/83527
+    #[test]
+    fn test_bits_macro() {
+        let bs1 = bits!(1,0,1,0,0,1,0,1,1,1,1);
+        // let bs1 = bits!(1010010111110111);
+        assert_eq!(bs1.to_string().as_str(), "'101001 01111'B");
     }
 }

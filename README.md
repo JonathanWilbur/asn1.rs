@@ -254,19 +254,24 @@ which control how these elements are encoded.
 ## TODO
 
 - [ ] `asn1`
-  - [ ] `oid!` macro
-  - [ ] `bits!` macro
-  - [ ] `octs!` macro
-  - [ ] `ASN1Error::relate_tlv(X690Element)`
-  - [ ] Conversion of `ASN1Error` to and from `std::io::Error`
+  - [x] `oid!` macro
+  - [x] `bits!` macro
+    - Kinda blocked on https://github.com/rust-lang/rust/issues/83527, but theoretically not really.
+  - [x] `octs!` macro
+  - [x] `ASN1Error::relate_tlv(X690Element)`
+  - [x] Conversion of `ASN1Error` to and from `std::io::Error`
   - [ ] ~~Make all bytes `Cow`?~~
     - `Arc::make_mut()` provides this already, but you are not using it!
-  - [ ] Use `AsRef` in generics
+  - [x] Use `AsRef` in generics
+  - [ ] Use `smartstring` for component names / element names / error names
+    - I think this will be an easy change, but it will also be a very large change
+      that should be done in a commit of its own.
 - [ ] `x690`
   - [ ] Print `asn1parse` output;
   - [ ] ~~Make all bytes `Cow`?~~
     - `Arc::make_mut()` provides this already, but you are not using it!
   - [ ] Use `AsRef` in generics
+  - [ ] Use `heapless`? (Maybe for decoding object identifiers?)
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
 - [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
       to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,
@@ -280,7 +285,12 @@ which control how these elements are encoded.
   - [ ] Generate and track InvokeIds
 - [ ] X.500
   - Defaults for structs (how did I miss this?)
+    - I think that was because, if any field is required, this can't be defined.
   - Validators
   - `.inner_data()` for `OPTIONALLY-PROTECTED` types.
   - Iterator for `ListResult` and `SearchResult`
   - Preserve bytes of `SIGNED`
+- [ ] Use `BTreeMap` in most use cases.
+- [ ] ASN.1 Compiler: Compile validation-only functions
+- [ ] Some sort of `write()` and `flush()` interface for encoding indeterminate length form.
+  - This needs to "trickle down" into the IDM layer.
