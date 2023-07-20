@@ -263,9 +263,11 @@ which control how these elements are encoded.
   - [ ] ~~Make all bytes `Cow`?~~
     - `Arc::make_mut()` provides this already, but you are not using it!
   - [x] Use `AsRef` in generics
-  - [ ] Use `smartstring` for component names / element names / error names
+  - ~~[x] Use `smartstring` for component names / element names / error names~~
     - I think this will be an easy change, but it will also be a very large change
       that should be done in a commit of its own.
+    - Licensing issues with this one. See below.
+  - [ ] Use SmallVec? https://docs.rs/smallvec/latest/smallvec/
 - [ ] `x690`
   - [ ] Print `asn1parse` output;
   - [ ] ~~Make all bytes `Cow`?~~
@@ -294,3 +296,18 @@ which control how these elements are encoded.
 - [ ] ASN.1 Compiler: Compile validation-only functions
 - [ ] Some sort of `write()` and `flush()` interface for encoding indeterminate length form.
   - This needs to "trickle down" into the IDM layer.
+
+## Licensing
+
+The following licenses:
+
+- Mozilla Public License (MPL)
+- GNU Public License (GPL)
+
+Forbid usage within most packages in this library.
+
+In particular:
+
+| Package       | License | Issue                                              |
+|---------------|---------|----------------------------------------------------|
+| `smartstring` | MPL     | https://github.com/bodil/smartstring/issues/44     |
