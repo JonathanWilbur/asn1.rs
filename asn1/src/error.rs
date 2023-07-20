@@ -1,7 +1,7 @@
 use crate::{ASN1Value, ComponentSpec};
 use crate::types::Tag;
 use std::fmt;
-use std::io::Error;
+use std::io::{Error, ErrorKind};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ASN1ErrorCode {
@@ -125,6 +125,17 @@ impl From<Error> for ASN1Error {
             io_error: Some(other),
         }
     }
+}
+
+impl From<ASN1Error> for std::io::Error {
+
+    fn from(value: ASN1Error) -> Self {
+        if let Some(e) = value.io_error {
+            return e;
+        }
+        std::io::Error::from(ErrorKind::InvalidData)
+    }
+
 }
 
 impl fmt::Display for ASN1Error {
