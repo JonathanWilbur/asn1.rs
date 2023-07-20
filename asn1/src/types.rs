@@ -388,3 +388,23 @@ pub trait ObjectIdentifierFromDescriptor {
     fn get_oid (&self, desc: &str) -> Option<OBJECT_IDENTIFIER>;
 
 }
+
+// This is really just an alias for vec![], but it is defined for future-proofing.
+#[macro_export]
+macro_rules! octs {
+    ( $( $x:expr ),* ) => {
+        std::vec![$($x,)*]
+    };
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_octs_macro () {
+        let octets = octs!(1,3,6,4,1);
+        assert_eq!(octets.len(), 5);
+    }
+
+}
