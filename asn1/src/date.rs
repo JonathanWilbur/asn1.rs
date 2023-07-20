@@ -10,7 +10,7 @@ impl DATE {
     }
 
     pub fn is_zero(&self) -> bool {
-        self.year == 0 && self.month <= 1 && self.day == 0
+        self.year == 0 && self.month <= 1 && self.day <= 1
     }
 }
 
