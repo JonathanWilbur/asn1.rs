@@ -38,4 +38,45 @@ impl<'a> ComponentSpec<'a> {
             version_number,
         }
     }
+
+    pub const fn req(
+        name: &'a str,
+        selector: TagSelector<'a>,
+    ) -> Self {
+        ComponentSpec::<'a> {
+            name,
+            optional: false,
+            selector,
+            group_index: None,
+            version_number: None,
+        }
+    }
+
+    pub const fn opt(
+        name: &'a str,
+        selector: TagSelector<'a>,
+    ) -> Self {
+        ComponentSpec::<'a> {
+            name,
+            optional: true,
+            selector,
+            group_index: None,
+            version_number: None,
+        }
+    }
+}
+
+// REVIEW: Does this make sense at all?
+impl <'a> Default for ComponentSpec<'a> {
+
+    fn default() -> Self {
+        ComponentSpec::<'a> {
+            name: "",
+            optional: true,
+            selector: TagSelector::any,
+            group_index: None,
+            version_number: None,
+        }
+    }
+
 }
