@@ -50,8 +50,8 @@ impl FromStr for OBJECT_IDENTIFIER {
             nodes.push(str.parse::<u32>()?);
         }
         Ok(OBJECT_IDENTIFIER(nodes))
-        // Pending try_collect() stabilization.
-        // Ok(OBJECT_IDENTIFIER(value
+        // TODO: Pending try_collect() stabilization (and it benchmarking favorably.)
+        // Ok(OBJECT_IDENTIFIER(s
         //     .split(".")
         //     .map(|s| s.parse::<u32>())
         //     .try_collect::<Vec<u32>>()?))
@@ -92,4 +92,26 @@ impl PartialEq for OBJECT_IDENTIFIER {
         // non-match and short-circuit.
         self.0.ends_with(other.0.as_slice())
     }
+}
+
+
+#[macro_export]
+macro_rules! oid {
+    ( $( $x:expr ),* ) => {
+        {
+            use super::OBJECT_IDENTIFIER;
+            OBJECT_IDENTIFIER::new(&[ $($x,)* ])
+        }
+    };
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_oid_macro () {
+        let oid1 = oid!(1,3,6,4,1);
+        assert_eq!(oid1.to_string(), "1.3.6.4.1");
+    }
+
 }

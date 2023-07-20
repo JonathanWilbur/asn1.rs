@@ -50,7 +50,7 @@ impl FromStr for RELATIVE_OID {
             nodes.push(str.parse::<u32>()?);
         }
         Ok(RELATIVE_OID(nodes))
-        // Pending try_collect() stabilization.
+        // TODO: Pending try_collect() stabilization (and it benchmarking favorably.)
         // Ok(OBJECT_IDENTIFIER(value
         //     .split(".")
         //     .map(|s| s.parse::<u32>())
@@ -98,4 +98,25 @@ impl From<OBJECT_IDENTIFIER> for RELATIVE_OID {
     fn from(oid: OBJECT_IDENTIFIER) -> Self {
         RELATIVE_OID(oid.0.clone())
     }
+}
+
+#[macro_export]
+macro_rules! roid {
+    ( $( $x:expr ),* ) => {
+        {
+            use super::RELATIVE_OID;
+            RELATIVE_OID::new(&[ $($x,)* ])
+        }
+    };
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_roid_macro () {
+        let roid1 = roid!(1,3,6,4,1);
+        assert_eq!(roid1.to_string(), "1.3.6.4.1");
+    }
+
 }
