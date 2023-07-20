@@ -1888,6 +1888,19 @@ pub fn deconstruct(el: &X690Element) -> ASN1Result<X690Element> {
     }
 }
 
+pub trait RelateTLV {
+    fn relatve_tlv (&mut self, el: &X690Element);
+}
+
+impl RelateTLV for ASN1Error {
+    fn relatve_tlv (&mut self, el: &X690Element) {
+        self.tag = Some(Tag::new(el.tag_class, el.tag_number));
+        self.component_name = el.name.clone();
+        self.constructed = Some(el.is_constructed());
+        self.length = Some(el.len());
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
