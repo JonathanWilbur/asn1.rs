@@ -3,7 +3,7 @@ use asn1::types::{
     ASN1Value, ByteSlice, Bytes, CharacterString, EmbeddedPDV, ExternalEncoding,
     ExternalIdentification, GeneralizedTime, ObjectDescriptor,
     PresentationContextSwitchingTypeIdentification, Tag, TagClass, TagNumber, TaggedASN1Value,
-    UTCTime, UTF8String, UniversalString, ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING,
+    UTCTime, UniversalString, ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING,
     ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
     ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING, ASN1_UNIVERSAL_TAG_NUMBER_DATE,
     ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME, ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
@@ -227,7 +227,7 @@ impl X690Element {
                 Ok(ret)
             },
             X690Encoding::EXPLICIT(inner) => {
-                let mut ret: Vec<u8> = Vec::new();
+                let mut ret: Vec<u8> = Vec::with_capacity(inner.len());
                 write_x690_node(&mut ret, &inner)?; // This actually should not fail.
                 Ok(ret)
             },
@@ -314,6 +314,7 @@ fn write_base_128<W>(output: &mut W, num: u32) -> Result<usize>
 where
     W: Write,
 {
+    // TODO: This is a perfect use case for a heapless Vec.
     if num < 128 {
         return output.write(&[num as u8]);
     }
