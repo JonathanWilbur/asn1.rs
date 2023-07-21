@@ -17,3 +17,10 @@ categories = ["encoding"]
 
 [dependencies]
 asn1 = { path = "../asn1" }
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "decode"
+harness = false

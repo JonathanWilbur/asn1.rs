@@ -268,12 +268,26 @@ which control how these elements are encoded.
       that should be done in a commit of its own.
     - Licensing issues with this one. See below.
   - [ ] Use SmallVec? https://docs.rs/smallvec/latest/smallvec/
+  - [ ] I get not wanting to make `SEQUENCE` and `SET` an `Arc<&[ASN1Value]>`, but why not:
+    - `OCTET_STRING`?
+    - `INTEGER`?
 - [ ] `x690`
   - [ ] Print `asn1parse` output;
   - [ ] ~~Make all bytes `Cow`?~~
     - `Arc::make_mut()` provides this already, but you are not using it!
   - [ ] Use `AsRef` in generics
   - [ ] Use `heapless`? (Maybe for decoding object identifiers?)
+  - [ ] `Cow` for `destructure()`
+  - [ ] `Iterator<Item=Result<(&'static str, X690Element)>>`
+- ASN.1 Compilation
+  - [ ] When decoding structured types, decode into a fixed-length array of `Option<X690Element>` instead of `HashMap`.
+    - Could this be done more efficiently by just iterating over elements?
+    - Maybe you could just mutate the element names? Or return an array of names in order?
+  - [ ] Compile validation-only functions
+  - [ ] Single-pass write for UNIVERSAL types (write tag and value in one pass)
+  - [ ] Use macros for conciseness?
+  - [ ] Create a sequence iterator to avoid allocating any?
+  - [ ] Use `.and()` instead of `match` for optional components.
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
 - [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
       to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,
@@ -286,13 +300,13 @@ which control how these elements are encoded.
   - [ ] Implicit TLS
   - [ ] Generate and track InvokeIds
 - [ ] X.500
+  - Move modules under `modules`
   - Defaults for structs (how did I miss this?)
     - I think that was because, if any field is required, this can't be defined.
   - Validators
   - `.inner_data()` for `OPTIONALLY-PROTECTED` types.
   - Iterator for `ListResult` and `SearchResult`
   - Preserve bytes of `SIGNED`
-- [ ] Use `BTreeMap` in most use cases.
 - [ ] ASN.1 Compiler: Compile validation-only functions
 - [ ] Some sort of `write()` and `flush()` interface for encoding indeterminate length form.
   - This needs to "trickle down" into the IDM layer.
@@ -311,3 +325,79 @@ In particular:
 | Package       | License | Issue                                              |
 |---------------|---------|----------------------------------------------------|
 | `smartstring` | MPL     | https://github.com/bodil/smartstring/issues/44     |
+
+## ASN.1 Decoder Macro
+
+I don't plan on implementing this now, because I think this will involve
+creating a whole ASN.1 parser in Rust, which will be needed to parse the
+`TokenStream` of a function-like macro. But the API would look like:
+
+```rust
+
+def_asn1_ber_codecs!({
+  algorithm AlgorithmIdentifier,
+  parameters ANY DEFINED BY algorithm OPTIONAL,
+  ...
+})
+
+// Compiles to something like:
+
+pub const _rctl1_components_for_AlgorithmIdentifier: &[ComponentSpec; 2] = &[
+    ComponentSpec::new(
+        "algorithm",
+        false,
+        TagSelector::tag((TagClass::UNIVERSAL, 6)),
+        None,
+        None,
+    ),
+    ComponentSpec::new("parameters", true, TagSelector::any, None, None),
+];
+
+pub const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
+
+pub const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
+
+pub fn _decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
+    |el_: &X690Element| -> ASN1Result<AlgorithmIdentifier> {
+        let elements = match el_.value.borrow() {
+            X690Encoding::Constructed(children) => children,
+            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+        };
+        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
+        let (_components, _unrecognized) = _parse_sequence(
+            el_refs_.as_slice(),
+            _rctl1_components_for_AlgorithmIdentifier,
+            _eal_components_for_AlgorithmIdentifier,
+            _rctl2_components_for_AlgorithmIdentifier,
+        )?;
+        let algorithm = ber_decode_object_identifier(_components.get("algorithm").unwrap())?;
+        let parameters: OPTIONAL<X690Element> = match _components.get("parameters") {
+            Some(c_) => Some(x690_identity(c_)?),
+            _ => None,
+        };
+        Ok(AlgorithmIdentifier {
+            algorithm,
+            parameters,
+            _unrecognized,
+        })
+    }(&el)
+}
+
+pub fn _encode_AlgorithmIdentifier(value_: &AlgorithmIdentifier) -> ASN1Result<X690Element> {
+    |value_: &AlgorithmIdentifier| -> ASN1Result<X690Element> {
+        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+        components_.push(ber_encode_object_identifier(&value_.algorithm)?);
+        if let Some(v_) = &value_.parameters {
+            components_.push(x690_identity(&v_)?);
+        }
+        Ok(X690Element::new(
+            TagClass::UNIVERSAL,
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+            Arc::new(X690Encoding::Constructed(
+                [components_, value_._unrecognized.clone()].concat(),
+            )),
+        ))
+    }(&value_)
+}
+
+```

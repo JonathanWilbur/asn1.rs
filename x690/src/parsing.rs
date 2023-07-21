@@ -1,5 +1,6 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
+#![allow(soft_unstable)]
 
 use crate::{X690Element, X690Encoding};
 use asn1::construction::{ComponentSpec, TagSelector};
@@ -150,7 +151,170 @@ pub fn _parse_component_type_list<'a>(
     let mut e: usize = 0;
     let mut s: usize = 0;
     let mut current_group: Option<u8> = None;
-    let mut ret: IndexedComponents = (HashMap::new(), Vec::new());
+    // with_capacity(ctl.len()) because there could only be at most ctl.len() entries.
+    let mut ret: IndexedComponents = (HashMap::with_capacity(ctl.len()), Vec::new());
+    while s < ctl.len() {
+        let spec = ctl[s];
+        let el = match elements.get(e) {
+            Some(x) => x,
+            None => {
+                if spec.optional {
+                    s += 1;
+                    continue;
+                /*
+                The only difference between parsing an extension additions list
+                and a root component type list is that, if you run out of elements
+                in the extension additions list, it is only invalid if an
+                ExtensionAdditionsGroup had any present elements, but was missing
+                REQUIRED elements.
+                */
+                } else if is_extensions {
+                    let curr_group = current_group.unwrap_or(u8::MAX);
+                    if let Some(group_index) = spec.group_index {
+                        if group_index <= curr_group {
+                            let mut err =
+                                ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                            err.component_name = Some(String::from(spec.name));
+                            return Err(err);
+                        } else {
+                            s += 1;
+                            continue;
+                        }
+                    } else {
+                        s += 1;
+                        continue;
+                    }
+                } else {
+                    let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                    err.component_name = Some(String::from(spec.name));
+                    return Err(err);
+                }
+            }
+        };
+        if component_is_selected(el, spec.selector) {
+            ret.0.insert(spec.name, (**el).clone());
+            if let Some(group_index) = spec.group_index {
+                current_group = Some(group_index);
+            }
+            e += 1; // Only if it is a match do you increment the element.
+        } else if !spec.optional {
+            let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+            err.component_name = Some(String::from(spec.name));
+            return Err(err);
+        }
+        s += 1;
+    }
+    Ok((e, ret))
+}
+
+
+pub struct X690ComponentIterator <'a> {
+    pub ctl: &'a [ComponentSpec<'a>],
+    pub elements: &'a [&'a X690Element],
+    pub is_extensions: bool,
+    e: usize,
+    s: usize,
+    current_group: Option<u8>,
+}
+
+impl <'a> X690ComponentIterator<'a> {
+
+    pub fn new (
+        ctl: &'a [ComponentSpec],
+        elements: &'a [&'a X690Element],
+        is_extensions: bool,
+    ) -> Self {
+        X690ComponentIterator {
+            ctl,
+            elements,
+            is_extensions,
+            e: 0,
+            s: 0,
+            current_group: None,
+        }
+    }
+
+}
+
+impl <'a> Iterator for X690ComponentIterator<'a> {
+    type Item = ASN1Result<&'a str>; // str = name of component.
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.s < self.ctl.len() {
+            let spec = self.ctl[self.s];
+            let el = match self.elements.get(self.e) {
+                Some(x) => x,
+                // We reached the end of the encoded values. Now we have to
+                // check if any required values are missing.
+                None => {
+                    if spec.optional {
+                        self.s += 1;
+                        continue;
+                    /*
+                    The only difference between parsing an extension additions list
+                    and a root component type list is that, if you run out of elements
+                    in the extension additions list, it is only invalid if an
+                    ExtensionAdditionsGroup had any present elements, but was missing
+                    REQUIRED elements.
+                    */
+                    } else if self.is_extensions {
+                        let curr_group = self.current_group.unwrap_or(u8::MAX);
+                        if let Some(group_index) = spec.group_index {
+                            if group_index <= curr_group {
+                                let mut err =
+                                    ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                                err.component_name = Some(String::from(spec.name));
+                                return Some(Err(err));
+                            } else {
+                                self.s += 1;
+                                continue;
+                            }
+                        } else {
+                            self.s += 1;
+                            continue;
+                        }
+                    } else {
+                        let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                        err.component_name = Some(String::from(spec.name));
+                        return Some(Err(err));
+                    }
+                }
+            };
+            if component_is_selected(el, spec.selector) {
+                if let Some(group_index) = spec.group_index {
+                    self.current_group = Some(group_index);
+                }
+                self.s += 1;
+                self.e += 1; // Only if it is a match do you increment the element.
+                return Some(Ok(spec.name));
+            } else if !spec.optional {
+                let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                err.component_name = Some(String::from(spec.name));
+                return Some(Err(err));
+            }
+            self.s += 1; // The component was optional, but it didn't match. So we just increment and move on.
+        }
+
+        // If we are parsing extensions, we can return the rest of them as "unrecognized."
+        if self.is_extensions && self.e < self.elements.len() {
+            self.e += 1;
+            return Some(Ok(""));
+        }
+        None
+    }
+
+}
+
+pub fn _iter_component_type_list<'a>(
+    ctl: &'a [ComponentSpec],
+    elements: &'a [&'a X690Element],
+    is_extensions: bool,
+) -> ASN1Result<(usize, IndexedComponents<'a>)> {
+    let mut e: usize = 0;
+    let mut s: usize = 0;
+    let mut current_group: Option<u8> = None;
+    // with_capacity(ctl.len()) because there could only be at most ctl.len() entries.
+    let mut ret: IndexedComponents = (HashMap::with_capacity(ctl.len()), Vec::new());
     while s < ctl.len() {
         let spec = ctl[s];
         let el = match elements.get(e) {
@@ -308,6 +472,124 @@ pub fn _parse_sequence<'a>(
     } else {
         return _parse_sequence_without_trailing_rctl(elements, rctl1, eal);
     }
+}
+
+enum X690StructureIterationPhase {
+    RCTL1,
+    EAL,
+    RCTL2,
+}
+
+pub struct X690StructureIterator <'a> {
+    pub elements: &'a [&'a X690Element],
+    pub rctl1: &'a [ComponentSpec<'a>],
+    pub eal: &'a [ComponentSpec<'a>],
+    pub rctl2: &'a [ComponentSpec<'a>],
+    ctl_iterator: X690ComponentIterator<'a>,
+    phase: X690StructureIterationPhase,
+    i: usize, // The number of encoded values processed.
+    start_of_rctl2: usize,
+}
+
+impl <'a> X690StructureIterator<'a> {
+
+    pub fn new (
+        elements: &'a [&'a X690Element],
+        rctl1: &'a [ComponentSpec<'a>],
+        eal: &'a [ComponentSpec<'a>],
+        rctl2: &'a [ComponentSpec<'a>],
+    ) -> Self {
+        X690StructureIterator {
+            elements,
+            rctl1,
+            eal,
+            rctl2,
+            ctl_iterator: X690ComponentIterator::new(rctl1, elements, false),
+            phase: X690StructureIterationPhase::RCTL1,
+            i: 0,
+            start_of_rctl2: 0,
+        }
+    }
+
+}
+
+impl <'a> Iterator for X690StructureIterator<'a> {
+    type Item = ASN1Result<&'a str>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(fallible_component) = self.ctl_iterator.next() {
+            self.i += 1;
+            return match fallible_component {
+                Ok(component) => Some(Ok(component)),
+                Err(e) => Some(Err(e)),
+            };
+        }
+        match self.phase {
+            X690StructureIterationPhase::RCTL1 => {
+                self.phase = X690StructureIterationPhase::EAL;
+                // If there is no root component type list 2, then all remaining
+                // components must be extensions. Otherwise, we have to find the
+                // start of RCTL2, and only iterate over i..start_of_rctl2 as
+                // extensions.
+                if self.rctl2.len() == 0 {
+                    self.ctl_iterator = X690ComponentIterator::new(self.eal, &self.elements[self.i..], true).into_iter();
+                } else {
+                    let end_of_possible_initial_rctl2_components = _get_possible_initial_components(self.rctl2);
+                    let possible_initial_rctl2_components = &self.rctl2[0..end_of_possible_initial_rctl2_components];
+                    let start_of_exts = self.i;
+                    let extensions_onwards = &self.elements[start_of_exts..];
+                    let mut number_of_ext_components: Option<usize> = None;
+                    for el_index in 0..extensions_onwards.len() {
+                        let el = &extensions_onwards[el_index];
+                        for possible_rctl2_component in possible_initial_rctl2_components {
+                            if component_is_selected(el, possible_rctl2_component.selector) {
+                                number_of_ext_components = Some(el_index);
+                                break;
+                            }
+                        }
+                        // TODO: Use named-label breaks: https://stackoverflow.com/questions/22905752/named-breaks-in-for-loops-in-rust
+                        if number_of_ext_components.is_some() {
+                            break;
+                        }
+                    }
+                    let rctl2_found: bool = number_of_ext_components.is_some();
+                    let rctl2_entirely_optional: bool = (self.rctl2.len() > 0) && self.rctl2.iter().all(|s| s.optional);
+                    if !rctl2_found && !rctl2_entirely_optional {
+                        let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                        err.constructed = Some(true);
+                        return Some(Err(err));
+                    }
+
+                    // NOTE: I deviated from the TypeScript implementation here. I don't see
+                    // how the value `startOfExtensions` could ever be -1.
+                    // FIXME: I think the below needs to default to the end of elements.
+                    self.start_of_rctl2 = match number_of_ext_components {
+                        Some(num) => start_of_exts + num,
+                        None => self.elements.len(),
+                    };
+                    self.ctl_iterator = X690ComponentIterator::new(self.eal, &self.elements[self.i..self.start_of_rctl2], true).into_iter();
+                }
+                return self.next();
+            },
+            X690StructureIterationPhase::EAL => {
+                self.phase = X690StructureIterationPhase::RCTL2;
+                debug_assert!(self.rctl2.len() == 0 || (self.i != self.start_of_rctl2),
+                    "After processing all X.690-encoded extensions, we were not at the start of RCTL2");
+
+                debug_assert!(self.rctl2.len() > 0 || (self.i == self.elements.len()),
+                    "After processing all X.690-encoded extensions, we were not at the end of the encoded elements, despite no RCTL2");
+
+                self.ctl_iterator = X690ComponentIterator::new(self.rctl2, &self.elements[self.i..], false).into_iter();
+                return self.next();
+            },
+            X690StructureIterationPhase::RCTL2 => {
+                debug_assert!(self.rctl2.len() == 0 || (self.i != self.start_of_rctl2),
+                    "After processing all X.690-encoded elements in RCTL2, we were not at the end");
+                return None;
+            },
+        };
+    }
+
 }
 
 // pub fn _decode_choice (
