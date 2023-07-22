@@ -216,7 +216,10 @@ pub fn ber_decode_object_identifier_value(value_bytes: ByteSlice) -> ASN1Result<
     }
     let arc1 = (value_bytes[0] / 40) as u32;
     let arc2 = (value_bytes[0] % 40) as u32;
-    let mut nodes: Vec<u32> = vec![arc1, arc2];
+    // In pre-allocating, we assume the average OID arc consumes two bytes.
+    let mut nodes: Vec<u32> = Vec::with_capacity(len << 1);
+    nodes.push(arc1);
+    nodes.push(arc2);
     let mut current_node: u32 = 0;
     for byte in value_bytes[1..].iter() {
         current_node <<= 7;
@@ -234,7 +237,8 @@ pub fn ber_decode_object_identifier_value(value_bytes: ByteSlice) -> ASN1Result<
 
 pub fn ber_decode_relative_oid_value(value_bytes: ByteSlice) -> ASN1Result<RELATIVE_OID> {
     let len = value_bytes.len();
-    let mut nodes: Vec<u32> = Vec::with_capacity(len);
+    // In pre-allocating, we assume the average OID arc consumes two bytes.
+    let mut nodes: Vec<u32> = Vec::with_capacity(len << 1);
     let mut current_node: u32 = 0;
     for byte in value_bytes[1..].iter() {
         current_node <<= 7;

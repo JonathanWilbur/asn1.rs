@@ -277,8 +277,8 @@ which control how these elements are encoded.
     - `Arc::make_mut()` provides this already, but you are not using it!
   - [ ] Use `AsRef` in generics
   - [ ] Use `heapless`? (Maybe for decoding object identifiers?)
-  - [ ] `Cow` for `destructure()`
-  - [ ] `Iterator<Item=Result<(&'static str, X690Element)>>`
+  - [x] `Cow` for `destructure()`
+  - [x] `Iterator<Item=Result<(&'static str, X690Element)>>`
 - ASN.1 Compilation
   - [ ] When decoding structured types, decode into a fixed-length array of `Option<X690Element>` instead of `HashMap`.
     - Could this be done more efficiently by just iterating over elements?

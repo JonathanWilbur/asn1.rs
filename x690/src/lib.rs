@@ -213,6 +213,7 @@ impl X690Element {
     }
 
     // This is expensive because it might clone the content octets!
+    // TODO: Make a Cow version of this?
     pub fn content_octets (&self) -> ASN1Result<Vec<u8>> {
         match self.value.borrow() {
             X690Encoding::IMPLICIT(content) => {
@@ -316,7 +317,6 @@ fn write_base_128<W>(output: &mut W, num: u32) -> Result<usize>
 where
     W: Write,
 {
-    // TODO: This is a perfect use case for a heapless Vec.
     if num < 128 {
         return output.write(&[num as u8]);
     }
@@ -329,8 +329,8 @@ where
     }
 
     // A base-128-encoded u32 can only take up to five bytes.
-    // let mut encoded: SmallVec<[_; 5]> = smallvec![];
-    let mut encoded: Vec<u8> = Vec::with_capacity(5);
+    let mut encoded: SmallVec<[u8; 5]> = smallvec![];
+    // let mut encoded: Vec<u8> = Vec::with_capacity(5);
     for i in (0..l).rev() {
         let mut o = (num >> (i * 7)) as u8;
         o &= 0x7f;
@@ -481,14 +481,9 @@ pub fn x690_write_bit_string_value<W>(output: &mut W, value: &BIT_STRING) -> Res
 where
     W: Write,
 {
-    match output.write(&[value.trailing_bits % 8]) {
-        Err(e) => return Err(e),
-        _ => (),
-    }
-    match output.write(&value.bytes) {
-        Ok(bytes_written) => return Ok(bytes_written + 1),
-        Err(e) => return Err(e),
-    }
+    output.write(&[value.trailing_bits % 8])?;
+    let bytes_written = output.write(&value.bytes)?;
+    Ok(bytes_written + 1)
 }
 
 pub fn x690_write_octet_string_value<W>(output: &mut W, value: &OCTET_STRING) -> Result<usize>
@@ -513,18 +508,9 @@ where
     let node1 = value.0[1];
     let byte0 = (node0 * 40) + node1;
     let mut bytes_written = 0;
-    match output.write(&[byte0 as u8]) {
-        Err(e) => return Err(e),
-        _ => (),
-    };
-    bytes_written += 1;
+    bytes_written += output.write(&[byte0 as u8])?;
     for arc in value.0[2..].iter() {
-        match write_base_128(output, *arc) {
-            Err(e) => return Err(e),
-            Ok(wrote_bytes) => {
-                bytes_written += wrote_bytes;
-            }
-        };
+        bytes_written += write_base_128(output, *arc)?;
     }
     Ok(bytes_written)
 }
@@ -549,10 +535,7 @@ where
     match &value.identification {
         ExternalIdentification::syntax(oid) => {
             let mut bytes: Bytes = Vec::new();
-            match x690_write_object_identifier_value(&mut bytes, &oid) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_object_identifier_value(&mut bytes, &oid)?;
             let element = X690Element::new(
                 TagClass::UNIVERSAL,
                 ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
@@ -562,10 +545,7 @@ where
         }
         ExternalIdentification::presentation_context_id(pci) => {
             let mut bytes: Bytes = Vec::new();
-            match x690_write_integer_value(&mut bytes, pci) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_integer_value(&mut bytes, pci)?;
             let element = X690Element::new(
                 TagClass::UNIVERSAL,
                 ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
@@ -575,10 +555,7 @@ where
         }
         ExternalIdentification::context_negotiation(cn) => {
             let mut direct_ref_bytes: Bytes = Vec::new();
-            match x690_write_object_identifier_value(&mut direct_ref_bytes, &cn.transfer_syntax) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_object_identifier_value(&mut direct_ref_bytes, &cn.transfer_syntax)?;
             let direct_ref_element = X690Element::new(
                 TagClass::UNIVERSAL,
                 ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
@@ -586,10 +563,7 @@ where
             );
             inner_elements.push(direct_ref_element);
             let mut indirect_ref_bytes: Bytes = Vec::new();
-            match x690_write_integer_value(&mut indirect_ref_bytes, &cn.presentation_context_id) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_integer_value(&mut indirect_ref_bytes, &cn.presentation_context_id)?;
             let indirect_ref_element = X690Element::new(
                 TagClass::UNIVERSAL,
                 ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
@@ -601,10 +575,7 @@ where
     match &value.data_value_descriptor {
         Some(dvd) => {
             let mut bytes: Bytes = Vec::new();
-            match x690_write_object_descriptor_value(&mut bytes, &dvd) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_object_descriptor_value(&mut bytes, &dvd)?;
             let element = X690Element::new(
                 TagClass::UNIVERSAL,
                 ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR,
@@ -617,9 +588,7 @@ where
     let mut data_value_bytes: Bytes = Vec::new();
     match &value.data_value {
         ExternalEncoding::single_ASN1_type(t) => ber_encode(&mut data_value_bytes, t)?,
-        ExternalEncoding::octet_aligned(o) => {
-            x690_write_octet_string_value(&mut data_value_bytes, o)?
-        }
+        ExternalEncoding::octet_aligned(o) => x690_write_octet_string_value(&mut data_value_bytes, o)?,
         ExternalEncoding::arbitrary(b) => x690_write_bit_string_value(&mut data_value_bytes, b)?,
     };
     let data_value_element = X690Element::new(
@@ -630,12 +599,7 @@ where
     inner_elements.push(data_value_element);
     let mut bytes_written: usize = 0;
     for component in inner_elements {
-        match write_x690_node(output, &component) {
-            Ok(length) => {
-                bytes_written += length;
-            }
-            Err(e) => return Err(e),
-        }
+        bytes_written += write_x690_node(output, &component)?;
     }
     Ok(bytes_written)
 }
@@ -700,24 +664,14 @@ where
             | base_bits
             | scaling_factor
             | X690_REAL_EXPONENT_FORMAT_2_OCTET;
-        match output.write(&[byte0, e_bytes[0], e_bytes[1]]) {
-            Err(e) => return Err(e),
-            Ok(wrote) => {
-                bytes_written += wrote;
-            }
-        }
+        bytes_written += output.write(&[byte0, e_bytes[0], e_bytes[1]])?;
     } else {
         let byte0: u8 = X690_REAL_BINARY
             | sign_bit
             | base_bits
             | scaling_factor
             | X690_REAL_EXPONENT_FORMAT_1_OCTET;
-        match output.write(&[byte0, e_bytes[1]]) {
-            Err(e) => return Err(e),
-            Ok(wrote) => {
-                bytes_written += wrote;
-            }
-        }
+        bytes_written += output.write(&[byte0, e_bytes[1]])?;
     };
     return match x690_write_i64_value(output, mantissa as i64) {
         Err(e) => return Err(e),
@@ -732,18 +686,11 @@ pub fn x690_context_switching_identification_to_cst(
         PresentationContextSwitchingTypeIdentification::syntaxes(syntaxes) => {
             let mut abstract_value_bytes: Bytes = Vec::new();
             let mut transfer_value_bytes: Bytes = Vec::new();
-            match x690_write_object_identifier_value(
+            x690_write_object_identifier_value(
                 &mut abstract_value_bytes,
                 &syntaxes.r#abstract,
-            ) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            match x690_write_object_identifier_value(&mut transfer_value_bytes, &syntaxes.transfer)
-            {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            )?;
+            x690_write_object_identifier_value(&mut transfer_value_bytes, &syntaxes.transfer)?;
             let mut syntaxes_elements: Vec<X690Element> = Vec::new();
             syntaxes_elements.push(X690Element::new(
                 TagClass::CONTEXT,
@@ -767,11 +714,9 @@ pub fn x690_context_switching_identification_to_cst(
             ));
         }
         PresentationContextSwitchingTypeIdentification::syntax(oid) => {
-            let mut bytes: Bytes = Vec::new();
-            match x690_write_object_identifier_value(&mut bytes, &oid) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            // We assume that, on average, each OID arc is encoded on two bytes.
+            let mut bytes: Bytes = Vec::with_capacity(oid.0.len() << 1);
+            x690_write_object_identifier_value(&mut bytes, &oid)?;
             let element = X690Element::new(
                 TagClass::CONTEXT,
                 1,
@@ -784,11 +729,8 @@ pub fn x690_context_switching_identification_to_cst(
             ));
         }
         PresentationContextSwitchingTypeIdentification::presentation_context_id(pci) => {
-            let mut bytes: Bytes = Vec::new();
-            match x690_write_integer_value(&mut bytes, pci) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut bytes: Bytes = Vec::with_capacity(pci.len());
+            x690_write_integer_value(&mut bytes, pci)?;
             let element = X690Element::new(
                 TagClass::CONTEXT,
                 2,
@@ -872,22 +814,15 @@ pub fn x690_write_embedded_pdv_value<W>(output: &mut W, value: &EmbeddedPDV) -> 
 where
     W: Write,
 {
-    let id = x690_context_switching_identification_to_cst(&value.identification);
-    if let Err(e) = id {
-        return Err(e);
-    }
-    let id_element = id.unwrap();
+    let id = x690_context_switching_identification_to_cst(&value.identification)?;
     let mut data_value_bytes: Bytes = Vec::new();
-    match x690_write_octet_string_value(&mut data_value_bytes, &value.data_value) {
-        Err(e) => return Err(e),
-        _ => (),
-    };
+    x690_write_octet_string_value(&mut data_value_bytes, &value.data_value)?;
     let data_value_element = X690Element::new(
         TagClass::CONTEXT,
         1,
         Arc::new(X690Encoding::IMPLICIT(data_value_bytes)),
     );
-    let inner_elements: Vec<X690Element> = vec![id_element, data_value_element];
+    let inner_elements: Vec<X690Element> = vec![id, data_value_element];
     let mut bytes_written: usize = 0;
     for component in inner_elements {
         match write_x690_node(output, &component) {
@@ -913,12 +848,7 @@ where
 {
     let mut bytes_written: usize = 0;
     for arc in value.0.iter() {
-        match write_base_128(output, *arc) {
-            Err(e) => return Err(e),
-            Ok(wrote_bytes) => {
-                bytes_written += wrote_bytes;
-            }
-        };
+        bytes_written +=  write_base_128(output, *arc)?;
     }
     Ok(bytes_written)
 }
@@ -977,30 +907,18 @@ pub fn x690_write_character_string_value<W>(
 where
     W: Write,
 {
-    let id = x690_context_switching_identification_to_cst(&value.identification);
-    if let Err(e) = id {
-        return Err(e);
-    }
-    let id_element = id.unwrap();
+    let id = x690_context_switching_identification_to_cst(&value.identification)?;
     let mut data_value_bytes: Bytes = Vec::new();
-    match x690_write_octet_string_value(&mut data_value_bytes, &value.string_value) {
-        Err(e) => return Err(e),
-        _ => (),
-    };
+    x690_write_octet_string_value(&mut data_value_bytes, &value.string_value)?;
     let data_value_element = X690Element::new(
         TagClass::CONTEXT,
         1,
         Arc::new(X690Encoding::IMPLICIT(data_value_bytes)),
     );
-    let inner_elements: Vec<X690Element> = vec![id_element, data_value_element];
+    let inner_elements: Vec<X690Element> = vec![id, data_value_element];
     let mut bytes_written: usize = 0;
     for component in inner_elements {
-        match write_x690_node(output, &component) {
-            Ok(length) => {
-                bytes_written += length;
-            }
-            Err(e) => return Err(e),
-        }
+        bytes_written += write_x690_node(output, &component)?;
     }
     Ok(bytes_written)
 }
@@ -1081,58 +999,34 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             tag_class = v.tag.tag_class;
             tag_number = v.tag.tag_number;
             if v.explicit {
-                match create_x690_cst(&v.value) {
-                    Ok(cst) => {
-                        encoded_value = Arc::new(X690Encoding::EXPLICIT(Box::new(cst.root)));
-                    }
-                    Err(e) => return Err(e),
-                };
+                let cst = create_x690_cst(&v.value)?;
+                encoded_value = Arc::new(X690Encoding::EXPLICIT(Box::new(cst.root)));
             } else {
-                match create_x690_cst(&v.value) {
-                    Ok(cst) => {
-                        // TODO: arc_unwrap_or_clone, when that is non-experimental.
-                        encoded_value = cst.root.value.clone();
-                    }
-                    Err(e) => return Err(e),
-                };
+                let cst = create_x690_cst(&v.value)?;
+                // TODO: arc_unwrap_or_clone, when that is non-experimental.
+                encoded_value = cst.root.value.clone();
             }
         }
         ASN1Value::BooleanValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_boolean_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
+            encoded_value = Arc::new(X690Encoding::IMPLICIT(vec![ if *v { 0xFF } else { 0x00 }]));
         }
         // TODO: Handle a BIGINT type
         ASN1Value::IntegerValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_INTEGER;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_integer_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_integer_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::BitStringValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_bit_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.bytes.len() + 1);
+            x690_write_bit_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::OctetStringValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_octet_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
+            encoded_value = Arc::new(X690Encoding::IMPLICIT(v.clone()));
         }
         ASN1Value::NullValue => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_NULL;
@@ -1140,171 +1034,117 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
         }
         ASN1Value::ObjectIdentifierValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_object_identifier_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            // We assume the average arc gets encoded on two bytes.
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.0.len() << 1);
+            x690_write_object_identifier_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::ExternalValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL;
             let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_external_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_external_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::RealValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_REAL;
             let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_real_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_real_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::EnumeratedValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_enum_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(8);
+            x690_write_enum_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::EmbeddedPDVValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV;
             let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_embedded_pdv_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_embedded_pdv_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::UTF8String(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_utf8_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_utf8_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::RelativeOIDValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_relative_oid_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.0.len() << 1);
+            x690_write_relative_oid_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::TimeValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_TIME;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_time_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_time_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::SequenceValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE;
-            let mut inner_values: Vec<X690Element> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
-                match create_x690_cst_node(inner_value) {
-                    Ok(inner_node) => {
-                        inner_values.push(inner_node);
-                    }
-                    Err(e) => return Err(e),
-                };
+                let inner_node = create_x690_cst_node(inner_value)?;
+                inner_values.push(inner_node);
             }
             encoded_value = Arc::new(X690Encoding::Constructed(inner_values));
         }
         ASN1Value::SequenceOfValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF;
-            let mut inner_values: Vec<X690Element> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
-                match create_x690_cst_node(inner_value) {
-                    Ok(inner_node) => {
-                        inner_values.push(inner_node);
-                    }
-                    Err(e) => return Err(e),
-                };
+                let inner_node = create_x690_cst_node(inner_value)?;
+                inner_values.push(inner_node);
             }
             encoded_value = Arc::new(X690Encoding::Constructed(inner_values));
         }
         ASN1Value::SetValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SET;
-            let mut inner_values: Vec<X690Element> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
-                match create_x690_cst_node(inner_value) {
-                    Ok(inner_node) => {
-                        inner_values.push(inner_node);
-                    }
-                    Err(e) => return Err(e),
-                };
+                let inner_node = create_x690_cst_node(inner_value)?;
+                inner_values.push(inner_node);
             }
             encoded_value = Arc::new(X690Encoding::Constructed(inner_values));
         }
         ASN1Value::SetOfValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SET_OF;
-            let mut inner_values: Vec<X690Element> = Vec::new();
+            let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
-                match create_x690_cst_node(inner_value) {
-                    Ok(inner_node) => {
-                        inner_values.push(inner_node);
-                    }
-                    Err(e) => return Err(e),
-                };
+                let inner_node = create_x690_cst_node(inner_value)?;
+                inner_values.push(inner_node);
             }
             encoded_value = Arc::new(X690Encoding::Constructed(inner_values));
         }
         ASN1Value::UTCTime(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_utc_time_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(17); // This is the max length of a UTCTime.
+            x690_write_utc_time_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::GeneralizedTime(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_generalized_time_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(32); // This should cover most values.
+            x690_write_generalized_time_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::UniversalString(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_universal_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len() << 2);
+            x690_write_universal_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::UnrestrictedCharacterStringValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING;
             let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_character_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            x690_write_character_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::BMPString(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_bmp_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len() << 1);
+            x690_write_bmp_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::InstanceOfValue(v) => {
@@ -1331,20 +1171,14 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
         }
         ASN1Value::IRIValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::RelativeIRIValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::GeneralString(v) => {
@@ -1353,11 +1187,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::IA5String(v) => {
@@ -1367,11 +1198,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 }
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::GraphicString(v) => {
@@ -1381,11 +1209,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 }
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::ISO646String(v) => {
@@ -1400,11 +1225,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 }
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::VisibleString(v) => {
@@ -1419,11 +1241,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 }
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::NumericString(v) => {
@@ -1434,11 +1253,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 }
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::PrintableString(v) => {
@@ -1455,74 +1271,45 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 return Err(Error::from(ErrorKind::InvalidData));
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::TeletexString(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match value_bytes.write(v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
+            encoded_value = Arc::new(X690Encoding::IMPLICIT(v.clone()));
         }
         ASN1Value::T61String(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match value_bytes.write(v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
+            encoded_value = Arc::new(X690Encoding::IMPLICIT(v.clone()));
         }
         ASN1Value::VideotexString(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match value_bytes.write(v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
-            encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
+            encoded_value = Arc::new(X690Encoding::IMPLICIT(v.clone()));
         }
         ASN1Value::DATE(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DATE;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_date_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(10);
+            x690_write_date_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::TIME_OF_DAY(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_time_of_day_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(8);
+            x690_write_time_of_day_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::DATE_TIME(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_date_time_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(19); // 1951-10-14T15:30:00
+            x690_write_date_time_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::DURATION(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DURATION;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_duration_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            // There is no guaranteed size, but 16 is a reasonable pre-allocation.
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(16);
+            x690_write_duration_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::ObjectDescriptor(v) => {
@@ -1532,11 +1319,8 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 }
             }
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING;
-            let mut value_bytes: Vec<u8> = Vec::new();
-            match x690_write_string_value(&mut value_bytes, v) {
-                Err(e) => return Err(e),
-                _ => (),
-            };
+            let mut value_bytes: Vec<u8> = Vec::with_capacity(v.len());
+            x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = Arc::new(X690Encoding::IMPLICIT(value_bytes));
         }
         ASN1Value::ChoiceValue(v) => {
@@ -1570,12 +1354,7 @@ where
         X690Encoding::Constructed(components) => {
             let mut sum: usize = 0;
             for c in components {
-                match write_x690_node(output, c) {
-                    Ok(bytes_written) => {
-                        sum += bytes_written;
-                    }
-                    Err(e) => return Err(e),
-                };
+                sum += write_x690_node(output, c)?;
             }
             Ok(sum)
         }
@@ -1600,24 +1379,9 @@ where
     }
     let len = node.value.len();
     let mut bytes_written: usize = 0;
-    match x690_write_tag(output, tag_class, constructed, tag_number) {
-        Ok(wrote) => {
-            bytes_written += wrote;
-        }
-        Err(e) => return Err(e),
-    };
-    match x690_write_length(output, len) {
-        Ok(wrote) => {
-            bytes_written += wrote;
-        }
-        Err(e) => return Err(e),
-    };
-    match write_x690_encoding(output, &node.value) {
-        Ok(wrote) => {
-            bytes_written += wrote;
-        }
-        Err(e) => return Err(e),
-    };
+    bytes_written += x690_write_tag(output, tag_class, constructed, tag_number)?;
+    bytes_written += x690_write_length(output, len)?;
+    bytes_written += write_x690_encoding(output, &node.value)?;
     Ok(bytes_written)
 }
 
@@ -1625,10 +1389,7 @@ pub fn ber_encode<W>(output: &mut W, value: &ASN1Value) -> Result<usize>
 where
     W: Write,
 {
-    let cst = match create_x690_cst(value) {
-        Ok(cst) => cst,
-        Err(e) => return Err(e),
-    };
+    let cst = create_x690_cst(value)?;
     write_x690_node(output, &cst.root)
 }
 
@@ -1734,21 +1495,8 @@ pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
 
 // Get the CST of BER-encoded data.
 pub fn ber_cst(bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
-    let tag_encoding_length: usize;
-    let tag_class: TagClass;
-    let constructed: bool;
-    let tag_number: TagNumber;
-    match ber_decode_tag(bytes) {
-        Ok((len, tag)) => {
-            // REVIEW: Is this idiomatic?
-            tag_encoding_length = len;
-            tag_class = tag.tag_class;
-            constructed = tag.constructed;
-            tag_number = tag.tag_number;
-        }
-        Err(e) => return Err(e),
-    };
-    let mut bytes_read: usize = tag_encoding_length;
+    let (len, tag) = ber_decode_tag(bytes)?;
+    let mut bytes_read: usize = len;
     let value_length;
     match ber_decode_length(&bytes[bytes_read..]) {
         Ok((len_len, len)) => {
@@ -1761,14 +1509,14 @@ pub fn ber_cst(bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
         X690Length::Definite(len) => {
             if (bytes.len() - bytes_read) < len {
                 let mut err = ASN1Error::new(ASN1ErrorCode::truncated);
-                err.tag = Some(Tag::new(tag_class, tag_number));
+                err.tag = Some(Tag::new(tag.tag_class, tag.tag_number));
                 err.length = Some(len);
                 return Err(err);
             }
-            if !constructed {
+            if !tag.constructed {
                 let el = X690Element::new(
-                    tag_class,
-                    tag_number,
+                    tag.tag_class,
+                    tag.tag_number,
                     Arc::new(X690Encoding::IMPLICIT(Vec::from(
                         &bytes[bytes_read..bytes_read + len],
                     ))), // TODO: Indefinite too
@@ -1793,18 +1541,18 @@ pub fn ber_cst(bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
                 children.push(el);
             }
             let el = X690Element::new(
-                tag_class,
-                tag_number,
+                tag.tag_class,
+                tag.tag_number,
                 Arc::new(X690Encoding::Constructed(children)),
             );
             Ok((bytes_read, el))
         }
         X690Length::Indefinite => {
-            if !constructed {
+            if !tag.constructed {
                 // Indefinite length must be constructed.
                 let mut err =
                     ASN1Error::new(ASN1ErrorCode::x690_indefinite_length_but_not_constructed);
-                err.tag = Some(Tag::new(tag_class, tag_number));
+                err.tag = Some(Tag::new(tag.tag_class, tag.tag_number));
                 return Err(err);
             }
             /* We don't know how many child elements this element must have, but
@@ -1832,8 +1580,8 @@ pub fn ber_cst(bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
             }
             bytes_read += value_bytes_read;
             let el = X690Element::new(
-                tag_class,
-                tag_number,
+                tag.tag_class,
+                tag.tag_number,
                 Arc::new(X690Encoding::Constructed(children)),
             );
             Ok((bytes_read, el))

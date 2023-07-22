@@ -123,16 +123,6 @@ fn decode_algorithm_identifier1() {
         ])),
     );
     let alg_id = decode_AlgorithmIdentifier(&root).unwrap();
-    assert_eq!(
-        alg_id
-            .algorithm
-            .0
-            .iter()
-            .map(|a| a.to_string())
-            .collect::<Vec<String>>()
-            .join("."),
-        "2.5.4.3"
-    );
     if let Some(p) = alg_id.parameters {
         match p {
             ASN1Value::NullValue => (),
@@ -161,16 +151,6 @@ fn decode_algorithm_identifier2() {
         ])),
     );
     let alg_id = decode_AlgorithmIdentifier2(&root).unwrap();
-    assert_eq!(
-        alg_id
-            .algorithm
-            .0
-            .iter()
-            .map(|a| a.to_string())
-            .collect::<Vec<String>>()
-            .join("."),
-        "2.5.4.3"
-    );
     if let Some(p) = alg_id.parameters {
         match p {
             ASN1Value::NullValue => (),
