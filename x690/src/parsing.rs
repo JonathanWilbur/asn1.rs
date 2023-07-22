@@ -3,6 +3,7 @@
 #![allow(soft_unstable)]
 
 use crate::{X690Element, X690Encoding};
+use asn1::TagClass;
 use asn1::construction::{ComponentSpec, TagSelector};
 use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use asn1::types::Tag;
@@ -49,7 +50,7 @@ pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
 
 // TODO: Avoid using HashMaps and Sets if the number of components is small.
 pub fn _parse_set<'a>(
-    elements: &'a [&'a X690Element],
+    elements: &'a [X690Element],
     rctl1: &'a [ComponentSpec],
     eal: &'a [ComponentSpec],
     rctl2: &'a [ComponentSpec],
@@ -61,26 +62,91 @@ pub fn _parse_set<'a>(
         return Err(err);
     }
 
-    // Check for duplicates
-    let mut encountered_tags: HashSet<Tag> = HashSet::new();
-    for el in elements {
-        if encountered_tags.contains(&Tag::new(el.tag_class, el.tag_number)) {
-            let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-            err.component_name = el.name.clone();
-            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
-            err.length = Some(el.len());
-            err.constructed = Some(el.is_constructed());
-            return Err(err);
-        }
-        encountered_tags.insert(Tag::new(el.tag_class, el.tag_number));
-    }
+    /* We need to check for any duplicate tags. No, checking for duplicate
+    components is not sufficient, because that only works for recognized
+    components. We need to make sure the extensions do not have duplicates as
+    well, even if we do not recognized them.
 
-    let mut encountered_components: HashSet<&str> = HashSet::new();
-    let mut encountered_ext_groups: HashSet<u8> = HashSet::new();
+    Instead of using a `HashSet` (as was the case before), this solution avoids
+    allocation on the heap entirely by using u64s as bitmaps. Unfortunately,
+    this does mean that tags with numbers greater than 63 are not checked for
+    duplicates, but this is an unusual case, and the considerable performance
+    gains are worth being a little more reckless on this front. */
+    let mut encountered_univ_tags: u64 = 0;
+    let mut encountered_ctxt_tags: u64 = 0;
+    let mut encountered_appl_tags: u64 = 0;
+    let mut encountered_priv_tags: u64 = 0;
+    let mut encountered_ext_groups: u64 = 0;
+    /* Unfortunately, the above results in this copy-paste mess, but it is still
+    worth it. */
+    for el in elements {
+        match el.tag_class {
+            TagClass::UNIVERSAL => {
+                if el.tag_number > 63 {
+                    continue;
+                }
+                let bit_mask = 1 << el.tag_number;
+                if (encountered_univ_tags & bit_mask) > 0 {
+                    let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
+                    err.component_name = el.name.clone();
+                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.length = Some(el.len());
+                    err.constructed = Some(el.is_constructed());
+                    return Err(err);
+                }
+                encountered_univ_tags |= bit_mask;
+            },
+            TagClass::CONTEXT => {
+                if el.tag_number > 63 {
+                    continue;
+                }
+                let bit_mask = 1 << el.tag_number;
+                if (encountered_ctxt_tags & bit_mask) > 0 {
+                    let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
+                    err.component_name = el.name.clone();
+                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.length = Some(el.len());
+                    err.constructed = Some(el.is_constructed());
+                    return Err(err);
+                }
+                encountered_ctxt_tags |= bit_mask;
+            },
+            TagClass::APPLICATION => {
+                if el.tag_number > 63 {
+                    continue;
+                }
+                let bit_mask = 1 << el.tag_number;
+                if (encountered_appl_tags & bit_mask) > 0 {
+                    let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
+                    err.component_name = el.name.clone();
+                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.length = Some(el.len());
+                    err.constructed = Some(el.is_constructed());
+                    return Err(err);
+                }
+                encountered_appl_tags |= bit_mask;
+            },
+            TagClass::PRIVATE => {
+                if el.tag_number > 63 {
+                    continue;
+                }
+                let bit_mask = 1 << el.tag_number;
+                if (encountered_priv_tags & bit_mask) > 0 {
+                    let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
+                    err.component_name = el.name.clone();
+                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.length = Some(el.len());
+                    err.constructed = Some(el.is_constructed());
+                    return Err(err);
+                }
+                encountered_priv_tags |= bit_mask;
+            },
+        }
+    }
 
     // Instead of iterating over every `ComponentSpec` for each component (O(n^2)),
     // we can pre-index the specs by (tag_class,tag_number)
-    let mut tag_to_spec: HashMap<Tag, ComponentSpec> = HashMap::new();
+    let mut tag_to_spec: HashMap<Tag, ComponentSpec> = HashMap::with_capacity(rctl1.len() + eal.len() + rctl2.len());
     for spec in rctl1.iter().chain(eal).into_iter().chain(rctl2).into_iter() {
         match spec.selector {
             TagSelector::tag(tag) => {
@@ -91,11 +157,11 @@ pub fn _parse_set<'a>(
         }
     }
 
-    let mut ret: IndexedComponents = (HashMap::new(), Vec::new());
+    let mut ret: IndexedComponents = (HashMap::with_capacity(elements.len()), Vec::new());
     for el in elements {
         match tag_to_spec.get(&Tag::new(el.tag_class, el.tag_number)) {
             Some(s) => {
-                if encountered_components.contains(s.name) {
+                if ret.0.contains_key(s.name) {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_components);
                     err.component_name = Some(String::from(s.name));
                     err.tag = Some(Tag::new(el.tag_class, el.tag_number));
@@ -103,41 +169,43 @@ pub fn _parse_set<'a>(
                     err.constructed = Some(el.is_constructed());
                     return Err(err);
                 }
-                encountered_components.insert(s.name);
                 if let Some(group_index) = s.group_index {
-                    encountered_ext_groups.insert(group_index);
+                    if group_index < 63 {
+                        encountered_ext_groups |= 1 << group_index;
+                    }
                 }
-                ret.0.insert(s.name, (**el).clone());
+                ret.0.insert(s.name, (*el).clone());
             }
-            None => ret.1.push((**el).clone()),
+            None => ret.1.push((*el).clone()),
         }
     }
 
-    let mut missing_required_components: Vec<&str> = Vec::new();
     for spec in rctl1.iter().chain(rctl2).into_iter() {
-        if spec.optional || encountered_components.contains(spec.name) {
+        if spec.optional || ret.0.contains_key(spec.name) {
             continue;
         }
-        missing_required_components.push(spec.name);
+        let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+        err.component_name = Some(String::from(spec.name));
+        return Err(err);
     }
 
-    for exg in &encountered_ext_groups {
+    if encountered_ext_groups > 0 {
         for spec in eal {
             if let Some(group_index) = spec.group_index {
-                if *exg == group_index
+                if group_index > 63 {
+                    continue;
+                }
+                let bit_mask = 1 << group_index;
+                if ((encountered_ext_groups & bit_mask) > 0)
                     && !spec.optional
-                    && !encountered_components.contains(spec.name)
+                    && !ret.0.contains_key(spec.name)
                 {
-                    missing_required_components.push(spec.name);
+                    let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
+                    err.component_name = Some(String::from(spec.name));
+                    return Err(err);
                 }
             }
         }
-    }
-
-    if missing_required_components.len() > 0 {
-        let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
-        err.component_name = Some(String::from(missing_required_components[0]));
-        return Err(err);
     }
 
     Ok(ret)

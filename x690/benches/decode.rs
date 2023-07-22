@@ -3,9 +3,10 @@ use asn1::types::{
     ASN1Value, TagClass, ASN1_UNIVERSAL_TAG_NUMBER_NULL,
     ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
     ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE, OBJECT_IDENTIFIER,
+    ASN1_UNIVERSAL_TAG_NUMBER_SET,
 };
 use std::sync::Arc;
-use x690::{X690Element, X690Encoding};
+use x690::{X690Element, X690Encoding, _parse_set};
 use asn1::construction::{ComponentSpec, TagSelector};
 use asn1::error::ASN1Result;
 use std::borrow::Borrow;
@@ -105,6 +106,29 @@ fn decode_AlgorithmIdentifier2(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
     })
 }
 
+fn decode_AlgorithmIdentifier3(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
+    let elements = match el.value.borrow() {
+        X690Encoding::Constructed(children) => children,
+        _ => panic!(),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_AlgorithmIdentifier,
+        _eal_components_for_AlgorithmIdentifier,
+        _rctl2_components_for_AlgorithmIdentifier,
+        10,
+    )?;
+    let algorithm: OBJECT_IDENTIFIER = ber_decode_object_identifier(_components.get("algorithm").unwrap())?;
+    let parameters: Option<ASN1Value> = match _components.get("parameters") {
+        Some(c_) => Some(ber_decode_any(c_)?),
+        _ => None,
+    };
+    Ok(AlgorithmIdentifier {
+        algorithm,
+        parameters,
+    })
+}
+
 fn decode_algorithm_identifier1() {
     let root: X690Element = X690Element::new(
         TagClass::UNIVERSAL,
@@ -161,11 +185,37 @@ fn decode_algorithm_identifier2() {
     }
 }
 
+/* This example parses the encoded algorithm identifier as a SET. It is for
+testing SET decoding. */
+fn decode_algorithm_identifier3() {
+    let root: X690Element = X690Element::new(
+        TagClass::UNIVERSAL,
+        ASN1_UNIVERSAL_TAG_NUMBER_SET,
+        Arc::new(X690Encoding::Constructed(vec![
+            X690Element::new(
+                TagClass::UNIVERSAL,
+                ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+                Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
+            ),
+            X690Element::new(
+                TagClass::UNIVERSAL,
+                ASN1_UNIVERSAL_TAG_NUMBER_NULL,
+                Arc::new(X690Encoding::IMPLICIT(vec![])),
+            ),
+        ])),
+    );
+    decode_AlgorithmIdentifier3(&root).unwrap();
+    /* We don't check if the parameters has a value of NULL. In sets, any
+    element that is not specified as having a specific tag and class number are
+    treated as unrecognized. */
+}
+
 fn criterion_benchmark(c: &mut Criterion) {
     /* Finding: the second method--iterating rather than creating a HashMap--is
     about 40% faster. */
     c.bench_function("decode_AlgorithmIdentifier1", |b| b.iter(|| decode_algorithm_identifier1()));
     c.bench_function("decode_AlgorithmIdentifier2", |b| b.iter(|| decode_algorithm_identifier2()));
+    c.bench_function("decode_AlgorithmIdentifier3", |b| b.iter(|| decode_algorithm_identifier3()));
 }
 
 criterion_group!(benches, criterion_benchmark);
