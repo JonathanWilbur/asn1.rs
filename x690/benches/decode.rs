@@ -74,9 +74,8 @@ fn decode_AlgorithmIdentifier2(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
         X690Encoding::Constructed(children) => children,
         _ => panic!(),
     };
-    let el_refs = elements.iter().collect::<Vec<&X690Element>>();
     let seq_iter = X690StructureIterator::new(
-        el_refs.as_slice(),
+        elements.as_slice(),
         _rctl1_components_for_AlgorithmIdentifier,
         _eal_components_for_AlgorithmIdentifier,
         _rctl2_components_for_AlgorithmIdentifier,
