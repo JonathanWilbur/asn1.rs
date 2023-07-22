@@ -210,7 +210,7 @@ pub fn _parse_component_type_list<'a>(
 
 pub struct X690ComponentIterator <'a> {
     pub ctl: &'a [ComponentSpec<'a>],
-    pub elements: &'a [&'a X690Element],
+    pub elements: &'a [X690Element],
     pub is_extensions: bool,
     e: usize,
     s: usize,
@@ -221,7 +221,7 @@ impl <'a> X690ComponentIterator<'a> {
 
     pub fn new (
         ctl: &'a [ComponentSpec],
-        elements: &'a [&'a X690Element],
+        elements: &'a [X690Element],
         is_extensions: bool,
     ) -> Self {
         X690ComponentIterator {
@@ -481,7 +481,7 @@ enum X690StructureIterationPhase {
 }
 
 pub struct X690StructureIterator <'a> {
-    pub elements: &'a [&'a X690Element],
+    pub elements: &'a [X690Element],
     pub rctl1: &'a [ComponentSpec<'a>],
     pub eal: &'a [ComponentSpec<'a>],
     pub rctl2: &'a [ComponentSpec<'a>],
@@ -494,7 +494,7 @@ pub struct X690StructureIterator <'a> {
 impl <'a> X690StructureIterator<'a> {
 
     pub fn new (
-        elements: &'a [&'a X690Element],
+        elements: &'a [X690Element],
         rctl1: &'a [ComponentSpec<'a>],
         eal: &'a [ComponentSpec<'a>],
         rctl2: &'a [ComponentSpec<'a>],

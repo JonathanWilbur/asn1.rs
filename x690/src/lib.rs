@@ -27,10 +27,11 @@ use asn1::types::{
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
 };
 use asn1::ENUMERATED;
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 use std::io::{Error, ErrorKind, Result, Write};
 use std::mem::size_of;
 use std::sync::Arc;
+use smallvec::{smallvec, SmallVec};
 
 pub mod ber;
 pub mod parsing;
@@ -298,6 +299,7 @@ pub struct X690ConcreteSyntaxTree {
 }
 
 fn base_128_len(num: u32) -> usize {
+    // TODO: Could you get a performance improvement by using a match statement instead?
     if num < 128 {
         return 1;
     }
@@ -326,7 +328,9 @@ where
         i >>= 7;
     }
 
-    let mut encoded: Vec<u8> = Vec::new();
+    // A base-128-encoded u32 can only take up to five bytes.
+    // let mut encoded: SmallVec<[_; 5]> = smallvec![];
+    let mut encoded: Vec<u8> = Vec::with_capacity(5);
     for i in (0..l).rev() {
         let mut o = (num >> (i * 7)) as u8;
         o &= 0x7f;
@@ -1838,13 +1842,13 @@ pub fn ber_cst(bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
 }
 
 // TODO: This needs testing.
-pub fn deconstruct(el: &X690Element) -> ASN1Result<X690Element> {
+pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
     match el.value.borrow() {
-        X690Encoding::IMPLICIT(_) => Ok(el.clone()),
-        X690Encoding::EXPLICIT(inner) => Ok((**inner).clone()),
+        X690Encoding::IMPLICIT(bytes) => Ok(Cow::Borrowed(bytes)),
+        X690Encoding::EXPLICIT(inner) => return deconstruct(&inner),
         X690Encoding::AlreadyEncoded(bytes) => match ber_cst(&bytes) {
             Ok((_, cst)) => {
-                return deconstruct(&cst);
+                return Ok(Cow::Owned(deconstruct(&cst)?.into_owned()));
             }
             Err(e) => return Err(e),
         },
@@ -1866,25 +1870,12 @@ pub fn deconstruct(el: &X690Element) -> ASN1Result<X690Element> {
                 }
                 match deconstruct(&child) {
                     Ok(deconstructed_child) => {
-                        if let X690Encoding::IMPLICIT(sub) = deconstructed_child.value.borrow() {
-                            deconstructed_value.extend(sub);
-                        } else {
-                            let mut err = ASN1Error::new(ASN1ErrorCode::failed_to_deconstruct);
-                            err.component_name = el.name.clone();
-                            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
-                            err.length = Some(el.len());
-                            err.constructed = Some(true);
-                            return Err(err);
-                        }
+                        deconstructed_value.extend(deconstructed_child.as_ref());
                     }
                     Err(e) => return Err(e),
                 }
             }
-            Ok(X690Element::new(
-                el.tag_class,
-                el.tag_number,
-                Arc::new(X690Encoding::IMPLICIT(deconstructed_value)),
-            ))
+            Ok(Cow::Owned(deconstructed_value))
         }
     }
 }

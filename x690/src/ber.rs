@@ -576,11 +576,7 @@ pub fn ber_decode_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
 }
 
 pub fn ber_decode_octet_string(el: &X690Element) -> ASN1Result<OCTET_STRING> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-    }
+    Ok(deconstruct(el)?.into_owned())
 }
 
 pub fn ber_decode_null(el: &X690Element) -> ASN1Result<()> {
@@ -967,146 +963,78 @@ pub fn ber_decode_set(el: &X690Element) -> ASN1Result<SET> {
 }
 
 pub fn ber_decode_object_descriptor(el: &X690Element) -> ASN1Result<ObjectDescriptor> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_graphic_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_utf8_string(el: &X690Element) -> ASN1Result<UTF8String> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
-            Ok(x) => Ok(x),
-            Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
-        },
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
+    match String::from_utf8(deconstruct(el)?.into_owned()) {
+        Ok(x) => Ok(x),
+        Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
     }
 }
 
 pub fn ber_decode_numeric_string(el: &X690Element) -> ASN1Result<NumericString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_numeric_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_numeric_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_printable_string(el: &X690Element) -> ASN1Result<PrintableString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_printable_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_printable_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_t61_string(el: &X690Element) -> ASN1Result<T61String> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    Ok(deconstruct(el)?.into_owned())
 }
 
 pub fn ber_decode_videotex_string(el: &X690Element) -> ASN1Result<VideotexString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => Ok(bytes.clone()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    Ok(deconstruct(el)?.into_owned())
 }
 
 pub fn ber_decode_ia5_string(el: &X690Element) -> ASN1Result<IA5String> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_ia5_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_ia5_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_utc_time(el: &X690Element) -> ASN1Result<UTCTime> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_utc_time_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_utc_time_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_generalized_time(el: &X690Element) -> ASN1Result<GeneralizedTime> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_generalized_time_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_generalized_time_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_graphic_string(el: &X690Element) -> ASN1Result<GraphicString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_graphic_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_graphic_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_visible_string(el: &X690Element) -> ASN1Result<VisibleString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_visible_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_visible_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_general_string(el: &X690Element) -> ASN1Result<GeneralString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_general_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_general_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_universal_string(el: &X690Element) -> ASN1Result<UniversalString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_universal_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_universal_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_bmp_string(el: &X690Element) -> ASN1Result<BMPString> {
-    let deconstruction = deconstruct(el)?;
-    match deconstruction.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_bmp_string_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-    }
+    ber_decode_bmp_string_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_date(el: &X690Element) -> ASN1Result<DATE> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_date_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-    }
+    ber_decode_date_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_time_of_day(el: &X690Element) -> ASN1Result<TIME_OF_DAY> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_time_of_day_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-    }
+    ber_decode_time_of_day_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_date_time(el: &X690Element) -> ASN1Result<DATE_TIME> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_date_time_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-    }
+    ber_decode_date_time_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_duration(el: &X690Element) -> ASN1Result<DURATION> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_duration_value(bytes.as_slice()),
-        _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-    }
+    ber_decode_duration_value(deconstruct(el)?.as_ref())
 }
 
 pub fn ber_decode_oid_iri(el: &X690Element) -> ASN1Result<OID_IRI> {
@@ -1715,6 +1643,18 @@ pub fn ber_encode_time(value: &TIME) -> ASN1Result<X690Element> {
         ASN1_UNIVERSAL_TAG_NUMBER_TIME,
         Arc::new(X690Encoding::IMPLICIT(out)),
     ))
+}
+
+
+pub fn ber_validate_boolean(content_octets: ByteSlice) -> bool {
+    content_octets.len() == 1
+}
+
+pub fn ber_validate_integer(content_octets: ByteSlice) -> bool {
+    if (content_octets.len() == 1) {
+        return true;
+    }
+    return true; // FIXME:
 }
 
 #[cfg(test)]
