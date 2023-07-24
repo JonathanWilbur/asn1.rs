@@ -303,7 +303,7 @@ pub fn ber_decode_real_value(value_bytes: ByteSlice) -> ASN1Result<REAL> {
                 Ok(f) => f,
                 _ => {
                     return Err(ASN1Error::new(
-                        ASN1ErrorCode::base_10_real_string_malformed(String::from(&str_[0..32])),
+                        ASN1ErrorCode::base_10_real_string_malformed(str_.to_owned().into_bytes()),
                     ))
                 }
             };
