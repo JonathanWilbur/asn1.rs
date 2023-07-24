@@ -506,25 +506,158 @@ pub const LOWER_LAYER_COMPAT_ISO_IEC_9577_CODING_P2P_7B: u8     = 0b0000_1111;
 pub const NETWORK_SPECIFIC_FACILITIES_NET_ID_USER_SPEC: u8      = 0b0000_0000;
 pub const NETWORK_SPECIFIC_FACILITIES_NET_ID_NATIONAL: u8       = 0b0010_0000;
 pub const NETWORK_SPECIFIC_FACILITIES_NET_ID_INTERNATIONAL: u8  = 0b0011_0000;
-
-// TODO: Network-Specific Facilities (Medium)
-// TODO: Notification Indicator (Easy)
-// TODO: Progress Indicator (Medium)
-// TODO: Repeat Indicator (Easy)
-// TODO: Restart Indicator (Easy)
-// TODO: Segmented Message (Easy)
-// TODO: Signal (Easy)
-// TODO: Transit Network Selection (Easy)
-// TODO: Network Selection (Easy)
-// TODO: User-User (Easy)
-// TODO: Closed User Group (Easy)
-// TODO: End to End Transit Delay (Easy)
-// TODO: Information Rate (Easy)
-// TODO: Packet Layer Binary Parameters (Easy)
-// TODO: Redirecting Number
-// TODO: Reverse Charging Indication (Easy)
-
-// TODO: Q.850: Cause parameters (Medium)
+pub const NETWORK_SPECIFIC_FACILITIES_NET_ID_PLAN_UNKNOWN: u8   = 0b0000_0000;
+pub const NETWORK_SPECIFIC_FACILITIES_NET_ID_PLAN_CIC: u8       = 0b0000_0001;
+pub const NETWORK_SPECIFIC_FACILITIES_NET_ID_PLAN_INTL: u8      = 0b0000_0011;
+pub const NOTIFICATION_INDICATOR_USER_SUSPENDED: u8             = 0b0000_0000;
+pub const NOTIFICATION_INDICATOR_USER_RESUMED: u8               = 0b0000_0001;
+pub const NOTIFICATION_INDICATOR_BEARER_SERVICE_CHANGED: u8     = 0b0000_0010;
+pub const PROGRES_INDICATOR_CODING_STD_ITU_T: u8                = 0b0000_0000;
+pub const PROGRES_INDICATOR_CODING_STD_ISO_IEC: u8              = 0b0100_0000;
+pub const PROGRES_INDICATOR_CODING_STD_NATIONAL: u8             = 0b1000_0000;
+pub const PROGRES_INDICATOR_CODING_STD_LOCATION_SPECIFIC: u8    = 0b1100_0000;
+pub const PROGRES_INDICATOR_LOCATION_USER: u8                   = 0b0000_0000;
+pub const PROGRES_INDICATOR_LOCATION_PRIV_NET_LOCAL_USER: u8    = 0b0000_0001;
+pub const PROGRES_INDICATOR_LOCATION_PUBL_NET_LOCAL_USER: u8    = 0b0000_0010;
+pub const PROGRES_INDICATOR_LOCATION_TRANSIT_NETWORK: u8        = 0b0000_0011;
+pub const PROGRES_INDICATOR_LOCATION_PUBL_NET_REMOTE_USER: u8   = 0b0000_0100;
+pub const PROGRES_INDICATOR_LOCATION_PRIV_NET_REMOTE_USER: u8   = 0b0000_0101;
+pub const PROGRES_INDICATOR_LOCATION_NET_BEYOND: u8             = 0b0000_1010;
+pub const PROGRES_INDICATOR_DESC_CALL_IS_NOT_E2E_ISDN: u8       = 0b0000_0001;
+pub const PROGRES_INDICATOR_DESC_DESTINATION_NOT_ISDN: u8       = 0b0000_0010;
+pub const PROGRES_INDICATOR_DESC_ORIGINATION_NOT_ISDN: u8       = 0b0000_0011;
+pub const PROGRES_INDICATOR_DESC_CALL_RETURNED_TO_ISDN: u8      = 0b0000_0100;
+pub const PROGRES_INDICATOR_DESC_INTERWORKING_OCCURRED: u8      = 0b0000_0101;
+pub const PROGRES_INDICATOR_DESC_IN_BAND_INFO: u8               = 0b0000_1000;
+pub const REPEAT_INDICATOR_LIST_FOR_SELECTING_1_POSSIBILITY: u8 = 0b0000_0010;
+pub const RESTART_INDICATOR_INDICATED_CHANNELS: u8              = 0b0000_0000;
+pub const RESTART_INDICATOR_SINGLE_INTERFACE: u8                = 0b0000_0010;
+pub const RESTART_INDICATOR_ALL_INTERFACES: u8                  = 0b0000_0111;
+pub const SEGMENTED_MESSAGE_SUBSEQUENT: u8                      = 0b0000_0000;
+pub const SEGMENTED_MESSAGE_FIRST: u8                           = 0b1000_0000;
+pub const SIGNAL_DIAL_TONE_ON: u8                               = 0b0000_0000;
+pub const SIGNAL_RING_BACK_TONE_ON: u8                          = 0b0000_0001;
+pub const SIGNAL_INTERCEPT_TONE_ON: u8                          = 0b0000_0010;
+pub const SIGNAL_NETWORK_CONGESTION_ON: u8                      = 0b0000_0011;
+pub const SIGNAL_BUSY_TONE_ON: u8                               = 0b0000_0100;
+pub const SIGNAL_CONFIRM_TONE_ON: u8                            = 0b0000_0101;
+pub const SIGNAL_ANSWER_TONE_ON: u8                             = 0b0000_0110;
+pub const SIGNAL_CALL_WAITING_TONE: u8                          = 0b0000_0111;
+pub const SIGNAL_OFF_HOOK_WARNING_TONE: u8                      = 0b0000_1000;
+pub const SIGNAL_PRE_EMPTION_TONE_ON: u8                        = 0b0000_1001;
+pub const SIGNAL_TONES_OFF: u8                                  = 0b0011_1111;
+pub const SIGNAL_ALERTING_ON_0: u8                              = 0b0100_0000;
+pub const SIGNAL_ALERTING_ON_1: u8                              = 0b0100_0001;
+pub const SIGNAL_ALERTING_ON_2: u8                              = 0b0100_0010;
+pub const SIGNAL_ALERTING_ON_3: u8                              = 0b0100_0011;
+pub const SIGNAL_ALERTING_ON_4: u8                              = 0b0100_0100;
+pub const SIGNAL_ALERTING_ON_5: u8                              = 0b0100_0101;
+pub const SIGNAL_ALERTING_ON_6: u8                              = 0b0100_0110;
+pub const SIGNAL_ALERTING_ON_7: u8                              = 0b0100_0111;
+pub const SIGNAL_ALERTING_OFF: u8                               = 0b0100_1111;
+pub const TRANSIT_NETWORK_SELECTION_TYPE_NET_ID_USER: u8        = 0b0000_0000;
+pub const TRANSIT_NETWORK_SELECTION_TYPE_NET_ID_NATIONAL: u8    = 0b0010_0000;
+pub const TRANSIT_NETWORK_SELECTION_TYPE_NET_ID_INTL: u8        = 0b0011_0000;
+pub const TRANSIT_NETWORK_SELECTION_NET_ID_PLAN_UNKNOWN: u8     = 0b0000_0000;
+pub const TRANSIT_NETWORK_SELECTION_NET_ID_PLAN_CIC: u8         = 0b0000_0001;
+pub const TRANSIT_NETWORK_SELECTION_NET_ID_PLAN_DNIC: u8        = 0b0000_0011;
+pub const USER_USER_PROTO_DESC_USER_SPECIFIC_PROTOCOL: u8       = 0b0000_0000;
+pub const USER_USER_PROTO_DESC_OSI_HIGH_LAYER_PROTOCOLS: u8     = 0b0000_0001;
+pub const USER_USER_PROTO_DESC_X244: u8                         = 0b0000_0010;
+pub const USER_USER_PROTO_DESC_RESERVED_SYSTEM_MANAGEMENT: u8   = 0b0000_0011;
+pub const USER_USER_PROTO_DESC_IA5_CHARACTERS: u8               = 0b0000_0100;
+pub const USER_USER_PROTO_DESC_X208_OR_X209_USER_INFO: u8       = 0b0000_0101;
+pub const USER_USER_PROTO_DESC_V120_RATE_ADAPTION: u8           = 0b0000_0111;
+pub const USER_USER_PROTO_DESC_Q931_I451_USER_NET_CALL_CTRL: u8 = 0b0000_0000;
+pub const CLOSED_USER_GROUP_INDICATION_SELECTION: u8            = 0b0000_0001;
+pub const CLOSED_USER_GROUP_INDICATION_W_OUT_ACCESS_SEL_IND: u8 = 0b0000_0010;
+pub const CLOSED_USER_GROUP_INDEX_0: u8                         = 0b0011_0000;
+pub const CLOSED_USER_GROUP_INDEX_1: u8                         = 0b0011_0001;
+pub const CLOSED_USER_GROUP_INDEX_2: u8                         = 0b0011_0010;
+pub const CLOSED_USER_GROUP_INDEX_3: u8                         = 0b0011_0011;
+pub const CLOSED_USER_GROUP_INDEX_4: u8                         = 0b0011_0100;
+pub const CLOSED_USER_GROUP_INDEX_5: u8                         = 0b0011_0101;
+pub const CLOSED_USER_GROUP_INDEX_6: u8                         = 0b0011_0110;
+pub const CLOSED_USER_GROUP_INDEX_7: u8                         = 0b0011_0111;
+pub const CLOSED_USER_GROUP_INDEX_8: u8                         = 0b0011_1000;
+pub const CLOSED_USER_GROUP_INDEX_9: u8                         = 0b0011_1001;
+pub const INFO_RATE_THROUGHPUT_CLASS_RESERVED_1: u8             = 0b0000_0000;
+pub const INFO_RATE_THROUGHPUT_CLASS_RESERVED_2: u8             = 0b0000_0001;
+pub const INFO_RATE_THROUGHPUT_CLASS_RESERVED_3: u8             = 0b0000_0010;
+pub const INFO_RATE_THROUGHPUT_CLASS_75_BITS: u8                = 0b0000_0011;
+pub const INFO_RATE_THROUGHPUT_CLASS_150_BITS: u8               = 0b0000_0100;
+pub const INFO_RATE_THROUGHPUT_CLASS_300_BITS: u8               = 0b0000_0101;
+pub const INFO_RATE_THROUGHPUT_CLASS_600_BITS: u8               = 0b0000_0110;
+pub const INFO_RATE_THROUGHPUT_CLASS_1200_BITS: u8              = 0b0000_0111;
+pub const INFO_RATE_THROUGHPUT_CLASS_2400_BITS: u8              = 0b0000_1000;
+pub const INFO_RATE_THROUGHPUT_CLASS_4800_BITS: u8              = 0b0000_1001;
+pub const INFO_RATE_THROUGHPUT_CLASS_9600_BITS: u8              = 0b0000_1010;
+pub const INFO_RATE_THROUGHPUT_CLASS_19200_BITS: u8             = 0b0000_1011;
+pub const INFO_RATE_THROUGHPUT_CLASS_48000_BITS: u8             = 0b0000_1100;
+pub const INFO_RATE_THROUGHPUT_CLASS_64000_BITS: u8             = 0b0000_1101;
+pub const INFO_RATE_THROUGHPUT_CLASS_RESERVED_4: u8             = 0b0000_1110;
+pub const INFO_RATE_THROUGHPUT_CLASS_RESERVED_5: u8             = 0b0000_1111;
+pub const PACKET_LAYER_BINARY_PARAMS_FAST_SEL_NOT_REQ_1: u8     = 0b0000_0000;
+pub const PACKET_LAYER_BINARY_PARAMS_FAST_SEL_NOT_REQ_2: u8     = 0b0000_1000;
+pub const PACKET_LAYER_BINARY_PARAMS_FAST_SEL_REQ_NO_REST: u8   = 0b0001_0000;
+pub const PACKET_LAYER_BINARY_PARAMS_FAST_SEL_REQ_W_REST: u8    = 0b0001_1000;
+pub const PACKET_LAYER_BINARY_PARAMS_EXP_DATA_NOT_REQ: u8       = 0b0000_0000;
+pub const PACKET_LAYER_BINARY_PARAMS_EXP_DATA_REQ_IND_ACC: u8   = 0b0000_0100;
+pub const PACKET_LAYER_BINARY_PARAMS_DELIV_CONF_LINK_2_LINK: u8 = 0b0000_0000;
+pub const PACKET_LAYER_BINARY_PARAMS_DELIV_CONF_END_2_END: u8   = 0b0000_0010;
+pub const PACKET_LAYER_BINARY_PARAMS_MODULUS_8: u8              = 0b0000_0000;
+pub const PACKET_LAYER_BINARY_PARAMS_MODULUS_128: u8            = 0b0000_0001;
+pub const REDIRECTING_NUMBER_TYPE_UNKNOWN: u8                   = 0b0000_0000;
+pub const REDIRECTING_NUMBER_TYPE_INTERNATIONAL: u8             = 0b0001_0000;
+pub const REDIRECTING_NUMBER_TYPE_NATIONAL: u8                  = 0b0010_0000;
+pub const REDIRECTING_NUMBER_TYPE_NETWORK_SPECIFIC: u8          = 0b0011_0000;
+pub const REDIRECTING_NUMBER_TYPE_SUBSCRIBER: u8                = 0b0100_0000;
+pub const REDIRECTING_NUMBER_TYPE_ABBREVIATED: u8               = 0b0110_0000;
+pub const REDIRECTING_NUMBER_TYPE_RESERVED: u8                  = 0b0111_0000;
+pub const REDIRECTING_NUMBER_NUM_PLAN_UNKNOWN: u8               = 0b0000_0000;
+pub const REDIRECTING_NUMBER_NUM_PLAN_ISDN: u8                  = 0b0000_0001;
+pub const REDIRECTING_NUMBER_NUM_PLAN_DATA: u8                  = 0b0000_0011;
+pub const REDIRECTING_NUMBER_NUM_PLAN_TELEX: u8                 = 0b0000_0100;
+pub const REDIRECTING_NUMBER_NUM_PLAN_NATIONAL: u8              = 0b0000_1000;
+pub const REDIRECTING_NUMBER_NUM_PLAN_PRIVATE: u8               = 0b0000_1001;
+pub const REDIRECTING_NUMBER_NUM_PLAN_RESERVED: u8              = 0b0000_1111;
+pub const REDIRECTING_NUMBER_PRES_IND_ALLOWED: u8               = 0b0000_0000;
+pub const REDIRECTING_NUMBER_PRES_IND_RESTRICTION: u8           = 0b0100_0000;
+pub const REDIRECTING_NUMBER_PRES_IND_NUMBER_NOT_AVAILABLE: u8  = 0b1000_0000;
+pub const REDIRECTING_NUMBER_PRES_IND_RESERVED: u8              = 0b1100_0000;
+pub const REDIRECTING_NUMBER_SCREENING_IND_NOT_SCREENED: u8     = 0b0000_0000;
+pub const REDIRECTING_NUMBER_SCREENING_IND_VERIFIED_PASSED: u8  = 0b0000_0000;
+pub const REDIRECTING_NUMBER_SCREENING_IND_VERIFIED_FAILED: u8  = 0b0000_0000;
+pub const REDIRECTING_NUMBER_SCREENING_IND_NETWORK_PROVIDED: u8 = 0b0000_0000;
+pub const REDIRECTING_NUMBER_REASON_UNKNOWN: u8                 = 0b0000_0000;
+pub const REDIRECTING_NUMBER_REASON_BUSY: u8                    = 0b0000_0001;
+pub const REDIRECTING_NUMBER_REASON_CALL_FWD_NO_REPLY: u8       = 0b0000_0010;
+pub const REDIRECTING_NUMBER_REASON_CALL_DEFLECTION: u8         = 0b0000_0100;
+pub const REDIRECTING_NUMBER_REASON_CALLED_DTE_OUT_OF_ORDER: u8 = 0b0000_1001;
+pub const REDIRECTING_NUMBER_REASON_CALL_FWD_BY_CALLED_DTE: u8  = 0b0000_1010;
+pub const REDIRECTING_NUMBER_REASON_CALL_FWD_UNCONDITIONAL: u8  = 0b0000_1111;
+pub const REVERSE_CHARGING_IND_REQUESTED: u8                    = 0b0000_0001;
+pub const CAUSE_CODING_STD_ITU_T: u8                            = 0b0000_0000;
+pub const CAUSE_CODING_STD_ISO_IEC: u8                          = 0b0100_0000;
+pub const CAUSE_CODING_STD_NATIONAL: u8                         = 0b1000_0000;
+pub const CAUSE_CODING_STD_LOCATION_SPECIFIC: u8                = 0b1100_0000;
+pub const CAUSE_LOCATION_USER: u8                               = 0b0000_0000;
+pub const CAUSE_LOCATION_LPN: u8                                = 0b0000_0001;
+pub const CAUSE_LOCATION_LN: u8                                 = 0b0000_0010;
+pub const CAUSE_LOCATION_TN: u8                                 = 0b0000_0011;
+pub const CAUSE_LOCATION_RLN: u8                                = 0b0000_0100;
+pub const CAUSE_LOCATION_RPN: u8                                = 0b0000_0101;
+pub const CAUSE_LOCATION_INTL: u8                               = 0b0000_0111;
+pub const CAUSE_LOCATION_BI: u8                                 = 0b0000_1010;
+pub const CAUSE_LOCATION_RESERVED_NATIONAL_USE_1: u8            = 0b0000_1100;
+pub const CAUSE_LOCATION_RESERVED_NATIONAL_USE_2: u8            = 0b0000_1101;
+pub const CAUSE_LOCATION_RESERVED_NATIONAL_USE_3: u8            = 0b0000_1110;
+pub const CAUSE_LOCATION_RESERVED_NATIONAL_USE_4: u8            = 0b0000_1111;
+pub const CAUSE_RECOMMENDATION_Q931: u8                         = 0b0000_0000;
+pub const CAUSE_RECOMMENDATION_X21: u8                          = 0b0000_0011;
+pub const CAUSE_RECOMMENDATION_X25: u8                          = 0b0000_0100;
+pub const CAUSE_RECOMMENDATION_PUBLIC_LAND_MOBILE_NETWORKS: u8  = 0b0000_0101;
+// There is more information in the cause parameters, but this is probably good enough for now.
 
 pub fn parse_q931_other_info_element (input: &[u8]) -> IResult<&[u8], Q931OtherInfoElement> {
     let (input, b0) = take(1usize)(input)?;
