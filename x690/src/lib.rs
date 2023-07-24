@@ -43,10 +43,10 @@ pub const X690_TAG_CLASS_UNIVERSAL: u8 = 0b0000_0000;
 pub const X690_TAG_CLASS_APPLICATION: u8 = 0b0100_0000;
 pub const X690_TAG_CLASS_CONTEXT: u8 = 0b1000_0000;
 pub const X690_TAG_CLASS_PRIVATE: u8 = 0b1100_0000;
-pub const X690_SPECIAL_REAL_PLUS_INFINITY: u8 = 0b1000_0000;
-pub const X690_SPECIAL_REAL_MINUS_INFINITY: u8 = 0b1000_0001;
-pub const X690_SPECIAL_REAL_NOT_A_NUMBER: u8 = 0b1000_0010;
-pub const X690_SPECIAL_REAL_MINUS_ZERO: u8 = 0b1000_0011;
+pub const X690_SPECIAL_REAL_PLUS_INFINITY: u8 = 0b0000_0000;
+pub const X690_SPECIAL_REAL_MINUS_INFINITY: u8 = 0b0000_0001;
+pub const X690_SPECIAL_REAL_NOT_A_NUMBER: u8 = 0b0000_0010;
+pub const X690_SPECIAL_REAL_MINUS_ZERO: u8 = 0b0000_0011;
 pub const X690_REAL_SPECIAL: u8 = 0b0100_0000;
 pub const X690_REAL_BASE10: u8 = 0b0000_0000;
 pub const X690_REAL_BINARY: u8 = 0b1000_0000;
@@ -629,7 +629,7 @@ where
         if value.is_sign_negative() {
             return output.write(&[X690_SPECIAL_REAL_MINUS_INFINITY]);
         } else {
-            return output.write(&[X690_SPECIAL_REAL_PLUS_INFINITY]);
+            return output.write(&[X690_REAL_SPECIAL | X690_SPECIAL_REAL_PLUS_INFINITY]);
         }
     }
 

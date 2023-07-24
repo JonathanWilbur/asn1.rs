@@ -283,7 +283,7 @@ pub fn ber_decode_real_value(value_bytes: ByteSlice) -> ASN1Result<REAL> {
         return Ok(0.000000);
     }
     match value_bytes[0] & 0b1100_0000 {
-        X690_REAL_SPECIAL => match value_bytes[0] {
+        X690_REAL_SPECIAL => match value_bytes[0] & 0b0011_1111 {
             X690_SPECIAL_REAL_PLUS_INFINITY => return Ok(f64::INFINITY),
             X690_SPECIAL_REAL_MINUS_INFINITY => return Ok(f64::NEG_INFINITY),
             X690_SPECIAL_REAL_NOT_A_NUMBER => return Ok(f64::NAN),
