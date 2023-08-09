@@ -1,7 +1,5 @@
 //! ASN.1 PER Encoding common functions
 
-use std::io::ErrorKind;
-
 use bitvec::prelude::*;
 
 use crate::per::{PerCodecData, PerCodecError};
