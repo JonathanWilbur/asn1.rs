@@ -291,7 +291,7 @@ pub fn ber_decode_real_value(value_bytes: ByteSlice) -> ASN1Result<REAL> {
             _ => return Err(ASN1Error::new(ASN1ErrorCode::urecognized_real_format)),
         },
         X690_REAL_BASE10 => {
-            let str_ = match String::from_utf8(value_bytes[1..].to_vec()) {
+            let str_ = match from_utf8(&value_bytes[1..]) {
                 Ok(v) => String::from(v.trim_start()),
                 _ => {
                     return Err(ASN1Error::new(
@@ -1959,7 +1959,7 @@ pub fn ber_validate_utc_time_value (content_octets: ByteSlice) -> ASN1Result<()>
             bad_char_index,
         )));
     }
-    let s = unsafe { String::from_utf8_unchecked(content_octets[0..10].to_vec()) };
+    let s = from_utf8(&content_octets[0..10]).map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8))?;
     let mut year = u16::from_str(&s[0..2])
         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
     if year > 75 { // I think this is specified in RFC 5280. I forgot where I saw it.
@@ -2031,7 +2031,7 @@ pub fn ber_validate_utc_time_value (content_octets: ByteSlice) -> ASN1Result<()>
             bad_char_index,
         )));
     }
-    let offset_s = unsafe { String::from_utf8_unchecked(content_octets[start_of_time_zone + 1..].to_vec()) };
+    let offset_s = unsafe { std::str::from_utf8_unchecked(&content_octets[start_of_time_zone + 1..]) };
     let offset_hour = u8::from_str(&offset_s[6..8])
         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
     let offset_minute = u8::from_str(&offset_s[8..10])
@@ -2152,9 +2152,9 @@ fn days_in_month(year: u32, month: u32) -> u32 {
 
 // Function produced by ChatGPT-4 before a few modifications by me.
 pub fn ber_validate_generalized_time_value (content_octets: ByteSlice) -> ASN1Result<()> {
-    let s = match std::str::from_utf8(content_octets) {
+    let s = match from_utf8(content_octets) {
         Ok(v) => v,
-        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
     };
 
     // Check for basic length
@@ -2313,7 +2313,7 @@ pub fn ber_validate_date_value (content_octets: ByteSlice) -> ASN1Result<()> {
     {
         return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
-    let s = unsafe { String::from_utf8_unchecked(content_octets.to_vec()) };
+    let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
     let year = u16::from_str(&s[0..4])
         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
     let month = u8::from_str(&s[5..7])
@@ -2349,7 +2349,7 @@ pub fn ber_validate_time_of_day_value (content_octets: ByteSlice) -> ASN1Result<
     {
         return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
     }
-    let s = unsafe { String::from_utf8_unchecked(content_octets.to_vec()) };
+    let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
     let hour = u8::from_str(&s[0..2])
         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
     let minute = u8::from_str(&s[3..5])

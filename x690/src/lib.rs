@@ -82,7 +82,6 @@ pub enum X690Encoding {
     // TODO: Review: Should this be a box or a smart pointer?
     EXPLICIT(Box<X690Element>),    // the inner TLV tuple
     Constructed(Vec<X690Element>), // an array of inner TLV tuples
-    // TODO: Convert to ByteSlice.
     AlreadyEncoded(Bytes), // the already-encoded TLV
 }
 
@@ -234,7 +233,7 @@ impl X690Element {
                 Ok(ret)
             },
             X690Encoding::AlreadyEncoded(bytes) => {
-                let ignore_len = get_x690_tag_and_length_length(&bytes);
+                let ignore_len = get_x690_tag_and_length_length(bytes);
                 return Ok(Vec::from(&bytes[ignore_len..]));
             },
         }
@@ -268,7 +267,7 @@ impl PartialEq for X690Element {
     }
 }
 
-pub fn get_x690_tag_and_length_length(bytes: &Bytes) -> usize {
+pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
     if bytes.len() == 0 {
         return 0;
     }
@@ -1367,7 +1366,7 @@ where
     W: Write,
 {
     if let X690Encoding::AlreadyEncoded(already_encoded_bytes) = node.value.borrow() {
-        return output.write(already_encoded_bytes.as_slice());
+        return output.write(already_encoded_bytes);
     }
     let tag_class = node.tag_class;
     let tag_number = node.tag_number;
@@ -1519,7 +1518,7 @@ pub fn ber_cst(bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
                     tag.tag_number,
                     Arc::new(X690Encoding::IMPLICIT(Vec::from(
                         &bytes[bytes_read..bytes_read + len],
-                    ))), // TODO: Indefinite too
+                    ))),
                 );
                 bytes_read += len;
                 return Ok((bytes_read, el));

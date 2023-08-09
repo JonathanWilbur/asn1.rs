@@ -261,8 +261,8 @@ which control how these elements are encoded.
       - It may be best to do this manually, rather than try to figure out which cases will work.
       - Only cases with certain primitive types and no non-UNIVERSAL tagging will work.
   - [ ] Use `Bytes`?
-  - [ ] Use `core::str::from_utf8` where possible instead of `String::from_utf8`
-  - [ ] Finish integrating `simdutf8`
+  - [x] Use `core::str::from_utf8` where possible instead of `String::from_utf8`
+  - [x] Finish integrating `simdutf8`
 - ASN.1 Compilation
   - [ ] When decoding structured types, decode into a fixed-length array of `Option<X690Element>` instead of `HashMap`.
     - Could this be done more efficiently by just iterating over elements?

@@ -114,7 +114,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
                 return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
             }
         }
-        let s = match String::from_utf8(value_bytes.to_vec()) {
+        let s = match std::str::from_utf8(&value_bytes) {
             Ok(r) => r,
             Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
         };

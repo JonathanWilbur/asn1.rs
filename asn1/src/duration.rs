@@ -108,9 +108,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                         } else {
                             i
                         };
-                        let component_str = match String::from_utf8(
-                            value_bytes[start_of_last_digit..end_index].to_vec(),
-                        ) {
+                        let component_str = match std::str::from_utf8(&value_bytes[start_of_last_digit..end_index]) {
                             Ok(s) => s,
                             Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
                         };

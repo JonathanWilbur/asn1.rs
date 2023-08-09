@@ -61,7 +61,7 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
             // "HH:MM:SS".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let str_ = match String::from_utf8(value_bytes.to_vec()) {
+        let str_ = match std::str::from_utf8(&value_bytes) {
             Ok(s) => s,
             Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
         };

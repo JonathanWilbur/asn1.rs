@@ -218,14 +218,12 @@ impl Display for BIT_STRING {
         let (zero_mask, _) = (0b1111_1111 as u8).overflowing_shl(self.trailing_bits as u32);
         let last_byte_str = format!("{:08b}", last_byte & zero_mask).to_string();
         let last_bits = unsafe {
-            String::from_utf8_unchecked(Vec::from(
-                &last_byte_str.as_bytes()[(0..8 - self.trailing_bits as usize)],
-            ))
+            std::str::from_utf8_unchecked(&last_byte_str.as_bytes()[0..8 - self.trailing_bits as usize])
         };
 
         f.write_str("'")?;
         write_bin(&self.bytes[..len - 1], f)?;
-        f.write_str(last_bits.as_str())?;
+        f.write_str(last_bits)?;
         f.write_str("'B")
     }
 }
