@@ -8,7 +8,7 @@ use asn1::construction::{ComponentSpec, TagSelector};
 use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use asn1::types::Tag;
 use std::borrow::Borrow;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 // Return `true` if successfully handled; `false` if error. Parsing will not continue if `false` returned.
