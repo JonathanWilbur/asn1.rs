@@ -253,39 +253,23 @@ which control how these elements are encoded.
 
 ## TODO
 
-- [ ] `asn1`
-  - [x] `oid!` macro
-  - [x] `bits!` macro
-    - Kinda blocked on https://github.com/rust-lang/rust/issues/83527, but theoretically not really.
-  - [x] `octs!` macro
-  - [x] `ASN1Error::relate_tlv(X690Element)`
-  - [x] Conversion of `ASN1Error` to and from `std::io::Error`
-  - [ ] ~~Make all bytes `Cow`?~~
-    - `Arc::make_mut()` provides this already, but you are not using it!
-  - [x] Use `AsRef` in generics
-  - ~~[x] Use `smartstring` for component names / element names / error names~~
-    - I think this will be an easy change, but it will also be a very large change
-      that should be done in a commit of its own.
-    - Licensing issues with this one. See below.
-  - [ ] Use SmallVec? https://docs.rs/smallvec/latest/smallvec/
-  - [ ] I get not wanting to make `SEQUENCE` and `SET` an `Arc<&[ASN1Value]>`, but why not:
-    - `OCTET_STRING`?
-    - `INTEGER`?
 - [ ] `x690`
   - [ ] Print `asn1parse` output;
-  - [ ] ~~Make all bytes `Cow`?~~
-    - `Arc::make_mut()` provides this already, but you are not using it!
   - [ ] Use `AsRef` in generics
-  - [ ] Use `heapless`? (Maybe for decoding object identifiers?)
-  - [x] `Cow` for `destructure()`
-  - [x] `Iterator<Item=Result<(&'static str, X690Element)>>`
+  - [ ] `serde` integration?
+    - Really all you have to do is add the `#[derive(Serialize, Deserialize)]` to structs that are simple enough
+      - It may be best to do this manually, rather than try to figure out which cases will work.
+      - Only cases with certain primitive types and no non-UNIVERSAL tagging will work.
+  - [ ] Use `Bytes`?
+  - [ ] Use `core::str::from_utf8` where possible instead of `String::from_utf8`
+  - [ ] Finish integrating `simdutf8`
 - ASN.1 Compilation
   - [ ] When decoding structured types, decode into a fixed-length array of `Option<X690Element>` instead of `HashMap`.
     - Could this be done more efficiently by just iterating over elements?
     - Maybe you could just mutate the element names? Or return an array of names in order?
   - [ ] Compile validation-only functions
   - [ ] Single-pass write for UNIVERSAL types (write tag and value in one pass)
-  - [ ] Use macros for conciseness?
+  - [ ] Use macros for conciseness? (Looking like this won't be really viable.)
   - [ ] Create a sequence iterator to avoid allocating any?
   - [ ] Use `.and()` instead of `match` for optional components.
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
@@ -300,14 +284,13 @@ which control how these elements are encoded.
   - [ ] Implicit TLS
   - [ ] Generate and track InvokeIds
 - [ ] X.500
-  - Move modules under `modules`
-  - Defaults for structs (how did I miss this?)
+  - [ ] Move modules under `modules` or `asn1`
+  - [ ] Defaults for structs (how did I miss this?)
     - I think that was because, if any field is required, this can't be defined.
-  - Validators
-  - `.inner_data()` for `OPTIONALLY-PROTECTED` types.
-  - Iterator for `ListResult` and `SearchResult`
-  - Preserve bytes of `SIGNED`
-- [ ] ASN.1 Compiler: Compile validation-only functions
+  - [ ] Validators
+  - [ ] `.inner_data()` for `OPTIONALLY-PROTECTED` types.
+  - [ ] Iterator for `ListResult` and `SearchResult`
+  - [ ] Preserve bytes of `SIGNED`
 - [ ] Some sort of `write()` and `flush()` interface for encoding indeterminate length form.
   - This needs to "trickle down" into the IDM layer.
 

@@ -9483,9 +9483,8 @@ pub fn _decode_SearchArgumentData(el: &X690Element) -> ASN1Result<SearchArgument
             X690Encoding::Constructed(children) => children,
             _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
         let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
+            elements.as_slice(),
             _rctl1_components_for_SearchArgumentData,
             _eal_components_for_SearchArgumentData,
             _rctl2_components_for_SearchArgumentData,
