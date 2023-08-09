@@ -725,6 +725,34 @@ pub fn parse_q931_message (input: &[u8]) -> IResult<&[u8], Q931Message> {
     }))
 }
 
+pub struct SetupOptions {
+    // Protocol Discriminator
+    pub call_reference: Vec<u8>, // ?
+    pub message_type: u8,
+    // optional sending complete?
+    pub bearer_capability: u8, // FIXME:
+    pub extended_facility: u8, // FIXME:
+    pub facility: u8, // FIXME:
+    pub progress_indicator: u8, // FIXME:
+    pub notification_indicator: u8, // FIXME:
+    pub display: u8, // FIXME:
+    pub keypad_facility: u8, // FIXME:
+    pub signal: u8, // FIXME:
+    pub calling_party_number: u8, // FIXME:
+    pub calling_party_subaddress: u8, // FIXME:
+    pub called_party_number: u8, // FIXME:
+    pub called_party_subaddress: u8, // FIXME:
+    pub redirecting_number: u8, // FIXME:
+    // h245Address? (Not sure how to use this.)
+    pub source_address: u8, // FIXME:
+    pub source_info: u8, // FIXME:
+    // pub
+}
+
+pub fn write_setup <W> (&mut out: W) -> std::io::Result<usize> {
+
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
