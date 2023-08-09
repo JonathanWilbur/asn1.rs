@@ -98,7 +98,7 @@ use std::borrow::Borrow;
 use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::Arc;
-
+use simdutf8::basic::from_utf8;
 use crate::parsing::_parse_sequence;
 use crate::{
     ber_cst, deconstruct, x690_write_bit_string_value, x690_write_bmp_string_value,
@@ -1649,16 +1649,792 @@ pub fn ber_encode_time(value: &TIME) -> ASN1Result<X690Element> {
     ))
 }
 
-
-pub fn ber_validate_boolean(content_octets: ByteSlice) -> bool {
-    content_octets.len() == 1
+pub fn ber_validate_boolean_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() != 1 {
+        return Err(ASN1Error::new(ASN1ErrorCode::x690_boolean_not_one_byte));
+    }
+    Ok(())
 }
 
-pub fn ber_validate_integer(content_octets: ByteSlice) -> bool {
-    if (content_octets.len() == 1) {
-        return true;
+pub fn ber_validate_integer_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() == 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
     }
-    return true; // FIXME:
+    if content_octets.len() == 1 {
+        return Ok(());
+    }
+    if ((content_octets[0] == 0xFF) && (content_octets[1] >= 0b1000_0000))
+        || ((content_octets[0] == 0x00) && (content_octets[1] < 0b1000_0000)) {
+        return Err(ASN1Error::new(ASN1ErrorCode::int_padding));
+    }
+    return Ok(());
+}
+
+pub fn ber_validate_bit_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() == 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+    }
+    if content_octets[0] > 7 {
+        return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_remainder_gt_7));
+    }
+    if content_octets.len() == 1 && content_octets[0] > 7 {
+        return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_remainder_but_no_bits));
+    }
+    return Ok(());
+}
+
+pub fn ber_validate_octet_string_value (_content_octets: ByteSlice) -> ASN1Result<()> {
+    Ok(())
+}
+
+pub fn ber_validate_null_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() == 1 {
+        Ok(())
+    } else {
+        Err(ASN1Error::new(ASN1ErrorCode::malformed_value))
+    }
+}
+
+pub fn ber_validate_object_identifier_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() == 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+    }
+    if content_octets.len() > 1 && content_octets[content_octets.len() - 1] >= 0b1000_0000 {
+        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+    }
+    let mut previous_byte_was_end_of_arc: bool = true;
+    for byte in content_octets {
+        if previous_byte_was_end_of_arc && *byte == 0b1000_0000 {
+            return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
+        }
+        previous_byte_was_end_of_arc = *byte < 0b1000_0000;
+    }
+    Ok(())
+}
+
+pub fn ber_validate_object_descriptor_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    ber_validate_graphic_string_value(content_octets)
+}
+
+pub fn ber_validate_real_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() == 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+    }
+    match content_octets[0] & 0b11000000 {
+        0b0100_0000 => { // Special real formatting
+            let special_real_value = content_octets[0] & 0b0000_0011;
+            if (special_real_value != X690_SPECIAL_REAL_NOT_A_NUMBER)
+                && (special_real_value != X690_SPECIAL_REAL_PLUS_INFINITY)
+                && (special_real_value != X690_SPECIAL_REAL_MINUS_INFINITY)
+                && (special_real_value != X690_SPECIAL_REAL_MINUS_ZERO) {
+                return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_special_real));
+            }
+        },
+        0b0000_0000 => { // Textual / Base-10 formatting
+            let base10_format = content_octets[0] & 0b0011_1111;
+            if content_octets.len() == 1 {
+                return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+            }
+            let mut start: usize = 1;
+            for char in &content_octets[1..] {
+                if *char != b' ' {
+                    break;
+                }
+                start += 1;
+            }
+            let mut remaining_slice = &content_octets[start..];
+            if remaining_slice.len() == 0 {
+                return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+            }
+            if remaining_slice[0] == b'+' || remaining_slice[0] == b'-' {
+                start += 1;
+                remaining_slice = &content_octets[start..];
+            }
+            if remaining_slice.len() == 0 {
+                return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+            }
+            match base10_format {
+                // Why yes, I did purchase a copy of ISO 6093 to figure out what these formats were.
+                1 => { // NR1, which matches /^ *(\+|-)?\d+$/
+                    for byte in remaining_slice {
+                        if !byte.is_ascii_digit() {
+                            return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                        }
+                    }
+                },
+                2 => { // NR2, which matches /^ *(\+|-)?(?:\d+(\.|,)\d*)|(?:\d*(\.|,)\d+)$/
+                    // Check that digits are encountered.
+                    // Check that periods or commas are encountered.
+                    // Check that the total number of periods or commas is 1 exactly.
+                    let mut digits_encountered = false;
+                    let mut period = false;
+                    let mut comma = false;
+                    for byte in remaining_slice {
+                        let b = *byte;
+                        if byte.is_ascii_digit() {
+                            digits_encountered = true;
+                        } else if b == b'.' {
+                            if period || comma {
+                                return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                            }
+                            period = true;
+                        } else if b == b',' {
+                            if period || comma {
+                                return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                            }
+                            comma = true;
+                        }
+                    }
+                    if !digits_encountered {
+                        return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                    }
+                },
+                3 => { // NR3, which matches /^ *(\+|-)?(?:\d+(\.|,)\d*)|(?:\d*(\.|,)\d+)(e|E)(\+|-)?\d+$/
+                    let mut digits_encountered = false;
+                    let mut period = false;
+                    let mut comma = false;
+                    let mut index_of_e = 0;
+                    for (i, byte) in remaining_slice.iter().enumerate() {
+                        let b = *byte;
+                        if byte.is_ascii_digit() {
+                            digits_encountered = true;
+                        } else if b == b'.' {
+                            if period || comma {
+                                return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                            }
+                            period = true;
+                        } else if b == b',' {
+                            if period || comma {
+                                return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                            }
+                            comma = true;
+                        } else if b == b'e' || b == b'E' {
+                            index_of_e = i;
+                            break;
+                        }
+                    }
+                    if !digits_encountered || index_of_e == 0 {
+                        return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                    }
+                    remaining_slice = &content_octets[index_of_e+1..];
+                    if remaining_slice.len() <= 1 {
+                        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+                    }
+                    if remaining_slice[0] != b'+' && remaining_slice[0] != b'-' {
+                        return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                    }
+                    if !remaining_slice[1..].iter().all(|b| b.is_ascii_digit()) {
+                        return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
+                    }
+                },
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_unrecognized_format(base10_format))),
+            };
+        },
+        0b1000_0000 | 0b1100_0000 => { // Binary formatting
+            let base = content_octets[0] & 0b0011_0000;
+            if base == 0b0011_0000 {
+                return Err(ASN1Error::new(ASN1ErrorCode::binary_real_unrecognized_base));
+            }
+            let exp_encoding = content_octets[0] & 0b0000_0011;
+            let exp_len: usize = match exp_encoding {
+                0b0000_0000 => 1,
+                0b0000_0001 => 2,
+                0b0000_0010 => 3,
+                0b0000_0011 => {
+                    // One byte for prefix, one for exp length, at least one for exp length and at least one for the mantissa.
+                    if content_octets.len() < 4 {
+                        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+                    }
+                    content_octets[1] as usize + 1
+                },
+                _ => panic!(),
+            };
+            if content_octets.len() < exp_len + 2 {
+                return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+            }
+        },
+        _ => panic!(),
+    };
+    Ok(())
+}
+
+pub fn ber_validate_enumerated_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    ber_validate_integer_value(content_octets)
+}
+
+pub fn ber_validate_utf8_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    from_utf8(content_octets)
+        .map(|_| ())
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8))
+}
+
+pub fn ber_validate_relative_object_identifier_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let mut previous_byte_was_end_of_arc: bool = true;
+    for byte in content_octets {
+        if previous_byte_was_end_of_arc && *byte == 0b1000_0000 {
+            return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
+        }
+        previous_byte_was_end_of_arc = *byte < 0b1000_0000;
+    }
+    Ok(())
+}
+
+pub fn ber_validate_time_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii_graphic());
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_numeric_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii_digit() || *b == b' ');
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_printable_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    for (i, byte) in content_octets.iter().enumerate() {
+        let b = *byte as char;
+        if byte.is_ascii_alphanumeric()
+            || (b >= '\x27' && b < '0' && b != '*') // '()+,-./ BUT NOT *
+            || b == ' '
+            || b == ':'
+            || b == '='
+            || b == '?'
+        {
+            continue;
+        }
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            *byte as u32,
+            i,
+        )));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_t61_string_value (_content_octets: ByteSlice) -> ASN1Result<()> {
+    Ok(())
+}
+
+pub fn ber_validate_videotex_string_value (_content_octets: ByteSlice) -> ASN1Result<()> {
+    Ok(())
+}
+
+pub fn ber_validate_ia5_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii());
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    Ok(())
+}
+
+// 9604152030Z
+pub fn ber_validate_utc_time_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() > 17 {
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
+    }
+    if content_octets.len() < 11 {
+        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+    }
+    let maybe_bad_char = content_octets[0..10].iter().position(|b| b.is_ascii_digit());
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    let s = unsafe { String::from_utf8_unchecked(content_octets[0..10].to_vec()) };
+    let mut year = u16::from_str(&s[0..2])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+    if year > 75 { // I think this is specified in RFC 5280. I forgot where I saw it.
+        year += 1900;
+    } else {
+        year += 2000;
+    }
+    // I confirmed in a unit test below that u8::from_str() will tolerate leading zeros.
+    let month = u8::from_str(&s[2..4])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+    let day = u8::from_str(&s[4..6])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+    let hour = u8::from_str(&s[6..8])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+    let minute = u8::from_str(&s[8..10])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+    if month > 12 || month == 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
+    }
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
+        2 => if year % 4 > 0 { 28 } else { 29 },
+        _ => 30,
+    };
+    if day == 0 || day > max_day {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
+    }
+    if hour > 23 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
+    }
+    if minute > 59 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
+    }
+    let mut start_of_time_zone = 10;
+    if content_octets[10].is_ascii_digit() {
+        if content_octets.len() < 12 || !content_octets[11].is_ascii_digit() {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+        }
+        let second = u8::from_str(&s[10..12])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+        if second > 59 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+        }
+        start_of_time_zone = 12;
+    }
+    if content_octets.len() < start_of_time_zone + 1 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+    }
+    if content_octets[start_of_time_zone] == b'Z' {
+        if content_octets.len() > start_of_time_zone + 1 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+        }
+        return Ok(());
+    }
+    if content_octets.len() != start_of_time_zone + 5 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+    }
+    if content_octets[start_of_time_zone] != b'+'
+        && content_octets[start_of_time_zone] != b'-' {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+    }
+
+    let maybe_bad_char = content_octets[start_of_time_zone + 1..].iter().position(|b| b.is_ascii_digit());
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    let offset_s = unsafe { String::from_utf8_unchecked(content_octets[start_of_time_zone + 1..].to_vec()) };
+    let offset_hour = u8::from_str(&offset_s[6..8])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+    let offset_minute = u8::from_str(&offset_s[8..10])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+    if offset_hour > 23 || offset_minute > 59 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+    }
+    Ok(())
+}
+
+// YYYYMMDDHH[MM[SS[.fff]]] e.g. 19960415203000.0-0600
+// pub fn ber_validate_generalized_time_value (content_octets: ByteSlice) -> ASN1Result<()> {
+//     if content_octets.len() > 32 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
+//     }
+//     if content_octets.len() < 10 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+//     }
+//     let maybe_bad_char = content_octets[0..10].iter().position(|b| b.is_ascii_digit());
+//     if let Some(bad_char_index) = maybe_bad_char {
+//         let bad_char = content_octets[bad_char_index];
+//         return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+//             bad_char as u32,
+//             bad_char_index,
+//         )));
+//     }
+//     let s = unsafe { String::from_utf8_unchecked(content_octets[0..10].to_vec()) };
+//     let year = u16::from_str(&s[0..4])
+//         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+//     // I confirmed in a unit test below that u8::from_str() will tolerate leading zeros.
+//     let month = u8::from_str(&s[4..6])
+//         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+//     let day = u8::from_str(&s[6..8])
+//         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+//     let hour = u8::from_str(&s[8..10])
+//         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+//     // let minute = u8::from_str(&s[8..10])
+//     //     .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+//     if month > 12 || month == 0 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
+//     }
+//     let max_day = match month {
+//         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+//         // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
+//         2 => if year % 4 > 0 { 28 } else { 29 },
+//         _ => 30,
+//     };
+//     if day == 0 || day > max_day {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
+//     }
+//     if hour > 23 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
+//     }
+//     if minute > 59 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
+//     }
+//     let mut start_of_time_zone = 10;
+//     if content_octets[10].is_ascii_digit() {
+//         if content_octets.len() < 12 || !content_octets[11].is_ascii_digit() {
+//             return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+//         }
+//         let second = u8::from_str(&s[10..12])
+//             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+//         if second > 59 {
+//             return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+//         }
+//         start_of_time_zone = 12;
+//     }
+//     if content_octets.len() < start_of_time_zone + 1 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+//     }
+//     if content_octets[start_of_time_zone] == b'Z' {
+//         if content_octets.len() > start_of_time_zone + 1 {
+//             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+//         }
+//         return Ok(());
+//     }
+//     if content_octets.len() != start_of_time_zone + 5 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+//     }
+//     if content_octets[start_of_time_zone] != b'+'
+//         && content_octets[start_of_time_zone] != b'-' {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+//     }
+
+//     let maybe_bad_char = content_octets[start_of_time_zone + 1..].iter().position(|b| b.is_ascii_digit());
+//     if let Some(bad_char_index) = maybe_bad_char {
+//         let bad_char = content_octets[bad_char_index];
+//         return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+//             bad_char as u32,
+//             bad_char_index,
+//         )));
+//     }
+//     let offset_s = unsafe { String::from_utf8_unchecked(content_octets[start_of_time_zone + 1..].to_vec()) };
+//     let offset_hour = u8::from_str(&offset_s[6..8])
+//         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+//     let offset_minute = u8::from_str(&offset_s[8..10])
+//         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+//     if offset_hour > 23 || offset_minute > 59 {
+//         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+//     }
+//     Ok(())
+// }
+
+fn is_leap_year(year: u32) -> bool {
+    (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
+}
+
+fn days_in_month(year: u32, month: u32) -> u32 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => 0, // Invalid month
+    }
+}
+
+// Function produced by ChatGPT-4 before a few modifications by me.
+pub fn ber_validate_generalized_time_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let s = match std::str::from_utf8(content_octets) {
+        Ok(v) => v,
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
+    };
+
+    // Check for basic length
+    if s.len() < 15 {
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+
+    // Extract and validate date and time parts
+    let year: u32 = match s[..4].parse() {
+        Ok(v) => v,
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_year)),
+    };
+
+    let month: u32 = match s[4..6].parse() {
+        Ok(v) => v,
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_month)),
+    };
+
+    let day: u32 = match s[6..8].parse() {
+        Ok(v) => v,
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_day)),
+    };
+
+    let hour: u32 = match s[8..10].parse() {
+        Ok(v) => v,
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour)),
+    };
+
+    let minute: u32 = match s[10..12].parse() {
+        Ok(v) => v,
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute)),
+    };
+
+    let second: u32 = match s[12..14].parse() {
+        Ok(v) => v,
+        Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_second)),
+    };
+
+    if month == 0 || month > 12 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
+    }
+
+    if day == 0 || day > days_in_month(year, month) {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
+    }
+
+    if hour >= 24 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
+    }
+    if minute >= 60 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
+    }
+    if second >= 60 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+    }
+
+    // Check timezone or fractions of seconds
+    match &s[14..] {
+        "Z" => Ok(()),
+        s if s.starts_with('.') => {
+            let (fraction, tz) = s.split_at(s.find(|c: char| !c.is_numeric()).unwrap_or(0));
+
+            if fraction.is_empty() {
+                return Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds));
+            }
+
+            match tz {
+                "Z" => Ok(()),
+                tz if tz.starts_with('+') || tz.starts_with('-') => {
+                    if tz.len() == 5 && tz[1..].chars().all(|c| c.is_numeric()) {
+                        Ok(())
+                    } else {
+                        Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds))
+                    }
+                }
+                _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
+            }
+        }
+        tz if tz.starts_with('+') || tz.starts_with('-') => {
+            if tz.len() == 5 && tz[1..].chars().all(|c| c.is_numeric()) {
+                Ok(())
+            } else {
+                Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset))
+            }
+        }
+        _ => Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
+    }
+}
+
+// TODO: Define a macro to reduce this boilerplate.
+pub fn ber_validate_graphic_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii_graphic() || *b == b' ');
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_visible_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let maybe_bad_char = content_octets.iter().position(|b| !b.is_ascii() || *b == 0x7F);
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_general_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let maybe_bad_char = content_octets.iter().position(|b| !b.is_ascii());
+    if let Some(bad_char_index) = maybe_bad_char {
+        let bad_char = content_octets[bad_char_index];
+        return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+            bad_char as u32,
+            bad_char_index,
+        )));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_universal_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() % 4 > 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+    }
+    // Theoretically, you could validate that every uint32 is a valid Unicode
+    // code point as well, but that might be overkill.
+    Ok(())
+}
+
+// TODO: CHARACTER STRING	Constructed	29	1D
+
+pub fn ber_validate_bmp_string_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() % 2 > 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+    }
+    // TODO: Do you need to do any validation with a BOM?
+    Ok(())
+}
+
+pub fn ber_validate_date_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() != 10 { // YYYY-MM-DD
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    if
+        content_octets[4] != b'-'
+        || content_octets[6] != b'-'
+        || !content_octets[0..4].iter().all(|b| b.is_ascii_digit())
+        || !content_octets[5..7].iter().all(|b| b.is_ascii_digit())
+        || !content_octets[8..].iter().all(|b| b.is_ascii_digit())
+    {
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    let s = unsafe { String::from_utf8_unchecked(content_octets.to_vec()) };
+    let year = u16::from_str(&s[0..4])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
+    let month = u8::from_str(&s[5..7])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+    let day = u8::from_str(&s[8..])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+    if month > 12 || month == 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
+    }
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
+        2 => if year % 4 > 0 { 28 } else { 29 },
+        _ => 30,
+    };
+    if day == 0 || day > max_day {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
+    }
+    // TODO: Do you need to do any validation with a BOM?
+    Ok(())
+}
+
+pub fn ber_validate_time_of_day_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() != 8 { // HH:MM:SS
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    if
+        content_octets[2] != b':'
+        || content_octets[5] != b':'
+        || !content_octets[0..2].iter().all(|b| b.is_ascii_digit())
+        || !content_octets[3..5].iter().all(|b| b.is_ascii_digit())
+        || !content_octets[6..].iter().all(|b| b.is_ascii_digit())
+    {
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    let s = unsafe { String::from_utf8_unchecked(content_octets.to_vec()) };
+    let hour = u8::from_str(&s[0..2])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+    let minute = u8::from_str(&s[3..5])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+    let second = u8::from_str(&s[6..])
+        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
+    if hour > 23 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
+    }
+    if minute > 59 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
+    }
+    if second > 59 {
+        return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_date_time_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() != 19 { // 1951-10-14T15:30:00
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    if content_octets[10] != b'T' {
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    ber_validate_date_value(&content_octets[0..10])?;
+    ber_validate_time_of_day_value(&content_octets[11..])
+}
+
+// Before some tweaking, this was produced by ChatGPT.
+pub fn ber_validate_duration_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    let mut idx = 0;
+
+    // The duration should start with 'P' (ASCII 80)
+    if idx >= content_octets.len() || content_octets[idx] != b'P' {
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    idx += 1;
+
+    let mut has_time_component = false;
+
+    while idx < content_octets.len() {
+        match content_octets[idx] {
+            b'T' => {
+                has_time_component = true;
+                idx += 1;
+            }
+            b'Y' | b'M' | b'D' | b'H' | b'S' => {
+                // These bytes should be preceded by a number
+                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+            }
+            _ if content_octets[idx].is_ascii_digit() => {
+                // Consume all consecutive digits
+                while idx < content_octets.len() && content_octets[idx].is_ascii_digit() {
+                    idx += 1;
+                }
+
+                // After digits, expect one of the duration identifiers
+                if idx >= content_octets.len() {
+                    return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+                }
+
+                match content_octets[idx] {
+                    b'Y' | b'M' if !has_time_component => idx += 1,
+                    b'D' if !has_time_component => idx += 1,
+                    b'H' | b'M' | b'S' if has_time_component => idx += 1,
+                    _ => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
+                }
+            }
+            _ => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
+        }
+    }
+
+    Ok(())
+}
+
+pub fn ber_validate_oid_iri_value (content_octets: ByteSlice) -> ASN1Result<()> {
+    if content_octets.len() < 2 || content_octets[0] != b'/' {
+        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+    }
+    Ok(())
+}
+
+pub fn ber_validate_relative_oid_iri_value (_content_octets: ByteSlice) -> ASN1Result<()> {
+    Ok(())
 }
 
 #[cfg(test)]
@@ -1751,5 +2527,11 @@ mod tests {
         } else {
             panic!();
         }
+    }
+
+    #[test]
+    fn make_sure_u8_from_str_handles_leading_zeros () {
+        let num = u8::from_str("05").unwrap();
+        assert_eq!(num, 5);
     }
 }
