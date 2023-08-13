@@ -5352,6 +5352,7 @@ name = "x690"
 version = "0.1.0"
 dependencies = [
  "asn1",
+ "bytes",
  "criterion",
  "simdutf8",
  "smallvec",

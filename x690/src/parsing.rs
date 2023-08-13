@@ -2,12 +2,11 @@
 #![allow(non_snake_case)]
 #![allow(soft_unstable)]
 
-use crate::{X690Element, X690Encoding};
+use crate::{X690Element, X690Value};
 use asn1::TagClass;
 use asn1::construction::{ComponentSpec, TagSelector};
 use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use asn1::types::Tag;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -24,10 +23,10 @@ pub type IndexedComponents<'a> = (HashMap<&'a str, X690Element>, Vec<X690Element
 
 pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
     match sel {
-        TagSelector::tag((tc, tn)) => (el.tag_class == tc) && (el.tag_number == tn),
+        TagSelector::tag((tc, tn)) => (el.tag.tag_class == tc) && (el.tag.tag_number == tn),
         TagSelector::any => true,
-        TagSelector::class(tc) => el.tag_class == tc,
-        TagSelector::number(tn) => el.tag_number == tn,
+        TagSelector::class(tc) => el.tag.tag_class == tc,
+        TagSelector::number(tn) => el.tag.tag_number == tn,
         TagSelector::and(sels) => {
             for s in sels {
                 if !component_is_selected(el, **s) {
@@ -80,16 +79,16 @@ pub fn _parse_set<'a>(
     /* Unfortunately, the above results in this copy-paste mess, but it is still
     worth it. */
     for el in elements {
-        match el.tag_class {
+        match el.tag.tag_class {
             TagClass::UNIVERSAL => {
-                if el.tag_number > 63 {
+                if el.tag.tag_number > 63 {
                     continue;
                 }
-                let bit_mask = 1 << el.tag_number;
+                let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_univ_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    err.component_name = el.name.clone();
-                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    // err.component_name = el.name.clone(); // FIXME:
+                    err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
                     return Err(err);
@@ -97,14 +96,14 @@ pub fn _parse_set<'a>(
                 encountered_univ_tags |= bit_mask;
             },
             TagClass::CONTEXT => {
-                if el.tag_number > 63 {
+                if el.tag.tag_number > 63 {
                     continue;
                 }
-                let bit_mask = 1 << el.tag_number;
+                let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_ctxt_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    err.component_name = el.name.clone();
-                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    // err.component_name = el.name.clone(); // FIXME:
+                    err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
                     return Err(err);
@@ -112,14 +111,14 @@ pub fn _parse_set<'a>(
                 encountered_ctxt_tags |= bit_mask;
             },
             TagClass::APPLICATION => {
-                if el.tag_number > 63 {
+                if el.tag.tag_number > 63 {
                     continue;
                 }
-                let bit_mask = 1 << el.tag_number;
+                let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_appl_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    err.component_name = el.name.clone();
-                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    // err.component_name = el.name.clone(); // FIXME:
+                    err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
                     return Err(err);
@@ -127,14 +126,14 @@ pub fn _parse_set<'a>(
                 encountered_appl_tags |= bit_mask;
             },
             TagClass::PRIVATE => {
-                if el.tag_number > 63 {
+                if el.tag.tag_number > 63 {
                     continue;
                 }
-                let bit_mask = 1 << el.tag_number;
+                let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_priv_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    err.component_name = el.name.clone();
-                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    // err.component_name = el.name.clone(); // FIXME:
+                    err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
                     return Err(err);
@@ -159,12 +158,12 @@ pub fn _parse_set<'a>(
 
     let mut ret: IndexedComponents = (HashMap::with_capacity(elements.len()), Vec::new());
     for el in elements {
-        match tag_to_spec.get(&Tag::new(el.tag_class, el.tag_number)) {
+        match tag_to_spec.get(&Tag::new(el.tag.tag_class, el.tag.tag_number)) {
             Some(s) => {
                 if ret.0.contains_key(s.name) {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_components);
                     err.component_name = Some(String::from(s.name));
-                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
                     return Err(err);
@@ -665,7 +664,7 @@ impl <'a> Iterator for X690StructureIterator<'a> {
 //     handlers: AlternativeHandlers,
 //     unrecognized_handler: Option<ComponentHandler>,
 // ) -> ASN1Result<()> {
-//     let tag = Tag::new(el.tag_class, el.tag_number);
+//     let tag = Tag::new(el.tag.tag_class, el.tag.tag_number);
 //     match handlers.get(&tag) {
 //         Some((name, handler)) => {
 //             el.name = Some(String::from(*name));
@@ -688,19 +687,19 @@ impl <'a> Iterator for X690StructureIterator<'a> {
 // }
 
 pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
-    let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
         _ => {
             let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
-            err.component_name = el.name.clone();
-            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+            // err.component_name = el.name.clone(); // FIXME:
+            err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
             err.constructed = Some(true);
             err.length = Some(el.len());
             return Err(err);
         }
     };
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
-    for element in elements {
+    for element in elements.iter() {
         let v = item_decoder(&element)?;
         ret.push(v);
     }
@@ -708,19 +707,19 @@ pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN
 }
 
 pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
-    let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
         _ => {
             let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
-            err.component_name = el.name.clone();
-            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+            // err.component_name = el.name.clone(); // FIXME:
+            err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
             err.constructed = Some(true);
             err.length = Some(el.len());
             return Err(err);
         }
     };
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
-    for element in elements {
+    for element in elements.iter() {
         let v = item_decoder(&element)?;
         ret.push(v);
     }
@@ -729,29 +728,17 @@ pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Resu
 
 pub fn _encode_explicit(el: X690Element, tag: Tag) -> X690Element {
     X690Element::new(
-        tag.tag_class,
-        tag.tag_number,
-        Arc::new(X690Encoding::EXPLICIT(Box::new(el))),
+        tag,
+        X690Value::Constructed(Arc::new(vec![ el ])),
     )
 }
 
 pub fn _encode_implicit(el: X690Element, tag: Tag) -> X690Element {
-    X690Element::new(
-        tag.tag_class,
-        tag.tag_number,
-        Arc::new(X690Encoding::EXPLICIT(Box::new(el))),
-    )
+    let mut ret = el.clone();
+    ret.tag = tag;
+    ret
 }
 
-pub const ZXCV: fn(X690Element, Tag) -> X690Element = |el: X690Element, tag: Tag| -> X690Element {
-    X690Element::new(
-        tag.tag_class,
-        tag.tag_number,
-        Arc::new(X690Encoding::EXPLICIT(Box::new(el))),
-    )
-};
-
-// TODO: Implement a deep_clone that recurses into the value as well.
 // This works as an encode and decode function.
 pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
     Ok(el.clone())
@@ -804,8 +791,8 @@ mod tests {
     const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
 
     fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
+        let elements = match &el.value {
+            X690Value::Constructed(children) => children,
             _ => panic!(),
         };
         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
@@ -834,7 +821,7 @@ mod tests {
     }
 
     fn decode_DirectoryString(el: &X690Element) -> ASN1Result<DirectoryString> {
-        match (el.tag_class, el.tag_number) {
+        match (el.tag.tag_class, el.tag.tag_number) {
             (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING) => {
                 let v = ber_decode_utf8_string(&el)?;
                 return Ok(DirectoryString::UTF8String(v));
@@ -870,23 +857,20 @@ mod tests {
         let rctl2: Vec<ComponentSpec> = vec![];
 
         let root: X690Element = X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(vec![
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+            X690Value::Constructed(Arc::new(vec![
                 X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-                    Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                    X690Value::Primitive(Bytes::copy_from_slice(&[0x55, 0x04, 0x03])),
                 ),
                 X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-                    Arc::new(X690Encoding::IMPLICIT(vec![])),
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                    X690Value::Primitive(Bytes::copy_from_slice(&[])),
                 ),
             ])),
         );
-        let elements = match root.value.borrow() {
-            X690Encoding::Constructed(children) => children,
+        let elements = match &root.value {
+            X690Value::Constructed(children) => children,
             _ => panic!(),
         };
         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
@@ -925,18 +909,15 @@ mod tests {
     #[test]
     fn test_decode_algorithm_identifier() {
         let root: X690Element = X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(vec![
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+            X690Value::Constructed(Arc::new(vec![
                 X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-                    Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                    X690Value::Primitive(Bytes::copy_from_slice(&[0x55, 0x04, 0x03])),
                 ),
                 X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-                    Arc::new(X690Encoding::IMPLICIT(vec![])),
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                    X690Value::Primitive(Bytes::copy_from_slice(&[])),
                 ),
             ])),
         );
@@ -964,11 +945,8 @@ mod tests {
     #[test]
     fn test_decode_directory_string() {
         let root: X690Element = X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
-            Arc::new(X690Encoding::IMPLICIT(Vec::from(String::from(
-                "Better Call Saul!",
-            )))),
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING),
+            X690Value::Primitive(Bytes::from("Better Call Saul!")),
         );
         let ds = decode_DirectoryString(&root).unwrap();
         if let DirectoryString::UTF8String(s) = ds {
@@ -1023,8 +1001,8 @@ mod tests {
         };
         assert_eq!(bytes_read, encoded_data.len());
 
-        let elements = match root.value.borrow() {
-            X690Encoding::Constructed(children) => children,
+        let elements = match &root.value {
+            X690Value::Constructed(children) => children,
             _ => panic!(),
         };
         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
@@ -1045,19 +1023,16 @@ mod tests {
     fn test_decode_ACSE_RLRQ_APDU_trailing_unrecognized_component() {
         let elements: Vec<X690Element> = vec![
             X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::IMPLICIT(vec![0])),
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::Primitive(Bytes::new()),
             ),
             X690Element::new(
-                TagClass::CONTEXT,
-                30,
-                Arc::new(X690Encoding::Constructed(vec![])),
+                Tag::new(TagClass::CONTEXT, 30),
+                X690Value::Constructed(Arc::new(vec![])),
             ),
             X690Element::new(
-                TagClass::CONTEXT,
-                21,
-                Arc::new(X690Encoding::IMPLICIT(vec![5])),
+                Tag::new(TagClass::CONTEXT, 21),
+                X690Value::Primitive(Bytes::copy_from_slice(&[5])),
             ),
         ];
         let el_refs = elements.iter().collect::<Vec<&X690Element>>();

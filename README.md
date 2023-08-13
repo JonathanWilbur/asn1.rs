@@ -254,13 +254,15 @@ which control how these elements are encoded.
 ## TODO
 
 - [ ] `x690`
+  - [ ] Rename things sensibly.
+  - [ ] Re-enable the `name` field of `X690Element`?
   - [ ] Print `asn1parse` output;
   - [ ] Use `AsRef` in generics
   - [ ] `serde` integration?
     - Really all you have to do is add the `#[derive(Serialize, Deserialize)]` to structs that are simple enough
       - It may be best to do this manually, rather than try to figure out which cases will work.
       - Only cases with certain primitive types and no non-UNIVERSAL tagging will work.
-  - [ ] Use `Bytes`?
+  - [x] Use `Bytes`?
   - [x] Use `core::str::from_utf8` where possible instead of `String::from_utf8`
   - [x] Finish integrating `simdutf8`
 - ASN.1 Compilation

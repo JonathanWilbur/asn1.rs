@@ -5,7 +5,6 @@ use asn1::types::{
     // INSTANCE_OF,
     BMPString,
     ByteSlice,
-    Bytes,
     ContextNegotiation,
     ExternalEncoding,
     ExternalIdentification,
@@ -94,59 +93,44 @@ use asn1::{
     InstanceOf, ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME, ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME,
     ENUMERATED, INSTANCE_OF, NULL,
 };
-use std::borrow::Borrow;
-use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::Arc;
 use simdutf8::basic::from_utf8;
 use crate::parsing::_parse_sequence;
 use crate::{
-    ber_cst, deconstruct, x690_write_bit_string_value, x690_write_bmp_string_value,
-    x690_write_boolean_value, x690_write_character_string_value, x690_write_date_time_value,
-    x690_write_date_value, x690_write_duration_value, x690_write_embedded_pdv_value,
-    x690_write_enum_value, x690_write_external_value, x690_write_generalized_time_value,
+    deconstruct, x690_write_bit_string_value, x690_write_bmp_string_value,
+    x690_write_boolean_value, x690_write_date_time_value,
+    x690_write_date_value, x690_write_duration_value,
+    x690_write_enum_value, x690_write_generalized_time_value,
     x690_write_integer_value, x690_write_object_descriptor_value,
     x690_write_object_identifier_value, x690_write_octet_string_value, x690_write_real_value,
-    x690_write_relative_oid_value, x690_write_string_value, x690_write_tag,
+    x690_write_relative_oid_value, x690_write_string_value,
     x690_write_time_of_day_value, x690_write_time_value, x690_write_universal_string_value,
-    x690_write_utc_time_value, x690_write_utf8_string_value, X690Element, X690Encoding,
+    x690_write_utc_time_value, x690_write_utf8_string_value, X690Element, X690Value,
     X690_REAL_BASE10, X690_REAL_BASE_16, X690_REAL_BASE_2, X690_REAL_BASE_8, X690_REAL_BASE_MASK,
     X690_REAL_BINARY_SCALING_MASK, X690_REAL_EXPONENT_FORMAT_1_OCTET,
     X690_REAL_EXPONENT_FORMAT_2_OCTET, X690_REAL_EXPONENT_FORMAT_3_OCTET,
     X690_REAL_EXPONENT_FORMAT_MASK, X690_REAL_EXPONENT_FORMAT_VAR_OCTET, X690_REAL_NR1,
     X690_REAL_NR2, X690_REAL_NR3, X690_REAL_SPECIAL, X690_SPECIAL_REAL_MINUS_INFINITY,
-    X690_SPECIAL_REAL_MINUS_ZERO, X690_SPECIAL_REAL_NOT_A_NUMBER, X690_SPECIAL_REAL_PLUS_INFINITY,
+    X690_SPECIAL_REAL_MINUS_ZERO, X690_SPECIAL_REAL_NOT_A_NUMBER, X690_SPECIAL_REAL_PLUS_INFINITY, x690_encode_external_components, x690_encode_embedded_pdv_components, x690_encode_character_string_components,
 };
 use asn1::bitstring::join_bit_strings;
+use bytes::{Bytes, BytesMut, BufMut};
 
 // BIT STRING is constructed in a such a way that the octets of each subelement
 // cannot simply be concatenated. As such, this function deconstructed a
 // constructed BIT STRING to obtain a single BIT STRING.
 pub fn deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => Ok(ber_decode_bit_string_value(bytes.as_slice())?),
-        X690Encoding::EXPLICIT(_) => {
-            let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
-            err.component_name = el.name.clone();
-            err.tag = Some(Tag::new(el.tag_class, el.tag_number));
-            err.constructed = Some(true);
-            err.length = Some(el.len());
-            return Err(err);
-        }
-        X690Encoding::AlreadyEncoded(bytes) => match ber_cst(&bytes) {
-            Ok((_, cst)) => {
-                return deconstruct_bit_string(&cst);
-            }
-            Err(e) => return Err(e),
-        },
-        X690Encoding::Constructed(children) => {
+    match &el.value {
+        X690Value::Primitive(bytes) => Ok(ber_decode_bit_string_value(bytes)?),
+        X690Value::Constructed(children) => {
             let mut substituent_bit_strings: Vec<BIT_STRING> = Vec::new();
-            for child in children {
-                if child.tag_class != el.tag_class || child.tag_number != el.tag_number {
+            for child in children.iter() {
+                if child.tag.tag_class != el.tag.tag_class || child.tag.tag_number != el.tag.tag_number {
                     let mut err =
                         ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
-                    err.component_name = el.name.clone();
-                    err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+                    // err.component_name = el.name.clone(); // FIXME:
+                    err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(true);
                     return Err(err);
@@ -548,29 +532,29 @@ pub fn ber_decode_duration_value(value_bytes: ByteSlice) -> ASN1Result<DURATION>
 }
 
 pub fn ber_decode_boolean(el: &X690Element) -> ASN1Result<BOOLEAN> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_boolean_value(bytes.as_slice()),
+    match &el.value {
+        X690Value::Primitive(bytes) => ber_decode_boolean_value(bytes),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
 pub fn ber_decode_integer(el: &X690Element) -> ASN1Result<INTEGER> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_integer_value(bytes.as_slice()),
+    match &el.value {
+        X690Value::Primitive(bytes) => ber_decode_integer_value(bytes),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
 pub fn ber_decode_i64(el: &X690Element) -> ASN1Result<i64> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_i64_value(bytes.as_slice()),
+    match &el.value {
+        X690Value::Primitive(bytes) => ber_decode_i64_value(bytes),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
 pub fn ber_decode_enumerated(el: &X690Element) -> ASN1Result<ENUMERATED> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_enum_value(bytes.as_slice()),
+    match &el.value {
+        X690Value::Primitive(bytes) => ber_decode_enum_value(bytes),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
@@ -584,8 +568,8 @@ pub fn ber_decode_octet_string(el: &X690Element) -> ASN1Result<OCTET_STRING> {
 }
 
 pub fn ber_decode_null(el: &X690Element) -> ASN1Result<()> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => {
+    match &el.value {
+        X690Value::Primitive(bytes) => {
             if bytes.len() != 0 {
                 return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
             }
@@ -596,8 +580,8 @@ pub fn ber_decode_null(el: &X690Element) -> ASN1Result<()> {
 }
 
 pub fn ber_decode_object_identifier(el: &X690Element) -> ASN1Result<OBJECT_IDENTIFIER> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_object_identifier_value(bytes.as_slice()),
+    match &el.value {
+        X690Value::Primitive(bytes) => ber_decode_object_identifier_value(bytes),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
@@ -654,8 +638,8 @@ const _EAL_FOR_EXTERNAL: &[ComponentSpec; 0] = &[];
 const _RCTL2_FOR_EXTERNAL: &[ComponentSpec; 0] = &[];
 
 pub fn ber_decode_external(el: &X690Element) -> ASN1Result<EXTERNAL> {
-    let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     if elements.len() > 4 {
@@ -700,19 +684,22 @@ pub fn ber_decode_external(el: &X690Element) -> ASN1Result<EXTERNAL> {
     };
     let encoding: ExternalEncoding = match components.get("encoding") {
         Some(c) => {
-            if c.tag_class != TagClass::CONTEXT {
+            if c.tag.tag_class != TagClass::CONTEXT {
                 let mut err =
                     ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
                 err.component_name = Some(String::from("encoding"));
-                err.tag = Some(Tag::new(c.tag_class, c.tag_number));
+                err.tag = Some(Tag::new(c.tag.tag_class, c.tag.tag_number));
                 err.length = Some(c.len());
                 err.constructed = Some(c.is_constructed());
                 return Err(err);
             }
-            match c.tag_number {
+            match c.tag.tag_number {
                 0 => {
-                    if let X690Encoding::EXPLICIT(inner) = c.value.borrow() {
-                        let v = ber_decode_any(inner.deref())?;
+                    if let X690Value::Constructed(components) = &c.value {
+                        if components.len() != 1 {
+                            return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
+                        }
+                        let v = ber_decode_any(&components[0])?;
                         ExternalEncoding::single_ASN1_type(Arc::new(v))
                     } else {
                         return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
@@ -756,17 +743,17 @@ pub fn ber_decode_external(el: &X690Element) -> ASN1Result<EXTERNAL> {
 }
 
 pub fn ber_decode_instance_of(el: &X690Element) -> ASN1Result<InstanceOf> {
-    let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     if elements.len() != 2 {
         return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
-    if elements[0].tag_class != TagClass::UNIVERSAL
-        || elements[0].tag_number != ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER
-        || elements[1].tag_class != TagClass::CONTEXT
-        || elements[1].tag_number != 0
+    if elements[0].tag.tag_class != TagClass::UNIVERSAL
+        || elements[0].tag.tag_number != ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER
+        || elements[1].tag.tag_class != TagClass::CONTEXT
+        || elements[1].tag.tag_number != 0
     {
         return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
@@ -780,8 +767,8 @@ pub fn ber_decode_instance_of(el: &X690Element) -> ASN1Result<InstanceOf> {
 }
 
 pub fn ber_decode_real(el: &X690Element) -> ASN1Result<REAL> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_real_value(bytes.as_slice()),
+    match &el.value {
+        X690Value::Primitive(bytes) => ber_decode_real_value(bytes),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
@@ -811,19 +798,19 @@ pub fn ber_decode_real(el: &X690Element) -> ASN1Result<REAL> {
 pub fn ber_decode_presentation_context_switching_type_id(
     el: &X690Element,
 ) -> ASN1Result<PresentationContextSwitchingTypeIdentification> {
-    if el.tag_class != TagClass::CONTEXT {
+    if el.tag.tag_class != TagClass::CONTEXT {
         let mut err =
             ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
         err.component_name = Some(String::from("identification"));
-        err.tag = Some(Tag::new(el.tag_class, el.tag_number));
+        err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
         err.length = Some(el.len());
         err.constructed = Some(el.is_constructed());
         return Err(err);
     }
-    match el.tag_number {
+    match el.tag.tag_number {
         0 => {
             // syntaxes
-            if let X690Encoding::Constructed(children) = el.value.borrow() {
+            if let X690Value::Constructed(children) = &el.value {
                 if children.len() != 2 {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
                 }
@@ -851,7 +838,7 @@ pub fn ber_decode_presentation_context_switching_type_id(
         }
         3 => {
             // context-negotiation
-            if let X690Encoding::Constructed(children) = el.value.borrow() {
+            if let X690Value::Constructed(children) = &el.value {
                 if children.len() != 2 {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
                 }
@@ -886,19 +873,14 @@ pub fn ber_decode_presentation_context_switching_type_id(
 }
 
 pub fn ber_decode_embedded_pdv(el: &X690Element) -> ASN1Result<EMBEDDED_PDV> {
-    let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     if elements.len() != 2 {
         return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
-    let identification: PresentationContextSwitchingTypeIdentification;
-    if let X690Encoding::EXPLICIT(inner) = elements[0].value.borrow() {
-        identification = ber_decode_presentation_context_switching_type_id(&inner)?;
-    } else {
-        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-    }
+    let identification = ber_decode_presentation_context_switching_type_id(&elements[0].inner()?)?;
     let data_value: OCTET_STRING = ber_decode_octet_string(&elements[1])?;
     Ok(EMBEDDED_PDV {
         identification,
@@ -907,19 +889,14 @@ pub fn ber_decode_embedded_pdv(el: &X690Element) -> ASN1Result<EMBEDDED_PDV> {
 }
 
 pub fn ber_decode_character_string(el: &X690Element) -> ASN1Result<CHARACTER_STRING> {
-    let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
         _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     };
     if elements.len() != 2 {
         return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
     }
-    let identification: PresentationContextSwitchingTypeIdentification;
-    if let X690Encoding::EXPLICIT(inner) = elements[0].value.borrow() {
-        identification = ber_decode_presentation_context_switching_type_id(&inner)?;
-    } else {
-        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-    }
+    let identification = ber_decode_presentation_context_switching_type_id(&elements[0].inner()?)?;
     let string_value: OCTET_STRING = ber_decode_octet_string(&elements[1])?;
     Ok(CHARACTER_STRING {
         identification,
@@ -928,17 +905,17 @@ pub fn ber_decode_character_string(el: &X690Element) -> ASN1Result<CHARACTER_STR
 }
 
 pub fn ber_decode_relative_oid(el: &X690Element) -> ASN1Result<RELATIVE_OID> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => ber_decode_relative_oid_value(bytes.as_slice()),
+    match &el.value {
+        X690Value::Primitive(bytes) => ber_decode_relative_oid_value(bytes),
         _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
     }
 }
 
 pub fn ber_decode_sequence(el: &X690Element) -> ASN1Result<SEQUENCE> {
-    match el.value.borrow() {
-        X690Encoding::Constructed(components) => {
+    match &el.value {
+        X690Value::Constructed(components) => {
             let mut values: Vec<ASN1Value> = Vec::with_capacity(components.len());
-            for component in components {
+            for component in components.iter() {
                 match ber_decode_any(&component) {
                     Ok(v) => values.push(v),
                     Err(e) => return Err(e),
@@ -951,10 +928,10 @@ pub fn ber_decode_sequence(el: &X690Element) -> ASN1Result<SEQUENCE> {
 }
 
 pub fn ber_decode_set(el: &X690Element) -> ASN1Result<SET> {
-    match el.value.borrow() {
-        X690Encoding::Constructed(components) => {
+    match &el.value {
+        X690Value::Constructed(components) => {
             let mut values: Vec<ASN1Value> = Vec::with_capacity(components.len());
-            for component in components {
+            for component in components.iter() {
                 match ber_decode_any(&component) {
                     Ok(v) => values.push(v),
                     Err(e) => return Err(e),
@@ -1042,8 +1019,8 @@ pub fn ber_decode_duration(el: &X690Element) -> ASN1Result<DURATION> {
 }
 
 pub fn ber_decode_oid_iri(el: &X690Element) -> ASN1Result<OID_IRI> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
+    match &el.value {
+        X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
             Ok(x) => Ok(x),
             Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
         },
@@ -1052,8 +1029,8 @@ pub fn ber_decode_oid_iri(el: &X690Element) -> ASN1Result<OID_IRI> {
 }
 
 pub fn ber_decode_relative_oid_iri(el: &X690Element) -> ASN1Result<OID_IRI> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
+    match &el.value {
+        X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
             Ok(x) => Ok(x),
             Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
         },
@@ -1062,8 +1039,8 @@ pub fn ber_decode_relative_oid_iri(el: &X690Element) -> ASN1Result<OID_IRI> {
 }
 
 pub fn ber_decode_time(el: &X690Element) -> ASN1Result<TIME> {
-    match el.value.borrow() {
-        X690Encoding::IMPLICIT(bytes) => match String::from_utf8(bytes.clone()) {
+    match &el.value {
+        X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
             Ok(x) => Ok(x),
             Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
         },
@@ -1072,35 +1049,20 @@ pub fn ber_decode_time(el: &X690Element) -> ASN1Result<TIME> {
 }
 
 pub fn ber_decode_any(el: &X690Element) -> ASN1Result<ASN1Value> {
-    if let X690Encoding::AlreadyEncoded(encoding) = el.value.borrow() {
-        match ber_cst(&encoding) {
-            Ok((bytes_read, encoded_el)) => {
-                if bytes_read != encoding.len() {
-                    return Err(ASN1Error::new(ASN1ErrorCode::trailing_data));
+    if el.tag.tag_class != TagClass::UNIVERSAL {
+        return match &el.value {
+            X690Value::Primitive(bytes) => Ok(ASN1Value::UnknownBytes(Arc::new(bytes.to_vec()))),
+            X690Value::Constructed(components) => {
+                let mut values: Vec<ASN1Value> = Vec::with_capacity(components.len());
+                for child in components.iter() {
+                    values.push(ber_decode_any(&child)?);
                 }
-                return ber_decode_any(&encoded_el);
+                return Ok(ASN1Value::SequenceValue(values));
             }
-            Err(e) => return Err(e),
-        }
+        };
     }
 
-    if el.tag_class != TagClass::UNIVERSAL {
-        if let X690Encoding::EXPLICIT(inner) = el.value.borrow() {
-            return ber_decode_any(&inner);
-        } else if let X690Encoding::IMPLICIT(bytes) = el.value.borrow() {
-            return Ok(ASN1Value::UnknownBytes(Arc::new(bytes.clone())));
-        } else if let X690Encoding::Constructed(children) = el.value.borrow() {
-            let mut values: Vec<ASN1Value> = Vec::with_capacity(children.len());
-            for child in children {
-                values.push(ber_decode_any(&child)?);
-            }
-            return Ok(ASN1Value::SequenceValue(values));
-        } else {
-            return Err(ASN1Error::new(ASN1ErrorCode::nonsense));
-        }
-    }
-
-    match el.tag_number {
+    match el.tag.tag_number {
         ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
         ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => match ber_decode_boolean(el) {
             Ok(v) => Ok(ASN1Value::BooleanValue(v)),
@@ -1249,53 +1211,48 @@ pub fn ber_decode_any(el: &X690Element) -> ASN1Result<ASN1Value> {
 }
 
 pub fn ber_encode_boolean(value: &BOOLEAN) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(1);
+    let mut out = BytesMut::with_capacity(1).writer();
     x690_write_boolean_value(&mut out, value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_integer(value: &INTEGER) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::new();
+    let mut out = BytesMut::new().writer();
     x690_write_integer_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 // TODO: Make this generic across numeric types?
 pub fn ber_encode_i64(value: &i64) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::new();
+    let mut out = BytesMut::new().writer();
     x690_write_enum_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_enumerated(value: &ENUMERATED) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(2); // Most enums are small.
+    let mut out = BytesMut::with_capacity(2).writer(); // Most enums are small.
     x690_write_enum_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_bit_string(value: &BIT_STRING) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.bytes.len() + 1);
+    let mut out = BytesMut::with_capacity(value.bytes.len() + 1).writer();
     x690_write_bit_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
@@ -1304,348 +1261,290 @@ pub fn ber_encode_octet_string(value: &OCTET_STRING) -> ASN1Result<X690Element> 
     // let mut out: Bytes = Vec::with_capacity(value.len());
     // x690_write_octet_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING,
-        Arc::new(X690Encoding::IMPLICIT(value.clone())),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING),
+        X690Value::Primitive(Bytes::copy_from_slice(value)),
     ))
 }
 
 pub fn ber_encode_null(_value: &NULL) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-        Arc::new(X690Encoding::IMPLICIT(vec![])),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+        X690Value::Primitive(Bytes::new()),
     ))
 }
 
 pub fn ber_encode_object_identifier(value: &OBJECT_IDENTIFIER) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.0.len() << 2); // We assume, on average, each arc takes two bytes.
+    let mut out = BytesMut::with_capacity(value.0.len() << 2).writer(); // We assume, on average, each arc takes two bytes.
     x690_write_object_identifier_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_external(value: &EXTERNAL) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::new();
-    x690_write_tag(
-        &mut out,
-        TagClass::UNIVERSAL,
-        true,
-        ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-    )?;
-    x690_write_external_value(&mut out, &value)?;
+    let components = x690_encode_external_components(value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-        Arc::new(X690Encoding::AlreadyEncoded(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL),
+        X690Value::Constructed(Arc::new(components)),
     ))
 }
 
 pub fn ber_encode_instance_of(value: &INSTANCE_OF) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::new();
-    x690_write_tag(
-        &mut out,
-        TagClass::UNIVERSAL,
-        true,
-        ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-    )?;
     let external = EXTERNAL {
         identification: ExternalIdentification::syntax(value.type_id.clone()),
         data_value_descriptor: None,
         data_value: ExternalEncoding::single_ASN1_type(value.value.clone()),
     };
-    x690_write_external_value(&mut out, &external)?;
+    let components = x690_encode_external_components(&external)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-        Arc::new(X690Encoding::AlreadyEncoded(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL),
+        X690Value::Constructed(Arc::new(components)),
     ))
 }
 
 pub fn ber_encode_real(value: &REAL) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(32); // This should cover most values.
+    let mut out = BytesMut::with_capacity(32).writer(); // This should cover most values.
     x690_write_real_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_REAL,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_REAL),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_embedded_pdv(value: &EMBEDDED_PDV) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::new();
-    x690_write_tag(
-        &mut out,
-        TagClass::UNIVERSAL,
-        true,
-        ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
-    )?;
-    x690_write_embedded_pdv_value(&mut out, &value)?;
+    let components = x690_encode_embedded_pdv_components(value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
-        Arc::new(X690Encoding::AlreadyEncoded(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV),
+        X690Value::Constructed(Arc::new(components)),
     ))
 }
 
 pub fn ber_encode_character_string(value: &CHARACTER_STRING) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::new();
-    x690_write_tag(
-        &mut out,
-        TagClass::UNIVERSAL,
-        true,
-        ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
-    )?;
-    x690_write_character_string_value(&mut out, &value)?;
+    let components = x690_encode_character_string_components(value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
-        Arc::new(X690Encoding::AlreadyEncoded(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING),
+        X690Value::Constructed(Arc::new(components)),
     ))
 }
 
 pub fn ber_encode_relative_oid(value: &RELATIVE_OID) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.0.len() << 2); // We assume, on average, each arc takes two bytes.
+    let mut out = BytesMut::with_capacity(value.0.len() << 2).writer(); // We assume, on average, each arc takes two bytes.
     x690_write_relative_oid_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 // TODO: ?
 // pub fn ber_encode_sequence (value: &SEQUENCE) -> ASN1Result<X690Element> {
-//     let mut out: Bytes = Vec::new();
+//     let mut out = BytesMut::new();
 //     x690_write_(&mut out, &value)?;
 //     Ok(X690Element::new(
 //         TagClass::UNIVERSAL,
 //         ASN1_UNIVERSAL_TAG_NUMBER_ASDF,
-//         Arc::new(X690Encoding::IMPLICIT(out)),
+//         X690Value::Primitive(out.into_inner().into()),
 //     ))
 // }
 
 // TODO: ?
 // pub fn ber_encode_set (value: &SET) -> ASN1Result<X690Element> {
-//     let mut out: Bytes = Vec::new();
+//     let mut out = BytesMut::new();
 //     x690_write_asdf(&mut out, &value)?;
 //     Ok(X690Element::new(
 //         TagClass::UNIVERSAL,
 //         ASN1_UNIVERSAL_TAG_NUMBER_ASDF,
-//         Arc::new(X690Encoding::IMPLICIT(out)),
+//         X690Value::Primitive(out.into_inner().into()),
 //     ))
 // }
 
 pub fn ber_encode_object_descriptor(value: &ObjectDescriptor) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_object_descriptor_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_utf8_string(value: &str) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len() << 1); // TODO: Should this pre-allocate double for non-ASCII?
+    let mut out = BytesMut::with_capacity(value.len() << 1).writer(); // TODO: Should this pre-allocate double for non-ASCII?
     x690_write_utf8_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_numeric_string(value: &str) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_printable_string(value: &str) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_t61_string(value: &T61String) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_octet_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_videotex_string(value: &VideotexString) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_octet_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_ia5_string(value: &IA5String) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_utc_time(value: &UTCTime) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(17); // This is the max length of a UTCTime.
+    let mut out = BytesMut::with_capacity(17).writer(); // This is the max length of a UTCTime.
     x690_write_utc_time_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_generalized_time(value: &GeneralizedTime) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(32); // There is no defined max length, but this is very generous capacity.
+    let mut out = BytesMut::with_capacity(32).writer(); // There is no defined max length, but this is very generous capacity.
     x690_write_generalized_time_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_graphic_string(value: &GraphicString) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_visible_string(value: &VisibleString) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_general_string(value: &GeneralString) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_universal_string(value: &UniversalString) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len() << 2); // Four bytes for every character
+    let mut out = BytesMut::with_capacity(value.len() << 2).writer(); // Four bytes for every character
     x690_write_universal_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_bmp_string(value: &BMPString) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len() << 1); // Two bytes for every character
+    let mut out = BytesMut::with_capacity(value.len() << 1).writer(); // Two bytes for every character
     x690_write_bmp_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_date(value: &DATE) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(10); // YYYY-MM-DD
+    let mut out = BytesMut::with_capacity(10).writer(); // YYYY-MM-DD
     x690_write_date_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_DATE,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_DATE),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_time_of_day(value: &TIME_OF_DAY) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(8); // HH:MM:SS
+    let mut out = BytesMut::with_capacity(8).writer(); // HH:MM:SS
     x690_write_time_of_day_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_date_time(value: &DATE_TIME) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(19); // 1951-10-14T15:30:00
+    let mut out = BytesMut::with_capacity(19).writer(); // 1951-10-14T15:30:00
     x690_write_date_time_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_duration(value: &DURATION) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(16); // There is no guaranteed size, but 16 is a reasonable pre-allocation.
+    let mut out = BytesMut::with_capacity(16).writer(); // There is no guaranteed size, but 16 is a reasonable pre-allocation.
     x690_write_duration_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_DURATION),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_oid_iri(value: &OID_IRI) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_relative_oid_iri(value: &OID_IRI) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_string_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
 pub fn ber_encode_time(value: &TIME) -> ASN1Result<X690Element> {
-    let mut out: Bytes = Vec::with_capacity(value.len());
+    let mut out = BytesMut::with_capacity(value.len()).writer();
     x690_write_time_value(&mut out, &value)?;
     Ok(X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_TIME,
-        Arc::new(X690Encoding::IMPLICIT(out)),
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_TIME),
+        X690Value::Primitive(out.into_inner().into()),
     ))
 }
 
@@ -2441,8 +2340,8 @@ pub fn ber_validate_relative_oid_iri_value (_content_octets: ByteSlice) -> ASN1R
 mod tests {
 
     use super::*;
-    use super::{ber_cst, X690Encoding};
-    use crate::X690_TAG_CLASS_UNIVERSAL;
+    use super::X690Value;
+    use crate::{X690_TAG_CLASS_UNIVERSAL, ber_cst};
 
     // pub struct AlgorithmIdentifier {
     //     pub algorithm: OBJECT_IDENTIFIER,
@@ -2469,18 +2368,18 @@ mod tests {
             Ok(result) => result,
         };
         assert_eq!(bytes_read, 9);
-        assert_eq!(el.tag_class, TagClass::UNIVERSAL);
-        assert_eq!(el.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE);
-        if let X690Encoding::Constructed(children) = el.value.borrow() {
+        assert_eq!(el.tag.tag_class, TagClass::UNIVERSAL);
+        assert_eq!(el.tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE);
+        if let X690Value::Constructed(children) = &el.value {
             assert_eq!(children.len(), 2);
-            assert_eq!(children[0].tag_class, TagClass::UNIVERSAL);
+            assert_eq!(children[0].tag.tag_class, TagClass::UNIVERSAL);
             assert_eq!(
-                children[0].tag_number,
+                children[0].tag.tag_number,
                 ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER
             );
-            assert_eq!(children[1].tag_class, TagClass::UNIVERSAL);
-            assert_eq!(children[1].tag_number, ASN1_UNIVERSAL_TAG_NUMBER_NULL);
-            if let X690Encoding::IMPLICIT(oid_bytes) = children[0].value.borrow() {
+            assert_eq!(children[1].tag.tag_class, TagClass::UNIVERSAL);
+            assert_eq!(children[1].tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_NULL);
+            if let X690Value::Primitive(oid_bytes) = &children[0].value {
                 let oid = match ber_decode_object_identifier_value(&oid_bytes) {
                     Err(_) => panic!("woriyjh"),
                     Ok(result) => result,
@@ -2502,11 +2401,11 @@ mod tests {
     fn test_ber_decode_utc_time() {
         let time = "\x17\x11991105223344+0523";
         let value_bytes = Vec::from(time);
-        let cst = match ber_cst(value_bytes.as_slice()) {
+        let cst = match ber_cst(&value_bytes) {
             Ok((_, el)) => el,
             Err(e) => panic!("{}", e),
         };
-        if let X690Encoding::IMPLICIT(bytes) = cst.value.borrow() {
+        if let X690Value::Primitive(bytes) = &cst.value {
             let utc_time = ber_decode_utc_time_value(&bytes);
             let decoded_value = match utc_time {
                 Ok(v) => v,
