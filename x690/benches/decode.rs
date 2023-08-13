@@ -4,17 +4,16 @@ use asn1::types::{
     ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
     ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE, OBJECT_IDENTIFIER,
     ASN1_UNIVERSAL_TAG_NUMBER_SET,
+    Tag,
 };
 use std::sync::Arc;
-use x690::{X690Element, X690Encoding, _parse_set};
+use x690::{X690Codec, X690Element, X690Value, _parse_set, BER};
 use asn1::construction::{ComponentSpec, TagSelector};
 use asn1::error::ASN1Result;
 use std::borrow::Borrow;
-use x690::{
-    ber_decode_any, ber_decode_object_identifier,
-    _parse_sequence, X690StructureIterator,
-};
+use x690::{_parse_sequence, X690StructureIterator};
 use criterion::{criterion_group, criterion_main, Criterion};
+use bytes::Bytes;
 
 struct AlgorithmIdentifier {
     pub algorithm: OBJECT_IDENTIFIER,
@@ -47,7 +46,7 @@ const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
 
 fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
     let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+        X690Value::Constructed(children) => children,
         _ => panic!(),
     };
     let el_refs = elements.iter().collect::<Vec<&X690Element>>();
@@ -59,9 +58,9 @@ fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifie
     )?;
     // NOTE: unwrap() should be fine, because we validate that there is such a component in `_parse_sequence`.
     let algorithm: OBJECT_IDENTIFIER =
-        ber_decode_object_identifier(components.get("algorithm").unwrap())?;
+        BER.decode_object_identifier(components.get("algorithm").unwrap())?;
     let parameters: Option<ASN1Value> = match components.get("parameters") {
-        Some(c) => Some(ber_decode_any(c)?),
+        Some(c) => Some(BER.decode_any(c)?),
         _ => None,
     };
     Ok(AlgorithmIdentifier {
@@ -72,7 +71,7 @@ fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifie
 
 fn decode_AlgorithmIdentifier2(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
     let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+        X690Value::Constructed(children) => children,
         _ => panic!(),
     };
     let seq_iter = X690StructureIterator::new(
@@ -92,8 +91,8 @@ fn decode_AlgorithmIdentifier2(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
         let el = maybe_el.unwrap();
         // We assume there cannot be duplicates. The parser must be sound enough to not do this.
         match component_name {
-            "algorithm" => maybe_algorithm = Some(ber_decode_object_identifier(el)?),
-            "parameters" => maybe_parameters = Some(ber_decode_any(el)?),
+            "algorithm" => maybe_algorithm = Some(BER.decode_object_identifier(el)?),
+            "parameters" => maybe_parameters = Some(BER.decode_any(el)?),
             _ => panic!("There are no extensions in AlgorithmIdentifier!"),
         }
     }
@@ -108,7 +107,7 @@ fn decode_AlgorithmIdentifier2(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
 
 fn decode_AlgorithmIdentifier3(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
     let elements = match el.value.borrow() {
-        X690Encoding::Constructed(children) => children,
+        X690Value::Constructed(children) => children,
         _ => panic!(),
     };
     let (_components, _unrecognized) = _parse_set(
@@ -118,9 +117,9 @@ fn decode_AlgorithmIdentifier3(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
         _rctl2_components_for_AlgorithmIdentifier,
         10,
     )?;
-    let algorithm: OBJECT_IDENTIFIER = ber_decode_object_identifier(_components.get("algorithm").unwrap())?;
+    let algorithm: OBJECT_IDENTIFIER = BER.decode_object_identifier(_components.get("algorithm").unwrap())?;
     let parameters: Option<ASN1Value> = match _components.get("parameters") {
-        Some(c_) => Some(ber_decode_any(c_)?),
+        Some(c_) => Some(BER.decode_any(c_)?),
         _ => None,
     };
     Ok(AlgorithmIdentifier {
@@ -131,18 +130,15 @@ fn decode_AlgorithmIdentifier3(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
 
 fn decode_algorithm_identifier1() {
     let root: X690Element = X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-        Arc::new(X690Encoding::Constructed(vec![
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(vec![
             X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-                Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                X690Value::Primitive(Bytes::from(vec![0x55, 0x04, 0x03])),
             ),
             X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-                Arc::new(X690Encoding::IMPLICIT(vec![])),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                X690Value::Primitive(Bytes::from(vec![])),
             ),
         ])),
     );
@@ -159,18 +155,15 @@ fn decode_algorithm_identifier1() {
 
 fn decode_algorithm_identifier2() {
     let root: X690Element = X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-        Arc::new(X690Encoding::Constructed(vec![
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(vec![
             X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-                Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                X690Value::Primitive(Bytes::from(vec![0x55, 0x04, 0x03])),
             ),
             X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-                Arc::new(X690Encoding::IMPLICIT(vec![])),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                X690Value::Primitive(Bytes::from(vec![])),
             ),
         ])),
     );
@@ -189,18 +182,15 @@ fn decode_algorithm_identifier2() {
 testing SET decoding. */
 fn decode_algorithm_identifier3() {
     let root: X690Element = X690Element::new(
-        TagClass::UNIVERSAL,
-        ASN1_UNIVERSAL_TAG_NUMBER_SET,
-        Arc::new(X690Encoding::Constructed(vec![
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(vec![
             X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-                Arc::new(X690Encoding::IMPLICIT(vec![0x55, 0x04, 0x03])),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                X690Value::Primitive(Bytes::from(vec![0x55, 0x04, 0x03])),
             ),
             X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-                Arc::new(X690Encoding::IMPLICIT(vec![])),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                X690Value::Primitive(Bytes::from(vec![])),
             ),
         ])),
     );

@@ -256,15 +256,17 @@ which control how these elements are encoded.
 - [ ] `x690`
   - [ ] Rename things sensibly.
   - [ ] Re-enable the `name` field of `X690Element`?
-  - [ ] Print `asn1parse` output;
+  - [ ] Print `asn1parse` output (OTOH, do lots of printing / display functions belong in this library?)
   - [ ] Use `AsRef` in generics
   - [ ] `serde` integration?
     - Really all you have to do is add the `#[derive(Serialize, Deserialize)]` to structs that are simple enough
       - It may be best to do this manually, rather than try to figure out which cases will work.
       - Only cases with certain primitive types and no non-UNIVERSAL tagging will work.
-  - [x] Use `Bytes`?
   - [x] Use `core::str::from_utf8` where possible instead of `String::from_utf8`
   - [x] Finish integrating `simdutf8`
+  - [ ] `impl From<*> for X690Element`
+    - This will help with the `serde` integration.
+  - [ ] Remove unused things
 - ASN.1 Compilation
   - [ ] When decoding structured types, decode into a fixed-length array of `Option<X690Element>` instead of `HashMap`.
     - Could this be done more efficiently by just iterating over elements?

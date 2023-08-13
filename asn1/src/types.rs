@@ -389,6 +389,16 @@ pub trait ObjectIdentifierFromDescriptor {
 
 }
 
+pub trait ASN1Codec {
+
+    fn transfer_syntax_oid (&self) -> OBJECT_IDENTIFIER;
+
+    fn transfer_syntax_oid_iri (&self) -> Option<OID_IRI> {
+        None
+    }
+
+}
+
 // This is really just an alias for vec![], but it is defined for future-proofing.
 #[macro_export]
 macro_rules! octs {
