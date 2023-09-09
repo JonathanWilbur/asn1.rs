@@ -133,6 +133,28 @@ pub fn deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
     }
 }
 
+// Non-terminal BIT STRINGs in a constructed BIT STRING are not allowed to have
+// a non-zero number of trailing bits.
+fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Primitive(v) => {
+            if v.len() == 0 {
+                return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_zero_bytes));
+            }
+            if v[0] != 0 {
+                return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_non_terminal_segment_with_trailing_bits));
+            }
+            Ok(())
+        },
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                validate_non_terminal_bit_strings(&sub)?;
+            }
+            Ok(())
+        },
+    }
+}
+
 fn is_leap_year(year: u32) -> bool {
     (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
 }
@@ -544,6 +566,7 @@ impl X690Codec for BasicEncodingRules {
                 let mantissa: u64;
                 let exponent: i32;
                 match value_bytes[0] & X690_REAL_EXPONENT_FORMAT_MASK {
+                    // FIXME: This is not doing what you think!
                     X690_REAL_EXPONENT_FORMAT_1_OCTET => {
                         if value_bytes.len() < 3 {
                             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -1812,6 +1835,161 @@ impl X690Codec for BasicEncodingRules {
 
     fn validate_relative_oid_iri_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
         Ok(())
+    }
+
+    fn validate_bit_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_bit_string_value(&v),
+            X690Value::Constructed(subs) => {
+                let subs_len = subs.len();
+                if subs_len == 0 {
+                    return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_zero_bytes));
+                }
+                for sub in subs[0..subs_len - 1].iter() {
+                    validate_non_terminal_bit_strings(&sub)?;
+                }
+                self.validate_bit_string(&subs[subs_len - 1])?;
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_octet_string(&self, _: &X690Element) -> ASN1Result<()> {
+        Ok(())
+    }
+
+    fn validate_object_descriptor(&self, el: &X690Element) -> ASN1Result<()> {
+        self.validate_graphic_string(el)
+    }
+
+    fn validate_utf8_string(&self, el: &X690Element) -> ASN1Result<()> {
+        // The value has to be deconstructed because there is nothing
+        // technically restricting the individual segments of a constructed
+        // UTF8String from breaking on a multi-byte character.
+        let content_octets = deconstruct(el)?;
+        self.validate_utf8_string_value(content_octets.as_ref())
+    }
+
+    fn validate_numeric_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_numeric_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_numeric_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_printable_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_printable_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_printable_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_t61_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_t61_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_t61_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_videotex_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_videotex_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_videotex_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_ia5_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_ia5_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_ia5_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_utc_time(&self, el: &X690Element) -> ASN1Result<()> {
+        let content_octets = deconstruct(el)?;
+        self.validate_utc_time_value(content_octets.as_ref())
+    }
+
+    fn validate_generalized_time(&self, el: &X690Element) -> ASN1Result<()> {
+        let content_octets = deconstruct(el)?;
+        self.validate_generalized_time_value(content_octets.as_ref())
+    }
+
+    fn validate_graphic_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_graphic_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_graphic_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_visible_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_visible_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_visible_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_general_string(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_general_string_value(&v),
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    self.validate_general_string(sub)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn validate_universal_string(&self, el: &X690Element) -> ASN1Result<()> {
+        // The value has to be deconstructed because there is nothing
+        // technically restricting the individual segments of a constructed
+        // UniversalString from breaking mid-character.
+        let content_octets = deconstruct(el)?;
+        self.validate_universal_string_value(content_octets.as_ref())
+    }
+
+    fn validate_bmp_string(&self, el: &X690Element) -> ASN1Result<()> {
+        // The value has to be deconstructed because there is nothing
+        // technically restricting the individual segments of a constructed
+        // BMPString from breaking mid-character.
+        let content_octets = deconstruct(el)?;
+        self.validate_bmp_string_value(content_octets.as_ref())
     }
 
 }

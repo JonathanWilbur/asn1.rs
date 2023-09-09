@@ -73,21 +73,42 @@ use asn1::types::{
     SET,
     TIME,
     TIME_OF_DAY,
+    ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT,
     ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
-    ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_DATE,
-    ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
-    ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED,
-    ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
     ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
+    ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING,
     ASN1_UNIVERSAL_TAG_NUMBER_NULL,
     ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-    ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
+    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR,
+    ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
+    ASN1_UNIVERSAL_TAG_NUMBER_REAL,
+    ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED,
+    ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
+    ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
     ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
     ASN1_UNIVERSAL_TAG_NUMBER_TIME,
+    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
+    ASN1_UNIVERSAL_TAG_NUMBER_SET,
+    ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME,
+    ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME,
+    ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING,
+    ASN1_UNIVERSAL_TAG_NUMBER_DATE,
     ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY,
+    ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME,
+    ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
+    ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
+    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
     ContextNegotiation,
     ExternalEncoding,
     ExternalIdentification,
@@ -870,6 +891,376 @@ pub trait X690Codec {
     fn validate_duration_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_oid_iri_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_relative_oid_iri_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
+
+    fn validate_boolean(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_boolean_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_integer(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_integer_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_bit_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_octet_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_null(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_null_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_object_identifier(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_object_identifier_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_object_descriptor(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_real(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_real_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_enumerated(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_enumerated_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_utf8_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_relative_object_identifier(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_relative_object_identifier_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_time(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_time_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_numeric_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_printable_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_t61_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_videotex_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_ia5_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_utc_time(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_generalized_time(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_graphic_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_visible_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_general_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_universal_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_bmp_string(&self, el: &X690Element) -> ASN1Result<()>;
+    fn validate_date(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_date_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_time_of_day(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_time_of_day_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_date_time(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_date_time_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_duration(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_duration_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_oid_iri(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_oid_iri_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+    fn validate_relative_oid_iri(&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => self.validate_relative_oid_iri_value(&v),
+            _ => {
+                let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                err.relate_tag(&el.tag);
+                err.constructed = Some(el.is_constructed());
+                Err(err)
+            },
+        }
+    }
+
+    fn validate_external(&self, el: &X690Element) -> ASN1Result<()> {
+        let invalid_cons = || {
+            let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+            err.relate_tag(&el.tag);
+            err.constructed = Some(el.is_constructed());
+            err
+        };
+        let components = match &el.value {
+            X690Value::Constructed(c) => c,
+            _ => return Err(invalid_cons()),
+        };
+        let len = components.len();
+        if len > 4 || len == 0 {
+            return Err(invalid_cons());
+        }
+        let last_el = &components[len - 1];
+        if last_el.tag.tag_class != TagClass::CONTEXT {
+            return Err(invalid_cons());
+        }
+        match last_el.tag.tag_number {
+            0 => self.validate_any(&last_el.inner()?)?,
+            1 => self.validate_octet_string(&last_el)?,
+            2 => self.validate_bit_string(&last_el)?,
+            _ => return Err(invalid_cons()),
+        };
+        let mut s = 0; // component spec index.
+        let mut int_seen: bool = false;
+        let mut desc_seen: bool = false;
+        for component in components[0..len - 1].iter() {
+            if component.tag.tag_class != TagClass::UNIVERSAL {
+                return Err(invalid_cons());
+            }
+            if
+                s == 0
+                && component.tag.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER {
+                self.validate_object_identifier(component)?;
+            }
+            else if s <= 1
+                && !int_seen
+                && component.tag.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_INTEGER {
+                self.validate_integer(component)?;
+                int_seen = true;
+            }
+            else if s <= 2
+                && !desc_seen
+                && component.tag.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR {
+                self.validate_object_descriptor(component)?;
+                desc_seen = true;
+            }
+            else {
+                return Err(invalid_cons());
+            }
+            s += 1;
+        }
+        Ok(())
+    }
+
+    fn validate_embedded_pdv(&self, el: &X690Element) -> ASN1Result<()> {
+        let invalid_cons = || {
+            let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+            err.relate_tag(&el.tag);
+            err.constructed = Some(el.is_constructed());
+            err
+        };
+        let components = match &el.value {
+            X690Value::Constructed(c) => c,
+            _ => return Err(invalid_cons()),
+        };
+        let len = components.len();
+        if len != 2 {
+            return Err(invalid_cons());
+        }
+        let id_el = &components[0];
+        let value_el = &components[1];
+        if
+            id_el.tag.tag_class != TagClass::CONTEXT
+            || value_el.tag.tag_class != TagClass::CONTEXT
+            || id_el.tag.tag_number != 0
+            || value_el.tag.tag_number != 1
+        {
+            return Err(invalid_cons());
+        }
+        self.validate_octet_string(value_el)?;
+        match id_el.tag.tag_number {
+            0 => { // syntaxes
+                let subs = match &id_el.value {
+                    X690Value::Constructed(s) => s,
+                    _ => return Err(invalid_cons()),
+                };
+                if
+                    subs.len() != 2
+                    || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
+                    || subs[0].tag.tag_number != 0
+                    || subs[1].tag.tag_number != 1
+                {
+                    return Err(invalid_cons());
+                }
+                for sub in subs.iter() {
+                    self.validate_object_identifier(sub)?;
+                }
+            },
+            1 | 4 => self.validate_object_identifier(id_el)?, // syntax or transfer-syntax
+            2 => self.validate_integer(id_el)?, // presentation-context-id
+            3 => { // context-negotiation
+                let subs = match &id_el.value {
+                    X690Value::Constructed(s) => s,
+                    _ => return Err(invalid_cons()),
+                };
+                if
+                    subs.len() != 2
+                    || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
+                    || subs[0].tag.tag_number != 0
+                    || subs[1].tag.tag_number != 1
+                {
+                    return Err(invalid_cons());
+                }
+                self.validate_integer(&subs[0])?;
+                self.validate_object_identifier(&subs[1])?;
+            },
+            5 => self.validate_null(id_el)?,
+            _ => return Err(invalid_cons()),
+        }
+        Ok(())
+    }
+
+    fn validate_character_string(&self, el: &X690Element) -> ASN1Result<()> {
+        self.validate_embedded_pdv(el)
+    }
+
+    fn validate_any (&self, el: &X690Element) -> ASN1Result<()> {
+        let invalid_cons = || {
+            let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+            err.relate_tag(&el.tag);
+            err.constructed = Some(el.is_constructed());
+            err
+        };
+        if el.tag.tag_class != TagClass::UNIVERSAL {
+            match &el.value {
+                X690Value::Primitive(_) => return Ok(()), // IMPLICIT tagged unknown type.
+                X690Value::Constructed(subs) => {
+                    for sub in subs.iter() {
+                        self.validate_any(sub)?;
+                    }
+                    return Ok(());
+                }
+            };
+        }
+        match el.tag.tag_number {
+            ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => self.validate_null(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => self.validate_boolean(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_INTEGER => self.validate_integer(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING => self.validate_bit_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING => self.validate_octet_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_NULL => self.validate_null(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER => self.validate_object_identifier(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR => self.validate_object_descriptor(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => self.validate_external(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_REAL => self.validate_real(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => self.validate_enumerated(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => self.validate_embedded_pdv(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING => self.validate_utf8_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID => self.validate_relative_object_identifier(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_TIME => self.validate_time(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE | ASN1_UNIVERSAL_TAG_NUMBER_SET => {
+                // NOTE: You can't check for duplicate tags in a SET because it could actually be a SET OF.
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            self.validate_any(sub)?;
+                        }
+                        Ok(())
+                    },
+                    _ => return Err(invalid_cons()),
+                }
+            },
+            ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING => self.validate_numeric_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING => self.validate_printable_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING => self.validate_t61_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING => self.validate_videotex_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING => self.validate_ia5_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME => self.validate_utc_time(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME => self.validate_generalized_time(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING => self.validate_graphic_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING => self.validate_visible_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING => self.validate_general_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING => self.validate_universal_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => self.validate_character_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING => self.validate_bmp_string(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_DATE => self.validate_date(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY => self.validate_time_of_day(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME => self.validate_date_time(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_DURATION => self.validate_duration(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI => self.validate_oid_iri(el),
+            ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI => self.validate_relative_oid_iri(el),
+            _ => Ok(()), // It's hard to say what to do here. Accepting is future-proof, but the value could be invalid.
+        }
+    }
+
     fn write_boolean<W>(&self, output: &mut W, value: &BOOLEAN) -> Result<usize> where W: Write {
         let enc = self.encode_boolean(value)?;
         self.write(output, &enc)
