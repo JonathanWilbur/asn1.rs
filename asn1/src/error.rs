@@ -41,6 +41,8 @@ pub enum ASN1ErrorCode {
     x690_boolean_not_one_byte,
     x690_bit_string_remainder_gt_7,
     x690_bit_string_remainder_but_no_bits,
+    x690_bit_string_zero_bytes,
+    x690_bit_string_non_terminal_segment_with_trailing_bits,
     invalid_year,
     invalid_month,
     invalid_day,
