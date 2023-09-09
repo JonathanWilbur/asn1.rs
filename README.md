@@ -268,14 +268,17 @@ which control how these elements are encoded.
     - This will help with the `serde` integration.
   - [ ] Remove unused things
 - ASN.1 Compilation
-  - [ ] When decoding structured types, decode into a fixed-length array of `Option<X690Element>` instead of `HashMap`.
+  - [x] When decoding structured types, decode into a fixed-length array of `Option<X690Element>` instead of `HashMap`.
     - Could this be done more efficiently by just iterating over elements?
     - Maybe you could just mutate the element names? Or return an array of names in order?
   - [ ] Compile validation-only functions
   - [ ] Single-pass write for UNIVERSAL types (write tag and value in one pass)
-  - [ ] Use macros for conciseness? (Looking like this won't be really viable.)
-  - [ ] Create a sequence iterator to avoid allocating any?
-  - [ ] Use `.and()` instead of `match` for optional components.
+  - [x] ~~Use macros for conciseness? (Looking like this won't be really viable.)~~
+  - [x] ~~Create a sequence iterator to avoid allocating any?~~
+  - [x] ~~Use `.and()` instead of `match` for optional components.~~
+  - [x] Get rid of outer closure in sequence decoder.
+  - [x] `X690Element::new()` now only takes two arguments: tag and value.
+  - [x] Use the `X690Codec` trait
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
 - [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
       to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,
