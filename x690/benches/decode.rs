@@ -128,6 +128,75 @@ fn decode_AlgorithmIdentifier3(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
     })
 }
 
+// This tests an unsafe, but possibly faster and more terse way.
+fn decode_AlgorithmIdentifier4(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
+    let elements = match el.value.borrow() {
+        X690Value::Constructed(children) => children,
+        _ => panic!(),
+    };
+    let seq_iter = X690StructureIterator::new(
+        elements.as_slice(),
+        _rctl1_components_for_AlgorithmIdentifier,
+        _eal_components_for_AlgorithmIdentifier,
+        _rctl2_components_for_AlgorithmIdentifier,
+    ).into_iter();
+    let mut i: usize = 0;
+    let mut algorithm: OBJECT_IDENTIFIER = unsafe { std::mem::uninitialized() };
+    let mut parameters: Option<ASN1Value> = None;
+    for fallible_component_name in seq_iter {
+        let component_name = fallible_component_name?;
+        let maybe_el = elements.get(i);
+        i += 1;
+        debug_assert!(maybe_el.is_some(), "Number of parsed components exceeded the number of elements!");
+        let el = maybe_el.unwrap();
+        // We assume there cannot be duplicates. The parser must be sound enough to not do this.
+        match component_name {
+            "algorithm" => algorithm = BER.decode_object_identifier(el)?,
+            "parameters" => parameters = Some(BER.decode_any(el)?),
+            _ => panic!("There are no extensions in AlgorithmIdentifier!"),
+        }
+    }
+    // NOTE: unwrap() should be fine, because we validate that there is such a component in `_parse_sequence`.
+    Ok(AlgorithmIdentifier {
+        algorithm,
+        parameters,
+    })
+}
+
+// This tests a more terse way as well as directly indexing elements[i]
+fn decode_AlgorithmIdentifier5(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
+    let elements = match el.value.borrow() {
+        X690Value::Constructed(children) => children,
+        _ => panic!(),
+    };
+    let seq_iter = X690StructureIterator::new(
+        elements.as_slice(),
+        _rctl1_components_for_AlgorithmIdentifier,
+        _eal_components_for_AlgorithmIdentifier,
+        _rctl2_components_for_AlgorithmIdentifier,
+    ).into_iter();
+    let mut i: usize = 0;
+    let mut algorithm: Option<OBJECT_IDENTIFIER> = None;
+    let mut parameters: Option<ASN1Value> = None;
+    for fallible_component_name in seq_iter {
+        let component_name = fallible_component_name?;
+        let el = &elements[i];
+        i += 1;
+        // debug_assert!(maybe_el.is_some(), "Number of parsed components exceeded the number of elements!");
+        // let el = maybe_el.unwrap();
+        // We assume there cannot be duplicates. The parser must be sound enough to not do this.
+        match component_name {
+            "algorithm" => algorithm = Some(BER.decode_object_identifier(&el)?),
+            "parameters" => parameters = Some(BER.decode_any(&el)?),
+            _ => panic!("There are no extensions in AlgorithmIdentifier!"),
+        }
+    }
+    Ok(AlgorithmIdentifier {
+        algorithm: algorithm.unwrap(),
+        parameters,
+    })
+}
+
 fn decode_algorithm_identifier1() {
     let root: X690Element = X690Element::new(
         Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
