@@ -1474,6 +1474,9 @@ pub fn x690_read_object_identifier_value(value_bytes: ByteSlice) -> ASN1Result<O
     nodes.push(arc2);
     let mut current_node: u32 = 0;
     for byte in value_bytes[1..].iter() {
+        if (current_node == 0) && (*byte == 0b1000_0000) {
+            return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
+        }
         current_node <<= 7;
         current_node += (byte & 0b0111_1111) as u32;
         if (byte & 0b1000_0000) == 0 {
