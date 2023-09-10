@@ -27,7 +27,7 @@ use asn1::{
     MAX_IA5_STRING_CHAR_CODE,
     OPTIONAL,
 };
-use crate::x690::{
+use crate::{
     _RCTL1_FOR_EXTERNAL,
     _EAL_FOR_EXTERNAL,
     _RCTL2_FOR_EXTERNAL,
