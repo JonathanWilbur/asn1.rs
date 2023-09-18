@@ -1,6 +1,6 @@
 #![allow(non_upper_case_globals)]
 
-use asn1::{ENUMERATED, read_i64};
+use asn1::ENUMERATED;
 use async_trait::async_trait;
 use idm::IdmStream;
 use rose::{
@@ -220,8 +220,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                         InvokeId::present(i) => i,
                         _ => continue, // We simply ignore requests from the client that do not include an InvokeId.
                     };
-                    let iid64 = read_i64(&iid).map_err(|_| Error::from(ErrorKind::InvalidData))?;
-                    self.outstanding_requests.insert(iid64, req_tx);
+                    self.outstanding_requests.insert(*iid, req_tx);
                     self.write_request(req).await?;
                 },
                 maybe_outbound_unbind = outbound_unbinds.recv() => {
@@ -288,14 +287,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                         continue;
                                     },
                                 };
-                                let invoke_id_int = match read_i64(&invoke_id) {
-                                    Ok(i) => i,
-                                    _ => { // Usually if the invokeID was huge.
-                                        self.write_reject(rejection).await?;
-                                        continue;
-                                    },
-                                };
-                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id_int) {
+                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id) {
                                     Some(o) => o,
                                     _ => { // No request with this InvokeID.
                                         self.write_reject(rejection).await?;
@@ -317,14 +309,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                         continue;
                                     },
                                 };
-                                let invoke_id_int = match read_i64(&invoke_id) {
-                                    Ok(i) => i,
-                                    _ => { // Usually if the invokeID was huge.
-                                        self.write_reject(rejection).await?;
-                                        continue;
-                                    },
-                                };
-                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id_int) {
+                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id) {
                                     Some(o) => o,
                                     _ => { // No request with this InvokeID.
                                         self.write_reject(rejection).await?;
@@ -342,14 +327,7 @@ impl <W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> RoseEngine<X690Elem
                                         continue;
                                     },
                                 };
-                                let invoke_id_int = match read_i64(&invoke_id) {
-                                    Ok(i) => i,
-                                    _ => { // Usually if the invokeID was huge.
-                                        self.abort(AbortReason::Other).await?;
-                                        continue;
-                                    },
-                                };
-                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id_int) {
+                                let outstanding_req = match self.outstanding_requests.remove(&invoke_id) {
                                     Some(o) => o,
                                     _ => { // No request with this InvokeID.
                                         self.abort(AbortReason::Other).await?;

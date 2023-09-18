@@ -44,9 +44,9 @@ pub mod UpperBounds;
 pub mod UsefulDefinitions;
 pub mod Wrapper;
 
-// pub mod FromString;
-// pub mod ToString;
-// pub mod types;
+pub mod FromString;
+pub mod ToString;
+pub mod types;
 
 #[cfg(test)]
 mod tests {

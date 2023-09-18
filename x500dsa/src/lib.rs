@@ -525,6 +525,7 @@ pub trait DSAStorageDriver {
         req: BaseStorageDriverRequest<FindDN<'a>>,
     ) -> DSAStorageDriverResult<Option<DseDatabaseId>> {
         // TODO: Naive implementation that calls find_rdn recursively.
+        todo!()
     }
 
     async fn get_rdn <'a> (

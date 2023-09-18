@@ -37,33 +37,9 @@ use asn1::{
 use x690::{
     X690Element,
     write_x690_node,
-    ber_decode_integer,
-    ber_decode_boolean,
-    ber_decode_bit_string,
-    ber_decode_octet_string,
-    ber_decode_object_identifier,
-    ber_decode_relative_oid,
-    ber_decode_real,
-    ber_decode_enumerated,
-    ber_decode_utf8_string,
-    ber_decode_object_descriptor,
-    ber_decode_time,
-    ber_decode_date,
-    ber_decode_date_time,
-    ber_decode_time_of_day,
-    ber_decode_numeric_string,
-    ber_decode_printable_string,
-    ber_decode_ia5_string,
-    ber_decode_graphic_string,
-    ber_decode_visible_string,
-    ber_decode_general_string,
-    ber_decode_bmp_string,
-    ber_decode_universal_string,
-    ber_decode_utc_time,
-    ber_decode_generalized_time,
-    ber_decode_duration,
-    ber_decode_oid_iri,
-    ber_decode_relative_oid_iri, ber_encode_utf8_string, ber_encode_printable_string, ber_encode_numeric_string, ber_encode_object_identifier, ber_cst,
+    ber_cst,
+    BER,
+    X690Codec,
 };
 use asn1::utils::read_i64;
 use crate::SelectedAttributeTypes::{
@@ -495,13 +471,13 @@ pub fn value_to_string <E, K> (
 ) -> Result<Option<String>, ASN1Error>
     where
         K: DisplayX500AttributeType + DisplayX500Value<E> {
-    if value.tag_class != TagClass::UNIVERSAL {
+    if value.tag.tag_class != TagClass::UNIVERSAL {
         return Ok(None);
     }
-    match value.tag_number {
+    match value.tag.tag_number {
         // ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => {},
         ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => {
-            let v = ber_decode_boolean(value)?;
+            let v = BER.decode_boolean(value)?;
             if v {
                 Ok(Some(String::from("TRUE")))
             } else {
@@ -509,7 +485,7 @@ pub fn value_to_string <E, K> (
             }
         },
         ASN1_UNIVERSAL_TAG_NUMBER_INTEGER => {
-            let integ = ber_decode_integer(value)?;
+            let integ = BER.decode_integer(value)?;
             if let Ok(i) = read_i64(&integ) {
                 return Ok(Some(format!("{}", i).to_string()));
             } else {
@@ -517,11 +493,11 @@ pub fn value_to_string <E, K> (
             }
         },
         ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING => {
-            let v = ber_decode_bit_string(value)?;
+            let v = BER.decode_bit_string(value)?;
             Ok(Some(format!("{}", v).to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING => {
-            let v = ber_decode_octet_string(value)?;
+            let v = BER.decode_octet_string(value)?;
             // NOTE: This is not the LDAP syntax. The LDAP syntax is just the raw octets.
             Ok(Some(hex::encode(v)))
         },
@@ -529,33 +505,33 @@ pub fn value_to_string <E, K> (
             Ok(Some(String::from("NULL")))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER => {
-            let v = ber_decode_object_identifier(value)?;
+            let v = BER.decode_object_identifier(value)?;
             Ok(Some(v.to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR => {
-            let v = ber_decode_object_descriptor(value)?;
+            let v = BER.decode_object_descriptor(value)?;
             Ok(Some(v))
         },
         // ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => {},
         ASN1_UNIVERSAL_TAG_NUMBER_REAL => {
-            let v = ber_decode_real(value)?;
+            let v = BER.decode_real(value)?;
             Ok(Some(v.to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => {
-            let v = ber_decode_enumerated(value)?;
+            let v = BER.decode_enumerated(value)?;
             Ok(Some(v.to_string()))
         },
         // ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => {},
         ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING => {
-            let v = ber_decode_utf8_string(value)?;
+            let v = BER.decode_utf8_string(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID => {
-            let v = ber_decode_relative_oid(value)?;
+            let v = BER.decode_relative_oid(value)?;
             Ok(Some(v.to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_TIME => {
-            let v = ber_decode_time(value)?;
+            let v = BER.decode_time(value)?;
             Ok(Some(v))
         },
         // ASN1_UNIVERSAL_TAG_NUMBER_RESERVED_15 => {},
@@ -564,58 +540,58 @@ pub fn value_to_string <E, K> (
         // ASN1_UNIVERSAL_TAG_NUMBER_SET => {},
         // ASN1_UNIVERSAL_TAG_NUMBER_SET_OF => {},
         ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING => {
-            let v = ber_decode_numeric_string(value)?;
+            let v = BER.decode_numeric_string(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING => {
-            let v = ber_decode_printable_string(value)?;
+            let v = BER.decode_printable_string(value)?;
             Ok(Some(v))
         },
         // ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING => {},
         // ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING => {},
         ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING => {
-            let v = ber_decode_ia5_string(value)?;
+            let v = BER.decode_ia5_string(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME => {
-            let v = ber_decode_utc_time(value)?;
+            let v = BER.decode_utc_time(value)?;
             Ok(Some(v.to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME => {
-            let v = ber_decode_generalized_time(value)?;
+            let v = BER.decode_generalized_time(value)?;
             Ok(Some(v.to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING => {
-            let v = ber_decode_graphic_string(value)?;
+            let v = BER.decode_graphic_string(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING => {
-            let v = ber_decode_visible_string(value)?;
+            let v = BER.decode_visible_string(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING => {
-            let v = ber_decode_general_string(value)?;
+            let v = BER.decode_general_string(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING => {
-            let v = ber_decode_universal_string(value)?;
+            let v = BER.decode_universal_string(value)?;
             Ok(Some(v))
         },
         // ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => {},
         ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING => {
-            let v = ber_decode_bmp_string(value)?;
+            let v = BER.decode_bmp_string(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_DATE => {
-            let v = ber_decode_date(value)?;
+            let v = BER.decode_date(value)?;
             Ok(Some(format!("{}-{}-{}", v.year, v.month, v.day).to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY => {
-            let v = ber_decode_time_of_day(value)?;
+            let v = BER.decode_time_of_day(value)?;
             Ok(Some(format!("{}:{}:{}", v.hour, v.minute, v.second).to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME => {
-            let v = ber_decode_date_time(value)?;
+            let v = BER.decode_date_time(value)?;
             Ok(Some(format!("{}-{}-{}T{}:{}:{}",
                 v.date.year,
                 v.date.month,
@@ -626,15 +602,15 @@ pub fn value_to_string <E, K> (
             ).to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_DURATION => {
-            let v = ber_decode_duration(value)?;
+            let v = BER.decode_duration(value)?;
             Ok(Some(v.to_string()))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI => {
-            let v = ber_decode_oid_iri(value)?;
+            let v = BER.decode_oid_iri(value)?;
             Ok(Some(v))
         },
         ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI => {
-            let v = ber_decode_relative_oid_iri(value)?;
+            let v = BER.decode_relative_oid_iri(value)?;
             Ok(Some(v))
         },
         _ => Ok(None)
@@ -1016,7 +992,7 @@ pub fn parse_value <K: ParseX500AttributeType> (k: &K, attr_type: &AttributeType
             | 100 // dnsName
             | 104 // intEmail
             | 105 // jid
-            => return Ok(Some(ber_encode_utf8_string(s).map_err(|_| std::fmt::Error)?)),
+            => return Ok(Some(BER.encode_utf8_string(s).map_err(|_| std::fmt::Error)?)),
 
             5 // serialNumber
             | 6 // countryName
@@ -1025,12 +1001,12 @@ pub fn parse_value <K: ParseX500AttributeType> (k: &K, attr_type: &AttributeType
             | 46 // dnQualifier
             | 89 // urnC
             | 98 // countryCode3c
-            => return Ok(Some(ber_encode_printable_string(s).map_err(|_| std::fmt::Error)?)),
+            => return Ok(Some(BER.encode_printable_string(s).map_err(|_| std::fmt::Error)?)),
 
             24 // x121Address
             | 25 // internationalISDNNumber
             | 99 // countryCode3n
-            => return Ok(Some(ber_encode_numeric_string(s).map_err(|_| std::fmt::Error)?)),
+            => return Ok(Some(BER.encode_numeric_string(s).map_err(|_| std::fmt::Error)?)),
 
             0 // TODO: objectClass
             | 30 // supportedApplicationContext
@@ -1041,7 +1017,7 @@ pub fn parse_value <K: ParseX500AttributeType> (k: &K, attr_type: &AttributeType
             | 106 // objectIdentifier
             => {
                 let oid = OBJECT_IDENTIFIER::from_str(s).map_err(|_| std::fmt::Error)?;
-                return Ok(Some(ber_encode_object_identifier(&oid).map_err(|_| std::fmt::Error)?));
+                return Ok(Some(BER.encode_object_identifier(&oid).map_err(|_| std::fmt::Error)?));
             },
 
             1 // aliasedEntryName

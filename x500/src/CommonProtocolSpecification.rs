@@ -126,7 +126,7 @@ pub fn _validate_Code(el: &X690Element) -> ASN1Result<()> {
 /// ```
 #[derive(Debug, Clone)]
 pub enum InvokeId {
-    present(INTEGER),
+    present(i64),
     absent(NULL),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
@@ -140,7 +140,7 @@ impl TryFrom<&X690Element> for InvokeId {
 
 pub fn _decode_InvokeId(el: &X690Element) -> ASN1Result<InvokeId> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 2) => Ok(InvokeId::present(BER.decode_integer(&el)?)),
+        (TagClass::UNIVERSAL, 2) => Ok(InvokeId::present(BER.decode_i64(&el)?)),
         (TagClass::UNIVERSAL, 5) => Ok(InvokeId::absent(BER.decode_null(&el)?)),
         _ => Ok(InvokeId::_unrecognized(el.clone())),
     }
@@ -148,7 +148,7 @@ pub fn _decode_InvokeId(el: &X690Element) -> ASN1Result<InvokeId> {
 
 pub fn _encode_InvokeId(value_: &InvokeId) -> ASN1Result<X690Element> {
     match value_ {
-        InvokeId::present(v) => BER.encode_integer(&v),
+        InvokeId::present(v) => BER.encode_i64(*v),
         InvokeId::absent(v) => BER.encode_null(&v),
         InvokeId::_unrecognized(el) => Ok(el.clone()),
     }
@@ -156,10 +156,32 @@ pub fn _encode_InvokeId(value_: &InvokeId) -> ASN1Result<X690Element> {
 
 pub fn _validate_InvokeId(el: &X690Element) -> ASN1Result<()> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 2) => BER.validate_integer(&el),
+        (TagClass::UNIVERSAL, 2) => BER.validate_i64(&el),
         (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
         _ => Ok(()),
     }
+}
+
+impl PartialEq for InvokeId {
+
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            InvokeId::present(iid1) => {
+                match other {
+                    InvokeId::present(iid2) => iid1 == iid2,
+                    _ => false,
+                }
+            },
+            InvokeId::absent(_) => {
+                match other {
+                    InvokeId::absent(_) => true,
+                    _ => false,
+                }
+            },
+            _ => false,
+        }
+    }
+
 }
 
 /// ### ASN.1 Definition:

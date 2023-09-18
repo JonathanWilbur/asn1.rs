@@ -868,14 +868,14 @@ pub fn _validate_IdmBindError(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct Request {
-    pub invokeID: INTEGER,
+    pub invokeID: i64,
     pub opcode: Code,
     pub argument: X690Element,
     pub _unrecognized: Vec<X690Element>,
 }
 impl Request {
     pub fn new(
-        invokeID: INTEGER,
+        invokeID: i64,
         opcode: Code,
         argument: X690Element,
         _unrecognized: Vec<X690Element>,
@@ -924,7 +924,7 @@ pub fn _decode_Request(el: &X690Element) -> ASN1Result<Request> {
     )
     .into_iter();
     let mut _i: usize = 0;
-    let mut invokeID_: OPTIONAL<INTEGER> = None;
+    let mut invokeID_: OPTIONAL<i64> = None;
     let mut opcode_: OPTIONAL<Code> = None;
     let mut argument_: OPTIONAL<X690Element> = None;
     let mut _unrecognized: Vec<X690Element> = vec![];
@@ -934,7 +934,7 @@ pub fn _decode_Request(el: &X690Element) -> ASN1Result<Request> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => invokeID_ = Some(BER.decode_integer(_el)?),
+            "invokeID" => invokeID_ = Some(BER.decode_i64(_el)?),
             "opcode" => opcode_ = Some(_decode_Code(_el)?),
             "argument" => argument_ = Some(x690_identity(_el)?),
             _ => _unrecognized.push(_el.clone()),
@@ -950,7 +950,7 @@ pub fn _decode_Request(el: &X690Element) -> ASN1Result<Request> {
 
 pub fn _encode_Request(value_: &Request) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-    components_.push(BER.encode_integer(&value_.invokeID)?);
+    components_.push(BER.encode_i64(value_.invokeID)?);
     components_.push(_encode_Code(&value_.opcode)?);
     components_.push(x690_identity(&value_.argument)?);
     Ok(X690Element::new(
@@ -980,7 +980,7 @@ pub fn _validate_Request(el: &X690Element) -> ASN1Result<()> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => BER.validate_integer(_el)?,
+            "invokeID" => BER.validate_i64(_el)?,
             "opcode" => _validate_Code(_el)?,
             "argument" => BER.validate_any(_el)?,
             _ => (),
@@ -1001,14 +1001,14 @@ pub fn _validate_Request(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct IdmResult {
-    pub invokeID: INTEGER,
+    pub invokeID: i64,
     pub opcode: Code,
     pub result: X690Element,
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmResult {
     pub fn new(
-        invokeID: INTEGER,
+        invokeID: i64,
         opcode: Code,
         result: X690Element,
         _unrecognized: Vec<X690Element>,
@@ -1057,7 +1057,7 @@ pub fn _decode_IdmResult(el: &X690Element) -> ASN1Result<IdmResult> {
     )
     .into_iter();
     let mut _i: usize = 0;
-    let mut invokeID_: OPTIONAL<INTEGER> = None;
+    let mut invokeID_: OPTIONAL<i64> = None;
     let mut opcode_: OPTIONAL<Code> = None;
     let mut result_: OPTIONAL<X690Element> = None;
     let mut _unrecognized: Vec<X690Element> = vec![];
@@ -1067,7 +1067,7 @@ pub fn _decode_IdmResult(el: &X690Element) -> ASN1Result<IdmResult> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => invokeID_ = Some(BER.decode_integer(_el)?),
+            "invokeID" => invokeID_ = Some(BER.decode_i64(_el)?),
             "opcode" => opcode_ = Some(_decode_Code(_el)?),
             "result" => result_ = Some(x690_identity(_el)?),
             _ => _unrecognized.push(_el.clone()),
@@ -1083,7 +1083,7 @@ pub fn _decode_IdmResult(el: &X690Element) -> ASN1Result<IdmResult> {
 
 pub fn _encode_IdmResult(value_: &IdmResult) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-    components_.push(BER.encode_integer(&value_.invokeID)?);
+    components_.push(BER.encode_i64(value_.invokeID)?);
     components_.push(_encode_Code(&value_.opcode)?);
     components_.push(x690_identity(&value_.result)?);
     Ok(X690Element::new(
@@ -1113,7 +1113,7 @@ pub fn _validate_IdmResult(el: &X690Element) -> ASN1Result<()> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => BER.validate_integer(_el)?,
+            "invokeID" => BER.validate_i64(_el)?,
             "opcode" => _validate_Code(_el)?,
             "result" => BER.validate_any(_el)?,
             _ => (),
@@ -1134,15 +1134,15 @@ pub fn _validate_IdmResult(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct Error {
-    pub invokeID: INTEGER,
-    pub errcode: X690Element,
+    pub invokeID: i64,
+    pub errcode: Code,
     pub error: X690Element,
     pub _unrecognized: Vec<X690Element>,
 }
 impl Error {
     pub fn new(
-        invokeID: INTEGER,
-        errcode: X690Element,
+        invokeID: i64,
+        errcode: Code,
         error: X690Element,
         _unrecognized: Vec<X690Element>,
     ) -> Self {
@@ -1190,8 +1190,8 @@ pub fn _decode_Error(el: &X690Element) -> ASN1Result<Error> {
     )
     .into_iter();
     let mut _i: usize = 0;
-    let mut invokeID_: OPTIONAL<INTEGER> = None;
-    let mut errcode_: OPTIONAL<X690Element> = None;
+    let mut invokeID_: OPTIONAL<i64> = None;
+    let mut errcode_: OPTIONAL<Code> = None;
     let mut error_: OPTIONAL<X690Element> = None;
     let mut _unrecognized: Vec<X690Element> = vec![];
     for _fallible_component_name in _seq_iter {
@@ -1200,8 +1200,8 @@ pub fn _decode_Error(el: &X690Element) -> ASN1Result<Error> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => invokeID_ = Some(BER.decode_integer(_el)?),
-            "errcode" => errcode_ = Some(x690_identity(_el)?),
+            "invokeID" => invokeID_ = Some(BER.decode_i64(_el)?),
+            "errcode" => errcode_ = Some(_decode_Code(_el)?),
             "error" => error_ = Some(x690_identity(_el)?),
             _ => _unrecognized.push(_el.clone()),
         }
@@ -1216,8 +1216,8 @@ pub fn _decode_Error(el: &X690Element) -> ASN1Result<Error> {
 
 pub fn _encode_Error(value_: &Error) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-    components_.push(BER.encode_integer(&value_.invokeID)?);
-    components_.push(x690_identity(&value_.errcode)?);
+    components_.push(BER.encode_i64(value_.invokeID)?);
+    components_.push(_encode_Code(&value_.errcode)?);
     components_.push(x690_identity(&value_.error)?);
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
@@ -1246,8 +1246,8 @@ pub fn _validate_Error(el: &X690Element) -> ASN1Result<()> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => BER.validate_integer(_el)?,
-            "errcode" => BER.validate_any(_el)?,
+            "invokeID" => BER.validate_i64(_el)?,
+            "errcode" => _validate_Code(_el)?,
             "error" => BER.validate_any(_el)?,
             _ => (),
         }
@@ -1281,13 +1281,13 @@ pub fn _validate_Error(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct IdmReject {
-    pub invokeID: INTEGER,
+    pub invokeID: i64,
     pub reason: IdmReject_reason,
     pub _unrecognized: Vec<X690Element>,
 }
 impl IdmReject {
     pub fn new(
-        invokeID: INTEGER,
+        invokeID: i64,
         reason: IdmReject_reason,
         _unrecognized: Vec<X690Element>,
     ) -> Self {
@@ -1339,7 +1339,7 @@ pub fn _decode_IdmReject(el: &X690Element) -> ASN1Result<IdmReject> {
     )
     .into_iter();
     let mut _i: usize = 0;
-    let mut invokeID_: OPTIONAL<INTEGER> = None;
+    let mut invokeID_: OPTIONAL<i64> = None;
     let mut reason_: OPTIONAL<IdmReject_reason> = None;
     let mut _unrecognized: Vec<X690Element> = vec![];
     for _fallible_component_name in _seq_iter {
@@ -1348,7 +1348,7 @@ pub fn _decode_IdmReject(el: &X690Element) -> ASN1Result<IdmReject> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => invokeID_ = Some(BER.decode_integer(_el)?),
+            "invokeID" => invokeID_ = Some(BER.decode_i64(_el)?),
             "reason" => reason_ = Some(_decode_IdmReject_reason(_el)?),
             _ => _unrecognized.push(_el.clone()),
         }
@@ -1362,7 +1362,7 @@ pub fn _decode_IdmReject(el: &X690Element) -> ASN1Result<IdmReject> {
 
 pub fn _encode_IdmReject(value_: &IdmReject) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-    components_.push(BER.encode_integer(&value_.invokeID)?);
+    components_.push(BER.encode_i64(value_.invokeID)?);
     components_.push(_encode_IdmReject_reason(&value_.reason)?);
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
@@ -1391,7 +1391,7 @@ pub fn _validate_IdmReject(el: &X690Element) -> ASN1Result<()> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "invokeID" => BER.validate_integer(_el)?,
+            "invokeID" => BER.validate_i64(_el)?,
             "reason" => _validate_IdmReject_reason(_el)?,
             _ => (),
         }
