@@ -1439,8 +1439,8 @@ pub fn _validate_AttributeCertificateV2(el: &X690Element) -> ASN1Result<()> {
 pub fn contentType() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        id: id_contentType(),                          /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        id: id_contentType(),                                    /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1498,8 +1498,8 @@ pub fn id_contentType() -> OBJECT_IDENTIFIER {
 pub fn messageDigest() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(octetStringMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                /* OBJECT_FIELD_SETTING */
-        id: id_messageDigest(),                   /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                          /* OBJECT_FIELD_SETTING */
+        id: id_messageDigest(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

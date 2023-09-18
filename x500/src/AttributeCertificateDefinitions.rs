@@ -1870,7 +1870,7 @@ pub mod xmlPrivilegeInfo {
 pub fn permission() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(dualStringMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_permission(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_permission(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5115,7 +5115,7 @@ impl GeneralSubtree {
         }
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        Vec::from([ 0 ]) // TODO: Convert this to an i64
+        Vec::from([0]) // TODO: Convert this to an i64
     }
 }
 impl TryFrom<&X690Element> for GeneralSubtree {
@@ -5502,7 +5502,7 @@ pub mod protectedPrivilegePolicy {
 pub fn attributeCertificateAttribute() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(attributeCertificateExactMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_attributeCertificate(),                       /* OBJECT_FIELD_SETTING */
+        id: id_at_attributeCertificate(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5546,7 +5546,7 @@ pub mod attributeCertificateAttribute {
 pub fn aACertificate() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(attributeCertificateExactMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_aACertificate(),                              /* OBJECT_FIELD_SETTING */
+        id: id_at_aACertificate(),                                        /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5590,7 +5590,7 @@ pub mod aACertificate {
 pub fn attributeDescriptorCertificate() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(attributeCertificateExactMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_attributeDescriptorCertificate(),             /* OBJECT_FIELD_SETTING */
+        id: id_at_attributeDescriptorCertificate(),                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5637,7 +5637,7 @@ pub mod attributeDescriptorCertificate {
 pub fn attributeCertificateRevocationList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateListExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificateList().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificateList().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("AttrCertificateRevocationList")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 Attr certificate revocation list")), /* OBJECT_FIELD_SETTING */
         id: id_at_attributeCertificateRevocationList(), /* OBJECT_FIELD_SETTING */
@@ -5684,7 +5684,7 @@ pub mod attributeCertificateRevocationList {
 pub fn eeAttrCertificateRevocationList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateListExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificateList().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificateList().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("EEAttrCertificateRevocationList")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 EEAttr certificate revocation list")), /* OBJECT_FIELD_SETTING */
         id: id_at_eeAttrCertificateRevocationList(), /* OBJECT_FIELD_SETTING */
@@ -5731,7 +5731,7 @@ pub mod eeAttrCertificateRevocationList {
 pub fn attributeAuthorityRevocationList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateListExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificateList().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificateList().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("AACertificateRevocationList")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 AA certificate revocation list")), /* OBJECT_FIELD_SETTING */
         id: id_at_attributeAuthorityRevocationList(), /* OBJECT_FIELD_SETTING */
@@ -5903,7 +5903,7 @@ pub mod privPolicy {
 pub fn protPrivPolicy() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(attributeCertificateExactMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_protPrivPolicy(),                             /* OBJECT_FIELD_SETTING */
+        id: id_at_protPrivPolicy(),                                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

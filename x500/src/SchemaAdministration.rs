@@ -92,10 +92,10 @@ pub mod subschema {
 pub fn dITStructureRules() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),     /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dITStructureRuleDescription().id), /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),               /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dITStructureRuleDescription().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("dITStructureRules")])), /* OBJECT_FIELD_SETTING */
-        id: id_soa_dITStructureRule(),                      /* OBJECT_FIELD_SETTING */
+        id: id_soa_dITStructureRule(),                                /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -462,10 +462,10 @@ pub fn _validate_DITStructureRuleDescription(el: &X690Element) -> ASN1Result<()>
 pub fn dITContentRules() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dITContentRuleDescription().id),            /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dITContentRuleDescription().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("dITContentRules")])), /* OBJECT_FIELD_SETTING */
-        id: id_soa_dITContentRules(),                                /* OBJECT_FIELD_SETTING */
+        id: id_soa_dITContentRules(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1044,10 +1044,10 @@ pub fn _validate_DITContentRuleDescription(el: &X690Element) -> ASN1Result<()> {
 pub fn matchingRules() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(matchingRuleDescription().id),              /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("matchingRules")])),  /* OBJECT_FIELD_SETTING */
-        id: id_soa_matchingRules(),                                  /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(matchingRuleDescription().id), /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("matchingRules")])), /* OBJECT_FIELD_SETTING */
+        id: id_soa_matchingRules(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1359,10 +1359,10 @@ pub fn _validate_MatchingRuleDescription(el: &X690Element) -> ASN1Result<()> {
 pub fn attributeTypes() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(attributeTypeDescription().id),             /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(attributeTypeDescription().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("attributeTypes")])), /* OBJECT_FIELD_SETTING */
-        id: id_soa_attributeTypes(),                                 /* OBJECT_FIELD_SETTING */
+        id: id_soa_attributeTypes(),                    /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2111,10 +2111,10 @@ pub fn _validate_AttributeTypeInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn objectClasses() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(objectClassDescription().id),               /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("objectClasses")])),  /* OBJECT_FIELD_SETTING */
-        id: id_soa_objectClasses(),                                  /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(objectClassDescription().id),  /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("objectClasses")])), /* OBJECT_FIELD_SETTING */
+        id: id_soa_objectClasses(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2770,10 +2770,10 @@ pub fn _validate_ObjectClassInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn nameForms() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(nameFormDescription().id),                  /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("nameForms")])),      /* OBJECT_FIELD_SETTING */
-        id: id_soa_nameForms(),                                      /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(nameFormDescription().id),     /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("nameForms")])), /* OBJECT_FIELD_SETTING */
+        id: id_soa_nameForms(),                         /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3317,10 +3317,10 @@ pub fn _validate_NameFormInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn matchingRuleUse() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(matchingRuleUseDescription().id),           /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(matchingRuleUseDescription().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("matchingRuleUse")])), /* OBJECT_FIELD_SETTING */
-        id: id_soa_matchingRuleUse(),                                /* OBJECT_FIELD_SETTING */
+        id: id_soa_matchingRuleUse(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3671,10 +3671,10 @@ pub fn _validate_MatchingRuleUseDescription(el: &X690Element) -> ASN1Result<()> 
 pub fn structuralObjectClass() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),              /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                        /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),          /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("structuralObjectClass")])), /* OBJECT_FIELD_SETTING */
         id: id_soa_structuralObjectClass(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -3720,10 +3720,10 @@ pub mod structuralObjectClass {
 pub fn governingStructureRule() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),     /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("governingStructureRule")])), /* OBJECT_FIELD_SETTING */
         id: id_soa_governingStructureRule(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -3765,8 +3765,8 @@ pub mod governingStructureRule {
 pub fn contextTypes() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        id: id_soa_contextTypes(),                                   /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        id: id_soa_contextTypes(),                      /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4208,8 +4208,8 @@ pub fn _validate_ContextInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn dITContextUse() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        id: id_soa_dITContextUse(),                                  /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        id: id_soa_dITContextUse(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4791,8 +4791,8 @@ pub fn _validate_DITContextUseInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn friends() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        id: id_soa_friends(),                                        /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        id: id_soa_friends(),                           /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

@@ -664,7 +664,7 @@ pub fn strongAuthenticationUser() -> OBJECT_CLASS {
         MandatoryAttributes: Some(Vec::from([userCertificate()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("strongAuthenticationUser")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.521 strong authentication user")), /* OBJECT_FIELD_SETTING */
-        id: id_oc_strongAuthenticationUser(), /* OBJECT_FIELD_SETTING */
+        id: id_oc_strongAuthenticationUser(),                             /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
     }
 }
@@ -693,7 +693,7 @@ pub fn userSecurityInformation() -> OBJECT_CLASS {
         OptionalAttributes: Some(Vec::from([supportedAlgorithms()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("userSecurityInformation")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.521 user security information")), /* OBJECT_FIELD_SETTING */
-        id: id_oc_userSecurityInformation(), /* OBJECT_FIELD_SETTING */
+        id: id_oc_userSecurityInformation(),                             /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
     }
 }
@@ -756,7 +756,7 @@ pub fn certificationAuthority() -> OBJECT_CLASS {
         OptionalAttributes: Some(Vec::from([crossCertificatePair()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("certificationAuthority")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 certificate authority")), /* OBJECT_FIELD_SETTING */
-        id: id_oc_certificationAuthority(), /* OBJECT_FIELD_SETTING */
+        id: id_oc_certificationAuthority(),                          /* OBJECT_FIELD_SETTING */
     }
 }
 
@@ -783,9 +783,7 @@ pub fn certificationAuthority_V2() -> OBJECT_CLASS {
         kind: Some(ObjectClassKind_auxiliary),                     /* OBJECT_FIELD_SETTING */
         OptionalAttributes: Some(Vec::from([deltaRevocationList()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("certificationAuthority-V2")])), /* OBJECT_FIELD_SETTING */
-        ldapDesc: Some(String::from(
-            "X.509 certificate authority, version 2",
-        )), /* OBJECT_FIELD_SETTING */
+        ldapDesc: Some(String::from("X.509 certificate authority, version 2")), /* OBJECT_FIELD_SETTING */
         id: id_oc_certificationAuthority_V2(), /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
     }

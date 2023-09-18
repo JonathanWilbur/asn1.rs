@@ -364,10 +364,10 @@ pub mod supportedFeatures {
 pub fn ldapSyntaxes() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(ldapSyntaxDescription().id),                /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("ldapSyntax")])),     /* OBJECT_FIELD_SETTING */
-        id: id_soa_ldapSyntaxes(),                                   /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(ldapSyntaxDescription().id),   /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("ldapSyntax")])), /* OBJECT_FIELD_SETTING */
+        id: id_soa_ldapSyntaxes(),                      /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

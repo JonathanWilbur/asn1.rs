@@ -1914,12 +1914,10 @@ impl TryFrom<&X690Element> for OperationProgress {
     }
 }
 impl PartialEq for OperationProgress {
-
     fn eq(&self, other: &Self) -> bool {
         self.nameResolutionPhase == other.nameResolutionPhase
-        && self.nextRDNToBeResolved == other.nextRDNToBeResolved
+            && self.nextRDNToBeResolved == other.nextRDNToBeResolved
     }
-
 }
 
 pub const _rctl1_components_for_OperationProgress: &[ComponentSpec; 2] = &[

@@ -432,11 +432,9 @@ pub fn _encode_ShadowingAgreementInfo(value_: &ShadowingAgreementInfo) -> ASN1Re
     let default_update_mode = ShadowingAgreementInfo::_default_value_for_updateMode();
     let updateMode = value_.updateMode.as_ref().unwrap_or(&default_update_mode);
     let updateMode_is_default: bool = match updateMode {
-        UpdateMode::supplierInitiated(s) => {
-            match s {
-                SupplierUpdateMode::onChange(_) => true,
-                _ => false,
-            }
+        UpdateMode::supplierInitiated(s) => match s {
+            SupplierUpdateMode::onChange(_) => true,
+            _ => false,
         },
         _ => false,
     };
@@ -1190,7 +1188,7 @@ pub fn _encode_ClassAttributeSelection(
     if let Some(v_) = &value_.classAttributes {
         match v_ {
             ClassAttributes::allAttributes(_) => (),
-            _ => components_.push(_encode_ClassAttributes(&v_)?)
+            _ => components_.push(_encode_ClassAttributes(&v_)?),
         };
     }
     Ok(X690Element::new(

@@ -3010,11 +3010,7 @@ pub fn _encode_DataTransferClientAE(value_: &DataTransferClientAE) -> ASN1Result
 }
 
 pub fn _validate_DataTransferClientAE(el: &X690Element) -> ASN1Result<()> {
-    _validate_AUTHEN_ENCRYPT::<AadClientAE, X690Element>(
-        _validate_AadClientAE,
-        validate_any,
-        el,
-    )
+    _validate_AUTHEN_ENCRYPT::<AadClientAE, X690Element>(_validate_AadClientAE, validate_any, el)
 }
 
 /// ### ASN.1 Definition:
@@ -3838,11 +3834,7 @@ pub fn _encode_DataTransferServerAE(value_: &DataTransferServerAE) -> ASN1Result
 }
 
 pub fn _validate_DataTransferServerAE(el: &X690Element) -> ASN1Result<()> {
-    _validate_AUTHEN_ENCRYPT::<AadServerAE, X690Element>(
-        _validate_AadServerAE,
-        validate_any,
-        el,
-    )
+    _validate_AUTHEN_ENCRYPT::<AadServerAE, X690Element>(_validate_AadServerAE, validate_any, el)
 }
 
 /// ### ASN.1 Definition:
@@ -5711,14 +5703,12 @@ pub fn _encode_TbpDataTransferClient_conf(
             el_1.tag.tag_number = 4;
             Ok(el_1)
         }(&v),
-        TbpDataTransferClient_conf::protected(v) => {
-            |v_1: &ENCIPHERED| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_ENCIPHERED(&v_1)?;
-                el_1.tag.tag_class = TagClass::CONTEXT;
-                el_1.tag.tag_number = 5;
-                Ok(el_1)
-            }(&v)
-        }
+        TbpDataTransferClient_conf::protected(v) => |v_1: &ENCIPHERED| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_ENCIPHERED(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 5;
+            Ok(el_1)
+        }(&v),
         TbpDataTransferClient_conf::_unrecognized(el) => Ok(el.clone()),
     }
 }
@@ -5782,14 +5772,12 @@ pub fn _encode_TbpDataTransferServer_conf(
             el_1.tag.tag_number = 4;
             Ok(el_1)
         }(&v),
-        TbpDataTransferServer_conf::protected(v) => {
-            |v_1: &ENCIPHERED| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_ENCIPHERED(&v_1)?;
-                el_1.tag.tag_class = TagClass::CONTEXT;
-                el_1.tag.tag_number = 5;
-                Ok(el_1)
-            }(&v)
-        }
+        TbpDataTransferServer_conf::protected(v) => |v_1: &ENCIPHERED| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_ENCIPHERED(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 5;
+            Ok(el_1)
+        }(&v),
         TbpDataTransferServer_conf::_unrecognized(el) => Ok(el.clone()),
     }
 }

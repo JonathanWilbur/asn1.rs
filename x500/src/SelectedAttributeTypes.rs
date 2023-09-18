@@ -197,8 +197,8 @@ pub fn _validate_DirectoryString(el: &X690Element) -> ASN1Result<()> {
 pub fn knowledgeInformation() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
-        obsolete: Some(true),                    /* OBJECT_FIELD_SETTING */
-        id: id_at_knowledgeInformation(),        /* OBJECT_FIELD_SETTING */
+        obsolete: Some(true),                              /* OBJECT_FIELD_SETTING */
+        id: id_at_knowledgeInformation(),                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -245,9 +245,9 @@ pub fn name() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("name")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_name(),                        /* OBJECT_FIELD_SETTING */
+        id: id_at_name(),                                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -289,7 +289,7 @@ pub mod name {
 ///
 pub fn commonName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),               /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("cn"), String::from("commonName")])), /* OBJECT_FIELD_SETTING */
         id: id_at_commonName(), /* OBJECT_FIELD_SETTING */
@@ -335,10 +335,10 @@ pub mod commonName {
 ///
 pub fn surname() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                        /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),          /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("sn")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_surname(),                             /* OBJECT_FIELD_SETTING */
+        id: id_at_surname(),                    /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -381,7 +381,7 @@ pub mod surname {
 ///
 pub fn givenName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),               /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("givenName")])), /* OBJECT_FIELD_SETTING */
         id: id_at_givenName(),                  /* OBJECT_FIELD_SETTING */
@@ -427,7 +427,7 @@ pub mod givenName {
 ///
 pub fn initials() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),               /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("initials")])), /* OBJECT_FIELD_SETTING */
         id: id_at_initials(),                   /* OBJECT_FIELD_SETTING */
@@ -473,7 +473,7 @@ pub mod initials {
 ///
 pub fn generationQualifier() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),               /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("generationQualifier")])), /* OBJECT_FIELD_SETTING */
         id: id_at_generationQualifier(),        /* OBJECT_FIELD_SETTING */
@@ -520,7 +520,7 @@ pub mod generationQualifier {
 pub fn uniqueIdentifier() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(bitStringMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(bitString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(bitString().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("x500UniqueIdentifier")])), /* OBJECT_FIELD_SETTING */
         id: id_at_uniqueIdentifier(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -589,9 +589,9 @@ pub fn dnQualifier() -> ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(caseIgnoreOrderingMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(printableString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(printableString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("dnQualifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_dnQualifier(),                 /* OBJECT_FIELD_SETTING */
+        id: id_at_dnQualifier(),                           /* OBJECT_FIELD_SETTING */
         derivation: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -635,9 +635,9 @@ pub fn serialNumber() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(printableString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(printableString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("serialNumber")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_serialNumber(),                /* OBJECT_FIELD_SETTING */
+        id: id_at_serialNumber(),                          /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -678,7 +678,7 @@ pub mod serialNumber {
 pub fn pseudonym() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(name())), /* OBJECT_FIELD_SETTING */
-        id: id_at_pseudonym(),    /* OBJECT_FIELD_SETTING */
+        id: id_at_pseudonym(),              /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -722,7 +722,7 @@ pub mod pseudonym {
 pub fn uUIDPair() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(uUIDPairMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_uuidpair(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_uuidpair(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -911,10 +911,10 @@ pub fn _validate_UUID(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn uri() -> ATTRIBUTE {
     ATTRIBUTE {
-        equality_match: Some(Box::new(uriMatch())),       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        equality_match: Some(Box::new(uriMatch())), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),     /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("uri")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_uri(),                        /* OBJECT_FIELD_SETTING */
+        id: id_at_uri(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -975,10 +975,10 @@ pub fn _validate_URI(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn urn() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(uri())),                          /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),           /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(uri())),      /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("urn")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_urn(),                                  /* OBJECT_FIELD_SETTING */
+        id: id_at_urn(),                        /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1009,10 +1009,10 @@ pub mod urn {
 ///
 pub fn url() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(uri())),                          /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),           /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(uri())),      /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("url")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_url(),                                  /* OBJECT_FIELD_SETTING */
+        id: id_at_url(),                        /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1045,9 +1045,9 @@ pub mod url {
 pub fn dnsName() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(dnsNameMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dnsString().id),     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dnsString().id),               /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("DNS name")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_dnsName(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_dnsName(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1111,8 +1111,8 @@ pub fn _validate_DomainName(el: &X690Element) -> ASN1Result<()> {
 pub fn intEmail() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(intEmailMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),             /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(intEmailString().id), /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(intEmailString().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("Internationalized Email")])), /* OBJECT_FIELD_SETTING */
         id: id_at_intEmail(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -1177,10 +1177,10 @@ pub fn _validate_IntEmail(el: &X690Element) -> ASN1Result<()> {
 pub fn jid() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(jidMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),        /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(jidString().id), /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(jidString().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("Jabber identifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_jid(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_jid(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1243,10 +1243,10 @@ pub fn _validate_Jid(el: &X690Element) -> ASN1Result<()> {
 pub fn objectIdentifier() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("Object Identifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_objectIdentifier(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_objectIdentifier(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1289,11 +1289,11 @@ pub mod objectIdentifier {
 ///
 pub fn countryName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                       /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(countryString().id),           /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),   /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(countryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_countryName(),                        /* OBJECT_FIELD_SETTING */
+        id: id_at_countryName(),              /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1355,11 +1355,11 @@ pub fn _validate_CountryName(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn countryCode3c() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                        /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(countryString3c().id),          /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(countryString3c().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c3")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_countryCode3c(),                       /* OBJECT_FIELD_SETTING */
+        id: id_at_countryCode3c(),              /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1421,11 +1421,11 @@ pub fn _validate_CountryCode3c(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn countryCode3n() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                        /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(countryString3n().id),          /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(countryString3n().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("n3")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_countryCode3n(),                       /* OBJECT_FIELD_SETTING */
+        id: id_at_countryCode3n(),              /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1486,10 +1486,10 @@ pub fn _validate_CountryCode3n(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn localityName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),         /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("l")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_localityName(),                       /* OBJECT_FIELD_SETTING */
+        id: id_at_localityName(),               /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1532,11 +1532,11 @@ pub mod localityName {
 ///
 pub fn collectiveLocalityName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(localityName())),       /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                 /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(localityName())), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),     /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-l")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectiveLocalityName(),     /* OBJECT_FIELD_SETTING */
+        id: id_at_collectiveLocalityName(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1567,10 +1567,10 @@ pub mod collectiveLocalityName {
 ///
 pub fn stateOrProvinceName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                        /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),          /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("st")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_stateOrProvinceName(),                 /* OBJECT_FIELD_SETTING */
+        id: id_at_stateOrProvinceName(),        /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1614,10 +1614,10 @@ pub mod stateOrProvinceName {
 pub fn collectiveStateOrProvinceName() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(stateOrProvinceName())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                  /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                            /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-st")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectiveStateOrProvinceName(), /* OBJECT_FIELD_SETTING */
+        id: id_at_collectiveStateOrProvinceName(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1651,9 +1651,9 @@ pub fn streetAddress() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("street")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_streetAddress(),               /* OBJECT_FIELD_SETTING */
+        id: id_at_streetAddress(),                         /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1695,11 +1695,11 @@ pub mod streetAddress {
 ///
 pub fn collectiveStreetAddress() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(streetAddress())),      /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                 /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(streetAddress())), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                      /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),      /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-street")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectiveStreetAddress(),    /* OBJECT_FIELD_SETTING */
+        id: id_at_collectiveStreetAddress(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -1733,9 +1733,9 @@ pub fn houseIdentifier() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("houseIdentifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_houseIdentifier(),             /* OBJECT_FIELD_SETTING */
+        id: id_at_houseIdentifier(),                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1968,10 +1968,10 @@ pub fn _validate_UtmCoordinates(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn organizationName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),         /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("o")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_organizationName(),                   /* OBJECT_FIELD_SETTING */
+        id: id_at_organizationName(),           /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -2015,10 +2015,10 @@ pub mod organizationName {
 pub fn collectiveOrganizationName() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(organizationName())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),               /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),         /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-o")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectiveOrganizationName(), /* OBJECT_FIELD_SETTING */
+        id: id_at_collectiveOrganizationName(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -2049,10 +2049,10 @@ pub mod collectiveOrganizationName {
 ///
 pub fn organizationalUnitName() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),                        /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),          /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("ou")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_organizationalUnitName(),              /* OBJECT_FIELD_SETTING */
+        id: id_at_organizationalUnitName(),     /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -2096,10 +2096,10 @@ pub mod organizationalUnitName {
 pub fn collectiveOrganizationalUnitName() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(organizationalUnitName())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                     /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),     /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("c-ou")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectiveOrganizationalUnitName(), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                               /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),               /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("c-ou")])),    /* OBJECT_FIELD_SETTING */
+        id: id_at_collectiveOrganizationalUnitName(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -2130,7 +2130,7 @@ pub mod collectiveOrganizationalUnitName {
 ///
 pub fn title() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(name())),               /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(name())),     /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("title")])), /* OBJECT_FIELD_SETTING */
         id: id_at_title(),                      /* OBJECT_FIELD_SETTING */
@@ -2180,8 +2180,8 @@ pub fn organizationIdentifier() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),               /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("organizationIdentifier")])), /* OBJECT_FIELD_SETTING */
         id: id_at_organizationIdentifier(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -2227,9 +2227,9 @@ pub fn description() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("description")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_description(),                 /* OBJECT_FIELD_SETTING */
+        id: id_at_description(),                           /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -3021,9 +3021,9 @@ pub fn businessCategory() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("businessCategory")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_businessCategory(),            /* OBJECT_FIELD_SETTING */
+        id: id_at_businessCategory(),                      /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -3068,9 +3068,9 @@ pub fn postalAddress() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreListMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreListSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(postalAddr().id),           /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(postalAddr().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("postalAddress")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_postalAddress(),                   /* OBJECT_FIELD_SETTING */
+        id: id_at_postalAddress(),         /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -3155,10 +3155,10 @@ pub fn _validate_PostalAddress(el: &X690Element) -> ASN1Result<()> {
 pub fn collectivePostalAddress() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(postalAddress())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),            /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(postalAddr().id), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                      /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(postalAddr().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-PostalAddress")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectivePostalAddress(), /* OBJECT_FIELD_SETTING */
+        id: id_at_collectivePostalAddress(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -3192,9 +3192,9 @@ pub fn postalCode() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("postalCode")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_postalCode(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_postalCode(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -3236,11 +3236,11 @@ pub mod postalCode {
 ///
 pub fn collectivePostalCode() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(postalCode())),         /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                 /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(postalCode())), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                   /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),   /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-PostalCode")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectivePostalCode(),       /* OBJECT_FIELD_SETTING */
+        id: id_at_collectivePostalCode(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -3274,9 +3274,9 @@ pub fn postOfficeBox() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("postOfficeBox")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_postOfficeBox(),               /* OBJECT_FIELD_SETTING */
+        id: id_at_postOfficeBox(),                         /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -3318,11 +3318,11 @@ pub mod postOfficeBox {
 ///
 pub fn collectivePostOfficeBox() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(postOfficeBox())),      /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                 /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(postOfficeBox())), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                      /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),      /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-PostOfficeBox")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectivePostOfficeBox(),    /* OBJECT_FIELD_SETTING */
+        id: id_at_collectivePostOfficeBox(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -3356,7 +3356,7 @@ pub fn physicalDeliveryOfficeName() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("physicalDeliveryOfficeName")])), /* OBJECT_FIELD_SETTING */
         id: id_at_physicalDeliveryOfficeName(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -3401,8 +3401,8 @@ pub mod physicalDeliveryOfficeName {
 pub fn collectivePhysicalDeliveryOfficeName() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(physicalDeliveryOfficeName())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                         /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),         /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                                   /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),                   /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-PhysicalDeliveryOfficeName")])), /* OBJECT_FIELD_SETTING */
         id: id_at_collectivePhysicalDeliveryOfficeName(), /* OBJECT_FIELD_SETTING */
         equality_match: None,
@@ -3438,9 +3438,9 @@ pub fn telephoneNumber() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(telephoneNumberMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(telephoneNumberSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(printableString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(printableString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("telephoneNumber")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_telephoneNumber(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_telephoneNumber(),            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -3510,11 +3510,11 @@ pub const ub_telephone_number: i64 = 32;
 ///
 pub fn collectiveTelephoneNumber() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(telephoneNumber())),    /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                 /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(printableString().id), /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(telephoneNumber())), /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(printableString().id),        /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-TelephoneNumber")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectiveTelephoneNumber(),  /* OBJECT_FIELD_SETTING */
+        id: id_at_collectiveTelephoneNumber(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -3763,10 +3763,10 @@ pub const ub_answerback: i64 = 8;
 pub fn collectiveTelexNumber() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(telexNumber())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),          /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(telexNr().id),  /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                    /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(telexNr().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-TelexNumber")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_collectiveTelexNumber(), /* OBJECT_FIELD_SETTING */
+        id: id_at_collectiveTelexNumber(),         /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -3800,7 +3800,7 @@ pub fn facsimileTelephoneNumber() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(facsimileNumberMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(facsimileNumberSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(facsimileTelephoneNr().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(facsimileTelephoneNr().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("facsimileTelephoneNumber")])), /* OBJECT_FIELD_SETTING */
         id: id_at_facsimileTelephoneNumber(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -3988,8 +3988,8 @@ pub fn _validate_FacsimileTelephoneNumber(el: &X690Element) -> ASN1Result<()> {
 pub fn collectiveFacsimileTelephoneNumber() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(facsimileTelephoneNumber())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(facsimileTelephoneNr().id),  /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(facsimileTelephoneNr().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-FacsimileTelephoneNumber")])), /* OBJECT_FIELD_SETTING */
         id: id_at_collectiveFacsimileTelephoneNumber(), /* OBJECT_FIELD_SETTING */
         equality_match: None,
@@ -4025,9 +4025,9 @@ pub fn x121Address() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(numericStringMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(numericStringSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(numericString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(numericString().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("x121Address")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_x121Address(),                    /* OBJECT_FIELD_SETTING */
+        id: id_at_x121Address(),                              /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -4100,7 +4100,7 @@ pub fn internationalISDNNumber() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(numericStringMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(numericStringSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(numericString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(numericString().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("internationalISDNNumber")])), /* OBJECT_FIELD_SETTING */
         id: id_at_internationalISDNNumber(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -4176,8 +4176,8 @@ pub const ub_international_isdn_number: i64 = 16;
 pub fn collectiveInternationalISDNNumber() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(internationalISDNNumber())), /* OBJECT_FIELD_SETTING */
-        collective: Some(true),                      /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(numericString().id),        /* OBJECT_FIELD_SETTING */
+        collective: Some(true),                                /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(numericString().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("c-InternationalISDNNumber")])), /* OBJECT_FIELD_SETTING */
         id: id_at_collectiveInternationalISDNNumber(), /* OBJECT_FIELD_SETTING */
         equality_match: None,
@@ -4211,9 +4211,9 @@ pub mod collectiveInternationalISDNNumber {
 pub fn registeredAddress() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(postalAddress())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(postalAddr().id), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(postalAddr().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("registeredAddress")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_registeredAddress(),     /* OBJECT_FIELD_SETTING */
+        id: id_at_registeredAddress(),               /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -4259,7 +4259,7 @@ pub fn destinationIndicator() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(printableString().id),  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(printableString().id),            /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("destinationIndicator")])), /* OBJECT_FIELD_SETTING */
         id: id_at_destinationIndicator(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -4323,7 +4323,7 @@ pub fn _validate_DestinationIndicator(el: &X690Element) -> ASN1Result<()> {
 pub fn communicationsService() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("communicationsService")])), /* OBJECT_FIELD_SETTING */
         id: id_at_communicationsService(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -4389,8 +4389,8 @@ pub fn _validate_CommunicationsService(el: &X690Element) -> ASN1Result<()> {
 pub fn communicationsNetwork() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("communicationsNetwork")])), /* OBJECT_FIELD_SETTING */
         id: id_at_communicationsNetwork(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -4563,10 +4563,10 @@ pub fn _validate_PreferredDeliveryMethod(el: &X690Element) -> ASN1Result<()> {
 pub fn presentationAddress() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(presentationAddressMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(presentationAddr().id),          /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                  /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(presentationAddr().id),                    /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("presentationAddress")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_presentationAddress(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_presentationAddress(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4886,7 +4886,7 @@ pub fn _validate_PresentationAddress(el: &X690Element) -> ASN1Result<()> {
 pub fn supportedApplicationContext() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("supportedApplicationContext")])), /* OBJECT_FIELD_SETTING */
         id: id_at_supportedApplicationContext(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -4930,7 +4930,7 @@ pub mod supportedApplicationContext {
 pub fn protocolInformation() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(protocolInformationMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_protocolInformation(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_protocolInformation(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5146,9 +5146,9 @@ pub fn _validate_ProtocolInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn distinguishedName() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),                      /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                                /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("distinguishedName")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_distinguishedName(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_distinguishedName(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5191,9 +5191,9 @@ pub mod distinguishedName {
 pub fn member() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(distinguishedName())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),             /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("member")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_member(),                    /* OBJECT_FIELD_SETTING */
+        id: id_at_member(),                              /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -5226,9 +5226,9 @@ pub mod member {
 pub fn uniqueMember() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(uniqueMemberMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(nameAndOptionalUID().id), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(nameAndOptionalUID().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("uniqueMember")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_uniqueMember(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_uniqueMember(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5410,9 +5410,9 @@ pub fn _validate_NameAndOptionalUID(el: &X690Element) -> ASN1Result<()> {
 pub fn owner() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(distinguishedName())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),             /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("owner")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_owner(),                     /* OBJECT_FIELD_SETTING */
+        id: id_at_owner(),                               /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -5444,9 +5444,9 @@ pub mod owner {
 pub fn roleOccupant() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(distinguishedName())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),             /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("roleOccupant")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_roleOccupant(),              /* OBJECT_FIELD_SETTING */
+        id: id_at_roleOccupant(),                        /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -5478,9 +5478,9 @@ pub mod roleOccupant {
 pub fn seeAlso() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(distinguishedName())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),             /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("seeAlso")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_seeAlso(),                   /* OBJECT_FIELD_SETTING */
+        id: id_at_seeAlso(),                             /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -5511,7 +5511,7 @@ pub mod seeAlso {
 pub fn dmdName() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(name())), /* OBJECT_FIELD_SETTING */
-        id: id_at_dmdName(),      /* OBJECT_FIELD_SETTING */
+        id: id_at_dmdName(),                /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -5556,8 +5556,8 @@ pub mod dmdName {
 pub fn oidC1() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        id: id_oidC1(),                       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        id: id_oidC1(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5601,8 +5601,8 @@ pub mod oidC1 {
 pub fn oidC2() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        id: id_oidC2(),                       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        id: id_oidC2(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5646,8 +5646,8 @@ pub mod oidC2 {
 pub fn oidC() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        id: id_oidC(),                        /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        id: id_oidC(),                                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5693,10 +5693,10 @@ pub mod oidC {
 pub fn urnC() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseExactMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(printableString().id), /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(printableString().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("urnC")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_urnC(),                       /* OBJECT_FIELD_SETTING */
+        id: id_at_urnC(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5740,10 +5740,10 @@ pub mod urnC {
 pub fn tagOid() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("tagOid")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_tagOid(),                            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("tagOid")])),     /* OBJECT_FIELD_SETTING */
+        id: id_at_tagOid(),                                      /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6286,10 +6286,10 @@ pub fn _validate_UiiItem(el: &X690Element) -> ASN1Result<()> {
 pub fn uiiInUrn() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseExactMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),           /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("uiiInUrn")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_uiiInUrn(),                   /* OBJECT_FIELD_SETTING */
+        id: id_at_uiiInUrn(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6330,7 +6330,7 @@ pub mod uiiInUrn {
 ///
 pub fn contentUrl() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(url())),                /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(url())),      /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("contentUrl")])), /* OBJECT_FIELD_SETTING */
         id: id_at_contentUrl(),                 /* OBJECT_FIELD_SETTING */
@@ -6366,9 +6366,9 @@ pub mod contentUrl {
 pub fn uii() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(bitStringMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(bitString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(bitString().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("uii")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_uii(),                        /* OBJECT_FIELD_SETTING */
+        id: id_at_uii(),                                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6412,9 +6412,9 @@ pub mod uii {
 pub fn epc() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(bitStringMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(bitString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(bitString().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("epc")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_epc(),                        /* OBJECT_FIELD_SETTING */
+        id: id_at_epc(),                                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6458,9 +6458,9 @@ pub mod epc {
 pub fn tagAfi() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(octetStringMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(octetString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(octetString().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("tagAfi")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_tagAfi(),                       /* OBJECT_FIELD_SETTING */
+        id: id_at_tagAfi(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6793,7 +6793,7 @@ pub fn _validate_EpcFormat(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn epcInUrn() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(urn())),                /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(urn())),      /* OBJECT_FIELD_SETTING */
         single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("epcInUrn")])), /* OBJECT_FIELD_SETTING */
@@ -6827,7 +6827,7 @@ pub mod epcInUrn {
 ///
 pub fn ldapUrl() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(url())),                /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(url())),      /* OBJECT_FIELD_SETTING */
         ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("ldapUrl")])), /* OBJECT_FIELD_SETTING */
         id: id_at_ldapUrl(),                    /* OBJECT_FIELD_SETTING */
@@ -6863,10 +6863,10 @@ pub mod ldapUrl {
 pub fn tagLocation() -> ATTRIBUTE {
     ATTRIBUTE {
         derivation: Some(Box::new(utmCoordinates())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),          /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(utmCoords().id),   /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(utmCoords().id),             /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("tagLocation")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_tagLocation(),            /* OBJECT_FIELD_SETTING */
+        id: id_at_tagLocation(),                      /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -6896,7 +6896,7 @@ pub mod tagLocation {
 pub fn dSAProblem() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_not_dSAProblem(),                       /* OBJECT_FIELD_SETTING */
+        id: id_not_dSAProblem(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6941,8 +6941,8 @@ pub mod dSAProblem {
 pub fn searchServiceProblem() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        id: id_not_searchServiceProblem(),             /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        id: id_not_searchServiceProblem(),                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6986,8 +6986,8 @@ pub mod searchServiceProblem {
 pub fn serviceType() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        id: id_not_serviceType(),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        id: id_not_serviceType(),                                /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -7030,7 +7030,7 @@ pub mod serviceType {
 pub fn attributeTypeList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_not_attributeTypeList(),                /* OBJECT_FIELD_SETTING */
+        id: id_not_attributeTypeList(),                          /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -7074,7 +7074,7 @@ pub mod attributeTypeList {
 pub fn matchingRuleList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_not_matchingRuleList(),                 /* OBJECT_FIELD_SETTING */
+        id: id_not_matchingRuleList(),                           /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -7204,7 +7204,7 @@ pub mod attributeCombinations {
 pub fn contextTypeList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_not_contextTypeList(),                  /* OBJECT_FIELD_SETTING */
+        id: id_not_contextTypeList(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -7782,7 +7782,7 @@ pub fn _validate_MRMappings(el: &X690Element) -> ASN1Result<()> {
 pub fn appliedRelaxation() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_not_appliedRelaxation(),                /* OBJECT_FIELD_SETTING */
+        id: id_not_appliedRelaxation(),                          /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -8061,9 +8061,9 @@ pub fn uid() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),  /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("uid")])), /* OBJECT_FIELD_SETTING */
-        id: id_coat_uid(),                       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),            /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("uid")])),  /* OBJECT_FIELD_SETTING */
+        id: id_coat_uid(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -8108,9 +8108,9 @@ pub fn dc() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(caseIgnoreMatch())), /* OBJECT_FIELD_SETTING */
         substrings_match: Some(Box::new(caseIgnoreSubstringsMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(ia5String().id),        /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("dc")])), /* OBJECT_FIELD_SETTING */
-        id: id_coat_dc(),                        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(ia5String().id),                  /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("dc")])),   /* OBJECT_FIELD_SETTING */
+        id: id_coat_dc(),                                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -12821,13 +12821,9 @@ impl TryFrom<&X690Element> for DayTime {
     }
 }
 impl PartialEq for DayTime {
-
     fn eq(&self, other: &Self) -> bool {
-        self.hour == other.hour
-        || self.minute == other.minute
-        || self.second == other.second
+        self.hour == other.hour || self.minute == other.minute || self.second == other.second
     }
-
 }
 
 pub const _rctl1_components_for_DayTime: &[ComponentSpec; 3] = &[

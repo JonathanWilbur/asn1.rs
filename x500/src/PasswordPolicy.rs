@@ -43,10 +43,10 @@ use x690::*;
 pub fn userPwd() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(userPwdMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(userPwdDescription().id), /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(userPwdDescription().id),      /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("userPwd")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_userPwd(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_userPwd(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -142,11 +142,11 @@ pub fn pwdStartTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdStartTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdStartTime(),                     /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdStartTime(),                               /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -191,11 +191,11 @@ pub fn pwdExpiryTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdExpiryTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdExpiryTime(),                    /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdExpiryTime(),                              /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -240,11 +240,11 @@ pub fn pwdEndTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdEndTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdEndTime(),                       /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdEndTime(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -289,11 +289,11 @@ pub fn pwdFails() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdFails")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdFails(),                 /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdFails(),                           /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -338,11 +338,11 @@ pub fn pwdFailureTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),     /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),               /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdFailureTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdFailureTime(),                   /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdFailureTime(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -387,11 +387,11 @@ pub fn pwdGracesUsed() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdGracesUsed")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdGracesUsed(),            /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdGracesUsed(),                      /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -456,9 +456,9 @@ pub fn userPwdRecentlyExpired() -> ATTRIBUTE {
 pub fn pwdModifyEntryAllowed() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(booleanMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(boolean().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(boolean().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdModifyEntryAllowed")])), /* OBJECT_FIELD_SETTING */
         id: id_oa_pwdModifyEntryAllowed(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -504,11 +504,11 @@ pub mod pwdModifyEntryAllowed {
 pub fn pwdChangeAllowed() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(booleanMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(boolean().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(boolean().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdChangeAllowed")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdChangeAllowed(),         /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdChangeAllowed(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -554,11 +554,11 @@ pub fn pwdMaxAge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMaxAge")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMaxAge(),                /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMaxAge(),                          /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -603,11 +603,11 @@ pub fn pwdExpiryAge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdExpiryAge")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdExpiryAge(),             /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdExpiryAge(),                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -650,11 +650,11 @@ pub mod pwdExpiryAge {
 pub fn pwdMinLength() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMinLength")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMinLength(),             /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMinLength(),                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -698,11 +698,11 @@ pub mod pwdMinLength {
 pub fn pwdVocabulary() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(bitStringMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(pwdVocabularyDescription().id), /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),   /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(pwdVocabularyDescription().id),  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdVocabulary")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdVocabulary(),              /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdVocabulary(),                        /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -860,11 +860,11 @@ pub fn _validate_PwdAlphabet(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn pwdDictionaries() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(uri())),                        /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(uri())), /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id),         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdDictionaries")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdDictionaries(),                    /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdDictionaries(),       /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -900,11 +900,11 @@ pub fn pwdExpiryWarning() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdExpiryWarning")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdExpiryWarning(),         /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdExpiryWarning(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -949,11 +949,11 @@ pub fn pwdGraces() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdGraces")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdGraces(),                /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdGraces(),                          /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -998,11 +998,11 @@ pub fn pwdFailureDuration() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdFailureDuration")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdFailureDuration(),       /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdFailureDuration(),                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1047,11 +1047,11 @@ pub fn pwdLockoutDuration() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdLockoutDuration")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdLockoutDuration(),       /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdLockoutDuration(),                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1096,11 +1096,11 @@ pub fn pwdMaxFailures() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMaxFailures")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMaxFailures(),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMaxFailures(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1145,11 +1145,11 @@ pub fn pwdMaxTimeInHistory() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMaxTimeInHistory")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMaxTimeInHistory(),      /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMaxTimeInHistory(),                /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1194,11 +1194,11 @@ pub fn pwdMinTimeInHistory() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMinTimeInHistory")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMinTimeInHistory(),      /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMinTimeInHistory(),                /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1243,11 +1243,11 @@ pub fn pwdHistorySlots() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdHistorySlots")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdHistorySlots(),          /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdHistorySlots(),                    /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -1292,9 +1292,9 @@ pub fn pwdRecentlyExpiredDuration() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdRecentlyExpiredDuration")])), /* OBJECT_FIELD_SETTING */
         id: id_oa_pwdRecentlyExpiredDuration(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -1339,11 +1339,11 @@ pub mod pwdRecentlyExpiredDuration {
 pub fn pwdEncAlg() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(pwdEncAlgMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(pwdEncAlgDescription().id), /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),   /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(pwdEncAlgDescription().id),      /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdEncAlg")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdEncAlg(),                  /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdEncAlg(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

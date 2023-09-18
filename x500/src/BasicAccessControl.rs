@@ -42,9 +42,9 @@ use x690::*;
 pub fn accessControlScheme() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_aca_accessControlScheme(),              /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),          /* OBJECT_FIELD_SETTING */
+        id: id_aca_accessControlScheme(),                        /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2310,8 +2310,8 @@ pub fn _validate_GrantsAndDenials(el: &X690Element) -> ASN1Result<()> {
 pub fn prescriptiveACI() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(directoryStringFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),             /* OBJECT_FIELD_SETTING */
-        id: id_aca_prescriptiveACI(),                               /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        id: id_aca_prescriptiveACI(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2355,8 +2355,8 @@ pub mod prescriptiveACI {
 pub fn entryACI() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(directoryStringFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),             /* OBJECT_FIELD_SETTING */
-        id: id_aca_entryACI(),                                      /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        id: id_aca_entryACI(),                          /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2400,8 +2400,8 @@ pub mod entryACI {
 pub fn subentryACI() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(directoryStringFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),             /* OBJECT_FIELD_SETTING */
-        id: id_aca_subentryACI(),                                   /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        id: id_aca_subentryACI(),                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

@@ -1363,7 +1363,7 @@ impl SubtreeSpecification {
         Vec::from([])
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        Vec::from([ 0 ]) // TODO: Make this an fixed int.
+        Vec::from([0]) // TODO: Make this an fixed int.
     }
 }
 impl Default for SubtreeSpecification {
@@ -1517,7 +1517,8 @@ pub fn _decode_SubtreeSpecification(el: &X690Element) -> ASN1Result<SubtreeSpeci
 pub fn _encode_SubtreeSpecification(value_: &SubtreeSpecification) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(15);
     if let Some(v_) = &value_.base {
-        if v_.len() > 0 { // Manually edited.
+        if v_.len() > 0 {
+            // Manually edited.
             components_.push(|v_1: &LocalName| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
@@ -1799,7 +1800,7 @@ impl ChopSpecification {
         }
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        Vec::from([ 0 ]) // TODO: Make fixed int
+        Vec::from([0]) // TODO: Make fixed int
     }
 }
 impl Default for ChopSpecification {
@@ -2508,9 +2509,9 @@ pub fn _validate_AttributeUsage(el: &X690Element) -> ASN1Result<()> {
 pub fn objectClass() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("objectClass")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_objectClass(),                       /* OBJECT_FIELD_SETTING */
+        id: id_at_objectClass(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2555,10 +2556,10 @@ pub mod objectClass {
 pub fn aliasedEntryName() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                                /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("aliasedObjectName")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_aliasedEntryName(),                   /* OBJECT_FIELD_SETTING */
+        id: id_at_aliasedEntryName(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3910,10 +3911,10 @@ pub mod subtreeSpecification {
 pub fn administrativeRole() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),          /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("administrativeRole")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_administrativeRole(),                /* OBJECT_FIELD_SETTING */
+        id: id_oa_administrativeRole(),                          /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3962,12 +3963,12 @@ pub fn createTimestamp() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),             /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                       /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("createTimestamp")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_createTimestamp(),                  /* OBJECT_FIELD_SETTING */
+        id: id_oa_createTimestamp(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -4013,12 +4014,12 @@ pub fn modifyTimestamp() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),             /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                       /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("modifyTimestamp")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_modifyTimestamp(),                  /* OBJECT_FIELD_SETTING */
+        id: id_oa_modifyTimestamp(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -4062,10 +4063,10 @@ pub fn subschemaTimestamp() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),             /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_subschemaTimestamp(),               /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                       /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
+        id: id_oa_subschemaTimestamp(),                         /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -4110,12 +4111,12 @@ pub mod subschemaTimestamp {
 pub fn creatorsName() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                                /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("creatorsName")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_creatorsName(),                       /* OBJECT_FIELD_SETTING */
+        id: id_oa_creatorsName(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4159,12 +4160,12 @@ pub mod creatorsName {
 pub fn modifiersName() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                                /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("modifiersName")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_modifiersName(),                      /* OBJECT_FIELD_SETTING */
+        id: id_oa_modifiersName(),                                /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4208,12 +4209,12 @@ pub mod modifiersName {
 pub fn subschemaSubentryList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                                /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("subschemaSubentry")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_subschemaSubentryList(),              /* OBJECT_FIELD_SETTING */
+        id: id_oa_subschemaSubentryList(),                        /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4254,9 +4255,9 @@ pub mod subschemaSubentryList {
 pub fn accessControlSubentryList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_accessControlSubentryList(),          /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_accessControlSubentryList(),                    /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4300,9 +4301,9 @@ pub mod accessControlSubentryList {
 pub fn collectiveAttributeSubentryList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_collectiveAttributeSubentryList(),    /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_collectiveAttributeSubentryList(),              /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4346,9 +4347,9 @@ pub mod collectiveAttributeSubentryList {
 pub fn contextDefaultSubentryList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_contextDefaultSubentryList(),         /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_contextDefaultSubentryList(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4392,9 +4393,9 @@ pub mod contextDefaultSubentryList {
 pub fn serviceAdminSubentryList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_serviceAdminSubentryList(),           /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_serviceAdminSubentryList(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4441,10 +4442,10 @@ pub mod serviceAdminSubentryList {
 pub fn pwdAdminSubentryList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(dn().id),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(dn().id),                                /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdAdminSubentryList")])), /* OBJECT_FIELD_SETTING */
         id: id_oa_pwdAdminSubentryList(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -4488,10 +4489,10 @@ pub mod pwdAdminSubentryList {
 pub fn hasSubordinates() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(booleanMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),     /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_hasSubordinates(),          /* OBJECT_FIELD_SETTING */
+        id: id_oa_hasSubordinates(),                    /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4583,8 +4584,8 @@ pub mod collectiveAttributeSubentry {
 pub fn collectiveExclusions() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_collectiveExclusions(),              /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),          /* OBJECT_FIELD_SETTING */
+        id: id_oa_collectiveExclusions(),                        /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4654,8 +4655,8 @@ pub mod contextAssertionSubentry {
 pub fn contextAssertionDefaults() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
-        id: id_oa_contextAssertionDefault(),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        id: id_oa_contextAssertionDefault(),            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4725,8 +4726,8 @@ pub mod serviceAdminSubentry {
 pub fn searchRules() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),     /* OBJECT_FIELD_SETTING */
-        id: id_oa_searchRules(),                            /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),               /* OBJECT_FIELD_SETTING */
+        id: id_oa_searchRules(),                                      /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -4835,7 +4836,8 @@ impl SearchRuleDescription {
             _unrecognized,
         }
     }
-    pub fn _default_value_for_attributeCombination() -> AttributeCombination { /* COULD_NOT_COMPILE_DEFAULT_VALUE attributeCombination */
+    pub fn _default_value_for_attributeCombination() -> AttributeCombination {
+        /* COULD_NOT_COMPILE_DEFAULT_VALUE attributeCombination */
         AttributeCombination::and(vec![])
     }
     pub fn _default_value_for_allowedSubset() -> AllowedSubset {
@@ -5701,10 +5703,10 @@ pub mod pwdAdminSubentry {
 pub fn pwdAttribute() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                     /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(oid().id),                    /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                               /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(oid().id),                              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdAttribute")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_pwdAttribute(),                      /* OBJECT_FIELD_SETTING */
+        id: id_at_pwdAttribute(),                                /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -5956,10 +5958,10 @@ pub fn hierarchyLevel() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),     /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_hierarchyLevel(),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_hierarchyLevel(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -6021,10 +6023,10 @@ pub fn _validate_HierarchyLevel(el: &X690Element) -> ASN1Result<()> {
 pub fn hierarchyBelow() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(booleanMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),     /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),               /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_hierarchyBelow(),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_hierarchyBelow(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6086,9 +6088,9 @@ pub fn _validate_HierarchyBelow(el: &X690Element) -> ASN1Result<()> {
 pub fn hierarchyParent() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_hierarchyParent(),                    /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_hierarchyParent(),                              /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -6132,9 +6134,9 @@ pub mod hierarchyParent {
 pub fn hierarchyTop() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(distinguishedNameMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        id: id_oa_hierarchyTop(),                       /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_oa_hierarchyTop(),                                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

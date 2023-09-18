@@ -111,7 +111,8 @@ impl SearchRule {
             _unrecognized,
         }
     }
-    pub fn _default_value_for_attributeCombination() -> AttributeCombination { /* COULD_NOT_COMPILE_DEFAULT_VALUE attributeCombination */
+    pub fn _default_value_for_attributeCombination() -> AttributeCombination {
+        /* COULD_NOT_COMPILE_DEFAULT_VALUE attributeCombination */
         AttributeCombination::and(vec![])
     }
     pub fn _default_value_for_allowedSubset() -> AllowedSubset {
@@ -1065,7 +1066,8 @@ impl RequestAttribute {
     pub fn _default_value_for_includeSubtypes() -> BOOLEAN {
         false
     }
-    pub fn _default_value_for_contextCombination() -> ContextCombination { /* COULD_NOT_COMPILE_DEFAULT_VALUE contextCombination */
+    pub fn _default_value_for_contextCombination() -> ContextCombination {
+        /* COULD_NOT_COMPILE_DEFAULT_VALUE contextCombination */
         ContextCombination::and(vec![])
     }
 }
@@ -1723,14 +1725,11 @@ impl TryFrom<&X690Element> for ContextCombination {
 }
 
 impl PartialEq for ContextCombination {
-
     fn eq(&self, other: &Self) -> bool {
         match self {
-            ContextCombination::context(a) => {
-                match other {
-                    ContextCombination::context(b) => return a == b,
-                    _ => false,
-                }
+            ContextCombination::context(a) => match other {
+                ContextCombination::context(b) => return a == b,
+                _ => false,
             },
             ContextCombination::and(a) => {
                 match other {
@@ -1745,10 +1744,10 @@ impl PartialEq for ContextCombination {
                             }
                         }
                         return true;
-                    },
+                    }
                     _ => false,
                 }
-            },
+            }
             ContextCombination::or(a) => {
                 match other {
                     ContextCombination::or(b) => {
@@ -1762,20 +1761,17 @@ impl PartialEq for ContextCombination {
                             }
                         }
                         return true;
-                    },
+                    }
                     _ => false,
                 }
-            },
-            ContextCombination::not(a) => {
-                match other {
-                    ContextCombination::not(b) => return a == b,
-                    _ => false,
-                }
+            }
+            ContextCombination::not(a) => match other {
+                ContextCombination::not(b) => return a == b,
+                _ => false,
             },
             _ => false,
         }
     }
-
 }
 
 pub fn _decode_ContextCombination(el: &X690Element) -> ASN1Result<ContextCombination> {
@@ -2102,14 +2098,11 @@ impl TryFrom<&X690Element> for AttributeCombination {
 }
 
 impl PartialEq for AttributeCombination {
-
     fn eq(&self, other: &Self) -> bool {
         match self {
-            AttributeCombination::attribute(a) => {
-                match other {
-                    AttributeCombination::attribute(b) => return a == b,
-                    _ => false,
-                }
+            AttributeCombination::attribute(a) => match other {
+                AttributeCombination::attribute(b) => return a == b,
+                _ => false,
             },
             AttributeCombination::and(a) => {
                 match other {
@@ -2124,10 +2117,10 @@ impl PartialEq for AttributeCombination {
                             }
                         }
                         return true;
-                    },
+                    }
                     _ => false,
                 }
-            },
+            }
             AttributeCombination::or(a) => {
                 match other {
                     AttributeCombination::or(b) => {
@@ -2141,20 +2134,17 @@ impl PartialEq for AttributeCombination {
                             }
                         }
                         return true;
-                    },
+                    }
                     _ => false,
                 }
-            },
-            AttributeCombination::not(a) => {
-                match other {
-                    AttributeCombination::not(b) => return a == b,
-                    _ => false,
-                }
+            }
+            AttributeCombination::not(a) => match other {
+                AttributeCombination::not(b) => return a == b,
+                _ => false,
             },
             _ => false,
         }
     }
-
 }
 
 pub fn _decode_AttributeCombination(el: &X690Element) -> ASN1Result<AttributeCombination> {
@@ -2943,7 +2933,7 @@ impl RelaxationPolicy {
         }
     }
     pub fn _default_value_for_minimum() -> INTEGER {
-        Vec::from([ 1 ])
+        Vec::from([1])
     }
 }
 impl Default for RelaxationPolicy {
@@ -3551,7 +3541,7 @@ impl Mapping {
         }
     }
     pub fn _default_value_for_level() -> INTEGER {
-        Vec::from([ 0 ])
+        Vec::from([0])
     }
 }
 impl TryFrom<&X690Element> for Mapping {

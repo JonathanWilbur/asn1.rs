@@ -2660,10 +2660,10 @@ pub mod pkiCertPath {
 pub fn userCertificate() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509Certificate().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509Certificate().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("userCertificate")])), /* OBJECT_FIELD_SETTING */
-        ldapDesc: Some(String::from("X.509 user certificate")), /* OBJECT_FIELD_SETTING */
-        id: id_at_userCertificate(),                   /* OBJECT_FIELD_SETTING */
+        ldapDesc: Some(String::from("X.509 user certificate")),  /* OBJECT_FIELD_SETTING */
+        id: id_at_userCertificate(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2707,10 +2707,10 @@ pub mod userCertificate {
 pub fn cACertificate() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509Certificate().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509Certificate().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("cACertificate")])), /* OBJECT_FIELD_SETTING */
-        ldapDesc: Some(String::from("X.509 CA certificate")), /* OBJECT_FIELD_SETTING */
-        id: id_at_cAcertificate(),                     /* OBJECT_FIELD_SETTING */
+        ldapDesc: Some(String::from("X.509 CA certificate")),    /* OBJECT_FIELD_SETTING */
+        id: id_at_cAcertificate(),                               /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -2754,7 +2754,7 @@ pub mod cACertificate {
 pub fn crossCertificatePair() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificatePairExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificatePair().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificatePair().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("crossCertificatePair")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 cross certificate pair")), /* OBJECT_FIELD_SETTING */
         id: id_at_crossCertificatePair(),                             /* OBJECT_FIELD_SETTING */
@@ -2981,7 +2981,7 @@ pub fn _validate_CertificatePair(el: &X690Element) -> ASN1Result<()> {
 pub fn certificateRevocationList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateListExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificateList().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificateList().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("certificateRevocationList")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 certificate revocation list")), /* OBJECT_FIELD_SETTING */
         id: id_at_certificateRevocationList(), /* OBJECT_FIELD_SETTING */
@@ -3028,7 +3028,7 @@ pub mod certificateRevocationList {
 pub fn eepkCertificateRevocationList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateListExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificateList().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificateList().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("eepkCertificateRevocationList")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 EEPK certificate revocation list")), /* OBJECT_FIELD_SETTING */
         id: id_at_eepkCertificateRevocationList(), /* OBJECT_FIELD_SETTING */
@@ -3075,7 +3075,7 @@ pub mod eepkCertificateRevocationList {
 pub fn authorityRevocationList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateListExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificateList().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificateList().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("authorityRevocationList")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 authority revocation list")), /* OBJECT_FIELD_SETTING */
         id: id_at_authorityRevocationList(),                             /* OBJECT_FIELD_SETTING */
@@ -3122,10 +3122,10 @@ pub mod authorityRevocationList {
 pub fn deltaRevocationList() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(certificateListExactMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509CertificateList().id),        /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509CertificateList().id),                  /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("deltaRevocationList")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 delta revocation list")), /* OBJECT_FIELD_SETTING */
-        id: id_at_deltaRevocationList(),                   /* OBJECT_FIELD_SETTING */
+        id: id_at_deltaRevocationList(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3169,10 +3169,10 @@ pub mod deltaRevocationList {
 pub fn supportedAlgorithms() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(algorithmIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509SupportedAlgorithm().id),    /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509SupportedAlgorithm().id),              /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("supportedAlgorithms")])), /* OBJECT_FIELD_SETTING */
-        ldapDesc: Some(String::from("X.509 support algorithms")), /* OBJECT_FIELD_SETTING */
-        id: id_at_supportedAlgorithms(),                  /* OBJECT_FIELD_SETTING */
+        ldapDesc: Some(String::from("X.509 support algorithms")),   /* OBJECT_FIELD_SETTING */
+        id: id_at_supportedAlgorithms(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3549,7 +3549,7 @@ pub fn Policies() -> Vec<POLICY> {
 pub fn certificatePolicy() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(policyMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_certificatePolicy(),       /* OBJECT_FIELD_SETTING */
+        id: id_at_certificatePolicy(),                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3735,7 +3735,7 @@ pub fn _validate_PolicyID(el: &X690Element) -> ASN1Result<()> {
 pub fn pkiPath() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(pkiPathMatch())), /* OBJECT_FIELD_SETTING */
-        id: id_at_pkiPath(),                  /* OBJECT_FIELD_SETTING */
+        id: id_at_pkiPath(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -3782,7 +3782,7 @@ pub mod pkiPath {
 pub fn supportedPublicKeyAlgorithms() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(algorithmIdentifierMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(x509SupportedPublicKeyAlgos().id), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(x509SupportedPublicKeyAlgos().id),         /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("supportedPublicKeyAlgorithms")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 supported publiv key algorithms")), /* OBJECT_FIELD_SETTING */
         id: id_at_supportedPublicKeyAlgorithms(), /* OBJECT_FIELD_SETTING */
@@ -4111,9 +4111,9 @@ pub fn ExtAttributes() -> Vec<ATTRIBUTE> {
 pub fn userPassword() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(octetStringMatch())), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(octetString().id),       /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(octetString().id),                 /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("userPassword")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_userPassword(),                 /* OBJECT_FIELD_SETTING */
+        id: id_at_userPassword(),                           /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

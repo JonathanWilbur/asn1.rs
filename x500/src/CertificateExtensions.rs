@@ -2425,7 +2425,7 @@ impl GeneralSubtree {
         }
     }
     pub fn _default_value_for_minimum() -> BaseDistance {
-        Vec::from([ 0 ]) // TODO: Make fixed int
+        Vec::from([0]) // TODO: Make fixed int
     }
 }
 impl TryFrom<&X690Element> for GeneralSubtree {

@@ -44,10 +44,10 @@ use x690::*;
 pub fn dseType() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(bitStringMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),       /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_dseType(),                   /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                 /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),         /* OBJECT_FIELD_SETTING */
+        id: id_doa_dseType(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -164,10 +164,10 @@ pub fn _validate_DSEType(el: &X690Element) -> ASN1Result<()> {
 pub fn myAccessPoint() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(accessPointMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),         /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_myAccessPoint(),               /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                          /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                   /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_doa_myAccessPoint(),                         /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -210,9 +210,9 @@ pub mod myAccessPoint {
 pub fn superiorKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(accessPointMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),         /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_superiorKnowledge(),           /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                   /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),           /* OBJECT_FIELD_SETTING */
+        id: id_doa_superiorKnowledge(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -257,10 +257,10 @@ pub mod superiorKnowledge {
 pub fn specificKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(masterAndShadowAccessPointsMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_distributedOperation),         /* OBJECT_FIELD_SETTING */
-        id: id_doa_specificKnowledge(),                           /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),        /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_distributedOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_specificKnowledge(),   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -303,9 +303,9 @@ pub mod specificKnowledge {
 pub fn nonSpecificKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(masterAndShadowAccessPointsMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_distributedOperation),         /* OBJECT_FIELD_SETTING */
-        id: id_doa_nonSpecificKnowledge(),                        /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_distributedOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_nonSpecificKnowledge(), /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -921,9 +921,9 @@ pub fn _validate_SupplierInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn supplierKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(supplierOrConsumerInformationMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                           /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),                   /* OBJECT_FIELD_SETTING */
-        id: id_doa_supplierKnowledge(),                             /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_supplierKnowledge(),   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -986,9 +986,9 @@ pub fn _validate_ConsumerInformation(el: &X690Element) -> ASN1Result<()> {
 pub fn consumerKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(supplierOrConsumerInformationMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                           /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),                   /* OBJECT_FIELD_SETTING */
-        id: id_doa_consumerKnowledge(),                             /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_consumerKnowledge(),   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1311,9 +1311,9 @@ pub fn _validate_SupplierAndConsumers(el: &X690Element) -> ASN1Result<()> {
 pub fn secondaryShadows() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(supplierAndConsumersMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                  /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),          /* OBJECT_FIELD_SETTING */
-        id: id_doa_secondaryShadows(),                     /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                            /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),                    /* OBJECT_FIELD_SETTING */
+        id: id_doa_secondaryShadows(),                               /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1357,9 +1357,9 @@ pub mod secondaryShadows {
 pub fn ditBridgeKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(directoryStringFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                           /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),                   /* OBJECT_FIELD_SETTING */
-        id: id_doa_ditBridgeKnowledge(),                            /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_ditBridgeKnowledge(),  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,

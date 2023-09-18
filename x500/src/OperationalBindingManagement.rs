@@ -174,19 +174,25 @@ pub fn _decode_EstablishOperationalBindingArgument(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingArgument> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingArgumentData>(
-        _decode_EstablishOperationalBindingArgumentData, el)
+        _decode_EstablishOperationalBindingArgumentData,
+        el,
+    )
 }
 
 pub fn _encode_EstablishOperationalBindingArgument(
     value_: &EstablishOperationalBindingArgument,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingArgumentData>(
-        _encode_EstablishOperationalBindingArgumentData, value_)
+        _encode_EstablishOperationalBindingArgumentData,
+        value_,
+    )
 }
 
 pub fn _validate_EstablishOperationalBindingArgument(el: &X690Element) -> ASN1Result<()> {
     _validate_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingArgumentData>(
-        _validate_EstablishOperationalBindingArgumentData, el)
+        _validate_EstablishOperationalBindingArgumentData,
+        el,
+    )
 }
 
 /// ### ASN.1 Definition:
@@ -717,9 +723,7 @@ impl Validity {
         Validity_validUntil::explicitTermination(())
     }
     pub fn is_empty(&self) -> bool {
-        self.validFrom.is_none()
-        && self.validUntil.is_none()
-        && self._unrecognized.len() == 0
+        self.validFrom.is_none() && self.validUntil.is_none() && self._unrecognized.len() == 0
     }
     pub fn lower_bounded(&self) -> bool {
         if self.validFrom.is_none() {
@@ -942,19 +946,25 @@ pub fn _decode_EstablishOperationalBindingResult(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingResult> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingResultData>(
-        _decode_EstablishOperationalBindingResultData, el)
+        _decode_EstablishOperationalBindingResultData,
+        el,
+    )
 }
 
 pub fn _encode_EstablishOperationalBindingResult(
     value_: &EstablishOperationalBindingResult,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingResultData>(
-        _encode_EstablishOperationalBindingResultData, value_)
+        _encode_EstablishOperationalBindingResultData,
+        value_,
+    )
 }
 
 pub fn _validate_EstablishOperationalBindingResult(el: &X690Element) -> ASN1Result<()> {
     _validate_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingResultData>(
-        _validate_EstablishOperationalBindingResultData, el)
+        _validate_EstablishOperationalBindingResultData,
+        el,
+    )
 }
 
 /// ### ASN.1 Definition:
@@ -1427,19 +1437,25 @@ pub fn _decode_ModifyOperationalBindingArgument(
     el: &X690Element,
 ) -> ASN1Result<ModifyOperationalBindingArgument> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<ModifyOperationalBindingArgumentData>(
-        _decode_ModifyOperationalBindingArgumentData, el)
+        _decode_ModifyOperationalBindingArgumentData,
+        el,
+    )
 }
 
 pub fn _encode_ModifyOperationalBindingArgument(
     value_: &ModifyOperationalBindingArgument,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<ModifyOperationalBindingArgumentData>(
-        _encode_ModifyOperationalBindingArgumentData, value_)
+        _encode_ModifyOperationalBindingArgumentData,
+        value_,
+    )
 }
 
 pub fn _validate_ModifyOperationalBindingArgument(el: &X690Element) -> ASN1Result<()> {
     _validate_OPTIONALLY_PROTECTED_SEQ::<ModifyOperationalBindingArgumentData>(
-        _validate_ModifyOperationalBindingArgumentData, el)
+        _validate_ModifyOperationalBindingArgumentData,
+        el,
+    )
 }
 
 /// ### ASN.1 Definition:
@@ -1852,7 +1868,7 @@ impl ModifiedValidity {
     pub fn _default_value_for_validUntil() -> ModifiedValidity_validUntil {
         ModifiedValidity_validUntil::unchanged(())
     }
-    pub fn lower_bounded (&self) -> bool {
+    pub fn lower_bounded(&self) -> bool {
         if self.validFrom.is_none() {
             return false;
         }
@@ -2059,7 +2075,8 @@ pub fn _decode_ModifyOperationalBindingResult(
                 Ok(_decode_OPTIONALLY_PROTECTED_SEQ::<
                     ModifyOperationalBindingResultData,
                 >(
-                    _decode_ModifyOperationalBindingResultData, &el.inner()?)?)
+                    _decode_ModifyOperationalBindingResultData, &el.inner()?
+                )?)
             }(&el)?),
         ),
         _ => Ok(ModifyOperationalBindingResult::_unrecognized(el.clone())),
@@ -2080,7 +2097,8 @@ pub fn _encode_ModifyOperationalBindingResult(
                 X690Value::from_explicit(&_encode_OPTIONALLY_PROTECTED_SEQ::<
                     ModifyOperationalBindingResultData,
                 >(
-                    _encode_ModifyOperationalBindingResultData, &v_1)?),
+                    _encode_ModifyOperationalBindingResultData, &v_1
+                )?),
             ))
         }(&v),
         ModifyOperationalBindingResult::_unrecognized(el) => Ok(el.clone()),
@@ -2096,7 +2114,10 @@ pub fn _validate_ModifyOperationalBindingResult(el: &X690Element) -> ASN1Result<
             }
             Ok(_validate_OPTIONALLY_PROTECTED_SEQ::<
                 ModifyOperationalBindingResultData,
-            >(_validate_ModifyOperationalBindingResultData, &el.inner()?)?)
+            >(
+                _validate_ModifyOperationalBindingResultData,
+                &el.inner()?,
+            )?)
         }(&el),
         _ => Ok(()),
     }
@@ -2512,19 +2533,25 @@ pub fn _decode_TerminateOperationalBindingArgument(
     el: &X690Element,
 ) -> ASN1Result<TerminateOperationalBindingArgument> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<TerminateOperationalBindingArgumentData>(
-        _decode_TerminateOperationalBindingArgumentData, el)
+        _decode_TerminateOperationalBindingArgumentData,
+        el,
+    )
 }
 
 pub fn _encode_TerminateOperationalBindingArgument(
     value_: &TerminateOperationalBindingArgument,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<TerminateOperationalBindingArgumentData>(
-        _encode_TerminateOperationalBindingArgumentData, value_)
+        _encode_TerminateOperationalBindingArgumentData,
+        value_,
+    )
 }
 
 pub fn _validate_TerminateOperationalBindingArgument(el: &X690Element) -> ASN1Result<()> {
     _validate_OPTIONALLY_PROTECTED_SEQ::<TerminateOperationalBindingArgumentData>(
-        _validate_TerminateOperationalBindingArgumentData, el)
+        _validate_TerminateOperationalBindingArgumentData,
+        el,
+    )
 }
 
 /// ### ASN.1 Definition:
@@ -2838,7 +2865,9 @@ pub fn _decode_TerminateOperationalBindingResult(
                 Ok(_decode_OPTIONALLY_PROTECTED_SEQ::<
                     TerminateOperationalBindingResultData,
                 >(
-                    _decode_TerminateOperationalBindingResultData, &el.inner()?)?)
+                    _decode_TerminateOperationalBindingResultData,
+                    &el.inner()?,
+                )?)
             }(&el)?),
         ),
         _ => Ok(TerminateOperationalBindingResult::_unrecognized(el.clone())),
@@ -2859,7 +2888,8 @@ pub fn _encode_TerminateOperationalBindingResult(
                 X690Value::from_explicit(&_encode_OPTIONALLY_PROTECTED_SEQ::<
                     TerminateOperationalBindingResultData,
                 >(
-                    _encode_TerminateOperationalBindingResultData, v_1)?),
+                    _encode_TerminateOperationalBindingResultData, v_1
+                )?),
             ))
         }(&v),
         TerminateOperationalBindingResult::_unrecognized(el) => Ok(el.clone()),
@@ -2876,7 +2906,9 @@ pub fn _validate_TerminateOperationalBindingResult(el: &X690Element) -> ASN1Resu
             Ok(_validate_OPTIONALLY_PROTECTED_SEQ::<
                 TerminateOperationalBindingResultData,
             >(
-                _validate_TerminateOperationalBindingResultData, &el.inner()?)?)
+                _validate_TerminateOperationalBindingResultData,
+                &el.inner()?,
+            )?)
         }(&el),
         _ => Ok(()),
     }
@@ -4269,14 +4301,12 @@ pub enum ModifiedValidity_validUntil {
 }
 
 impl ModifiedValidity_validUntil {
-
-    pub fn is_changed (&self) -> bool {
+    pub fn is_changed(&self) -> bool {
         match self {
             ModifiedValidity_validUntil::unchanged(_) => false,
             _ => true,
         }
     }
-
 }
 
 impl TryFrom<&X690Element> for ModifiedValidity_validUntil {

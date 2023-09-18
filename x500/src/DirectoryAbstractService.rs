@@ -1899,12 +1899,12 @@ impl TryFrom<&X690Element> for ServiceControls {
     }
 }
 impl PartialEq for ServiceControls {
-
     fn eq(&self, other: &Self) -> bool {
         if self._unrecognized.len() > 0
             || other._unrecognized.len() > 0
             || self.manageDSAITPlaneRef.is_some()
-            || other.manageDSAITPlaneRef.is_some() {
+            || other.manageDSAITPlaneRef.is_some()
+        {
             return false;
         }
         let default_opts = ServiceControls::_default_value_for_options();
@@ -1913,19 +1913,22 @@ impl PartialEq for ServiceControls {
         if opts1 != opts2 {
             return false;
         }
-        let pri1 = self.priority.unwrap_or(ServiceControls::_default_value_for_priority());
-        let pri2 = other.priority.unwrap_or(ServiceControls::_default_value_for_priority());
+        let pri1 = self
+            .priority
+            .unwrap_or(ServiceControls::_default_value_for_priority());
+        let pri2 = other
+            .priority
+            .unwrap_or(ServiceControls::_default_value_for_priority());
         if pri1 != pri2 {
             return false;
         }
         self.timeLimit == other.timeLimit
-        && self.sizeLimit == other.sizeLimit
-        && self.scopeOfReferral == other.scopeOfReferral
-        && self.attributeSizeLimit == other.attributeSizeLimit
-        && self.serviceType == other.serviceType
-        && self.userClass == other.userClass
+            && self.sizeLimit == other.sizeLimit
+            && self.scopeOfReferral == other.scopeOfReferral
+            && self.attributeSizeLimit == other.attributeSizeLimit
+            && self.serviceType == other.serviceType
+            && self.userClass == other.userClass
     }
-
 }
 
 pub const _rctl1_components_for_ServiceControls: &[ComponentSpec; 9] = &[
@@ -2426,29 +2429,37 @@ impl Default for EntryInformationSelection {
     }
 }
 impl PartialEq for EntryInformationSelection {
-/// EntryInformationSelection ::= SET {
-///   attributes                     CHOICE {
-///     allUserAttributes         [0]  NULL,
-///     select                    [1]  SET OF AttributeType
-///     -- empty set implies no attributes are requested -- } DEFAULT allUserAttributes:NULL,
-///     infoTypes               [2]  INTEGER {
-///       attributeTypesOnly        (0),
-///       attributeTypesAndValues   (1)} DEFAULT attributeTypesAndValues,
-///   extraAttributes                CHOICE {
-///     allOperationalAttributes  [3]  NULL,
-///     select                    [4]  SET SIZE (1..MAX) OF AttributeType } OPTIONAL,
-///   contextSelection               ContextSelection OPTIONAL,
-///   returnContexts                 BOOLEAN DEFAULT FALSE,
-///   familyReturn                   FamilyReturn DEFAULT
-///                                    {memberSelect contributingEntriesOnly} }
+    /// EntryInformationSelection ::= SET {
+    ///   attributes                     CHOICE {
+    ///     allUserAttributes         [0]  NULL,
+    ///     select                    [1]  SET OF AttributeType
+    ///     -- empty set implies no attributes are requested -- } DEFAULT allUserAttributes:NULL,
+    ///     infoTypes               [2]  INTEGER {
+    ///       attributeTypesOnly        (0),
+    ///       attributeTypesAndValues   (1)} DEFAULT attributeTypesAndValues,
+    ///   extraAttributes                CHOICE {
+    ///     allOperationalAttributes  [3]  NULL,
+    ///     select                    [4]  SET SIZE (1..MAX) OF AttributeType } OPTIONAL,
+    ///   contextSelection               ContextSelection OPTIONAL,
+    ///   returnContexts                 BOOLEAN DEFAULT FALSE,
+    ///   familyReturn                   FamilyReturn DEFAULT
+    ///                                    {memberSelect contributingEntriesOnly} }
     fn eq(&self, other: &Self) -> bool {
-        let info_types_a = self.infoTypes.unwrap_or(EntryInformationSelection::_default_value_for_infoTypes());
-        let info_types_b = other.infoTypes.unwrap_or(EntryInformationSelection::_default_value_for_infoTypes());
+        let info_types_a = self
+            .infoTypes
+            .unwrap_or(EntryInformationSelection::_default_value_for_infoTypes());
+        let info_types_b = other
+            .infoTypes
+            .unwrap_or(EntryInformationSelection::_default_value_for_infoTypes());
         if info_types_a != info_types_b {
             return false;
         }
-        let ret_ctxt_a = self.returnContexts.unwrap_or(EntryInformationSelection::_default_value_for_returnContexts());
-        let ret_ctxt_b = other.returnContexts.unwrap_or(EntryInformationSelection::_default_value_for_returnContexts());
+        let ret_ctxt_a = self
+            .returnContexts
+            .unwrap_or(EntryInformationSelection::_default_value_for_returnContexts());
+        let ret_ctxt_b = other
+            .returnContexts
+            .unwrap_or(EntryInformationSelection::_default_value_for_returnContexts());
         if ret_ctxt_a != ret_ctxt_b {
             return false;
         }
@@ -2469,7 +2480,6 @@ impl PartialEq for EntryInformationSelection {
         }
         true
     }
-
 }
 impl TryFrom<&X690Element> for EntryInformationSelection {
     type Error = ASN1Error;
@@ -2958,7 +2968,6 @@ impl TryFrom<&X690Element> for FamilyReturn {
     }
 }
 impl PartialEq for FamilyReturn {
-
     fn eq(&self, other: &Self) -> bool {
         if self.memberSelect != other.memberSelect {
             return false;
@@ -2974,7 +2983,6 @@ impl PartialEq for FamilyReturn {
         }
         true
     }
-
 }
 
 pub const _rctl1_components_for_FamilyReturn: &[ComponentSpec; 2] = &[
@@ -4822,16 +4830,15 @@ impl SecurityParameters {
 
     pub fn is_empty(&self) -> bool {
         self.certification_path.is_none()
-        && self.name.is_none()
-        && self.time.is_none()
-        && self.random.is_none()
-        && self.target.is_none()
-        && self.operationCode.is_none()
-        && self.errorProtection.is_none()
-        && self.errorCode.is_none()
-        && self._unrecognized.len() == 0
+            && self.name.is_none()
+            && self.time.is_none()
+            && self.random.is_none()
+            && self.target.is_none()
+            && self.operationCode.is_none()
+            && self.errorProtection.is_none()
+            && self.errorCode.is_none()
+            && self._unrecognized.len() == 0
     }
-
 }
 impl Default for SecurityParameters {
     fn default() -> Self {
@@ -24900,38 +24907,32 @@ impl TryFrom<&X690Element> for EntryInformationSelection_attributes {
 }
 
 impl PartialEq for EntryInformationSelection_attributes {
-
     fn eq(&self, other: &Self) -> bool {
         match self {
-            EntryInformationSelection_attributes::allUserAttributes(_) => {
-                match other {
-                    EntryInformationSelection_attributes::allUserAttributes(_) => return true,
-                    _ => return false,
-                }
+            EntryInformationSelection_attributes::allUserAttributes(_) => match other {
+                EntryInformationSelection_attributes::allUserAttributes(_) => return true,
+                _ => return false,
             },
-            EntryInformationSelection_attributes::select(asel) => {
-                match other {
-                    EntryInformationSelection_attributes::select(bsel) => {
-                        if asel.len() != bsel.len() {
+            EntryInformationSelection_attributes::select(asel) => match other {
+                EntryInformationSelection_attributes::select(bsel) => {
+                    if asel.len() != bsel.len() {
+                        return false;
+                    }
+                    let mut asel_sorted = asel.clone();
+                    let mut bsel_sorted = bsel.clone();
+                    asel_sorted.sort();
+                    bsel_sorted.sort();
+                    for i in 0..asel.len() {
+                        if asel_sorted[i] != bsel_sorted[i] {
                             return false;
                         }
-                        let mut asel_sorted = asel.clone();
-                        let mut bsel_sorted = bsel.clone();
-                        asel_sorted.sort();
-                        bsel_sorted.sort();
-                        for i in 0..asel.len() {
-                            if asel_sorted[i] != bsel_sorted[i] {
-                                return false;
-                            }
-                        }
-                        true
-                    },
-                    _ => return false,
+                    }
+                    true
                 }
+                _ => return false,
             },
         }
     }
-
 }
 
 pub fn _decode_EntryInformationSelection_attributes(
@@ -25086,7 +25087,6 @@ impl TryFrom<&X690Element> for EntryInformationSelection_extraAttributes {
 }
 
 impl PartialEq for EntryInformationSelection_extraAttributes {
-
     fn eq(&self, other: &Self) -> bool {
         match self {
             EntryInformationSelection_extraAttributes::allOperationalAttributes(_) => {
@@ -25094,7 +25094,7 @@ impl PartialEq for EntryInformationSelection_extraAttributes {
                     EntryInformationSelection_extraAttributes::allOperationalAttributes(_) => true,
                     _ => false,
                 };
-            },
+            }
             EntryInformationSelection_extraAttributes::select(asel) => {
                 let bsel = match other {
                     EntryInformationSelection_extraAttributes::select(asdf) => asdf,
@@ -25113,11 +25113,10 @@ impl PartialEq for EntryInformationSelection_extraAttributes {
                     }
                 }
                 true
-            },
+            }
         };
         true
     }
-
 }
 
 pub fn _decode_EntryInformationSelection_extraAttributes(
