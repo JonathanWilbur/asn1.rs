@@ -19,12 +19,10 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::AttributeCertificateDefinitions::*;
 use crate::AuthenticationFramework::*;
 use crate::CertificateExtensions::*;
 use crate::InformationFramework::*;
 use crate::PkiPmiWrapper::*;
-use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
 use std::sync::Arc;

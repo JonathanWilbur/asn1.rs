@@ -369,12 +369,6 @@ pub fn _encode_DisplayText(value_: &DisplayText) -> ASN1Result<X690Element> {
         DisplayText::visibleString(v) => BER.encode_visible_string(&v),
         DisplayText::bmpString(v) => BER.encode_bmp_string(&v),
         DisplayText::utf8String(v) => BER.encode_utf8_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("DisplayText".to_string());
-            Err(err)
-        }
     }
 }
 

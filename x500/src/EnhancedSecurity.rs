@@ -45,11 +45,11 @@ pub fn _decode_OPTIONALLY_PROTECTED<Type: 'static>(
     el: &X690Element,
 ) -> ASN1Result<OPTIONALLY_PROTECTED<Type>> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        _ => Ok(OPTIONALLY_PROTECTED::unsigned(_decode_Type(&el)?)),
         (TagClass::UNIVERSAL, 16) => Ok(OPTIONALLY_PROTECTED::signed(_decode_SIGNED::<Type>(
             _decode_Type,
             el,
         )?)),
+        _ => Ok(OPTIONALLY_PROTECTED::unsigned(_decode_Type(&el)?)),
     }
 }
 
@@ -60,12 +60,6 @@ pub fn _encode_OPTIONALLY_PROTECTED<Type>(
     match value_ {
         OPTIONALLY_PROTECTED::unsigned(v) => _encode_Type(&v),
         OPTIONALLY_PROTECTED::signed(v) => _encode_SIGNED::<Type>(_encode_Type, v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OPTIONALLY-PROTECTED".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -74,8 +68,8 @@ pub fn _validate_OPTIONALLY_PROTECTED<Type>(
     el: &X690Element,
 ) -> ASN1Result<()> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        _ => _validate_Type(&el),
         (TagClass::UNIVERSAL, 16) => _validate_SIGNED::<Type>(_validate_Type, el),
+        _ => _validate_Type(&el),
     }
 }
 
@@ -97,11 +91,11 @@ pub fn _decode_OPTIONALLY_PROTECTED_SEQ<Type: 'static>(
     el: &X690Element,
 ) -> ASN1Result<OPTIONALLY_PROTECTED_SEQ<Type>> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        _ => Ok(OPTIONALLY_PROTECTED_SEQ::unsigned(_decode_Type(&el)?)),
         (TagClass::CONTEXT, 0) => Ok(OPTIONALLY_PROTECTED_SEQ::signed(_decode_SIGNED::<Type>(
             _decode_Type,
             el,
         )?)),
+        _ => Ok(OPTIONALLY_PROTECTED_SEQ::unsigned(_decode_Type(&el)?)),
     }
 }
 
@@ -117,12 +111,6 @@ pub fn _encode_OPTIONALLY_PROTECTED_SEQ<Type>(
             el_1.tag.tag_number = 0;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OPTIONALLY-PROTECTED-SEQ".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -131,13 +119,13 @@ pub fn _validate_OPTIONALLY_PROTECTED_SEQ<Type>(
     el: &X690Element,
 ) -> ASN1Result<()> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        _ => _validate_Type(&el),
         (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
             if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
                 return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "signed"));
             }
             Ok(_validate_SIGNED::<Type>(_validate_Type, el)?)
         }(&el),
+        _ => _validate_Type(&el),
     }
 }
 
@@ -1964,7 +1952,6 @@ pub fn integrityInfo() -> OBJECT_CLASS {
 
 pub mod integrityInfo {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:

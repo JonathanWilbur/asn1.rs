@@ -25,8 +25,6 @@ use crate::PasswordPolicy::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::sync::Arc;
-use x690::*;
 
 /// ### ASN.1 Definition:
 ///
@@ -147,7 +145,6 @@ pub fn country() -> OBJECT_CLASS {
 
 pub mod country {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -184,7 +181,6 @@ pub fn locality() -> OBJECT_CLASS {
 
 pub mod locality {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -219,7 +215,6 @@ pub fn organization() -> OBJECT_CLASS {
 
 pub mod organization {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -254,7 +249,6 @@ pub fn organizationalUnit() -> OBJECT_CLASS {
 
 pub mod organizationalUnit {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -292,7 +286,6 @@ pub fn person() -> OBJECT_CLASS {
 
 pub mod person {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -332,7 +325,6 @@ pub fn organizationalPerson() -> OBJECT_CLASS {
 
 pub mod organizationalPerson {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -383,7 +375,6 @@ pub fn organizationalRole() -> OBJECT_CLASS {
 
 pub mod organizationalRole {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -424,7 +415,6 @@ pub fn groupOfNames() -> OBJECT_CLASS {
 
 pub mod groupOfNames {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -466,7 +456,6 @@ pub fn groupOfUniqueNames() -> OBJECT_CLASS {
 
 pub mod groupOfUniqueNames {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -507,7 +496,6 @@ pub fn residentialPerson() -> OBJECT_CLASS {
 
 pub mod residentialPerson {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -544,7 +532,6 @@ pub fn applicationProcess() -> OBJECT_CLASS {
 
 pub mod applicationProcess {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -586,7 +573,6 @@ pub fn applicationEntity() -> OBJECT_CLASS {
 
 pub mod applicationEntity {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -614,7 +600,6 @@ pub fn dSA() -> OBJECT_CLASS {
 
 pub mod dSA {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -657,7 +642,6 @@ pub fn device() -> OBJECT_CLASS {
 
 pub mod device {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -687,7 +671,6 @@ pub fn strongAuthenticationUser() -> OBJECT_CLASS {
 
 pub mod strongAuthenticationUser {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -717,7 +700,6 @@ pub fn userSecurityInformation() -> OBJECT_CLASS {
 
 pub mod userSecurityInformation {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -744,7 +726,6 @@ pub fn userPwdClass() -> OBJECT_CLASS {
 
 pub mod userPwdClass {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -781,7 +762,6 @@ pub fn certificationAuthority() -> OBJECT_CLASS {
 
 pub mod certificationAuthority {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -813,7 +793,6 @@ pub fn certificationAuthority_V2() -> OBJECT_CLASS {
 
 pub mod certificationAuthority_V2 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -848,7 +827,6 @@ pub fn dMD() -> OBJECT_CLASS {
 
 pub mod dMD {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -876,7 +854,6 @@ pub fn oidC1obj() -> OBJECT_CLASS {
 
 pub mod oidC1obj {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -904,7 +881,6 @@ pub fn oidC2obj() -> OBJECT_CLASS {
 
 pub mod oidC2obj {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -932,7 +908,6 @@ pub fn oidCobj() -> OBJECT_CLASS {
 
 pub mod oidCobj {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -960,7 +935,6 @@ pub fn oidRoot() -> OBJECT_CLASS {
 
 pub mod oidRoot {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -988,7 +962,6 @@ pub fn oidArc() -> OBJECT_CLASS {
 
 pub mod oidArc {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1016,7 +989,6 @@ pub fn urnCobj() -> OBJECT_CLASS {
 
 pub mod urnCobj {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1057,7 +1029,6 @@ pub fn isoTagInfo() -> OBJECT_CLASS {
 
 pub mod isoTagInfo {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1088,7 +1059,6 @@ pub fn isoTagType() -> OBJECT_CLASS {
 
 pub mod isoTagType {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1120,7 +1090,6 @@ pub fn epcTagInfoObj() -> OBJECT_CLASS {
 
 pub mod epcTagInfoObj {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1149,7 +1118,6 @@ pub fn epcTagTypeObj() -> OBJECT_CLASS {
 
 pub mod epcTagTypeObj {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1175,7 +1143,6 @@ pub fn countryNameForm() -> NAME_FORM {
 
 pub mod countryNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1201,7 +1168,6 @@ pub fn locNameForm() -> NAME_FORM {
 
 pub mod locNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1227,7 +1193,6 @@ pub fn sOPNameForm() -> NAME_FORM {
 
 pub mod sOPNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1253,7 +1218,6 @@ pub fn orgNameForm() -> NAME_FORM {
 
 pub mod orgNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1279,7 +1243,6 @@ pub fn orgUnitNameForm() -> NAME_FORM {
 
 pub mod orgUnitNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1305,7 +1268,6 @@ pub fn personNameForm() -> NAME_FORM {
 
 pub mod personNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1332,7 +1294,6 @@ pub fn orgPersonNameForm() -> NAME_FORM {
 
 pub mod orgPersonNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1358,7 +1319,6 @@ pub fn orgRoleNameForm() -> NAME_FORM {
 
 pub mod orgRoleNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1384,7 +1344,6 @@ pub fn gONNameForm() -> NAME_FORM {
 
 pub mod gONNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1411,7 +1370,6 @@ pub fn resPersonNameForm() -> NAME_FORM {
 
 pub mod resPersonNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1437,7 +1395,6 @@ pub fn applProcessNameForm() -> NAME_FORM {
 
 pub mod applProcessNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1463,7 +1420,6 @@ pub fn applEntityNameForm() -> NAME_FORM {
 
 pub mod applEntityNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1489,7 +1445,6 @@ pub fn dSANameForm() -> NAME_FORM {
 
 pub mod dSANameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1515,7 +1470,6 @@ pub fn deviceNameForm() -> NAME_FORM {
 
 pub mod deviceNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1541,7 +1495,6 @@ pub fn dMDNameForm() -> NAME_FORM {
 
 pub mod dMDNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1567,7 +1520,6 @@ pub fn oidC1NameForm() -> NAME_FORM {
 
 pub mod oidC1NameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1593,7 +1545,6 @@ pub fn oidC2NameForm() -> NAME_FORM {
 
 pub mod oidC2NameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1619,7 +1570,6 @@ pub fn oidCNameForm() -> NAME_FORM {
 
 pub mod oidCNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1645,7 +1595,6 @@ pub fn urnCNameForm() -> NAME_FORM {
 
 pub mod urnCNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1671,7 +1620,6 @@ pub fn oidRootNf() -> NAME_FORM {
 
 pub mod oidRootNf {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1697,7 +1645,6 @@ pub fn oidArcNf() -> NAME_FORM {
 
 pub mod oidArcNf {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:

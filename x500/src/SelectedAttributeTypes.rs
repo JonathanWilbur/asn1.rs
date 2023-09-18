@@ -19,10 +19,8 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::AuthenticationFramework::*;
 use crate::DirectoryAbstractService::*;
 use crate::InformationFramework::*;
-use crate::PasswordPolicy::*;
 use crate::PkiPmiExternalDataTypes::*;
 use crate::SchemaAdministration::*;
 use crate::ServiceAdministration::*;
@@ -92,12 +90,6 @@ pub fn _encode_UnboundedDirectoryString(
         UnboundedDirectoryString::bmpString(v) => BER.encode_bmp_string(&v),
         UnboundedDirectoryString::universalString(v) => BER.encode_universal_string(&v),
         UnboundedDirectoryString::uTF8String(v) => BER.encode_utf8_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("UnboundedDirectoryString".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -172,12 +164,6 @@ pub fn _encode_DirectoryString(value_: &DirectoryString) -> ASN1Result<X690Eleme
         DirectoryString::bmpString(v) => BER.encode_bmp_string(&v),
         DirectoryString::universalString(v) => BER.encode_universal_string(&v),
         DirectoryString::uTF8String(v) => BER.encode_utf8_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("DirectoryString".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -1008,7 +994,6 @@ pub fn urn() -> ATTRIBUTE {
 
 pub mod urn {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1043,7 +1028,6 @@ pub fn url() -> ATTRIBUTE {
 
 pub mod url {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1567,7 +1551,6 @@ pub fn collectiveLocalityName() -> ATTRIBUTE {
 
 pub mod collectiveLocalityName {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1649,7 +1632,6 @@ pub fn collectiveStateOrProvinceName() -> ATTRIBUTE {
 
 pub mod collectiveStateOrProvinceName {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1732,7 +1714,6 @@ pub fn collectiveStreetAddress() -> ATTRIBUTE {
 
 pub mod collectiveStreetAddress {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2052,7 +2033,6 @@ pub fn collectiveOrganizationName() -> ATTRIBUTE {
 
 pub mod collectiveOrganizationName {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2134,7 +2114,6 @@ pub fn collectiveOrganizationalUnitName() -> ATTRIBUTE {
 
 pub mod collectiveOrganizationalUnitName {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2474,7 +2453,6 @@ pub fn _validate_Guide(el: &X690Element) -> ASN1Result<()> {
 ///   not   [3]  Criteria,
 ///   ... }
 /// ```
-// TODO: CHECK_RECURSIVE_DEFINITION
 #[derive(Debug, Clone)]
 pub enum Criteria {
     type_(CriteriaItem),
@@ -3195,7 +3173,6 @@ pub fn collectivePostalAddress() -> ATTRIBUTE {
 
 pub mod collectivePostalAddress {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -3278,7 +3255,6 @@ pub fn collectivePostalCode() -> ATTRIBUTE {
 
 pub mod collectivePostalCode {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -3361,7 +3337,6 @@ pub fn collectivePostOfficeBox() -> ATTRIBUTE {
 
 pub mod collectivePostOfficeBox {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -3444,7 +3419,6 @@ pub fn collectivePhysicalDeliveryOfficeName() -> ATTRIBUTE {
 
 pub mod collectivePhysicalDeliveryOfficeName {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -3555,7 +3529,6 @@ pub fn collectiveTelephoneNumber() -> ATTRIBUTE {
 
 pub mod collectiveTelephoneNumber {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -3808,7 +3781,6 @@ pub fn collectiveTelexNumber() -> ATTRIBUTE {
 
 pub mod collectiveTelexNumber {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -4034,7 +4006,6 @@ pub fn collectiveFacsimileTelephoneNumber() -> ATTRIBUTE {
 
 pub mod collectiveFacsimileTelephoneNumber {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -4223,7 +4194,6 @@ pub fn collectiveInternationalISDNNumber() -> ATTRIBUTE {
 
 pub mod collectiveInternationalISDNNumber {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5239,7 +5209,6 @@ pub fn member() -> ATTRIBUTE {
 
 pub mod member {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5459,7 +5428,6 @@ pub fn owner() -> ATTRIBUTE {
 
 pub mod owner {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5494,7 +5462,6 @@ pub fn roleOccupant() -> ATTRIBUTE {
 
 pub mod roleOccupant {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5529,7 +5496,6 @@ pub fn seeAlso() -> ATTRIBUTE {
 
 pub mod seeAlso {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -6009,7 +5975,6 @@ pub fn _validate_UiiFormat(el: &X690Element) -> ASN1Result<()> {
 ///   or    [2]  SET OF UiiFilter,
 ///   not   [3]  UiiFilter }
 /// ```
-// TODO: CHECK_RECURSIVE_DEFINITION
 #[derive(Debug, Clone)]
 pub enum UiiFilter {
     item(UiiItem),
@@ -6130,12 +6095,6 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
                 X690Value::from_explicit(&_encode_UiiFilter(&v_1)?),
             ))
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("UiiFilter".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -6390,7 +6349,6 @@ pub fn contentUrl() -> ATTRIBUTE {
 
 pub mod contentUrl {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -6854,7 +6812,6 @@ pub fn epcInUrn() -> ATTRIBUTE {
 
 pub mod epcInUrn {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -6889,7 +6846,6 @@ pub fn ldapUrl() -> ATTRIBUTE {
 
 pub mod ldapUrl {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -6925,7 +6881,6 @@ pub fn tagLocation() -> ATTRIBUTE {
 
 pub mod tagLocation {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -9488,7 +9443,6 @@ pub fn systemProposedMatch() -> MATCHING_RULE {
 
 pub mod systemProposedMatch {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -10010,7 +9964,6 @@ pub fn approximateStringMatch() -> MATCHING_RULE {
 
 pub mod approximateStringMatch {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -10034,7 +9987,6 @@ pub fn ignoreIfAbsentMatch() -> MATCHING_RULE {
 
 pub mod ignoreIfAbsentMatch {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -10058,7 +10010,6 @@ pub fn nullMatch() -> MATCHING_RULE {
 
 pub mod nullMatch {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -10163,7 +10114,6 @@ pub fn zonalMatch() -> MATCHING_RULE {
 
 pub mod zonalMatch {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -12519,12 +12469,6 @@ pub fn _encode_XDayOf(value_: &XDayOf) -> ASN1Result<X690Element> {
                 X690Value::from_explicit(&_encode_NamedDay(&v_1)?),
             ))
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("XDayOf".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -12622,12 +12566,6 @@ pub fn _encode_NamedDay(value_: &NamedDay) -> ASN1Result<X690Element> {
     match value_ {
         NamedDay::intNamedDays(v) => _encode_NamedDay_intNamedDays(&v),
         NamedDay::bitNamedDays(v) => _encode_NamedDay_bitNamedDays(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("NamedDay".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -16097,12 +16035,6 @@ pub fn _encode_UiiFormat_next(value_: &UiiFormat_next) -> ASN1Result<X690Element
     match value_ {
         UiiFormat_next::length(v) => BER.encode_integer(&v),
         UiiFormat_next::filter(v) => _encode_UiiFilter(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("UiiFormat-next".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -16182,12 +16114,6 @@ pub fn _encode_EpcFormat_fields_Item_charField(
                     X690Value::from_explicit(&BER.encode_integer(&v_1)?),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("EpcFormat-fields-Item-charField".to_string());
-            Err(err)
         }
     }
 }
@@ -16939,12 +16865,6 @@ pub fn _encode_TimeSpecification_time(value_: &TimeSpecification_time) -> ASN1Re
                     X690Value::Constructed(Arc::new(children)),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("TimeSpecification-time".to_string());
-            Err(err)
         }
     }
 }

@@ -6406,12 +6406,6 @@ pub fn _encode_ContentChange_rename(value_: &ContentChange_rename) -> ASN1Result
     match value_ {
         ContentChange_rename::newRDN(v) => _encode_RelativeDistinguishedName(&v),
         ContentChange_rename::newDN(v) => _encode_DistinguishedName(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("ContentChange-rename".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -6531,12 +6525,6 @@ pub fn _encode_ContentChange_attributeChanges(
                 el_1.tag.tag_number = 1;
                 Ok(el_1)
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("ContentChange-attributeChanges".to_string());
-            Err(err)
         }
     }
 }

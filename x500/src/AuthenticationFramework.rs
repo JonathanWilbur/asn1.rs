@@ -1091,12 +1091,6 @@ pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
     match value_ {
         Time::utcTime(v) => BER.encode_utc_time(&v),
         Time::generalizedTime(v) => BER.encode_generalized_time(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("Time".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -2453,7 +2447,6 @@ pub fn pkiUser() -> OBJECT_CLASS {
 
 pub mod pkiUser {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2493,7 +2486,6 @@ pub fn pkiCA() -> OBJECT_CLASS {
 
 pub mod pkiCA {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2532,7 +2524,6 @@ pub fn cRLDistributionPoint() -> OBJECT_CLASS {
 
 pub mod cRLDistributionPoint {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2558,7 +2549,6 @@ pub fn cRLDistPtNameForm() -> NAME_FORM {
 
 pub mod cRLDistPtNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2588,7 +2578,6 @@ pub fn deltaCRL() -> OBJECT_CLASS {
 
 pub mod deltaCRL {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2624,7 +2613,6 @@ pub fn cpCps() -> OBJECT_CLASS {
 
 pub mod cpCps {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2654,7 +2642,6 @@ pub fn pkiCertPath() -> OBJECT_CLASS {
 
 pub mod pkiCertPath {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:

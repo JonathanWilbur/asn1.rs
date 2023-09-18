@@ -19,7 +19,6 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::DirectoryOSIProtocols::*;
 use crate::DirectoryOperationalBindingTypes::*;
 use crate::DistributedOperations::*;
 use crate::InformationFramework::*;

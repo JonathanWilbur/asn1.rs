@@ -4235,12 +4235,6 @@ pub fn _encode_ResultAttribute_outputValues(
             }(&v)
         }
         ResultAttribute_outputValues::matchedValuesOnly(v) => BER.encode_null(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("ResultAttribute-outputValues".to_string());
-            Err(err)
-        }
     }
 }
 

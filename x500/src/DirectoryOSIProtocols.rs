@@ -27,7 +27,6 @@ use crate::OSIProtocolSpecification::*;
 use crate::OperationalBindingManagement::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::sync::Arc;
 use x690::*;
 
 /// ### ASN.1 Definition:
@@ -248,7 +247,6 @@ pub fn directoryAccessAC() -> APPLICATION_CONTEXT {
 
 pub mod directoryAccessAC {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -297,7 +295,6 @@ pub fn directorySystemAC() -> APPLICATION_CONTEXT {
 
 pub mod directorySystemAC {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -321,7 +318,6 @@ pub fn shadowSupplierInitiatedAC() -> APPLICATION_CONTEXT {
 
 pub mod shadowSupplierInitiatedAC {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -345,7 +341,6 @@ pub fn shadowConsumerInitiatedAC() -> APPLICATION_CONTEXT {
 
 pub mod shadowConsumerInitiatedAC {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -369,7 +364,6 @@ pub fn shadowSupplierInitiatedAsynchronousAC() -> APPLICATION_CONTEXT {
 
 pub mod shadowSupplierInitiatedAsynchronousAC {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -393,7 +387,6 @@ pub fn shadowConsumerInitiatedAsynchronousAC() -> APPLICATION_CONTEXT {
 
 pub mod shadowConsumerInitiatedAsynchronousAC {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -422,7 +415,6 @@ pub fn directoryOperationalBindingManagementAC() -> APPLICATION_CONTEXT {
 
 pub mod directoryOperationalBindingManagementAC {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:

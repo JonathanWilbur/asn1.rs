@@ -74,7 +74,6 @@ pub fn subschema() -> OBJECT_CLASS {
 
 pub mod subschema {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:

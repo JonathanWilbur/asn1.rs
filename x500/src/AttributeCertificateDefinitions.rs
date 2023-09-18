@@ -2909,12 +2909,6 @@ pub fn _encode_DisplayText(value_: &DisplayText) -> ASN1Result<X690Element> {
         DisplayText::visibleString(v) => BER.encode_visible_string(&v),
         DisplayText::bmpString(v) => BER.encode_bmp_string(&v),
         DisplayText::utf8String(v) => BER.encode_utf8_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("DisplayText".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -5309,7 +5303,6 @@ pub fn pmiUser() -> OBJECT_CLASS {
 
 pub mod pmiUser {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5345,7 +5338,6 @@ pub fn pmiAA() -> OBJECT_CLASS {
 
 pub mod pmiAA {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5381,7 +5373,6 @@ pub fn pmiSOA() -> OBJECT_CLASS {
 
 pub mod pmiSOA {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5415,7 +5406,6 @@ pub fn attCertCRLDistributionPt() -> OBJECT_CLASS {
 
 pub mod attCertCRLDistributionPt {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5443,7 +5433,6 @@ pub fn pmiDelegationPath() -> OBJECT_CLASS {
 
 pub mod pmiDelegationPath {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5471,7 +5460,6 @@ pub fn privilegePolicy() -> OBJECT_CLASS {
 
 pub mod privilegePolicy {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5499,7 +5487,6 @@ pub fn protectedPrivilegePolicy() -> OBJECT_CLASS {
 
 pub mod protectedPrivilegePolicy {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -8185,12 +8172,6 @@ pub fn _encode_AttributeMappings_Item(value_: &AttributeMappings_Item) -> ASN1Re
                 el_1.tag.tag_number = 1;
                 Ok(el_1)
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("AttributeMappings-Item".to_string());
-            Err(err)
         }
     }
 }

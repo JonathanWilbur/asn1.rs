@@ -879,7 +879,6 @@ pub fn pwdDictionaries() -> ATTRIBUTE {
 
 pub mod pwdDictionaries {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:

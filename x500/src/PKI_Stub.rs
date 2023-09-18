@@ -1665,12 +1665,6 @@ pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
     match value_ {
         Time::utcTime(v) => BER.encode_utc_time(&v),
         Time::generalizedTime(v) => BER.encode_generalized_time(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("Time".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -1978,12 +1972,6 @@ pub fn _decode_Name(el: &X690Element) -> ASN1Result<Name> {
 pub fn _encode_Name(value_: &Name) -> ASN1Result<X690Element> {
     match value_ {
         Name::rdnSequence(v) => _encode_RDNSequence(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("Name".to_string());
-            Err(err)
-        }
     }
 }
 

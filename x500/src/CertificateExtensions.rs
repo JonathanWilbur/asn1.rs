@@ -5649,12 +5649,6 @@ pub fn _encode_RevokedCertificateGroup(
     match value_ {
         RevokedCertificateGroup::serialNumberRange(v) => _encode_NumberRange(&v),
         RevokedCertificateGroup::nameSubtree(v) => _encode_GeneralName(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("RevokedCertificateGroup".to_string());
-            Err(err)
-        }
     }
 }
 

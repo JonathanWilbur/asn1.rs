@@ -3775,13 +3775,6 @@ pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
                 ))
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name =
-                Some("EstablishOperationalBindingArgumentData-initiator".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -4036,13 +4029,6 @@ pub fn _encode_EstablishOperationalBindingResultData_initiator(
                 ))
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name =
-                Some("EstablishOperationalBindingResultData-initiator".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -4159,12 +4145,6 @@ pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
                     X690Value::from_explicit(&x690_identity(&v_1)?),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("ModifyOperationalBindingArgumentData-initiator".to_string());
-            Err(err)
         }
     }
 }
@@ -4458,13 +4438,6 @@ pub fn _encode_TerminateOperationalBindingArgumentData_initiator(
                     X690Value::from_explicit(&x690_identity(&v_1)?),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name =
-                Some("TerminateOperationalBindingArgumentData-initiator".to_string());
-            Err(err)
         }
     }
 }

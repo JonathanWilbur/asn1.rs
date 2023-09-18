@@ -25000,12 +25000,6 @@ pub fn _encode_EntryInformationSelection_attributes(
                 ))
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("EntryInformationSelection-attributes".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -25193,12 +25187,6 @@ pub fn _encode_EntryInformationSelection_extraAttributes(
                     ),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("EntryInformationSelection-extraAttributes".to_string());
-            Err(err)
         }
     }
 }
@@ -26102,12 +26090,6 @@ pub fn _encode_SimpleCredentials_validity_time1(
     match value_ {
         SimpleCredentials_validity_time1::utc(v) => BER.encode_utc_time(&v),
         SimpleCredentials_validity_time1::gt(v) => BER.encode_generalized_time(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("SimpleCredentials-validity-time1".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -26167,12 +26149,6 @@ pub fn _encode_SimpleCredentials_validity_time2(
     match value_ {
         SimpleCredentials_validity_time2::utc(v) => BER.encode_utc_time(&v),
         SimpleCredentials_validity_time2::gt(v) => BER.encode_generalized_time(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("SimpleCredentials-validity-time2".to_string());
-            Err(err)
-        }
     }
 }
 

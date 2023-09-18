@@ -1061,12 +1061,6 @@ pub fn _decode_Name(el: &X690Element) -> ASN1Result<Name> {
 pub fn _encode_Name(value_: &Name) -> ASN1Result<X690Element> {
     match value_ {
         Name::rdnSequence(v) => _encode_RDNSequence(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("Name".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -2331,7 +2325,6 @@ pub fn top() -> OBJECT_CLASS {
 
 pub mod top {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2359,7 +2352,6 @@ pub fn alias() -> OBJECT_CLASS {
 
 pub mod alias {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2385,7 +2377,6 @@ pub fn parent() -> OBJECT_CLASS {
 
 pub mod parent {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2411,7 +2402,6 @@ pub fn child() -> OBJECT_CLASS {
 
 pub mod child {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -3831,7 +3821,6 @@ pub fn subentry() -> OBJECT_CLASS {
 
 pub mod subentry {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -3857,7 +3846,6 @@ pub fn subentryNameForm() -> NAME_FORM {
 
 pub mod subentryNameForm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -4554,7 +4542,6 @@ pub fn accessControlSubentry() -> OBJECT_CLASS {
 
 pub mod accessControlSubentry {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -4580,7 +4567,6 @@ pub fn collectiveAttributeSubentry() -> OBJECT_CLASS {
 
 pub mod collectiveAttributeSubentry {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -4652,7 +4638,6 @@ pub fn contextAssertionSubentry() -> OBJECT_CLASS {
 
 pub mod contextAssertionSubentry {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -4724,7 +4709,6 @@ pub fn serviceAdminSubentry() -> OBJECT_CLASS {
 
 pub mod serviceAdminSubentry {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -5699,7 +5683,6 @@ pub fn pwdAdminSubentry() -> OBJECT_CLASS {
 
 pub mod pwdAdminSubentry {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -6965,12 +6948,6 @@ pub fn _encode_AttributeValueAssertion_assertedContexts(
                     ),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("AttributeValueAssertion-assertedContexts".to_string());
-            Err(err)
         }
     }
 }

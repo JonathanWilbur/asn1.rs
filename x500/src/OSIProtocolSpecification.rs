@@ -20,8 +20,6 @@
 //! types.
 //!
 use crate::CommonProtocolSpecification::*;
-use crate::DirectoryAbstractService::*;
-use crate::DirectoryOSIProtocols::*;
 use crate::InformationFramework::*;
 use asn1::*;
 use std::sync::Arc;
@@ -1873,12 +1871,6 @@ pub fn _encode_Associate_source_diagnostic(
                 ))
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("Associate-source-diagnostic".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -1993,12 +1985,6 @@ pub fn _decode_OsiBindError(el: &X690Element) -> ASN1Result<OsiBindError> {
 pub fn _encode_OsiBindError(value_: &OsiBindError) -> ASN1Result<X690Element> {
     match value_ {
         OsiBindError::normal_mode_parameters(v) => _encode_OsiBindError_normal_mode_parameters(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiBindError".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -2751,12 +2737,6 @@ pub fn _encode_OsiUnbind(value_: &OsiUnbind) -> ASN1Result<X690Element> {
                 Ok(el_1)
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiUnbind".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -3029,12 +3009,6 @@ pub fn _encode_OsiUnbindResult(value_: &OsiUnbindResult) -> ASN1Result<X690Eleme
                 el_1.tag.tag_number = 1;
                 Ok(el_1)
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiUnbindResult".to_string());
-            Err(err)
         }
     }
 }
@@ -3310,12 +3284,6 @@ pub fn _encode_OsiOperation(value_: &OsiOperation) -> ASN1Result<X690Element> {
                 Ok(el_1)
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiOperation".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -3396,12 +3364,6 @@ pub fn _encode_OsiDirectoryOperation(value_: &OsiDirectoryOperation) -> ASN1Resu
         OsiDirectoryOperation::result(v) => _encode_OsiRes(&v),
         OsiDirectoryOperation::error(v) => _encode_OsiErr(&v),
         OsiDirectoryOperation::reject(v) => _encode_OsiRej(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiDirectoryOperation".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -4134,12 +4096,6 @@ pub fn _encode_PresentationAbort(value_: &PresentationAbort) -> ASN1Result<X690E
     match value_ {
         PresentationAbort::aru_ppdu(v) => _encode_ARU_PPDU(&v),
         PresentationAbort::arp_ppdu(v) => _encode_ARP_PPDU(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("PresentationAbort".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -4204,12 +4160,6 @@ pub fn _encode_ARU_PPDU(value_: &ARU_PPDU) -> ASN1Result<X690Element> {
                 el_1.tag.tag_number = 0;
                 Ok(el_1)
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("ARU-PPDU".to_string());
-            Err(err)
         }
     }
 }
@@ -4857,7 +4807,6 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_
 ) -> ASN1Result<X690Element> {
     match value_ {
 		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
-		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
 }
 
@@ -5122,12 +5071,6 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data(
             el_1.tag.tag_number = 1;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiBind-normal-mode-parameters-user-data".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -5954,7 +5897,6 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
 ) -> ASN1Result<X690Element> {
     match value_ {
 		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
-		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
 }
 
@@ -6197,12 +6139,6 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data(
             el_1.tag.tag_number = 1;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiBindResult-normal-mode-parameters-user-data".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -6653,7 +6589,6 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
 ) -> ASN1Result<X690Element> {
     match value_ {
 		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
-		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
 }
 
@@ -6898,12 +6833,6 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data(
             el_1.tag.tag_number = 1;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("OsiBindError-normal-mode-parameters-user-data".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -7513,13 +7442,6 @@ pub fn _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
                 ))
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name =
-                Some("OsiUnbind-fully-encoded-data-Item-presentation-data-values".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -7751,14 +7673,6 @@ pub fn _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
                     X690Value::from_explicit(&x690_identity(&v_1)?),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some(
-                "OsiUnbindResult-fully-encoded-data-Item-presentation-data-values".to_string(),
-            );
-            Err(err)
         }
     }
 }
@@ -7992,13 +7906,6 @@ pub fn _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
                     X690Value::from_explicit(&x690_identity(&v_1)?),
                 ))
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name =
-                Some("OsiOperation-fully-encoded-data-Item-presentation-data-values".to_string());
-            Err(err)
         }
     }
 }
@@ -8430,7 +8337,6 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
 ) -> ASN1Result<X690Element> {
     match value_ {
 		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
-		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
 }
 
@@ -8666,12 +8572,6 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data(
             el_1.tag.tag_number = 1;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("ARU-PPDU-normal-mode-parameters-user-data".to_string());
-            Err(err)
-        }
     }
 }
 

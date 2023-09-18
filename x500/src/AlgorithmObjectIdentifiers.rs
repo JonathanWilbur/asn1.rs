@@ -1519,7 +1519,6 @@ pub fn sha256() -> ALGORITHM {
 
 pub mod sha256 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1538,7 +1537,6 @@ pub fn sha384() -> ALGORITHM {
 
 pub mod sha384 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1557,7 +1555,6 @@ pub fn sha512() -> ALGORITHM {
 
 pub mod sha512 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1576,7 +1573,6 @@ pub fn sha224() -> ALGORITHM {
 
 pub mod sha224 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1595,7 +1591,6 @@ pub fn sha512_224() -> ALGORITHM {
 
 pub mod sha512_224 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1614,7 +1609,6 @@ pub fn sha512_256() -> ALGORITHM {
 
 pub mod sha512_256 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1633,7 +1627,6 @@ pub fn sha3_224() -> ALGORITHM {
 
 pub mod sha3_224 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1652,7 +1645,6 @@ pub fn sha3_256() -> ALGORITHM {
 
 pub mod sha3_256 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1671,7 +1663,6 @@ pub fn sha3_384() -> ALGORITHM {
 
 pub mod sha3_384 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1690,7 +1681,6 @@ pub fn sha3_512() -> ALGORITHM {
 
 pub mod sha3_512 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1709,7 +1699,6 @@ pub fn shake128() -> ALGORITHM {
 
 pub mod shake128 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1728,7 +1717,6 @@ pub fn shake256() -> ALGORITHM {
 
 pub mod shake256 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2823,7 +2811,6 @@ pub fn dsa_with_sha224() -> ALGORITHM {
 
 pub mod dsa_with_sha224 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2842,7 +2829,6 @@ pub fn dsa_with_sha256() -> ALGORITHM {
 
 pub mod dsa_with_sha256 {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2861,7 +2847,6 @@ pub fn ecdsa_with_SHA224_Algorithm() -> ALGORITHM {
 
 pub mod ecdsa_with_SHA224_Algorithm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2880,7 +2865,6 @@ pub fn ecdsa_with_SHA256_Algorithm() -> ALGORITHM {
 
 pub mod ecdsa_with_SHA256_Algorithm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2899,7 +2883,6 @@ pub fn ecdsa_with_SHA384_Algorithm() -> ALGORITHM {
 
 pub mod ecdsa_with_SHA384_Algorithm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2918,7 +2901,6 @@ pub fn ecdsa_with_SHA512_Algorithm() -> ALGORITHM {
 
 pub mod ecdsa_with_SHA512_Algorithm {
     /* OBJECT_TYPES */
-    use super::*;
 }
 
 /// ### ASN.1 Definition:

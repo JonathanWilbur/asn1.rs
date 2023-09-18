@@ -710,13 +710,6 @@ pub fn _encode_CountryName(value_: &CountryName) -> ASN1Result<X690Element> {
                 match value_ {
                     CountryName::x121_dcc_code(v) => BER.encode_numeric_string(&v),
                     CountryName::iso_3166_alpha2_code(v) => BER.encode_printable_string(&v),
-                    _ => {
-                        let mut err = ASN1Error::new(
-                            ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                        );
-                        err.component_name = Some("CountryName".to_string());
-                        Err(err)
-                    }
                 }
             }(&v_1)?),
         ))
@@ -796,13 +789,6 @@ pub fn _encode_AdministrationDomainName(
                     match value_ {
                         AdministrationDomainName::numeric(v) => BER.encode_numeric_string(&v),
                         AdministrationDomainName::printable(v) => BER.encode_printable_string(&v),
-                        _ => {
-                            let mut err = ASN1Error::new(
-                                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                            );
-                            err.component_name = Some("AdministrationDomainName".to_string());
-                            Err(err)
-                        }
                     }
                 }(&v_1)?,
             ),
@@ -932,12 +918,6 @@ pub fn _encode_PrivateDomainName(value_: &PrivateDomainName) -> ASN1Result<X690E
     match value_ {
         PrivateDomainName::numeric(v) => BER.encode_numeric_string(&v),
         PrivateDomainName::printable(v) => BER.encode_printable_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("PrivateDomainName".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -2976,12 +2956,6 @@ pub fn _encode_PhysicalDeliveryCountryName(
     match value_ {
         PhysicalDeliveryCountryName::x121_dcc_code(v) => BER.encode_numeric_string(&v),
         PhysicalDeliveryCountryName::iso_3166_alpha2_code(v) => BER.encode_printable_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("PhysicalDeliveryCountryName".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -3068,12 +3042,6 @@ pub fn _encode_PostalCode(value_: &PostalCode) -> ASN1Result<X690Element> {
     match value_ {
         PostalCode::numeric_code(v) => BER.encode_numeric_string(&v),
         PostalCode::printable_code(v) => BER.encode_printable_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("PostalCode".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -4748,12 +4716,6 @@ pub fn _encode_ExtendedNetworkAddress(value_: &ExtendedNetworkAddress) -> ASN1Re
                 Ok(el_1)
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("ExtendedNetworkAddress".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -5608,12 +5570,6 @@ pub fn _encode_UniversalOrBMPString_character_encoding(
     match value_ {
         UniversalOrBMPString_character_encoding::two_octets(v) => BER.encode_bmp_string(&v),
         UniversalOrBMPString_character_encoding::four_octets(v) => BER.encode_universal_string(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("UniversalOrBMPString-character-encoding".to_string());
-            Err(err)
-        }
     }
 }
 

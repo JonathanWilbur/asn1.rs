@@ -1507,12 +1507,6 @@ pub fn _encode_Conf_Algs(value_: &Conf_Algs) -> ASN1Result<X690Element> {
             el_1.tag.tag_number = 1;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("Conf-Algs".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -3837,12 +3831,6 @@ pub fn _encode_Conf_Alg(value_: &Conf_Alg) -> ASN1Result<X690Element> {
             el_1.tag.tag_number = 1;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("Conf-Alg".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -4436,12 +4424,6 @@ pub fn _encode_SPKMInnerContextToken(value_: &SPKMInnerContextToken) -> ASN1Resu
             el_1.tag.tag_number = 6;
             Ok(el_1)
         }(&v),
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("SPKMInnerContextToken".to_string());
-            Err(err)
-        }
     }
 }
 

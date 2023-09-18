@@ -20,7 +20,6 @@
 //! types.
 //!
 use crate::AttributeCertificateDefinitions::*;
-use crate::AuthenticationFramework::*;
 use crate::CertificateExtensions::*;
 use crate::InformationFramework::*;
 use crate::UsefulDefinitions::*;

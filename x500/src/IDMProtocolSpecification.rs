@@ -21,7 +21,6 @@
 //!
 use crate::CertificateExtensions::*;
 use crate::CommonProtocolSpecification::*;
-use crate::DirectoryAbstractService::*;
 use asn1::*;
 use std::sync::Arc;
 use x690::*;

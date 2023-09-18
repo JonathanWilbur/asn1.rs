@@ -21,7 +21,6 @@
 //!
 use crate::CryptoTools::*;
 use crate::PKI_Stub::*;
-use crate::ProtProtocols::*;
 use asn1::*;
 use std::sync::Arc;
 use x690::*;
@@ -5201,12 +5200,6 @@ pub fn _encode_TbsHandshakeAcc_sigSel(value_: &TbsHandshakeAcc_sigSel) -> ASN1Re
                 Ok(el_1)
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("TbsHandshakeAcc-sigSel".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -5277,12 +5270,6 @@ pub fn _encode_TbsHandshakeAcc_keyEstSel(
                 el_1.tag.tag_number = 1;
                 Ok(el_1)
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("TbsHandshakeAcc-keyEstSel".to_string());
-            Err(err)
         }
     }
 }
@@ -5591,12 +5578,6 @@ pub fn _encode_TbsHandshakeWrpRej_sigSel(
                 Ok(el_1)
             }(&v)
         }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("TbsHandshakeWrpRej-sigSel".to_string());
-            Err(err)
-        }
     }
 }
 
@@ -5667,12 +5648,6 @@ pub fn _encode_TbsHandshakeProRej_sigSel(
                 el_1.tag.tag_number = 0;
                 Ok(el_1)
             }(&v)
-        }
-        _ => {
-            let mut err =
-                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-            err.component_name = Some("TbsHandshakeProRej-sigSel".to_string());
-            Err(err)
         }
     }
 }
