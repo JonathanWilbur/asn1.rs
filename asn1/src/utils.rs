@@ -24,3 +24,28 @@ pub fn read_i64(bytes: ByteSlice) -> Result<i64, ()> {
         _ => Err(()),
     }
 }
+
+pub fn read_i128(bytes: ByteSlice) -> Result<i128, ()> {
+    let len = bytes.len();
+    match len {
+        1 => Ok(bytes[0] as i128),
+        2 => Ok(i16::from_be_bytes([bytes[0], bytes[1]]) as i128),
+        3 => Ok(i32::from_be_bytes([
+            if bytes[0] & 0b1000_0000 > 0 {
+                0xFF
+            } else {
+                0x00
+            },
+            bytes[0],
+            bytes[1],
+            bytes[2],
+        ]) as i128),
+        4 => Ok(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as i128),
+        5..=16 => {
+            let mut buf: [u8; 16] = [0; 16];
+            buf[16 - len..].copy_from_slice(bytes);
+            Ok(i128::from_be_bytes(buf))
+        }
+        _ => Err(()),
+    }
+}

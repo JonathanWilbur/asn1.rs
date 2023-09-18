@@ -21,6 +21,8 @@
 //!
 use crate::UsefulDefinitions::*;
 use asn1::*;
+use std::sync::Arc;
+use x690::*;
 
 /// ### ASN.1 Definition:
 ///

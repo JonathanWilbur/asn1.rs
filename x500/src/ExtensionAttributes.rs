@@ -19,12 +19,53 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+use crate::AttributeCertificateDefinitions::*;
+use crate::AuthenticationFramework::*;
+use crate::CertificateExtensions::*;
 use crate::InformationFramework::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
+
+/// A macro for concisely representing extension attributes, as defined in
+/// ITU-T Recommendation X.509 (2019), Annex C.
+#[macro_export]
+macro_rules! ext_attr {
+    ( $name:ident $ext:ident $ldapsyn:ident $id:ident $ldapname:expr ) => {
+        pub fn $name () -> ATTRIBUTE {
+            ATTRIBUTE {
+                ldapSyntax: Some($ldapsyn()), /* OBJECT_FIELD_SETTING */
+                ldapName: Some(Vec::from([String::from($ldapname)])), /* OBJECT_FIELD_SETTING */
+                id: $id(), /* OBJECT_FIELD_SETTING */
+                derivation: None,
+                equality_match: None,
+                ordering_match: None,
+                substrings_match: None,
+                single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+                collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+                dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+                no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+                usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+                ldapDesc: None,
+                obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+            }
+        }
+        pub mod $name {
+            use super::*;
+            pub type Type = $ext::ExtnType; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+            pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+                $ext::_decode_ExtnType(el)
+            }
+            pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+                $ext::_encode_ExtnType(value_)
+            }
+            pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+                $ext::_validate_ExtnType(el)
+            }
+        }
+    };
+}
 
 /// ### ASN.1 Definition:
 ///
@@ -38,7 +79,6 @@ use x690::*;
 ///     ... },
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ExtensionAttribute {
@@ -59,15 +99,9 @@ impl ExtensionAttribute {
         }
     }
 }
-impl TryFrom<X690Element> for ExtensionAttribute {
+impl TryFrom<&X690Element> for ExtensionAttribute {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ExtensionAttribute(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ExtensionAttribute {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtensionAttribute(el)
     }
 }
@@ -94,1725 +128,185 @@ pub const _rctl2_components_for_ExtensionAttribute: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ExtensionAttribute: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ExtensionAttribute(el: &X690Element) -> ASN1Result<ExtensionAttribute> {
-    |el_: &X690Element| -> ASN1Result<ExtensionAttribute> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ExtensionAttribute,
-            _eal_components_for_ExtensionAttribute,
-            _rctl2_components_for_ExtensionAttribute,
-        )?;
-        let type_ = ber_decode_object_identifier(_components.get("type").unwrap())?;
-        let value = |el: &X690Element| -> ASN1Result<SET_OF<ExtensionAttribute_value_Item>> {
-            let elements = match el.value.borrow() {
-                X690Encoding::Constructed(children) => children,
-                _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-            };
-            let mut items: SET_OF<ExtensionAttribute_value_Item> =
-                Vec::with_capacity(elements.len());
-            for el in elements {
-                items.push(_decode_ExtensionAttribute_value_Item(el)?);
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttribute")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtensionAttribute,
+        _eal_components_for_ExtensionAttribute,
+        _rctl2_components_for_ExtensionAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut type__: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut value_: OPTIONAL<Vec<ExtensionAttribute_value_Item>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => type__ = Some(BER.decode_object_identifier(_el)?),
+            "value" => {
+                value_ = Some(
+                    |el: &X690Element| -> ASN1Result<SET_OF<ExtensionAttribute_value_Item>> {
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "value",
+                                ))
+                            }
+                        };
+                        let mut items: SET_OF<ExtensionAttribute_value_Item> =
+                            Vec::with_capacity(elements.len());
+                        for el in elements.iter() {
+                            items.push(_decode_ExtensionAttribute_value_Item(el)?);
+                        }
+                        Ok(items)
+                    }(_el)?,
+                )
             }
-            Ok(items)
-        }(_components.get("value").unwrap())?;
-        Ok(ExtensionAttribute {
-            type_,
-            value,
-            _unrecognized,
-        })
-    }(&el)
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ExtensionAttribute {
+        type_: type__.unwrap(),
+        value: value_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_ExtensionAttribute(value_: &ExtensionAttribute) -> ASN1Result<X690Element> {
-    |value_: &ExtensionAttribute| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(ber_encode_object_identifier(&value_.type_)?);
-        components_.push(
-            |value_: &SET_OF<ExtensionAttribute_value_Item>| -> ASN1Result<X690Element> {
-                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                for v in value_ {
-                    children.push(_encode_ExtensionAttribute_value_Item(&v)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(BER.encode_object_identifier(&value_.type_)?);
+    components_.push(
+        |value_: &SET_OF<ExtensionAttribute_value_Item>| -> ASN1Result<X690Element> {
+            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+            for v in value_ {
+                children.push(_encode_ExtensionAttribute_value_Item(&v)?);
+            }
+            Ok(X690Element::new(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                X690Value::Constructed(Arc::new(children)),
+            ))
+        }(&value_.value)?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ExtensionAttribute(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttribute")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtensionAttribute,
+        _eal_components_for_ExtensionAttribute,
+        _rctl2_components_for_ExtensionAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => BER.validate_object_identifier(_el)?,
+            "value" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_ExtensionAttribute_value_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "value")),
                 }
-                Ok(X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                    Arc::new(X690Encoding::Constructed(children)),
-                ))
-            }(&value_.value)?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 // %FIXME%: COULD_NOT_COMPILE_ASSIGNMENT extensionSyntax PARAMETERIZATION_UNSUPPORTED
 
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-authorityKeyIdentifier ATTRIBUTE ::= {
-///   WITH SYNTAX       authorityKeyIdentifier.&ExtnType
-///   LDAP-SYNTAX       id-asx-authorityKeyIdentifier
-///   LDAP-NAME         {"Authority Key Identifier"}
-///   ID                id-ce-a-authorityKeyIdentifier }
-/// ```
-///
-///
-pub fn a_authorityKeyIdentifier() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_authorityKeyIdentifier()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Authority Key Identifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_authorityKeyIdentifier(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-keyUsage ATTRIBUTE ::= {
-///   WITH SYNTAX       keyUsage.&ExtnType
-///   LDAP-SYNTAX       id-asx-keyUsage
-///   LDAP-NAME         {"Key Usage"}
-///   ID                id-ce-a-keyUsage }
-/// ```
-///
-///
-pub fn a_keyUsage() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_keyUsage()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Key Usage")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_keyUsage(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-extKeyUsage ATTRIBUTE ::= {
-///   WITH SYNTAX       extKeyUsage.&ExtnType
-///   LDAP-SYNTAX       id-asx-extKeyUsage
-///   LDAP-NAME         {"Extended Key Usage"}
-///   ID                id-ce-a-extKeyUsage }
-/// ```
-///
-///
-pub fn a_extKeyUsage() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_extKeyUsage()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Extended Key Usage")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_extKeyUsage(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-privateKeyUsagePeriod ATTRIBUTE ::= {
-///   WITH SYNTAX       privateKeyUsagePeriod.&ExtnType
-///   LDAP-SYNTAX       id-asx-privateKeyUsagePeriod
-///   LDAP-NAME         {"Private Key Usage Period"}
-///   ID                id-ce-a-privateKeyUsagePeriod }
-/// ```
-///
-///
-pub fn a_privateKeyUsagePeriod() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_privateKeyUsagePeriod()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Private Key Usage Period")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_privateKeyUsagePeriod(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-certificatePolicies ATTRIBUTE ::= {
-///   WITH SYNTAX       certificatePolicies.&ExtnType
-///   LDAP-SYNTAX       id-asx-certificatePolicies
-///   LDAP-NAME         {"Certificate Policies"}
-///   ID                id-ce-a-certificatePolicies }
-/// ```
-///
-///
-pub fn a_certificatePolicies() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_certificatePolicies()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Certificate Policies")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_certificatePolicies(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-policyMappings ATTRIBUTE ::= {
-///   WITH SYNTAX       policyMappings.&ExtnType
-///   LDAP-SYNTAX       id-asx-policyMappings
-///   LDAP-NAME         {"Policy Mappings"}
-///   ID                id-ce-a-policyMappings }
-/// ```
-///
-///
-pub fn a_policyMappings() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_policyMappings()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Policy Mappings")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_policyMappings(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-authorizationValidation ATTRIBUTE ::= {
-///   WITH SYNTAX       authorizationValidation.&ExtnType
-///   LDAP-SYNTAX       id-asx-authorizationValidation
-///   LDAP-NAME         {"Authorization Validation"}
-///   ID                id-ce-a-authorizationValidation }
-/// ```
-///
-///
-pub fn a_authorizationValidation() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_authorizationValidation()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Authorization Validation")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_authorizationValidation(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-subjectAltName ATTRIBUTE ::= {
-///   WITH SYNTAX       subjectAltName.&ExtnType
-///   LDAP-SYNTAX       id-asx-subjectAltName
-///   LDAP-NAME         {"Subject Alternative Name"}
-///   ID                id-ce-a-subjectAltName }
-/// ```
-///
-///
-pub fn a_subjectAltName() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_subjectAltName()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Subject Alternative Name")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_subjectAltName(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-issuerAltName ATTRIBUTE ::= {
-///   WITH SYNTAX       issuerAltName.&ExtnType
-///   LDAP-SYNTAX       id-asx-issuerAltName
-///   LDAP-NAME         {"Issuer Alternative Name"}
-///   ID                id-ce-a-issuerAltName }
-/// ```
-///
-///
-pub fn a_issuerAltName() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_issuerAltName()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Issuer Alternative Name")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_issuerAltName(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-subjectDirectoryAttributes ATTRIBUTE ::= {
-///   WITH SYNTAX       subjectDirectoryAttributes.&ExtnType
-///   LDAP-SYNTAX       id-asx-subjectDirectoryAttributes
-///   LDAP-NAME         {"Subject Directory Attributes"}
-///   ID                id-ce-a-subjectDirectoryAttributes }
-/// ```
-///
-///
-pub fn a_subjectDirectoryAttributes() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_subjectDirectoryAttributes()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Subject Directory Attributes")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_subjectDirectoryAttributes(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-basicConstraints ATTRIBUTE ::= {
-///   WITH SYNTAX       basicConstraints.&ExtnType
-///   LDAP-SYNTAX       id-asx-basicConstraints
-///   LDAP-NAME         {"Basic Constraints"}
-///   ID                id-ce-a-basicConstraints }
-/// ```
-///
-///
-pub fn a_basicConstraints() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_basicConstraints()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Basic Constraints")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_basicConstraints(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-nameConstraints ATTRIBUTE ::= {
-///   WITH SYNTAX       policyConstraints.&ExtnType
-///   LDAP-SYNTAX       id-asx-nameConstraints
-///   LDAP-NAME         {"Name Constraints"}
-///   ID                id-ce-a-nameConstraints }
-/// ```
-///
-///
-pub fn a_nameConstraints() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_nameConstraints()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Name Constraints")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_nameConstraints(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-policyConstraints ATTRIBUTE ::= {
-///   WITH SYNTAX       policyConstraints.&ExtnType
-///   LDAP-SYNTAX       id-asx-policyConstraints
-///   LDAP-NAME         {"Policy Constraints"}
-///   ID                id-ce-a-policyConstraints }
-/// ```
-///
-///
-pub fn a_policyConstraints() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_policyConstraints()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Policy Constraints")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_policyConstraints(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-cRLNumber ATTRIBUTE ::= {
-///   WITH SYNTAX       cRLNumber.&ExtnType
-///   LDAP-SYNTAX       id-asx-cRLNumber
-///   LDAP-NAME         {"CRL Number"}
-///   ID                id-ce-a-cRLNumber}
-/// ```
-///
-///
-pub fn a_cRLNumber() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_cRLNumber()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("CRL Number")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_cRLNumber(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-statusReferrals ATTRIBUTE ::= {
-///   WITH SYNTAX       statusReferrals.&ExtnType
-///   LDAP-SYNTAX       id-asx-statusReferrals
-///   LDAP-NAME         {"Status Referrals"}
-///   ID                id-ce-a-statusReferrals}
-/// ```
-///
-///
-pub fn a_statusReferrals() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_statusReferrals()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Status Referrals")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_statusReferrals(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-cRLStreamIdentifier ATTRIBUTE ::= {
-///   WITH SYNTAX       cRLStreamIdentifier.&ExtnType
-///   LDAP-SYNTAX       id-asx-cRLStreamIdentifier
-///   LDAP-NAME         {"CRL stream identifier"}
-///   ID                id-ce-a-cRLStreamIdentifier}
-/// ```
-///
-///
-pub fn a_cRLStreamIdentifier() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_cRLStreamIdentifier()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("CRL stream identifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_cRLStreamIdentifier(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-orderedList ATTRIBUTE ::= {
-///   WITH SYNTAX       orderedList.&ExtnType
-///   LDAP-SYNTAX       id-asx-orderedList
-///   LDAP-NAME         {"Ordered list"}
-///   ID                id-ce-a-orderedList}
-/// ```
-///
-///
-pub fn a_orderedList() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_orderedList()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Ordered list")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_orderedList(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-deltaInfo ATTRIBUTE ::= {
-///   WITH SYNTAX       deltaInfo.&ExtnType
-///   LDAP-SYNTAX       id-asx-deltaInfo
-///   LDAP-NAME         {"Delta information"}
-///   ID                id-ce-a-deltaInfo}
-/// ```
-///
-///
-pub fn a_deltaInfo() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_deltaInfo()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Delta information")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_deltaInfo(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-toBeRevoked ATTRIBUTE ::= {
-///   WITH SYNTAX       toBeRevoked.&ExtnType
-///   LDAP-SYNTAX       id-asx-toBeRevoked
-///   LDAP-NAME         {"To be revoked"}
-///   ID                id-ce-a-toBeRevoked}
-/// ```
-///
-///
-pub fn a_toBeRevoked() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_toBeRevoked()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("To be revoked")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_toBeRevoked(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-revokedGroups ATTRIBUTE ::= {
-///   WITH SYNTAX       revokedGroups.&ExtnType
-///   LDAP-SYNTAX       id-asx-revokedGroups
-///   LDAP-NAME         {"Revoked group of certificates"}
-///   ID                id-ce-a-revokedGroups}
-/// ```
-///
-///
-pub fn a_revokedGroups() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_revokedGroups()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Revoked group of certificates")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_revokedGroups(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-expiredCertsOnCRL ATTRIBUTE ::= {
-///   WITH SYNTAX       expiredCertsOnCRL.&ExtnType
-///   LDAP-SYNTAX       id-asx-expiredCertsOnCRL
-///   LDAP-NAME         {"Expired certificates on CRL"}
-///   ID                id-ce-a-expiredCertsOnCRL}
-/// ```
-///
-///
-pub fn a_expiredCertsOnCRL() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_expiredCertsOnCRL()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Expired certificates on CRL")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_expiredCertsOnCRL(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-reasonCode ATTRIBUTE ::= {
-///   WITH SYNTAX       reasonCode.&ExtnType
-///   LDAP-SYNTAX       id-asx-reasonCode
-///   LDAP-NAME         {"Reason code"}
-///   ID                id-ce-a-reasonCode}
-/// ```
-///
-///
-pub fn a_reasonCode() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_reasonCode()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Reason code")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_reasonCode(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-holdInstructionCode ATTRIBUTE ::= {
-///   WITH SYNTAX       holdInstructionCode.&ExtnType
-///   LDAP-SYNTAX       id-asx-holdInstructionCode
-///   LDAP-NAME         {"Hold instruction code"}
-///   ID                id-ce-a-holdInstructionCode}
-/// ```
-///
-///
-pub fn a_holdInstructionCode() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_holdInstructionCode()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Hold instruction code")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_holdInstructionCode(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-invalidityDate ATTRIBUTE ::= {
-///   WITH SYNTAX       invalidityDate.&ExtnType
-///   LDAP-SYNTAX       id-asx-invalidityDate
-///   LDAP-NAME         {"Invalidity date"}
-///   ID                id-ce-a-invalidityDate}
-/// ```
-///
-///
-pub fn a_invalidityDate() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_invalidityDate()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Invalidity date")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_invalidityDate(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-cRLDistributionPoints ATTRIBUTE ::= {
-///   WITH SYNTAX       cRLDistributionPoints.&ExtnType
-///   LDAP-SYNTAX       id-asx-cRLDistributionPoints
-///   LDAP-NAME         {"CRL distribution points"}
-///   ID                id-ce-a-cRLDistributionPoints}
-/// ```
-///
-///
-pub fn a_cRLDistributionPoints() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_cRLDistributionPoints()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("CRL distribution points")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_cRLDistributionPoints(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-issuingDistributionPoint ATTRIBUTE ::= {
-///   WITH SYNTAX       issuingDistributionPoint.&ExtnType
-///   LDAP-SYNTAX       id-asx-issuingDistributionPoint
-///   LDAP-NAME         {"Issuing distribution point"}
-///   ID                id-ce-a-issuingDistributionPoint}
-/// ```
-///
-///
-pub fn a_issuingDistributionPoint() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_issuingDistributionPoint()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Issuing distribution point")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_issuingDistributionPoint(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-certificateIssuer ATTRIBUTE ::= {
-///   WITH SYNTAX       certificateIssuer.&ExtnType
-///   LDAP-SYNTAX       id-asx-certificateIssuer
-///   LDAP-NAME         {"Certificate issuer"}
-///   ID                id-ce-a-certificateIssuer}
-/// ```
-///
-///
-pub fn a_certificateIssuer() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_certificateIssuer()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Certificate issuer")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_certificateIssuer(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-deltaCRLIndicator ATTRIBUTE ::= {
-///   WITH SYNTAX       deltaCRLIndicator.&ExtnType
-///   LDAP-SYNTAX       id-asx-deltaCRLIndicator
-///   LDAP-NAME         {"Delta CRL indicator"}
-///   ID                id-ce-a-deltaCRLIndicator}
-/// ```
-///
-///
-pub fn a_deltaCRLIndicator() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_deltaCRLIndicator()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Delta CRL indicator")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_deltaCRLIndicator(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-baseUpdateTime ATTRIBUTE ::= {
-///   WITH SYNTAX       baseUpdateTime.&ExtnType
-///   LDAP-SYNTAX       id-asx-baseUpdateTime
-///   LDAP-NAME         {"Base update time"}
-///   ID                id-ce-a-baseUpdateTime}
-/// ```
-///
-///
-pub fn a_baseUpdateTime() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_baseUpdateTime()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Base update time")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_baseUpdateTime(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-freshestCRL ATTRIBUTE ::= {
-///   WITH SYNTAX       freshestCRL.&ExtnType
-///   LDAP-SYNTAX       id-asx-freshestCRL
-///   LDAP-NAME         {"Freshest CRL"}
-///   ID                id-ce-a-freshestCRL}
-/// ```
-///
-///
-pub fn a_freshestCRL() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_freshestCRL()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Freshest CRL")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_freshestCRL(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-timeSpecification ATTRIBUTE ::= {
-///   WITH SYNTAX       timeSpecification.&ExtnType
-///   LDAP-SYNTAX       id-asx-timeSpecification
-///   LDAP-NAME         {"Time specification"}
-///   ID                id-ce-a-timeSpecification}
-/// ```
-///
-///
-pub fn a_timeSpecification() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_timeSpecification()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Time specification")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_timeSpecification(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-targetingInformation ATTRIBUTE ::= {
-///   WITH SYNTAX       targetingInformation.&ExtnType
-///   LDAP-SYNTAX       id-asx-targetingInformation
-///   LDAP-NAME         {"Targeting information"}
-///   ID                id-ce-a-targetingInformation}
-/// ```
-///
-///
-pub fn a_targetingInformation() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_targetingInformation()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Targeting information")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_targetingInformation(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-userNotice ATTRIBUTE ::= {
-///   WITH SYNTAX       userNotice.&ExtnType
-///   LDAP-SYNTAX       id-asx-userNotice
-///   LDAP-NAME         {"User notice"}
-///   ID                id-ce-a-userNotice}
-/// ```
-///
-///
-pub fn a_userNotice() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_userNotice()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("User notice")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_userNotice(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-acceptablePrivilegePolicies ATTRIBUTE ::= {
-///   WITH SYNTAX       acceptablePrivilegePolicies.&ExtnType
-///   LDAP-SYNTAX       id-asx-acceptablePrivilegePolicies
-///   LDAP-NAME         {"Acceptable Privilege Policies"}
-///   ID                id-ce-a-acceptablePrivilegePolicies}
-/// ```
-///
-///
-pub fn a_acceptablePrivilegePolicies() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_acceptablePrivilegePolicies()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Acceptable Privilege Policies")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_acceptablePrivilegePolicies(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-singleUse ATTRIBUTE ::= {
-///   WITH SYNTAX       singleUse.&ExtnType
-///   LDAP-SYNTAX       id-asx-singleUse
-///   LDAP-NAME         {"Single use"}
-///   ID                id-ce-a-singleUse}
-/// ```
-///
-///
-pub fn a_singleUse() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_singleUse()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Single use")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_singleUse(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-groupAC ATTRIBUTE ::= {
-///   WITH SYNTAX       groupAC.&ExtnType
-///   LDAP-SYNTAX       id-asx-groupAC
-///   LDAP-NAME         {"Group attribute certificate"}
-///   ID                id-ce-a-groupAC}
-/// ```
-///
-///
-pub fn a_groupAC() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_groupAC()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Group attribute certificate")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_groupAC(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-noRevAvail ATTRIBUTE ::= {
-///   WITH SYNTAX       noRevAvail.&ExtnType
-///   LDAP-SYNTAX       id-asx-noRevAvail
-///   LDAP-NAME         {"No revocation information available"}
-///   ID                id-ce-a-noRevAvail}
-/// ```
-///
-///
-pub fn a_noRevAvail() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_noRevAvail()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from(
-            "No revocation information available",
-        )])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_noRevAvail(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-sOAIdentifier ATTRIBUTE ::= {
-///   WITH SYNTAX       sOAIdentifier.&ExtnType
-///   LDAP-SYNTAX       id-asx-sOAIdentifier
-///   LDAP-NAME         {"SOA identifier"}
-///   ID                id-ce-a-sOAIdentifier}
-/// ```
-///
-///
-pub fn a_sOAIdentifier() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_sOAIdentifier()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("SOA identifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_sOAIdentifier(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-attributeDescriptor ATTRIBUTE ::= {
-///   WITH SYNTAX       attributeDescriptor.&ExtnType
-///   LDAP-SYNTAX       id-asx-attributeDescriptor
-///   LDAP-NAME         {"Attribute descriptor"}
-///   ID                id-ce-a-attributeDescriptor}
-/// ```
-///
-///
-pub fn a_attributeDescriptor() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_attributeDescriptor()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Attribute descriptor")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_attributeDescriptor(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-roleSpecCertIdentifier ATTRIBUTE ::= {
-///   WITH SYNTAX       roleSpecCertIdentifier.&ExtnType
-///   LDAP-SYNTAX       id-asx-roleSpecCertIdentifier
-///   LDAP-NAME         {"Role specification certificate identifier"}
-///   ID                id-ce-a-roleSpecCertIdentifier}
-/// ```
-///
-///
-pub fn a_roleSpecCertIdentifier() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_roleSpecCertIdentifier()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from(
-            "Role specification certificate identifier",
-        )])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_roleSpecCertIdentifier(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-basicAttConstraints ATTRIBUTE ::= {
-///   WITH SYNTAX       basicAttConstraints.&ExtnType
-///   LDAP-SYNTAX       id-asx-basicAttConstraints
-///   LDAP-NAME         {"Basic attribute constraints"}
-///   ID                id-ce-a-basicAttConstraints}
-/// ```
-///
-///
-pub fn a_basicAttConstraints() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_basicAttConstraints()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Basic attribute constraints")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_basicAttConstraints(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-delegatedNameConstraints ATTRIBUTE ::= {
-///   WITH SYNTAX       delegatedNameConstraints.&ExtnType
-///   LDAP-SYNTAX       id-asx-delegatedNameConstraints
-///   LDAP-NAME         {"Delegated name constraints"}
-///   ID                id-ce-a-delegatedNameConstraints}
-/// ```
-///
-///
-pub fn a_delegatedNameConstraints() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_delegatedNameConstraints()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Delegated name constraints")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_delegatedNameConstraints(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-acceptableCertPolicies ATTRIBUTE ::= {
-///   WITH SYNTAX       acceptableCertPolicies.&ExtnType
-///   LDAP-SYNTAX       id-asx-acceptableCertPolicies
-///   LDAP-NAME         {"Acceptable certificate policiesGroup attribute certificate"}
-///   ID                id-ce-a-acceptableCertPolicies}
-/// ```
-///
-///
-pub fn a_acceptableCertPolicies() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_acceptableCertPolicies()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from(
-            "Acceptable certificate policiesGroup attribute certificate",
-        )])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_acceptableCertPolicies(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-authorityAttributeIdentifier ATTRIBUTE ::= {
-///   WITH SYNTAX       authorityAttributeIdentifier.&ExtnType
-///   LDAP-SYNTAX       id-asx-authorityAttributeIdentifier
-///   LDAP-NAME         {"Authority attribute identifier"}
-///   ID                id-ce-a-authorityAttributeIdentifier}
-/// ```
-///
-///
-pub fn a_authorityAttributeIdentifier() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_authorityAttributeIdentifier()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Authority attribute identifier")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_authorityAttributeIdentifier(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-indirectIssuer ATTRIBUTE ::= {
-///   WITH SYNTAX       indirectIssuer.&ExtnType
-///   LDAP-SYNTAX       id-asx-indirectIssuer
-///   LDAP-NAME         {"Indirect issuer"}
-///   ID                id-ce-a-indirectIssuer}
-/// ```
-///
-///
-pub fn a_indirectIssuer() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_indirectIssuer()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Indirect issuer")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_indirectIssuer(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-issuedOnBehalfOf ATTRIBUTE ::= {
-///   WITH SYNTAX       issuedOnBehalfOf.&ExtnType
-///   LDAP-SYNTAX       id-asx-issuedOnBehalfOf
-///   LDAP-NAME         {"Issued on behalf of"}
-///   ID                id-ce-a-issuedOnBehalfOf}
-/// ```
-///
-///
-pub fn a_issuedOnBehalfOf() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_issuedOnBehalfOf()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Issued on behalf of")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_issuedOnBehalfOf(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-noAssertion ATTRIBUTE ::= {
-///   WITH SYNTAX       noAssertion.&ExtnType
-///   LDAP-SYNTAX       id-asx-noAssertion
-///   LDAP-NAME         {"No assertion"}
-///   ID                id-ce-a-noAssertion}
-/// ```
-///
-///
-pub fn a_noAssertion() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_noAssertion()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("No assertion")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_noAssertion(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-allowedAttributeAssignments ATTRIBUTE ::= {
-///   WITH SYNTAX       allowedAttributeAssignments.&ExtnType
-///   LDAP-SYNTAX       id-asx-allowedAttributeAssignments
-///   LDAP-NAME         {"Allowed attribute assignments"}
-///   ID                id-ce-a-allowedAttributeAssignments}
-/// ```
-///
-///
-pub fn a_allowedAttributeAssignments() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_allowedAttributeAssignments()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Allowed attribute assignments")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_allowedAttributeAssignments(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-attributeMappings ATTRIBUTE ::= {
-///   WITH SYNTAX       attributeMappings.&ExtnType
-///   LDAP-SYNTAX       id-asx-attributeMappings
-///   LDAP-NAME         {"Attribute mappings"}
-///   ID                id-ce-a-attributeMappings}
-/// ```
-///
-///
-pub fn a_attributeMappings() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_attributeMappings()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Attribute mappings")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_attributeMappings(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-holderNameConstraints ATTRIBUTE ::= {
-///   WITH SYNTAX       holderNameConstraints.&ExtnType
-///   LDAP-SYNTAX       id-asx-holderNameConstraints
-///   LDAP-NAME         {"Holder name constraints"}
-///   ID                id-ce-a-holderNameConstraints}
-/// ```
-///
-///
-pub fn a_holderNameConstraints() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_holderNameConstraints()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Holder name constraints")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_holderNameConstraints(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-aAissuingDistributionPoint ATTRIBUTE ::= {
-///   WITH SYNTAX       aAissuingDistributionPoint.&ExtnType
-///   LDAP-SYNTAX       id-asx-aAissuingDistributionPoint
-///   LDAP-NAME         {"AA issuing distribution point"}
-///   ID                id-ce-a-aAissuingDistributionPoint}
-/// ```
-///
-///
-pub fn a_aAissuingDistributionPoint() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_aAissuingDistributionPoint()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("AA issuing distribution point")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_aAissuingDistributionPoint(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-protRestrict ATTRIBUTE ::= {
-///   WITH SYNTAX       protRestrict.&ExtnType
-///   LDAP-SYNTAX       id-asx-protRestrict
-///   LDAP-NAME         {"Protocol restriction"}
-///   ID                id-ce-a-protRestrict}
-/// ```
-///
-///
-pub fn a_protRestrict() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_protRestrict()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Protocol restriction")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_protRestrict(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-subjectAltPublicKeyInfo ATTRIBUTE ::= {
-///   WITH SYNTAX       subjectAltPublicKeyInfo.&ExtnType
-///   LDAP-SYNTAX       id-asx-subjectAltPublicKeyInfo
-///   LDAP-NAME         {"Subject alternative public key info"}
-///   ID                id-ce-a-subjectAltPublicKeyInfo}
-/// ```
-///
-///
-pub fn a_subjectAltPublicKeyInfo() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_subjectAltPublicKeyInfo()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from(
-            "Subject alternative public key info",
-        )])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_subjectAltPublicKeyInfo(),              /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-altSignatureAlgorithm ATTRIBUTE ::= {
-///   WITH SYNTAX       altSignatureAlgorithm.&ExtnType
-///   LDAP-SYNTAX       id-asx-altSignatureAlgorithm
-///   LDAP-NAME         {"Alternative signature algorithm"}
-///   ID                id-ce-a-altSignatureAlgorithm}
-/// ```
-///
-///
-pub fn a_altSignatureAlgorithm() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_altSignatureAlgorithm()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Alternative signature algorithm")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_altSignatureAlgorithm(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// a-altSignatureValue ATTRIBUTE ::= {
-///   WITH SYNTAX       altSignatureValue.&ExtnType
-///   LDAP-SYNTAX       id-asx-altSignatureValue
-///   LDAP-NAME         {"Alternative signature value"}
-///   ID                id-ce-a-altSignatureValue}
-/// ```
-///
-///
-pub fn a_altSignatureValue() -> ATTRIBUTE {
-    ATTRIBUTE {
-        ldapSyntax: Some(id_asx_altSignatureValue()), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("Alternative signature value")])), /* OBJECT_FIELD_SETTING */
-        id: id_ce_a_altSignatureValue(), /* OBJECT_FIELD_SETTING */
-        derivation: None,
-        equality_match: None,
-        ordering_match: None,
-        substrings_match: None,
-        single_valued: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        collective: Some(false),    /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        dummy: Some(false),         /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-        ldapDesc: None,
-        obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
-    }
-}
+// TODO: Are these valid LDAP names at all?
+ext_attr!(a_authorityKeyIdentifier authorityKeyIdentifier id_asx_authorityKeyIdentifier id_ce_a_authorityKeyIdentifier "Authority Key Identifier");
+ext_attr!(a_keyUsage keyUsage id_asx_keyUsage id_ce_a_keyUsage "Key Usage");
+ext_attr!(a_extKeyUsage extKeyUsage id_asx_extKeyUsage id_ce_a_extKeyUsage "Extended Key Usage");
+ext_attr!(a_privateKeyUsagePeriod privateKeyUsagePeriod id_asx_privateKeyUsagePeriod id_ce_a_privateKeyUsagePeriod "Private Key Usage Period");
+ext_attr!(a_certificatePolicies certificatePolicies id_asx_certificatePolicies id_ce_a_certificatePolicies "Certificate Policies");
+ext_attr!(a_policyMappings policyMappings id_asx_policyMappings id_ce_a_policyMappings "Policy Mappings");
+ext_attr!(a_authorizationValidation authorizationValidation id_asx_authorizationValidation id_ce_a_authorizationValidation "Authorization Validation");
+ext_attr!(a_subjectAltName subjectAltName id_asx_subjectAltName id_ce_a_subjectAltName "Subject Alternative Name");
+ext_attr!(a_issuerAltName issuerAltName id_asx_issuerAltName id_ce_a_issuerAltName "Issuer Alternative Name");
+ext_attr!(a_subjectDirectoryAttributes subjectDirectoryAttributes id_asx_subjectDirectoryAttributes id_ce_a_subjectDirectoryAttributes "Subject Directory Attributes");
+ext_attr!(a_basicConstraints basicConstraints id_asx_basicConstraints id_ce_a_basicConstraints "Basic Constraints");
+ext_attr!(a_nameConstraints nameConstraints id_asx_nameConstraints id_ce_a_nameConstraints "Name Constraints");
+ext_attr!(a_policyConstraints policyConstraints id_asx_policyConstraints id_ce_a_policyConstraints "Policy Constraints");
+ext_attr!(a_cRLNumber cRLNumber id_asx_cRLNumber id_ce_a_cRLNumber "CRL Number");
+ext_attr!(a_statusReferrals statusReferrals id_asx_statusReferrals id_ce_a_statusReferrals "Status Referrals");
+ext_attr!(a_cRLStreamIdentifier cRLStreamIdentifier id_asx_cRLStreamIdentifier id_ce_a_cRLStreamIdentifier "CRL stream identifier");
+ext_attr!(a_orderedList orderedList id_asx_orderedList id_ce_a_orderedList "Ordered list");
+ext_attr!(a_deltaInfo deltaInfo id_asx_deltaInfo id_ce_a_deltaInfo "Delta information");
+ext_attr!(a_toBeRevoked toBeRevoked id_asx_toBeRevoked id_ce_a_toBeRevoked "To be revoked");
+ext_attr!(a_revokedGroups revokedGroups id_asx_revokedGroups id_ce_a_revokedGroups "Revoked group of certificates");
+ext_attr!(a_expiredCertsOnCRL expiredCertsOnCRL id_asx_expiredCertsOnCRL id_ce_a_expiredCertsOnCRL "Expired certificates on CRL");
+ext_attr!(a_reasonCode reasonCode id_asx_reasonCode id_ce_a_reasonCode "Reason code");
+ext_attr!(a_holdInstructionCode holdInstructionCode id_asx_holdInstructionCode id_ce_a_holdInstructionCode "Hold instruction code");
+ext_attr!(a_invalidityDate invalidityDate id_asx_invalidityDate id_ce_a_invalidityDate "Invalidity date");
+ext_attr!(a_cRLDistributionPoints cRLDistributionPoints id_asx_cRLDistributionPoints id_ce_a_cRLDistributionPoints "CRL distribution points");
+ext_attr!(a_issuingDistributionPoint issuingDistributionPoint id_asx_issuingDistributionPoint id_ce_a_issuingDistributionPoint "Issuing distribution point");
+ext_attr!(a_certificateIssuer certificateIssuer id_asx_certificateIssuer id_ce_a_certificateIssuer "Certificate issuer");
+ext_attr!(a_deltaCRLIndicator deltaCRLIndicator id_asx_deltaCRLIndicator id_ce_a_deltaCRLIndicator "Delta CRL indicator");
+ext_attr!(a_baseUpdateTime baseUpdateTime id_asx_baseUpdateTime id_ce_a_baseUpdateTime "Base update time");
+ext_attr!(a_freshestCRL freshestCRL id_asx_freshestCRL id_ce_a_freshestCRL "Freshest CRL");
+ext_attr!(a_timeSpecification timeSpecification id_asx_timeSpecification id_ce_a_timeSpecification "Time specification");
+ext_attr!(a_targetingInformation targetingInformation id_asx_targetingInformation id_ce_a_targetingInformation "Targeting information");
+ext_attr!(a_userNotice userNotice id_asx_userNotice id_ce_a_userNotice "User notice");
+ext_attr!(a_acceptablePrivilegePolicies acceptablePrivilegePolicies id_asx_acceptablePrivilegePolicies id_ce_a_acceptablePrivilegePolicies "Acceptable Privilege Policies");
+ext_attr!(a_singleUse singleUse id_asx_singleUse id_ce_a_singleUse "Single use");
+ext_attr!(a_groupAC groupAC id_asx_groupAC id_ce_a_groupAC "Group attribute certificate");
+ext_attr!(a_noRevAvail noRevAvail id_asx_noRevAvail id_ce_a_noRevAvail "No revocation information available");
+ext_attr!(a_sOAIdentifier sOAIdentifier id_asx_sOAIdentifier id_ce_a_sOAIdentifier "SOA identifier");
+ext_attr!(a_attributeDescriptor attributeDescriptor id_asx_attributeDescriptor id_ce_a_attributeDescriptor "Attribute descriptor");
+ext_attr!(a_roleSpecCertIdentifier roleSpecCertIdentifier id_asx_roleSpecCertIdentifier id_ce_a_roleSpecCertIdentifier "Role specification certificate identifier");
+ext_attr!(a_basicAttConstraints basicAttConstraints id_asx_basicAttConstraints id_ce_a_basicAttConstraints "Basic attribute constraints");
+ext_attr!(a_delegatedNameConstraints delegatedNameConstraints id_asx_delegatedNameConstraints id_ce_a_delegatedNameConstraints "Delegated name constraints");
+ext_attr!(a_acceptableCertPolicies acceptableCertPolicies id_asx_acceptableCertPolicies id_ce_a_acceptableCertPolicies "Acceptable certificate policiesGroup attribute certificate");
+ext_attr!(a_authorityAttributeIdentifier authorityAttributeIdentifier id_asx_authorityAttributeIdentifier id_ce_a_authorityAttributeIdentifier "Authority attribute identifier");
+ext_attr!(a_indirectIssuer indirectIssuer id_asx_indirectIssuer id_ce_a_indirectIssuer "Indirect issuer");
+ext_attr!(a_issuedOnBehalfOf issuedOnBehalfOf id_asx_issuedOnBehalfOf id_ce_a_issuedOnBehalfOf "Issued on behalf of");
+ext_attr!(a_noAssertion noAssertion id_asx_noAssertion id_ce_a_noAssertion "No assertion");
+ext_attr!(a_allowedAttributeAssignments allowedAttributeAssignments id_asx_allowedAttributeAssignments id_ce_a_allowedAttributeAssignments "Allowed attribute assignments");
+ext_attr!(a_attributeMappings attributeMappings id_asx_attributeMappings id_ce_a_attributeMappings "Attribute mappings");
+ext_attr!(a_holderNameConstraints holderNameConstraints id_asx_holderNameConstraints id_ce_a_holderNameConstraints "Holder name constraints");
+ext_attr!(a_aAissuingDistributionPoint aAissuingDistributionPoint id_asx_aAissuingDistributionPoint id_ce_a_aAissuingDistributionPoint "AA issuing distribution point");
+ext_attr!(a_protRestrict protRestrict id_asx_protRestrict id_ce_a_protRestrict "Protocol restriction");
+ext_attr!(a_subjectAltPublicKeyInfo subjectAltPublicKeyInfo id_asx_subjectAltPublicKeyInfo id_ce_a_subjectAltPublicKeyInfo "Subject alternative public key info");
+ext_attr!(a_altSignatureAlgorithm altSignatureAlgorithm id_asx_altSignatureAlgorithm id_ce_a_altSignatureAlgorithm "Alternative signature algorithm");
+ext_attr!(a_altSignatureValue altSignatureValue id_asx_altSignatureValue id_ce_a_altSignatureValue "Alternative signature value");
 
 /// ### ASN.1 Definition:
 ///
@@ -3096,7 +1590,6 @@ pub fn id_asx_altSignatureValue() -> OBJECT_IDENTIFIER {
 /// ExtensionAttribute-value-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct ExtensionAttribute_value_Item {
     pub mandatory: OPTIONAL<BOOLEAN>,
@@ -3125,15 +1618,9 @@ impl ExtensionAttribute_value_Item {
         false
     }
 }
-impl TryFrom<X690Element> for ExtensionAttribute_value_Item {
+impl TryFrom<&X690Element> for ExtensionAttribute_value_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ExtensionAttribute_value_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ExtensionAttribute_value_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtensionAttribute_value_Item(el)
     }
 }
@@ -3169,239 +1656,145 @@ pub const _eal_components_for_ExtensionAttribute_value_Item: &[ComponentSpec; 0]
 pub fn _decode_ExtensionAttribute_value_Item(
     el: &X690Element,
 ) -> ASN1Result<ExtensionAttribute_value_Item> {
-    |el_: &X690Element| -> ASN1Result<ExtensionAttribute_value_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ExtensionAttribute_value_Item,
-            _eal_components_for_ExtensionAttribute_value_Item,
-            _rctl2_components_for_ExtensionAttribute_value_Item,
-        )?;
-        let mandatory: OPTIONAL<BOOLEAN> = match _components.get("mandatory") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let critical: OPTIONAL<BOOLEAN> = match _components.get("critical") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let ext =
-            |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
-                _components.get("ext").unwrap(),
-            )?;
-        Ok(ExtensionAttribute_value_Item {
-            mandatory,
-            critical,
-            ext,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ExtensionAttribute-value-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtensionAttribute_value_Item,
+        _eal_components_for_ExtensionAttribute_value_Item,
+        _rctl2_components_for_ExtensionAttribute_value_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut mandatory_: OPTIONAL<BOOLEAN> = None;
+    let mut critical_: OPTIONAL<BOOLEAN> = None;
+    let mut ext_: OPTIONAL<X690Element> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "mandatory" => {
+                mandatory_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                    Ok(BER.decode_boolean(&el.inner()?)?)
+                }(_el)?)
+            }
+            "critical" => {
+                critical_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                    Ok(BER.decode_boolean(&el.inner()?)?)
+                }(_el)?)
+            }
+            "ext" => {
+                ext_ = Some(|el: &X690Element| -> ASN1Result<X690Element> {
+                    Ok(x690_identity(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ExtensionAttribute_value_Item {
+        mandatory: mandatory_,
+        critical: critical_,
+        ext: ext_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_ExtensionAttribute_value_Item(
     value_: &ExtensionAttribute_value_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &ExtensionAttribute_value_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-        if let Some(v_) = &value_.mandatory {
-            if *v_ != ExtensionAttribute_value_Item::_default_value_for_mandatory() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(13);
+    if let Some(v_) = &value_.mandatory {
+        if *v_ != ExtensionAttribute_value_Item::_default_value_for_mandatory() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 0),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                ))
+            }(&v_)?);
         }
-        if let Some(v_) = &value_.critical {
-            if *v_ != ExtensionAttribute_value_Item::_default_value_for_critical() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        1,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
+    }
+    if let Some(v_) = &value_.critical {
+        if *v_ != ExtensionAttribute_value_Item::_default_value_for_critical() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 1),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                ))
+            }(&v_)?);
         }
-        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                2,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(x690_identity(&v_1)?))),
-            ))
-        }(&value_.ext)?);
+    }
+    components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(&x690_identity(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.ext)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
 }
 
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// extensionSyntax-Type ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
-/// ```
-///
-///
-#[derive(Debug, Clone)]
-pub struct extensionSyntax_Type {
-    pub mandatory: OPTIONAL<BOOLEAN>,
-    pub critical: OPTIONAL<BOOLEAN>,
-    pub ext: X690Element,
-    pub _unrecognized: Vec<X690Element>,
-}
-impl extensionSyntax_Type {
-    pub fn new(
-        mandatory: OPTIONAL<BOOLEAN>,
-        critical: OPTIONAL<BOOLEAN>,
-        ext: X690Element,
-        _unrecognized: Vec<X690Element>,
-    ) -> Self {
-        extensionSyntax_Type {
-            mandatory,
-            critical,
-            ext,
-            _unrecognized,
-        }
-    }
-    pub fn _default_value_for_mandatory() -> BOOLEAN {
-        false
-    }
-    pub fn _default_value_for_critical() -> BOOLEAN {
-        false
-    }
-}
-impl TryFrom<X690Element> for extensionSyntax_Type {
-    type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_extensionSyntax_Type(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for extensionSyntax_Type {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
-        _decode_extensionSyntax_Type(el)
-    }
-}
-
-pub const _rctl1_components_for_extensionSyntax_Type: &[ComponentSpec; 3] = &[
-    ComponentSpec::new(
-        "mandatory",
-        true,
-        TagSelector::tag((TagClass::CONTEXT, 0)),
-        None,
-        None,
-    ),
-    ComponentSpec::new(
-        "critical",
-        true,
-        TagSelector::tag((TagClass::CONTEXT, 1)),
-        None,
-        None,
-    ),
-    ComponentSpec::new(
-        "ext",
-        false,
-        TagSelector::tag((TagClass::CONTEXT, 2)),
-        None,
-        None,
-    ),
-];
-
-pub const _rctl2_components_for_extensionSyntax_Type: &[ComponentSpec; 0] = &[];
-
-pub const _eal_components_for_extensionSyntax_Type: &[ComponentSpec; 0] = &[];
-
-pub fn _decode_extensionSyntax_Type(el: &X690Element) -> ASN1Result<extensionSyntax_Type> {
-    |el_: &X690Element| -> ASN1Result<extensionSyntax_Type> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_extensionSyntax_Type,
-            _eal_components_for_extensionSyntax_Type,
-            _rctl2_components_for_extensionSyntax_Type,
-        )?;
-        let mandatory: OPTIONAL<BOOLEAN> = match _components.get("mandatory") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let critical: OPTIONAL<BOOLEAN> = match _components.get("critical") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let ext =
-            |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
-                _components.get("ext").unwrap(),
-            )?;
-        Ok(extensionSyntax_Type {
-            mandatory,
-            critical,
-            ext,
-            _unrecognized,
-        })
-    }(&el)
-}
-
-pub fn _encode_extensionSyntax_Type(value_: &extensionSyntax_Type) -> ASN1Result<X690Element> {
-    |value_: &extensionSyntax_Type| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-        if let Some(v_) = &value_.mandatory {
-            if *v_ != extensionSyntax_Type::_default_value_for_mandatory() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.critical {
-            if *v_ != extensionSyntax_Type::_default_value_for_critical() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        1,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                2,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(x690_identity(&v_1)?))),
+pub fn _validate_ExtensionAttribute_value_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ExtensionAttribute-value-Item",
             ))
-        }(&value_.ext)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtensionAttribute_value_Item,
+        _eal_components_for_ExtensionAttribute_value_Item,
+        _rctl2_components_for_ExtensionAttribute_value_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "mandatory" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "mandatory")
+                    );
+                }
+                Ok(BER.validate_boolean(&el.inner()?)?)
+            }(_el)?,
+            "critical" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "critical")
+                    );
+                }
+                Ok(BER.validate_boolean(&el.inner()?)?)
+            }(_el)?,
+            "ext" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ext"));
+                }
+                Ok(BER.validate_any(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }

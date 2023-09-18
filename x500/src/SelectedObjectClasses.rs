@@ -25,6 +25,8 @@ use crate::PasswordPolicy::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
+use std::sync::Arc;
+use x690::*;
 
 /// ### ASN.1 Definition:
 ///
@@ -133,14 +135,19 @@ pub fn OrganizationalAttributeSet() -> Vec<ATTRIBUTE> {
 ///
 pub fn country() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([countryName()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([description(), searchGuide()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([countryName()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([description(), searchGuide()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("country")])), /* OBJECT_FIELD_SETTING */
         id: id_oc_country(),                                  /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod country {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -159,20 +166,25 @@ pub fn country() -> OBJECT_CLASS {
 ///
 pub fn locality() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
         OptionalAttributes: Some(
             [
-                Vec::from([description(), searchGuide(), seeAlso()]).as_slice(),
                 LocaleAttributeSet().as_slice(),
+                Vec::from([description(), searchGuide(), seeAlso()]).as_slice(),
             ]
             .concat(),
         ), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("locality")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_locality(),                        /* OBJECT_FIELD_SETTING */
+        id: id_oc_locality(),                   /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod locality {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -189,14 +201,25 @@ pub fn locality() -> OBJECT_CLASS {
 ///
 pub fn organization() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([organizationName()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(OrganizationalAttributeSet()), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([organizationName()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(
+            [
+                OrganizationalAttributeSet().as_slice(),
+                Vec::from([]).as_slice(),
+            ]
+            .concat(),
+        ), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("organization")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_organization(),                    /* OBJECT_FIELD_SETTING */
+        id: id_oc_organization(),               /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod organization {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -213,16 +236,25 @@ pub fn organization() -> OBJECT_CLASS {
 ///
 pub fn organizationalUnit() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([organizationalUnitName()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from(
-            [ /* FIXME: OrganizationalAttributeSet CANNOT_SPREAD_OBJECT_SET */ ],
-        )), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([organizationalUnitName()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(
+            [
+                OrganizationalAttributeSet().as_slice(),
+                Vec::from([]).as_slice(),
+            ]
+            .concat(),
+        ), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("organizationalUnit")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_organizationalUnit(),                                  /* OBJECT_FIELD_SETTING */
+        id: id_oc_organizationalUnit(),         /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod organizationalUnit {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -243,19 +275,24 @@ pub fn organizationalUnit() -> OBJECT_CLASS {
 ///
 pub fn person() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([commonName(), surname()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([commonName(), surname()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([
             description(),
             telephoneNumber(),
             userPassword(),
             seeAlso(),
         ])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("person")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_person(),                                  /* OBJECT_FIELD_SETTING */
+        id: id_oc_person(),                     /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod person {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -275,13 +312,13 @@ pub fn person() -> OBJECT_CLASS {
 ///
 pub fn organizationalPerson() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([person()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([person()])), /* OBJECT_FIELD_SETTING */
         OptionalAttributes: Some(
             [
-                Vec::<_>::from([organizationalUnitName(), title()]).as_slice(),
                 LocaleAttributeSet().as_slice(),
                 PostalAttributeSet().as_slice(),
                 TelecommunicationAttributeSet().as_slice(),
+                Vec::from([organizationalUnitName(), title()]).as_slice(),
             ]
             .concat(),
         ), /* OBJECT_FIELD_SETTING */
@@ -291,6 +328,11 @@ pub fn organizationalPerson() -> OBJECT_CLASS {
         MandatoryAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod organizationalPerson {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -314,29 +356,34 @@ pub fn organizationalPerson() -> OBJECT_CLASS {
 ///
 pub fn organizationalRole() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([commonName()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([commonName()])), /* OBJECT_FIELD_SETTING */
         OptionalAttributes: Some(
             [
-                [
+                LocaleAttributeSet().as_slice(),
+                PostalAttributeSet().as_slice(),
+                TelecommunicationAttributeSet().as_slice(),
+                Vec::from([
                     description(),
                     organizationalUnitName(),
                     preferredDeliveryMethod(),
                     roleOccupant(),
                     seeAlso(),
-                ]
+                ])
                 .as_slice(),
-                LocaleAttributeSet().as_slice(),
-                PostalAttributeSet().as_slice(),
-                TelecommunicationAttributeSet().as_slice(),
             ]
             .concat(),
         ), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("organizationalRole")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_organizationalRole(),              /* OBJECT_FIELD_SETTING */
+        id: id_oc_organizationalRole(),         /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod organizationalRole {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -358,9 +405,9 @@ pub fn organizationalRole() -> OBJECT_CLASS {
 ///
 pub fn groupOfNames() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([commonName(), member()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([commonName(), member()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([
             description(),
             organizationName(),
             organizationalUnitName(),
@@ -369,10 +416,15 @@ pub fn groupOfNames() -> OBJECT_CLASS {
             businessCategory(),
         ])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("groupOfNames")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_groupOfNames(),                                  /* OBJECT_FIELD_SETTING */
+        id: id_oc_groupOfNames(),               /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod groupOfNames {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -395,9 +447,9 @@ pub fn groupOfNames() -> OBJECT_CLASS {
 ///
 pub fn groupOfUniqueNames() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([commonName(), uniqueMember()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([commonName(), uniqueMember()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([
             description(),
             organizationName(),
             organizationalUnitName(),
@@ -410,6 +462,11 @@ pub fn groupOfUniqueNames() -> OBJECT_CLASS {
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod groupOfUniqueNames {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -430,22 +487,27 @@ pub fn groupOfUniqueNames() -> OBJECT_CLASS {
 ///
 pub fn residentialPerson() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([person()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([localityName()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([person()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([localityName()])), /* OBJECT_FIELD_SETTING */
         OptionalAttributes: Some(
             [
-                [preferredDeliveryMethod(), businessCategory()].as_slice(),
                 LocaleAttributeSet().as_slice(),
                 PostalAttributeSet().as_slice(),
                 TelecommunicationAttributeSet().as_slice(),
+                Vec::from([preferredDeliveryMethod(), businessCategory()]).as_slice(),
             ]
             .concat(),
         ), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("residentialPerson")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_residentialPerson(),                  /* OBJECT_FIELD_SETTING */
+        id: id_oc_residentialPerson(),             /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod residentialPerson {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -465,19 +527,24 @@ pub fn residentialPerson() -> OBJECT_CLASS {
 ///
 pub fn applicationProcess() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([commonName()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([commonName()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([
             description(),
             localityName(),
             organizationalUnitName(),
             seeAlso(),
         ])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("applicationProcess")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_applicationProcess(),              /* OBJECT_FIELD_SETTING */
+        id: id_oc_applicationProcess(),         /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod applicationProcess {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -500,9 +567,9 @@ pub fn applicationProcess() -> OBJECT_CLASS {
 ///
 pub fn applicationEntity() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([commonName(), presentationAddress()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([commonName(), presentationAddress()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([
             description(),
             localityName(),
             organizationName(),
@@ -515,6 +582,11 @@ pub fn applicationEntity() -> OBJECT_CLASS {
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod applicationEntity {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -530,14 +602,19 @@ pub fn applicationEntity() -> OBJECT_CLASS {
 ///
 pub fn dSA() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([applicationEntity()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([knowledgeInformation()])), /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("dSA")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_dSA(),                                  /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([applicationEntity()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([knowledgeInformation()])), /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("dSA")])),     /* OBJECT_FIELD_SETTING */
+        id: id_oc_dSA(),                                      /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod dSA {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -560,9 +637,9 @@ pub fn dSA() -> OBJECT_CLASS {
 ///
 pub fn device() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([commonName()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([commonName()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([
             description(),
             localityName(),
             organizationName(),
@@ -572,10 +649,15 @@ pub fn device() -> OBJECT_CLASS {
             serialNumber(),
         ])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("device")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_device(),                          /* OBJECT_FIELD_SETTING */
+        id: id_oc_device(),                     /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod device {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -593,14 +675,19 @@ pub fn device() -> OBJECT_CLASS {
 ///
 pub fn strongAuthenticationUser() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),       /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([userCertificate()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),  /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([userCertificate()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("strongAuthenticationUser")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.521 strong authentication user")), /* OBJECT_FIELD_SETTING */
-        id: id_oc_strongAuthenticationUser(),                             /* OBJECT_FIELD_SETTING */
+        id: id_oc_strongAuthenticationUser(), /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
     }
+}
+
+pub mod strongAuthenticationUser {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -618,14 +705,19 @@ pub fn strongAuthenticationUser() -> OBJECT_CLASS {
 ///
 pub fn userSecurityInformation() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),       /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([supportedAlgorithms()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),  /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([supportedAlgorithms()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("userSecurityInformation")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.521 user security information")), /* OBJECT_FIELD_SETTING */
-        id: id_oc_userSecurityInformation(),                             /* OBJECT_FIELD_SETTING */
+        id: id_oc_userSecurityInformation(), /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
     }
+}
+
+pub mod userSecurityInformation {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -641,13 +733,18 @@ pub fn userSecurityInformation() -> OBJECT_CLASS {
 pub fn userPwdClass() -> OBJECT_CLASS {
     OBJECT_CLASS {
         kind: Some(ObjectClassKind_auxiliary), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([userPwd()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([userPwd()])), /* OBJECT_FIELD_SETTING */
         id: id_oc_userPwdClass(),              /* OBJECT_FIELD_SETTING */
         Superclasses: None,
         MandatoryAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod userPwdClass {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -668,18 +765,23 @@ pub fn userPwdClass() -> OBJECT_CLASS {
 ///
 pub fn certificationAuthority() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),       /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),  /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([
             cACertificate(),
             certificateRevocationList(),
             authorityRevocationList(),
         ])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([crossCertificatePair()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([crossCertificatePair()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("certificationAuthority")])), /* OBJECT_FIELD_SETTING */
         ldapDesc: Some(String::from("X.509 certificate authority")), /* OBJECT_FIELD_SETTING */
-        id: id_oc_certificationAuthority(),                          /* OBJECT_FIELD_SETTING */
+        id: id_oc_certificationAuthority(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod certificationAuthority {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -697,14 +799,21 @@ pub fn certificationAuthority() -> OBJECT_CLASS {
 ///
 pub fn certificationAuthority_V2() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([certificationAuthority()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),                          /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([deltaRevocationList()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([certificationAuthority()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),                     /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([deltaRevocationList()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("certificationAuthority-V2")])), /* OBJECT_FIELD_SETTING */
-        ldapDesc: Some(String::from("X.509 certificate authority, version 2")), /* OBJECT_FIELD_SETTING */
+        ldapDesc: Some(String::from(
+            "X.509 certificate authority, version 2",
+        )), /* OBJECT_FIELD_SETTING */
         id: id_oc_certificationAuthority_V2(), /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
     }
+}
+
+pub mod certificationAuthority_V2 {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -721,14 +830,25 @@ pub fn certificationAuthority_V2() -> OBJECT_CLASS {
 ///
 pub fn dMD() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([dmdName()])), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(OrganizationalAttributeSet()), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([dmdName()])), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(
+            [
+                OrganizationalAttributeSet().as_slice(),
+                Vec::from([]).as_slice(),
+            ]
+            .concat(),
+        ), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("dmd")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_dmd(),                             /* OBJECT_FIELD_SETTING */
+        id: id_oc_dmd(),                        /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
     }
+}
+
+pub mod dMD {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -744,14 +864,19 @@ pub fn dMD() -> OBJECT_CLASS {
 ///
 pub fn oidC1obj() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([oidC()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([oidC()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("oidC1obj")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_oidC1obj(),                        /* OBJECT_FIELD_SETTING */
+        id: id_oc_oidC1obj(),                   /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidC1obj {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -767,14 +892,19 @@ pub fn oidC1obj() -> OBJECT_CLASS {
 ///
 pub fn oidC2obj() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([oidC()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([oidC()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("oidC2obj")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_oidC2obj(),                        /* OBJECT_FIELD_SETTING */
+        id: id_oc_oidC2obj(),                   /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidC2obj {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -790,14 +920,19 @@ pub fn oidC2obj() -> OBJECT_CLASS {
 ///
 pub fn oidCobj() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([oidC()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([oidC()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("oidCobj")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_oidCobj(),                         /* OBJECT_FIELD_SETTING */
+        id: id_oc_oidCobj(),                    /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidCobj {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -813,14 +948,19 @@ pub fn oidCobj() -> OBJECT_CLASS {
 ///
 pub fn oidRoot() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([alias()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([oidC1(), oidC2(), oidC()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([alias()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([oidC1(), oidC2(), oidC()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("oidRoot")])), /* OBJECT_FIELD_SETTING */
-        id: id_oidRoot(),                                     /* OBJECT_FIELD_SETTING */
+        id: id_oidRoot(),                         /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidRoot {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -836,14 +976,19 @@ pub fn oidRoot() -> OBJECT_CLASS {
 ///
 pub fn oidArc() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([alias()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([oidC()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([alias()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([oidC()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("oidArc")])), /* OBJECT_FIELD_SETTING */
-        id: id_oidArc(),                               /* OBJECT_FIELD_SETTING */
+        id: id_oidArc(),                          /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidArc {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -859,14 +1004,19 @@ pub fn oidArc() -> OBJECT_CLASS {
 ///
 pub fn urnCobj() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Some(Vec::<_>::from([urnC()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Some(Vec::from([urnC()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("urnCobj")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_urnCobj(),                         /* OBJECT_FIELD_SETTING */
+        id: id_oc_urnCobj(),                    /* OBJECT_FIELD_SETTING */
         kind: Some(ObjectClassKind_structural), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod urnCobj {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -888,9 +1038,9 @@ pub fn urnCobj() -> OBJECT_CLASS {
 ///
 pub fn isoTagInfo() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),       /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),  /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([
             tagOid(),
             tagAfi(),
             uii(),
@@ -899,10 +1049,15 @@ pub fn isoTagInfo() -> OBJECT_CLASS {
             tagLocation(),
         ])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("isoTagInfo")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_isoTagInfo(),                      /* OBJECT_FIELD_SETTING */
+        id: id_oc_isoTagInfo(),                 /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod isoTagInfo {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -921,14 +1076,19 @@ pub fn isoTagInfo() -> OBJECT_CLASS {
 ///
 pub fn isoTagType() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),       /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([tagOid(), tagAfi(), uiiFormat()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),  /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([tagOid(), tagAfi(), uiiFormat()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("isoTagType")])), /* OBJECT_FIELD_SETTING */
         id: id_oc_isoTagType(),                                  /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod isoTagType {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -948,19 +1108,19 @@ pub fn isoTagType() -> OBJECT_CLASS {
 ///
 pub fn epcTagInfoObj() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),       /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([
-            epc(),
-            epcInUrn(),
-            contentUrl(),
-            tagLocation(),
-        ])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),  /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([epc(), epcInUrn(), contentUrl(), tagLocation()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("epcTagInfoObj")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_epcTagInfoObj(),                   /* OBJECT_FIELD_SETTING */
+        id: id_oc_epcTagInfoObj(),                                  /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod epcTagInfoObj {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -977,14 +1137,19 @@ pub fn epcTagInfoObj() -> OBJECT_CLASS {
 ///
 pub fn epcTagTypeObj() -> OBJECT_CLASS {
     OBJECT_CLASS {
-        Superclasses: Some(Vec::<_>::from([top()])), /* OBJECT_FIELD_SETTING */
-        kind: Some(ObjectClassKind_auxiliary),       /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([uiiFormat()])), /* OBJECT_FIELD_SETTING */
+        Superclasses: Some(Vec::from([top()])), /* OBJECT_FIELD_SETTING */
+        kind: Some(ObjectClassKind_auxiliary),  /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([uiiFormat()])), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("epcTagTypeObj")])), /* OBJECT_FIELD_SETTING */
-        id: id_oc_epcTagTypeObj(),                   /* OBJECT_FIELD_SETTING */
+        id: id_oc_epcTagTypeObj(),              /* OBJECT_FIELD_SETTING */
         MandatoryAttributes: None,
         ldapDesc: None,
     }
+}
+
+pub mod epcTagTypeObj {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1000,12 +1165,17 @@ pub fn epcTagTypeObj() -> OBJECT_CLASS {
 pub fn countryNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: country(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([countryName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([countryName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_countryNameForm(), /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod countryNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1021,12 +1191,17 @@ pub fn countryNameForm() -> NAME_FORM {
 pub fn locNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: locality(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([localityName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([localityName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_locNameForm(),      /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod locNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1042,12 +1217,17 @@ pub fn locNameForm() -> NAME_FORM {
 pub fn sOPNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: locality(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([stateOrProvinceName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([stateOrProvinceName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_sOPNameForm(),      /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod sOPNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1063,12 +1243,17 @@ pub fn sOPNameForm() -> NAME_FORM {
 pub fn orgNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: organization(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([organizationName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([organizationName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_orgNameForm(),          /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod orgNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1084,12 +1269,17 @@ pub fn orgNameForm() -> NAME_FORM {
 pub fn orgUnitNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: organizationalUnit(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([organizationalUnitName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([organizationalUnitName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_orgUnitNameForm(),            /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod orgUnitNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1104,13 +1294,18 @@ pub fn orgUnitNameForm() -> NAME_FORM {
 ///
 pub fn personNameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: person(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_personNameForm(), /* OBJECT_FIELD_SETTING */
+        namedObjectClass: person(),                     /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_personNameForm(),                     /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod personNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1127,12 +1322,17 @@ pub fn personNameForm() -> NAME_FORM {
 pub fn orgPersonNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: organizationalPerson(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([organizationalUnitName()])), /* OBJECT_FIELD_SETTING */
-        id: id_nf_orgPersonNameForm(), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([organizationalUnitName()])), /* OBJECT_FIELD_SETTING */
+        id: id_nf_orgPersonNameForm(),            /* OBJECT_FIELD_SETTING */
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod orgPersonNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1148,12 +1348,17 @@ pub fn orgPersonNameForm() -> NAME_FORM {
 pub fn orgRoleNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: organizationalRole(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_orgRoleNameForm(),            /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod orgRoleNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1169,12 +1374,17 @@ pub fn orgRoleNameForm() -> NAME_FORM {
 pub fn gONNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: groupOfNames(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_gONNameForm(),          /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod gONNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1191,12 +1401,17 @@ pub fn gONNameForm() -> NAME_FORM {
 pub fn resPersonNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: residentialPerson(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
-        OptionalAttributes: Some(Vec::<_>::from([streetAddress()])), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        OptionalAttributes: Some(Vec::from([streetAddress()])), /* OBJECT_FIELD_SETTING */
         id: id_nf_resPersonNameForm(),         /* OBJECT_FIELD_SETTING */
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod resPersonNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1212,12 +1427,17 @@ pub fn resPersonNameForm() -> NAME_FORM {
 pub fn applProcessNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: applicationProcess(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_applProcessNameForm(),        /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod applProcessNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1233,12 +1453,17 @@ pub fn applProcessNameForm() -> NAME_FORM {
 pub fn applEntityNameForm() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: applicationEntity(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
         id: id_nf_applEntityNameForm(),        /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod applEntityNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1253,13 +1478,18 @@ pub fn applEntityNameForm() -> NAME_FORM {
 ///
 pub fn dSANameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: dSA(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_dSANameForm(), /* OBJECT_FIELD_SETTING */
+        namedObjectClass: dSA(),                        /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_dSANameForm(),                        /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod dSANameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1274,13 +1504,18 @@ pub fn dSANameForm() -> NAME_FORM {
 ///
 pub fn deviceNameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: device(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([commonName()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_deviceNameForm(), /* OBJECT_FIELD_SETTING */
+        namedObjectClass: device(),                     /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([commonName()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_deviceNameForm(),                     /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod deviceNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1295,13 +1530,18 @@ pub fn deviceNameForm() -> NAME_FORM {
 ///
 pub fn dMDNameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: dMD(),                          /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([dmdName()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_dMDNameForm(),                          /* OBJECT_FIELD_SETTING */
+        namedObjectClass: dMD(),                     /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([dmdName()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_dMDNameForm(),                     /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod dMDNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1316,13 +1556,18 @@ pub fn dMDNameForm() -> NAME_FORM {
 ///
 pub fn oidC1NameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: oidCobj(),                   /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([oidC()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_oidC1NameForm(),                     /* OBJECT_FIELD_SETTING */
+        namedObjectClass: oidCobj(),              /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([oidC()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_oidC1NameForm(),                /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidC1NameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1337,13 +1582,18 @@ pub fn oidC1NameForm() -> NAME_FORM {
 ///
 pub fn oidC2NameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: oidCobj(),                   /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([oidC()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_oidC2NameForm(),                     /* OBJECT_FIELD_SETTING */
+        namedObjectClass: oidCobj(),              /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([oidC()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_oidC2NameForm(),                /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidC2NameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1358,13 +1608,18 @@ pub fn oidC2NameForm() -> NAME_FORM {
 ///
 pub fn oidCNameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: oidCobj(),                   /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([oidC()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_oidCNameForm(),                      /* OBJECT_FIELD_SETTING */
+        namedObjectClass: oidCobj(),              /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([oidC()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_oidCNameForm(),                 /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidCNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1379,13 +1634,18 @@ pub fn oidCNameForm() -> NAME_FORM {
 ///
 pub fn urnCNameForm() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: urnCobj(),                   /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([urnC()]), /* OBJECT_FIELD_SETTING */
-        id: id_nf_urnCNameForm(),                      /* OBJECT_FIELD_SETTING */
+        namedObjectClass: urnCobj(),              /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([urnC()]), /* OBJECT_FIELD_SETTING */
+        id: id_nf_urnCNameForm(),                 /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod urnCNameForm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1401,12 +1661,17 @@ pub fn urnCNameForm() -> NAME_FORM {
 pub fn oidRootNf() -> NAME_FORM {
     NAME_FORM {
         namedObjectClass: oidRoot(), /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([oidC1(), oidC2(), oidC()]), /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([oidC1(), oidC2(), oidC()]), /* OBJECT_FIELD_SETTING */
         id: id_oidRootNf(),          /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidRootNf {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1421,13 +1686,18 @@ pub fn oidRootNf() -> NAME_FORM {
 ///
 pub fn oidArcNf() -> NAME_FORM {
     NAME_FORM {
-        namedObjectClass: oidArc(),                    /* OBJECT_FIELD_SETTING */
-        MandatoryAttributes: Vec::<_>::from([oidC()]), /* OBJECT_FIELD_SETTING */
-        id: id_oidArcNf(),                             /* OBJECT_FIELD_SETTING */
+        namedObjectClass: oidArc(),               /* OBJECT_FIELD_SETTING */
+        MandatoryAttributes: Vec::from([oidC()]), /* OBJECT_FIELD_SETTING */
+        id: id_oidArcNf(),                        /* OBJECT_FIELD_SETTING */
         OptionalAttributes: None,
         ldapName: None,
         ldapDesc: None,
     }
+}
+
+pub mod oidArcNf {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:

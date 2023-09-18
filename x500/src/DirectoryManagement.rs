@@ -26,7 +26,6 @@ use crate::SchemaAdministration::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -38,31 +37,38 @@ use x690::*;
 pub type Accessors = Vec<Name>; // SetOfType
 
 pub fn _decode_Accessors(el: &X690Element) -> ASN1Result<Accessors> {
-    |el: &X690Element| -> ASN1Result<SET_OF<Name>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SET_OF<Name> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_Name(el)?);
-        }
-        Ok(items)
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Accessors")),
+    };
+    let mut items: SET_OF<Name> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_Name(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_Accessors(value_: &Accessors) -> ASN1Result<X690Element> {
-    |value_: &SET_OF<Name>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_Name(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_Name(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_Accessors(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_Name(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Accessors")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -73,11 +79,15 @@ pub fn _encode_Accessors(value_: &Accessors) -> ASN1Result<X690Element> {
 pub type AdministrativeRole = OBJECT_IDENTIFIER; // ObjectClassFieldType
 
 pub fn _decode_AdministrativeRole(el: &X690Element) -> ASN1Result<AdministrativeRole> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_AdministrativeRole(value_: &AdministrativeRole) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_AdministrativeRole(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -88,11 +98,15 @@ pub fn _encode_AdministrativeRole(value_: &AdministrativeRole) -> ASN1Result<X69
 pub type ApplicationContext = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_ApplicationContext(el: &X690Element) -> ASN1Result<ApplicationContext> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_ApplicationContext(value_: &ApplicationContext) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_ApplicationContext(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -107,13 +121,17 @@ pub const AssociationEstablishment_inward: BIT = 0; /* LONG_NAMED_BIT */
 pub const AssociationEstablishment_outward: BIT = 1; /* LONG_NAMED_BIT */
 
 pub fn _decode_AssociationEstablishment(el: &X690Element) -> ASN1Result<AssociationEstablishment> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_AssociationEstablishment(
     value_: &AssociationEstablishment,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_AssociationEstablishment(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -124,11 +142,15 @@ pub fn _encode_AssociationEstablishment(
 pub type AssociationId = INTEGER;
 
 pub fn _decode_AssociationId(el: &X690Element) -> ASN1Result<AssociationId> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_AssociationId(value_: &AssociationId) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_AssociationId(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -138,24 +160,28 @@ pub fn _encode_AssociationId(value_: &AssociationId) -> ASN1Result<X690Element> 
 ///   unknownUser(0), incorrectPassword(1), inaccessiblePassword(2),
 ///   passwordVerificationLoop(3), unrecognizedUser(4)}
 /// ```
-pub type AuthenReasonSyntax = INTEGER;
+pub type AuthenReasonSyntax = i8;
 
-pub const AuthenReasonSyntax_unknownUser: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_unknownUser: AuthenReasonSyntax = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_incorrectPassword: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_incorrectPassword: AuthenReasonSyntax = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_inaccessiblePassword: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_inaccessiblePassword: AuthenReasonSyntax = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_passwordVerificationLoop: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_passwordVerificationLoop: AuthenReasonSyntax = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const AuthenReasonSyntax_unrecognizedUser: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const AuthenReasonSyntax_unrecognizedUser: AuthenReasonSyntax = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_AuthenReasonSyntax(el: &X690Element) -> ASN1Result<AuthenReasonSyntax> {
-    ber_decode_integer(&el)
+    BER.decode_i8(&el)
 }
 
 pub fn _encode_AuthenReasonSyntax(value_: &AuthenReasonSyntax) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_AuthenReasonSyntax(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -170,7 +196,6 @@ pub fn _encode_AuthenReasonSyntax(value_: &AuthenReasonSyntax) -> ASN1Result<X69
 ///   attributeValue  [0]  AttributeValue OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct DirectoryInformationServiceElement {
@@ -200,15 +225,9 @@ impl Default for DirectoryInformationServiceElement {
         }
     }
 }
-impl TryFrom<X690Element> for DirectoryInformationServiceElement {
+impl TryFrom<&X690Element> for DirectoryInformationServiceElement {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_DirectoryInformationServiceElement(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for DirectoryInformationServiceElement {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_DirectoryInformationServiceElement(el)
     }
 }
@@ -244,73 +263,127 @@ pub const _eal_components_for_DirectoryInformationServiceElement: &[ComponentSpe
 pub fn _decode_DirectoryInformationServiceElement(
     el: &X690Element,
 ) -> ASN1Result<DirectoryInformationServiceElement> {
-    |el_: &X690Element| -> ASN1Result<DirectoryInformationServiceElement> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_DirectoryInformationServiceElement,
-            _eal_components_for_DirectoryInformationServiceElement,
-            _rctl2_components_for_DirectoryInformationServiceElement,
-        )?;
-        let operationType: OPTIONAL<DirectoryInformationServiceElement_operationType> =
-            match _components.get("operationType") {
-                Some(c_) => Some(_decode_DirectoryInformationServiceElement_operationType(
-                    c_,
-                )?),
-                _ => None,
-            };
-        let attributeType: OPTIONAL<AttributeType> = match _components.get("attributeType") {
-            Some(c_) => Some(_decode_AttributeType(c_)?),
-            _ => None,
-        };
-        let attributeValue: OPTIONAL<AttributeValue> = match _components.get("attributeValue") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<AttributeValue> {
-                Ok(_decode_AttributeValue(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(DirectoryInformationServiceElement {
-            operationType,
-            attributeType,
-            attributeValue,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "DirectoryInformationServiceElement",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_DirectoryInformationServiceElement,
+        _eal_components_for_DirectoryInformationServiceElement,
+        _rctl2_components_for_DirectoryInformationServiceElement,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut operationType_: OPTIONAL<DirectoryInformationServiceElement_operationType> = None;
+    let mut attributeType_: OPTIONAL<AttributeType> = None;
+    let mut attributeValue_: OPTIONAL<AttributeValue> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "operationType" => {
+                operationType_ = Some(_decode_DirectoryInformationServiceElement_operationType(
+                    _el,
+                )?)
+            }
+            "attributeType" => attributeType_ = Some(_decode_AttributeType(_el)?),
+            "attributeValue" => {
+                attributeValue_ = Some(|el: &X690Element| -> ASN1Result<AttributeValue> {
+                    Ok(_decode_AttributeValue(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "DirectoryInformationServiceElement",
+                ))
+            }
+        }
+    }
+    Ok(DirectoryInformationServiceElement {
+        operationType: operationType_,
+        attributeType: attributeType_,
+        attributeValue: attributeValue_,
+    })
 }
 
 pub fn _encode_DirectoryInformationServiceElement(
     value_: &DirectoryInformationServiceElement,
 ) -> ASN1Result<X690Element> {
-    |value_: &DirectoryInformationServiceElement| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-        if let Some(v_) = &value_.operationType {
-            components_.push(_encode_DirectoryInformationServiceElement_operationType(
-                &v_,
-            )?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    if let Some(v_) = &value_.operationType {
+        components_.push(_encode_DirectoryInformationServiceElement_operationType(
+            &v_,
+        )?);
+    }
+    if let Some(v_) = &value_.attributeType {
+        components_.push(_encode_AttributeType(&v_)?);
+    }
+    if let Some(v_) = &value_.attributeValue {
+        components_.push(|v_1: &AttributeValue| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::from_explicit(&_encode_AttributeValue(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_DirectoryInformationServiceElement(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "DirectoryInformationServiceElement",
+            ))
         }
-        if let Some(v_) = &value_.attributeType {
-            components_.push(_encode_AttributeType(&v_)?);
-        }
-        if let Some(v_) = &value_.attributeValue {
-            components_.push(|v_1: &AttributeValue| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    0,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_AttributeValue(
-                        &v_1,
-                    )?))),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_DirectoryInformationServiceElement,
+        _eal_components_for_DirectoryInformationServiceElement,
+        _rctl2_components_for_DirectoryInformationServiceElement,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "operationType" => _validate_DirectoryInformationServiceElement_operationType(_el)?,
+            "attributeType" => _validate_AttributeType(_el)?,
+            "attributeValue" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "attributeValue")
+                    );
+                }
+                Ok(_validate_AttributeValue(&el.inner()?)?)
+            }(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "DirectoryInformationServiceElement",
                 ))
-            }(&v_)?);
+            }
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -318,22 +391,26 @@ pub fn _encode_DirectoryInformationServiceElement(
 /// ```asn1
 /// DSAScopeOfChainingValue  ::=  INTEGER {dmd(0), country(1), global(2)}
 /// ```
-pub type DSAScopeOfChainingValue = INTEGER;
+pub type DSAScopeOfChainingValue = i8;
 
-pub const DSAScopeOfChainingValue_dmd: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfChainingValue_dmd: DSAScopeOfChainingValue = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfChainingValue_country: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfChainingValue_country: DSAScopeOfChainingValue = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfChainingValue_global: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfChainingValue_global: DSAScopeOfChainingValue = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_DSAScopeOfChainingValue(el: &X690Element) -> ASN1Result<DSAScopeOfChainingValue> {
-    ber_decode_integer(&el)
+    BER.decode_i8(&el)
 }
 
 pub fn _encode_DSAScopeOfChainingValue(
     value_: &DSAScopeOfChainingValue,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_DSAScopeOfChainingValue(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -341,22 +418,26 @@ pub fn _encode_DSAScopeOfChainingValue(
 /// ```asn1
 /// DSAScopeOfReferralValue  ::=  INTEGER {dmd(0), country(1), global(2)}
 /// ```
-pub type DSAScopeOfReferralValue = INTEGER;
+pub type DSAScopeOfReferralValue = i8;
 
-pub const DSAScopeOfReferralValue_dmd: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfReferralValue_dmd: DSAScopeOfReferralValue = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfReferralValue_country: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfReferralValue_country: DSAScopeOfReferralValue = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const DSAScopeOfReferralValue_global: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const DSAScopeOfReferralValue_global: DSAScopeOfReferralValue = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_DSAScopeOfReferralValue(el: &X690Element) -> ASN1Result<DSAScopeOfReferralValue> {
-    ber_decode_integer(&el)
+    BER.decode_i8(&el)
 }
 
 pub fn _encode_DSAScopeOfReferralValue(
     value_: &DSAScopeOfReferralValue,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_DSAScopeOfReferralValue(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -364,18 +445,22 @@ pub fn _encode_DSAScopeOfReferralValue(
 /// ```asn1
 /// HOBRole  ::=  INTEGER {superior(0), subordinate(1)}
 /// ```
-pub type HOBRole = INTEGER;
+pub type HOBRole = i8;
 
-pub const HOBRole_superior: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const HOBRole_superior: HOBRole = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const HOBRole_subordinate: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const HOBRole_subordinate: HOBRole = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_HOBRole(el: &X690Element) -> ASN1Result<HOBRole> {
-    ber_decode_integer(&el)
+    BER.decode_i8(&el)
 }
 
 pub fn _encode_HOBRole(value_: &HOBRole) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_HOBRole(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -386,11 +471,15 @@ pub fn _encode_HOBRole(value_: &HOBRole) -> ASN1Result<X690Element> {
 pub type MgtBitString = BIT_STRING;
 
 pub fn _decode_MgtBitString(el: &X690Element) -> ASN1Result<MgtBitString> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_MgtBitString(value_: &MgtBitString) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_MgtBitString(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -401,11 +490,15 @@ pub fn _encode_MgtBitString(value_: &MgtBitString) -> ASN1Result<X690Element> {
 pub type MgtBoolean = BOOLEAN; // BooleanType
 
 pub fn _decode_MgtBoolean(el: &X690Element) -> ASN1Result<MgtBoolean> {
-    ber_decode_boolean(&el)
+    BER.decode_boolean(&el)
 }
 
 pub fn _encode_MgtBoolean(value_: &MgtBoolean) -> ASN1Result<X690Element> {
-    ber_encode_boolean(&value_)
+    BER.encode_boolean(&value_)
+}
+
+pub fn _validate_MgtBoolean(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_boolean(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -423,6 +516,10 @@ pub fn _encode_MgtCommonName(value_: &MgtCommonName) -> ASN1Result<X690Element> 
     _encode_UnboundedDirectoryString(&value_)
 }
 
+pub fn _validate_MgtCommonName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UnboundedDirectoryString(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -431,11 +528,15 @@ pub fn _encode_MgtCommonName(value_: &MgtCommonName) -> ASN1Result<X690Element> 
 pub type MgtGeneralizedTime = GeneralizedTime; // GeneralizedTime
 
 pub fn _decode_MgtGeneralizedTime(el: &X690Element) -> ASN1Result<MgtGeneralizedTime> {
-    ber_decode_generalized_time(&el)
+    BER.decode_generalized_time(&el)
 }
 
 pub fn _encode_MgtGeneralizedTime(value_: &MgtGeneralizedTime) -> ASN1Result<X690Element> {
-    ber_encode_generalized_time(&value_)
+    BER.encode_generalized_time(&value_)
+}
+
+pub fn _validate_MgtGeneralizedTime(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_generalized_time(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -446,11 +547,15 @@ pub fn _encode_MgtGeneralizedTime(value_: &MgtGeneralizedTime) -> ASN1Result<X69
 pub type MgtInteger = INTEGER;
 
 pub fn _decode_MgtInteger(el: &X690Element) -> ASN1Result<MgtInteger> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_MgtInteger(value_: &MgtInteger) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_MgtInteger(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -468,6 +573,10 @@ pub fn _encode_MgtName(value_: &MgtName) -> ASN1Result<X690Element> {
     _encode_Name(&value_)
 }
 
+pub fn _validate_MgtName(el: &X690Element) -> ASN1Result<()> {
+    _validate_Name(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -476,11 +585,15 @@ pub fn _encode_MgtName(value_: &MgtName) -> ASN1Result<X690Element> {
 pub type MgtOctetString = OCTET_STRING; // OctetStringType
 
 pub fn _decode_MgtOctetString(el: &X690Element) -> ASN1Result<MgtOctetString> {
-    ber_decode_octet_string(&el)
+    BER.decode_octet_string(&el)
 }
 
 pub fn _encode_MgtOctetString(value_: &MgtOctetString) -> ASN1Result<X690Element> {
-    ber_encode_octet_string(&value_)
+    BER.encode_octet_string(&value_)
+}
+
+pub fn _validate_MgtOctetString(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_octet_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -491,11 +604,15 @@ pub fn _encode_MgtOctetString(value_: &MgtOctetString) -> ASN1Result<X690Element
 pub type MgtOID = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_MgtOID(el: &X690Element) -> ASN1Result<MgtOID> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_MgtOID(value_: &MgtOID) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_MgtOID(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -506,11 +623,15 @@ pub fn _encode_MgtOID(value_: &MgtOID) -> ASN1Result<X690Element> {
 pub type MgtPrintableString = PrintableString; // PrintableString
 
 pub fn _decode_MgtPrintableString(el: &X690Element) -> ASN1Result<MgtPrintableString> {
-    ber_decode_printable_string(&el)
+    BER.decode_printable_string(&el)
 }
 
 pub fn _encode_MgtPrintableString(value_: &MgtPrintableString) -> ASN1Result<X690Element> {
-    ber_encode_printable_string(&value_)
+    BER.encode_printable_string(&value_)
+}
+
+pub fn _validate_MgtPrintableString(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_printable_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -537,13 +658,17 @@ pub const PeerEntityAuthenticationPolicy_external: BIT = 5; /* LONG_NAMED_BIT */
 pub fn _decode_PeerEntityAuthenticationPolicy(
     el: &X690Element,
 ) -> ASN1Result<PeerEntityAuthenticationPolicy> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_PeerEntityAuthenticationPolicy(
     value_: &PeerEntityAuthenticationPolicy,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_PeerEntityAuthenticationPolicy(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -554,31 +679,38 @@ pub fn _encode_PeerEntityAuthenticationPolicy(
 pub type RemoteDSAList = Vec<AccessPoint>; // SetOfType
 
 pub fn _decode_RemoteDSAList(el: &X690Element) -> ASN1Result<RemoteDSAList> {
-    |el: &X690Element| -> ASN1Result<SET_OF<AccessPoint>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SET_OF<AccessPoint> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_AccessPoint(el)?);
-        }
-        Ok(items)
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "RemoteDSAList")),
+    };
+    let mut items: SET_OF<AccessPoint> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_AccessPoint(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_RemoteDSAList(value_: &RemoteDSAList) -> ASN1Result<X690Element> {
-    |value_: &SET_OF<AccessPoint>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_AccessPoint(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_AccessPoint(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_RemoteDSAList(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_AccessPoint(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "RemoteDSAList")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -597,13 +729,17 @@ pub const RequestAuthenticationPolicy_strong: BIT = 2; /* LONG_NAMED_BIT */
 pub fn _decode_RequestAuthenticationPolicy(
     el: &X690Element,
 ) -> ASN1Result<RequestAuthenticationPolicy> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_RequestAuthenticationPolicy(
     value_: &RequestAuthenticationPolicy,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_RequestAuthenticationPolicy(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -613,22 +749,26 @@ pub fn _encode_RequestAuthenticationPolicy(
 ///   insufficientMemory(0), insufficientAssociations(1), insufficientDiskSpace(2),
 ///   miscellaneousResourceExhausted(4)}
 /// ```
-pub type ResourceSyntax = INTEGER;
+pub type ResourceSyntax = i8;
 
-pub const ResourceSyntax_insufficientMemory: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_insufficientMemory: ResourceSyntax = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ResourceSyntax_insufficientAssociations: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_insufficientAssociations: ResourceSyntax = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ResourceSyntax_insufficientDiskSpace: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_insufficientDiskSpace: ResourceSyntax = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ResourceSyntax_miscellaneousResourceExhausted: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const ResourceSyntax_miscellaneousResourceExhausted: ResourceSyntax = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ResourceSyntax(el: &X690Element) -> ASN1Result<ResourceSyntax> {
-    ber_decode_integer(&el)
+    BER.decode_i8(&el)
 }
 
 pub fn _encode_ResourceSyntax(value_: &ResourceSyntax) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_ResourceSyntax(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -650,6 +790,10 @@ pub fn _encode_ResultAuthenticationPolicy(
     _encode_RequestAuthenticationPolicy(&value_)
 }
 
+pub fn _validate_ResultAuthenticationPolicy(el: &X690Element) -> ASN1Result<()> {
+    _validate_RequestAuthenticationPolicy(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -658,31 +802,42 @@ pub fn _encode_ResultAuthenticationPolicy(
 pub type SecondaryShadows = Vec<SupplierAndConsumers>; // SetOfType
 
 pub fn _decode_SecondaryShadows(el: &X690Element) -> ASN1Result<SecondaryShadows> {
-    |el: &X690Element| -> ASN1Result<SET_OF<SupplierAndConsumers>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SET_OF<SupplierAndConsumers> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_SupplierAndConsumers(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SecondaryShadows")
+            )
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SET_OF<SupplierAndConsumers> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_SupplierAndConsumers(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_SecondaryShadows(value_: &SecondaryShadows) -> ASN1Result<X690Element> {
-    |value_: &SET_OF<SupplierAndConsumers>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_SupplierAndConsumers(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_SupplierAndConsumers(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_SecondaryShadows(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_SupplierAndConsumers(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SecondaryShadows")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -690,18 +845,22 @@ pub fn _encode_SecondaryShadows(value_: &SecondaryShadows) -> ASN1Result<X690Ele
 /// ```asn1
 /// ShadowingRole  ::=  INTEGER {supplier(0), consumer(1)}
 /// ```
-pub type ShadowingRole = INTEGER;
+pub type ShadowingRole = i8;
 
-pub const ShadowingRole_supplier: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowingRole_supplier: ShadowingRole = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowingRole_consumer: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowingRole_consumer: ShadowingRole = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ShadowingRole(el: &X690Element) -> ASN1Result<ShadowingRole> {
-    ber_decode_integer(&el)
+    BER.decode_i8(&el)
 }
 
 pub fn _encode_ShadowingRole(value_: &ShadowingRole) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_ShadowingRole(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -735,31 +894,40 @@ pub fn _encode_ShadowingRole(value_: &ShadowingRole) -> ASN1Result<X690Element> 
 pub type SubSchemaSyntax = Vec<SubSchemaSyntax_Item>; // SequenceOfType
 
 pub fn _decode_SubSchemaSyntax(el: &X690Element) -> ASN1Result<SubSchemaSyntax> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<SubSchemaSyntax_Item>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<SubSchemaSyntax_Item> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_SubSchemaSyntax_Item(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubSchemaSyntax"))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<SubSchemaSyntax_Item> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_SubSchemaSyntax_Item(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_SubSchemaSyntax(value_: &SubSchemaSyntax) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<SubSchemaSyntax_Item>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_SubSchemaSyntax_Item(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_SubSchemaSyntax_Item(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_SubSchemaSyntax(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_SubSchemaSyntax_Item(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubSchemaSyntax")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -772,33 +940,48 @@ pub type SupportedApplicationContexts = Vec<OBJECT_IDENTIFIER>; // SetOfType
 pub fn _decode_SupportedApplicationContexts(
     el: &X690Element,
 ) -> ASN1Result<SupportedApplicationContexts> {
-    |el: &X690Element| -> ASN1Result<SET_OF<OBJECT_IDENTIFIER>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SET_OF<OBJECT_IDENTIFIER> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(ber_decode_object_identifier(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "SupportedApplicationContexts",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SET_OF<OBJECT_IDENTIFIER> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(BER.decode_object_identifier(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_SupportedApplicationContexts(
     value_: &SupportedApplicationContexts,
 ) -> ASN1Result<X690Element> {
-    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(ber_encode_object_identifier(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(BER.encode_object_identifier(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_SupportedApplicationContexts(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                BER.validate_object_identifier(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "SupportedApplicationContexts",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3500,13 +3683,19 @@ pub const DirectoryInformationServiceElement_operationType_modifyDN: BIT = 8; /*
 pub fn _decode_DirectoryInformationServiceElement_operationType(
     el: &X690Element,
 ) -> ASN1Result<DirectoryInformationServiceElement_operationType> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_DirectoryInformationServiceElement_operationType(
     value_: &DirectoryInformationServiceElement_operationType,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_DirectoryInformationServiceElement_operationType(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -3514,7 +3703,6 @@ pub fn _encode_DirectoryInformationServiceElement_operationType(
 /// ```asn1
 /// SubSchemaSyntax-Item-subSchema ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct SubSchemaSyntax_Item_subSchema {
@@ -3560,15 +3748,9 @@ impl Default for SubSchemaSyntax_Item_subSchema {
         }
     }
 }
-impl TryFrom<X690Element> for SubSchemaSyntax_Item_subSchema {
+impl TryFrom<&X690Element> for SubSchemaSyntax_Item_subSchema {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SubSchemaSyntax_Item_subSchema(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SubSchemaSyntax_Item_subSchema {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SubSchemaSyntax_Item_subSchema(el)
     }
 }
@@ -3632,253 +3814,495 @@ pub const _eal_components_for_SubSchemaSyntax_Item_subSchema: &[ComponentSpec; 0
 pub fn _decode_SubSchemaSyntax_Item_subSchema(
     el: &X690Element,
 ) -> ASN1Result<SubSchemaSyntax_Item_subSchema> {
-    |el_: &X690Element| -> ASN1Result<SubSchemaSyntax_Item_subSchema> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SubSchemaSyntax_Item_subSchema,
-            _eal_components_for_SubSchemaSyntax_Item_subSchema,
-            _rctl2_components_for_SubSchemaSyntax_Item_subSchema,
-        )?;
-        let structureRules: OPTIONAL<Vec<DITStructureRuleDescription>> = match _components
-            .get("structureRules")
-        {
-            Some(c_) => Some(
-                |el: &X690Element| -> ASN1Result<Vec<DITStructureRuleDescription>> {
-                    Ok(|el: &X690Element| -> ASN1Result<
-                        SEQUENCE_OF<DITStructureRuleDescription>,
-                    > {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SEQUENCE_OF<DITStructureRuleDescription> =
-                            Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_DITStructureRuleDescription(el)?);
-                        }
-                        Ok(items)
-                    }(&el.inner()?)?)
-                }(c_)?,
-            ),
-            _ => None,
-        };
-        let contentRules: OPTIONAL<Vec<DITContentRuleDescription>> = match _components
-            .get("contentRules")
-        {
-            Some(c_) => {
-                Some(
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "SubSchemaSyntax-Item-subSchema",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SubSchemaSyntax_Item_subSchema,
+        _eal_components_for_SubSchemaSyntax_Item_subSchema,
+        _rctl2_components_for_SubSchemaSyntax_Item_subSchema,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut structureRules_: OPTIONAL<Vec<DITStructureRuleDescription>> = None;
+    let mut contentRules_: OPTIONAL<Vec<DITContentRuleDescription>> = None;
+    let mut matchingRules_: OPTIONAL<Vec<MatchingRuleDescription>> = None;
+    let mut attributeTypes_: OPTIONAL<Vec<AttributeTypeDescription>> = None;
+    let mut objectClasses_: OPTIONAL<Vec<ObjectClassDescription>> = None;
+    let mut nameForms_: OPTIONAL<Vec<NameFormDescription>> = None;
+    let mut matchRuleUses_: OPTIONAL<Vec<MatchingRuleUseDescription>> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "structureRules" => {
+                structureRules_ = Some(
+                    |el: &X690Element| -> ASN1Result<Vec<DITStructureRuleDescription>> {
+                        Ok(|el: &X690Element| -> ASN1Result<
+                            SEQUENCE_OF<DITStructureRuleDescription>,
+                        > {
+                            let elements = match &el.value {
+                                X690Value::Constructed(children) => children,
+                                _ => {
+                                    return Err(el.to_asn1_err_named(
+                                        ASN1ErrorCode::invalid_construction,
+                                        "structureRules",
+                                    ))
+                                }
+                            };
+                            let mut items: SEQUENCE_OF<DITStructureRuleDescription> =
+                                Vec::with_capacity(elements.len());
+                            for el in elements.iter() {
+                                items.push(_decode_DITStructureRuleDescription(el)?);
+                            }
+                            Ok(items)
+                        }(&el.inner()?)?)
+                    }(_el)?,
+                )
+            }
+            "contentRules" => {
+                contentRules_ = Some(
                     |el: &X690Element| -> ASN1Result<Vec<DITContentRuleDescription>> {
-                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<DITContentRuleDescription>> {
-	let elements = match el.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<DITContentRuleDescription>> {	let elements = match &el.value {
+		X690Value::Constructed(children) => children,
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "contentRules")),
 	};
 	let mut items: SEQUENCE_OF<DITContentRuleDescription> = Vec::with_capacity(elements.len());
-	for el in elements {
+	for el in elements.iter() {
 		items.push(_decode_DITContentRuleDescription(el)?);
 	}
 	Ok(items)
 }(&el.inner()?)?)
-                    }(c_)?,
+                    }(_el)?,
                 )
             }
-            _ => None,
-        };
-        let matchingRules: OPTIONAL<Vec<MatchingRuleDescription>> =
-            match _components.get("matchingRules") {
-                Some(c_) => Some(
+            "matchingRules" => {
+                matchingRules_ = Some(
                     |el: &X690Element| -> ASN1Result<Vec<MatchingRuleDescription>> {
-                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<MatchingRuleDescription>> {
-	let elements = match el.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<MatchingRuleDescription>> {	let elements = match &el.value {
+		X690Value::Constructed(children) => children,
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "matchingRules")),
 	};
 	let mut items: SEQUENCE_OF<MatchingRuleDescription> = Vec::with_capacity(elements.len());
-	for el in elements {
+	for el in elements.iter() {
 		items.push(_decode_MatchingRuleDescription(el)?);
 	}
 	Ok(items)
 }(&el.inner()?)?)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        let attributeTypes: OPTIONAL<Vec<AttributeTypeDescription>> =
-            match _components.get("attributeTypes") {
-                Some(c_) => Some(
+                    }(_el)?,
+                )
+            }
+            "attributeTypes" => {
+                attributeTypes_ = Some(
                     |el: &X690Element| -> ASN1Result<Vec<AttributeTypeDescription>> {
-                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<AttributeTypeDescription>> {
-	let elements = match el.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<AttributeTypeDescription>> {	let elements = match &el.value {
+		X690Value::Constructed(children) => children,
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "attributeTypes")),
 	};
 	let mut items: SEQUENCE_OF<AttributeTypeDescription> = Vec::with_capacity(elements.len());
-	for el in elements {
+	for el in elements.iter() {
 		items.push(_decode_AttributeTypeDescription(el)?);
 	}
 	Ok(items)
 }(&el.inner()?)?)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        let objectClasses: OPTIONAL<Vec<ObjectClassDescription>> = match _components
-            .get("objectClasses")
-        {
-            Some(c_) => Some(
-                |el: &X690Element| -> ASN1Result<Vec<ObjectClassDescription>> {
+                    }(_el)?,
+                )
+            }
+            "objectClasses" => {
+                objectClasses_ = Some(
+                    |el: &X690Element| -> ASN1Result<Vec<ObjectClassDescription>> {
+                        Ok(
+                            |el: &X690Element| -> ASN1Result<SEQUENCE_OF<ObjectClassDescription>> {
+                                let elements = match &el.value {
+                                    X690Value::Constructed(children) => children,
+                                    _ => {
+                                        return Err(el.to_asn1_err_named(
+                                            ASN1ErrorCode::invalid_construction,
+                                            "objectClasses",
+                                        ))
+                                    }
+                                };
+                                let mut items: SEQUENCE_OF<ObjectClassDescription> =
+                                    Vec::with_capacity(elements.len());
+                                for el in elements.iter() {
+                                    items.push(_decode_ObjectClassDescription(el)?);
+                                }
+                                Ok(items)
+                            }(&el.inner()?)?,
+                        )
+                    }(_el)?,
+                )
+            }
+            "nameForms" => {
+                nameForms_ = Some(|el: &X690Element| -> ASN1Result<Vec<NameFormDescription>> {
                     Ok(
-                        |el: &X690Element| -> ASN1Result<SEQUENCE_OF<ObjectClassDescription>> {
-                            let elements = match el.value.borrow() {
-                                X690Encoding::Constructed(children) => children,
+                        |el: &X690Element| -> ASN1Result<SEQUENCE_OF<NameFormDescription>> {
+                            let elements = match &el.value {
+                                X690Value::Constructed(children) => children,
                                 _ => {
-                                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction))
+                                    return Err(el.to_asn1_err_named(
+                                        ASN1ErrorCode::invalid_construction,
+                                        "nameForms",
+                                    ))
                                 }
                             };
-                            let mut items: SEQUENCE_OF<ObjectClassDescription> =
+                            let mut items: SEQUENCE_OF<NameFormDescription> =
                                 Vec::with_capacity(elements.len());
-                            for el in elements {
-                                items.push(_decode_ObjectClassDescription(el)?);
+                            for el in elements.iter() {
+                                items.push(_decode_NameFormDescription(el)?);
                             }
                             Ok(items)
                         }(&el.inner()?)?,
                     )
-                }(c_)?,
-            ),
-            _ => None,
-        };
-        let nameForms: OPTIONAL<Vec<NameFormDescription>> = match _components.get("nameForms") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<NameFormDescription>> {
-                Ok(
-                    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<NameFormDescription>> {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SEQUENCE_OF<NameFormDescription> =
-                            Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_NameFormDescription(el)?);
-                        }
-                        Ok(items)
-                    }(&el.inner()?)?,
-                )
-            }(c_)?),
-            _ => None,
-        };
-        let matchRuleUses: OPTIONAL<Vec<MatchingRuleUseDescription>> = match _components
-            .get("matchRuleUses")
-        {
-            Some(c_) => {
-                Some(
+                }(_el)?)
+            }
+            "matchRuleUses" => {
+                matchRuleUses_ = Some(
                     |el: &X690Element| -> ASN1Result<Vec<MatchingRuleUseDescription>> {
-                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<MatchingRuleUseDescription>> {
-	let elements = match el.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<MatchingRuleUseDescription>> {	let elements = match &el.value {
+		X690Value::Constructed(children) => children,
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "matchRuleUses")),
 	};
 	let mut items: SEQUENCE_OF<MatchingRuleUseDescription> = Vec::with_capacity(elements.len());
-	for el in elements {
+	for el in elements.iter() {
 		items.push(_decode_MatchingRuleUseDescription(el)?);
 	}
 	Ok(items)
 }(&el.inner()?)?)
-                    }(c_)?,
+                    }(_el)?,
                 )
             }
-            _ => None,
-        };
-        Ok(SubSchemaSyntax_Item_subSchema {
-            structureRules,
-            contentRules,
-            matchingRules,
-            attributeTypes,
-            objectClasses,
-            nameForms,
-            matchRuleUses,
-        })
-    }(&el)
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "SubSchemaSyntax-Item-subSchema",
+                ))
+            }
+        }
+    }
+    Ok(SubSchemaSyntax_Item_subSchema {
+        structureRules: structureRules_,
+        contentRules: contentRules_,
+        matchingRules: matchingRules_,
+        attributeTypes: attributeTypes_,
+        objectClasses: objectClasses_,
+        nameForms: nameForms_,
+        matchRuleUses: matchRuleUses_,
+    })
 }
 
 pub fn _encode_SubSchemaSyntax_Item_subSchema(
     value_: &SubSchemaSyntax_Item_subSchema,
 ) -> ASN1Result<X690Element> {
-    |value_: &SubSchemaSyntax_Item_subSchema| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        if let Some(v_) = &value_.structureRules {
-            components_.push(|v_1: &Vec<DITStructureRuleDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 1, Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<DITStructureRuleDescription>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-	for v in value_ {
-		children.push(_encode_DITStructureRuleDescription(&v)?);
-	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?))))) }(&v_)?);
-        }
-        if let Some(v_) = &value_.contentRules {
-            components_.push(|v_1: &Vec<DITContentRuleDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 2, Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<DITContentRuleDescription>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-	for v in value_ {
-		children.push(_encode_DITContentRuleDescription(&v)?);
-	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?))))) }(&v_)?);
-        }
-        if let Some(v_) = &value_.matchingRules {
-            components_.push(|v_1: &Vec<MatchingRuleDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 3, Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<MatchingRuleDescription>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    if let Some(v_) = &value_.structureRules {
+        components_.push(
+            |v_1: &Vec<DITStructureRuleDescription>| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 1),
+                    X690Value::from_explicit(&|value_: &SEQUENCE_OF<
+                        DITStructureRuleDescription,
+                    >|
+                     -> ASN1Result<X690Element> {
+                        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                        for v in value_ {
+                            children.push(_encode_DITStructureRuleDescription(&v)?);
+                        }
+                        Ok(X690Element::new(
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
+                        ))
+                    }(&v_1)?),
+                ))
+            }(&v_)?,
+        );
+    }
+    if let Some(v_) = &value_.contentRules {
+        components_.push(
+            |v_1: &Vec<DITContentRuleDescription>| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(&|value_: &SEQUENCE_OF<
+                        DITContentRuleDescription,
+                    >|
+                     -> ASN1Result<X690Element> {
+                        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                        for v in value_ {
+                            children.push(_encode_DITContentRuleDescription(&v)?);
+                        }
+                        Ok(X690Element::new(
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
+                        ))
+                    }(&v_1)?),
+                ))
+            }(&v_)?,
+        );
+    }
+    if let Some(v_) = &value_.matchingRules {
+        components_.push(|v_1: &Vec<MatchingRuleDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 3), X690Value::from_explicit(&|value_: &SEQUENCE_OF<MatchingRuleDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_MatchingRuleDescription(&v)?);
 	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?))))) }(&v_)?);
-        }
-        if let Some(v_) = &value_.attributeTypes {
-            components_.push(|v_1: &Vec<AttributeTypeDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 4, Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<AttributeTypeDescription>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+}(&v_1)?))) }(&v_)?);
+    }
+    if let Some(v_) = &value_.attributeTypes {
+        components_.push(|v_1: &Vec<AttributeTypeDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 4), X690Value::from_explicit(&|value_: &SEQUENCE_OF<AttributeTypeDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_AttributeTypeDescription(&v)?);
 	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?))))) }(&v_)?);
-        }
-        if let Some(v_) = &value_.objectClasses {
-            components_.push(|v_1: &Vec<ObjectClassDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 5, Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<ObjectClassDescription>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+}(&v_1)?))) }(&v_)?);
+    }
+    if let Some(v_) = &value_.objectClasses {
+        components_.push(|v_1: &Vec<ObjectClassDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 5), X690Value::from_explicit(&|value_: &SEQUENCE_OF<ObjectClassDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_ObjectClassDescription(&v)?);
 	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?))))) }(&v_)?);
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+}(&v_1)?))) }(&v_)?);
+    }
+    if let Some(v_) = &value_.nameForms {
+        components_.push(
+            |v_1: &Vec<NameFormDescription>| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 6),
+                    X690Value::from_explicit(
+                        &|value_: &SEQUENCE_OF<NameFormDescription>| -> ASN1Result<X690Element> {
+                            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                            for v in value_ {
+                                children.push(_encode_NameFormDescription(&v)?);
+                            }
+                            Ok(X690Element::new(
+                                Tag::new(
+                                    TagClass::UNIVERSAL,
+                                    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
+                                ),
+                                X690Value::Constructed(Arc::new(children)),
+                            ))
+                        }(&v_1)?,
+                    ),
+                ))
+            }(&v_)?,
+        );
+    }
+    if let Some(v_) = &value_.matchRuleUses {
+        components_.push(
+            |v_1: &Vec<MatchingRuleUseDescription>| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 7),
+                    X690Value::from_explicit(&|value_: &SEQUENCE_OF<
+                        MatchingRuleUseDescription,
+                    >|
+                     -> ASN1Result<X690Element> {
+                        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                        for v in value_ {
+                            children.push(_encode_MatchingRuleUseDescription(&v)?);
+                        }
+                        Ok(X690Element::new(
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
+                        ))
+                    }(&v_1)?),
+                ))
+            }(&v_)?,
+        );
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_SubSchemaSyntax_Item_subSchema(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "SubSchemaSyntax-Item-subSchema",
+            ))
         }
-        if let Some(v_) = &value_.nameForms {
-            components_.push(|v_1: &Vec<NameFormDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 6, Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<NameFormDescription>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-	for v in value_ {
-		children.push(_encode_NameFormDescription(&v)?);
-	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?))))) }(&v_)?);
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SubSchemaSyntax_Item_subSchema,
+        _eal_components_for_SubSchemaSyntax_Item_subSchema,
+        _rctl2_components_for_SubSchemaSyntax_Item_subSchema,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "structureRules" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "structureRules")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_DITStructureRuleDescription(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "structureRules",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            "contentRules" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "contentRules")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_DITContentRuleDescription(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "contentRules",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            "matchingRules" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "matchingRules")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_MatchingRuleDescription(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "matchingRules",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            "attributeTypes" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "attributeTypes")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_AttributeTypeDescription(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "attributeTypes",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            "objectClasses" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "objectClasses")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_ObjectClassDescription(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "objectClasses",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            "nameForms" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "nameForms")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_NameFormDescription(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(
+                            el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "nameForms")
+                        ),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            "matchRuleUses" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "matchRuleUses")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_MatchingRuleUseDescription(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "matchRuleUses",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "SubSchemaSyntax-Item-subSchema",
+                ))
+            }
         }
-        if let Some(v_) = &value_.matchRuleUses {
-            components_.push(|v_1: &Vec<MatchingRuleUseDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 7, Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<MatchingRuleUseDescription>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-	for v in value_ {
-		children.push(_encode_MatchingRuleUseDescription(&v)?);
-	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?))))) }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3886,7 +4310,6 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
 /// ```asn1
 /// SubSchemaSyntax-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct SubSchemaSyntax_Item {
@@ -3898,15 +4321,9 @@ impl SubSchemaSyntax_Item {
         SubSchemaSyntax_Item { name, subSchema }
     }
 }
-impl TryFrom<X690Element> for SubSchemaSyntax_Item {
+impl TryFrom<&X690Element> for SubSchemaSyntax_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SubSchemaSyntax_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SubSchemaSyntax_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SubSchemaSyntax_Item(el)
     }
 }
@@ -3933,53 +4350,122 @@ pub const _rctl2_components_for_SubSchemaSyntax_Item: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_SubSchemaSyntax_Item: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_SubSchemaSyntax_Item(el: &X690Element) -> ASN1Result<SubSchemaSyntax_Item> {
-    |el_: &X690Element| -> ASN1Result<SubSchemaSyntax_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SubSchemaSyntax_Item,
-            _eal_components_for_SubSchemaSyntax_Item,
-            _rctl2_components_for_SubSchemaSyntax_Item,
-        )?;
-        let name = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
-            _components.get("name").unwrap(),
-        )?;
-        let subSchema = |el: &X690Element| -> ASN1Result<SubSchemaSyntax_Item_subSchema> {
-            Ok(_decode_SubSchemaSyntax_Item_subSchema(&el.inner()?)?)
-        }(_components.get("subSchema").unwrap())?;
-        Ok(SubSchemaSyntax_Item { name, subSchema })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubSchemaSyntax-Item")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SubSchemaSyntax_Item,
+        _eal_components_for_SubSchemaSyntax_Item,
+        _rctl2_components_for_SubSchemaSyntax_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut name_: OPTIONAL<Name> = None;
+    let mut subSchema_: OPTIONAL<SubSchemaSyntax_Item_subSchema> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "name" => {
+                name_ = Some(|el: &X690Element| -> ASN1Result<Name> {
+                    Ok(_decode_Name(&el.inner()?)?)
+                }(_el)?)
+            }
+            "subSchema" => {
+                subSchema_ = Some(
+                    |el: &X690Element| -> ASN1Result<SubSchemaSyntax_Item_subSchema> {
+                        Ok(_decode_SubSchemaSyntax_Item_subSchema(&el.inner()?)?)
+                    }(_el)?,
+                )
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "SubSchemaSyntax-Item",
+                ))
+            }
+        }
+    }
+    Ok(SubSchemaSyntax_Item {
+        name: name_.unwrap(),
+        subSchema: subSchema_.unwrap(),
+    })
 }
 
 pub fn _encode_SubSchemaSyntax_Item(value_: &SubSchemaSyntax_Item) -> ASN1Result<X690Element> {
-    |value_: &SubSchemaSyntax_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                1,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
-            ))
-        }(&value_.name)?);
-        components_.push(
-            |v_1: &SubSchemaSyntax_Item_subSchema| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    2,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SubSchemaSyntax_Item_subSchema(&v_1)?,
-                    ))),
-                ))
-            }(&value_.subSchema)?,
-        );
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(&_encode_Name(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.name)?);
+    components_.push(
+        |v_1: &SubSchemaSyntax_Item_subSchema| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 2),
+                X690Value::from_explicit(&_encode_SubSchemaSyntax_Item_subSchema(&v_1)?),
+            ))
+        }(&value_.subSchema)?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_SubSchemaSyntax_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubSchemaSyntax-Item")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SubSchemaSyntax_Item,
+        _eal_components_for_SubSchemaSyntax_Item,
+        _rctl2_components_for_SubSchemaSyntax_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "name" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "name"));
+                }
+                Ok(_validate_Name(&el.inner()?)?)
+            }(_el)?,
+            "subSchema" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "subSchema")
+                    );
+                }
+                Ok(_validate_SubSchemaSyntax_Item_subSchema(&el.inner()?)?)
+            }(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "SubSchemaSyntax-Item",
+                ))
+            }
+        }
+    }
+    Ok(())
 }

@@ -28,7 +28,6 @@ use crate::EnhancedSecurity::*;
 use crate::HierarchicalOperationalBindings::*;
 use crate::InformationFramework::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -131,9 +130,34 @@ impl OP_BIND_ROLE {}
 ///
 pub fn establishOperationalBinding() -> OPERATION {
     OPERATION {
-        Errors: Some(Vec::<_>::from([operationalBindingError(), securityError()])), /* OBJECT_FIELD_SETTING */
+        Errors: Some(Vec::from([operationalBindingError(), securityError()])), /* OBJECT_FIELD_SETTING */
         operationCode: Some(id_op_establishOperationalBinding), /* OBJECT_FIELD_SETTING */
         ..Default::default()
+    }
+}
+
+pub mod establishOperationalBinding {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ArgumentType = EstablishOperationalBindingArgument; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ArgumentType(el: &X690Element) -> ASN1Result<ArgumentType> {
+        _decode_EstablishOperationalBindingArgument(el)
+    }
+    pub fn _encode_ArgumentType(value_: &ArgumentType) -> ASN1Result<X690Element> {
+        _encode_EstablishOperationalBindingArgument(value_)
+    }
+    pub fn _validate_ArgumentType(el: &X690Element) -> ASN1Result<()> {
+        _validate_EstablishOperationalBindingArgument(el)
+    }
+    pub type ResultType = EstablishOperationalBindingResult; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ResultType(el: &X690Element) -> ASN1Result<ResultType> {
+        _decode_EstablishOperationalBindingResult(el)
+    }
+    pub fn _encode_ResultType(value_: &ResultType) -> ASN1Result<X690Element> {
+        _encode_EstablishOperationalBindingResult(value_)
+    }
+    pub fn _validate_ResultType(el: &X690Element) -> ASN1Result<()> {
+        _validate_EstablishOperationalBindingResult(el)
     }
 }
 
@@ -150,18 +174,19 @@ pub fn _decode_EstablishOperationalBindingArgument(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingArgument> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingArgumentData>(
-        _decode_EstablishOperationalBindingArgumentData,
-        &el,
-    )
+        _decode_EstablishOperationalBindingArgumentData, el)
 }
 
 pub fn _encode_EstablishOperationalBindingArgument(
     value_: &EstablishOperationalBindingArgument,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingArgumentData>(
-        _encode_EstablishOperationalBindingArgumentData,
-        &value_,
-    )
+        _encode_EstablishOperationalBindingArgumentData, value_)
+}
+
+pub fn _validate_EstablishOperationalBindingArgument(el: &X690Element) -> ASN1Result<()> {
+    _validate_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingArgumentData>(
+        _validate_EstablishOperationalBindingArgumentData, el)
 }
 
 /// ### ASN.1 Definition:
@@ -185,7 +210,6 @@ pub fn _encode_EstablishOperationalBindingArgument(
 ///   securityParameters [8]  SecurityParameters OPTIONAL,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct EstablishOperationalBindingArgumentData {
@@ -228,15 +252,9 @@ impl EstablishOperationalBindingArgumentData {
         }
     }
 }
-impl TryFrom<X690Element> for EstablishOperationalBindingArgumentData {
+impl TryFrom<&X690Element> for EstablishOperationalBindingArgumentData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_EstablishOperationalBindingArgumentData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for EstablishOperationalBindingArgumentData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_EstablishOperationalBindingArgumentData(el)
     }
 }
@@ -294,135 +312,218 @@ pub const _eal_components_for_EstablishOperationalBindingArgumentData: &[Compone
 pub fn _decode_EstablishOperationalBindingArgumentData(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingArgumentData> {
-    |el_: &X690Element| -> ASN1Result<EstablishOperationalBindingArgumentData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_EstablishOperationalBindingArgumentData,
-            _eal_components_for_EstablishOperationalBindingArgumentData,
-            _rctl2_components_for_EstablishOperationalBindingArgumentData,
-        )?;
-        let bindingType = |el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
-            Ok(ber_decode_object_identifier(&el.inner()?)?)
-        }(_components.get("bindingType").unwrap())?;
-        let bindingID: OPTIONAL<OperationalBindingID> = match _components.get("bindingID") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<OperationalBindingID> {
-                Ok(_decode_OperationalBindingID(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let accessPoint = |el: &X690Element| -> ASN1Result<AccessPoint> {
-            Ok(_decode_AccessPoint(&el.inner()?)?)
-        }(_components.get("accessPoint").unwrap())?;
-        let initiator = _decode_EstablishOperationalBindingArgumentData_initiator(
-            _components.get("initiator").unwrap(),
-        )?;
-        let agreement =
-            |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
-                _components.get("agreement").unwrap(),
-            )?;
-        let valid: OPTIONAL<Validity> = match _components.get("valid") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Validity> {
-                Ok(_decode_Validity(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "EstablishOperationalBindingArgumentData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_EstablishOperationalBindingArgumentData,
+        _eal_components_for_EstablishOperationalBindingArgumentData,
+        _rctl2_components_for_EstablishOperationalBindingArgumentData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut bindingType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut bindingID_: OPTIONAL<OperationalBindingID> = None;
+    let mut accessPoint_: OPTIONAL<AccessPoint> = None;
+    let mut initiator_: OPTIONAL<EstablishOperationalBindingArgumentData_initiator> = None;
+    let mut agreement_: OPTIONAL<X690Element> = None;
+    let mut valid_: OPTIONAL<Validity> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => {
+                bindingType_ = Some(|el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
+                    Ok(BER.decode_object_identifier(&el.inner()?)?)
+                }(_el)?)
+            }
+            "bindingID" => {
+                bindingID_ = Some(|el: &X690Element| -> ASN1Result<OperationalBindingID> {
+                    Ok(_decode_OperationalBindingID(&el.inner()?)?)
+                }(_el)?)
+            }
+            "accessPoint" => {
+                accessPoint_ = Some(|el: &X690Element| -> ASN1Result<AccessPoint> {
+                    Ok(_decode_AccessPoint(&el.inner()?)?)
+                }(_el)?)
+            }
+            "initiator" => {
+                initiator_ = Some(_decode_EstablishOperationalBindingArgumentData_initiator(
+                    _el,
+                )?)
+            }
+            "agreement" => {
+                agreement_ = Some(|el: &X690Element| -> ASN1Result<X690Element> {
+                    Ok(x690_identity(&el.inner()?)?)
+                }(_el)?)
+            }
+            "valid" => {
+                valid_ = Some(|el: &X690Element| -> ASN1Result<Validity> {
+                    Ok(_decode_Validity(&el.inner()?)?)
+                }(_el)?)
+            }
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        Ok(EstablishOperationalBindingArgumentData {
-            bindingType,
-            bindingID,
-            accessPoint,
-            initiator,
-            agreement,
-            valid,
-            securityParameters,
-            _unrecognized,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(EstablishOperationalBindingArgumentData {
+        bindingType: bindingType_.unwrap(),
+        bindingID: bindingID_,
+        accessPoint: accessPoint_.unwrap(),
+        initiator: initiator_.unwrap(),
+        agreement: agreement_.unwrap(),
+        valid: valid_,
+        securityParameters: securityParameters_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_EstablishOperationalBindingArgumentData(
     value_: &EstablishOperationalBindingArgumentData,
 ) -> ASN1Result<X690Element> {
-    |value_: &EstablishOperationalBindingArgumentData| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(17);
-        components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    ber_encode_object_identifier(&v_1)?,
-                ))),
-            ))
-        }(&value_.bindingType)?);
-        if let Some(v_) = &value_.bindingID {
-            components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    1,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_OperationalBindingID(&v_1)?,
-                    ))),
-                ))
-            }(&v_)?);
-        }
-        components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                2,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_AccessPoint(&v_1)?))),
-            ))
-        }(&value_.accessPoint)?);
-        components_.push(_encode_EstablishOperationalBindingArgumentData_initiator(
-            &value_.initiator,
-        )?);
-        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                6,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(x690_identity(&v_1)?))),
-            ))
-        }(&value_.agreement)?);
-        if let Some(v_) = &value_.valid {
-            if *v_ != EstablishOperationalBindingArgumentData::_default_value_for_valid() {
-                components_.push(|v_1: &Validity| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        7,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Validity(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    8,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
-                ))
-            }(&v_)?);
-        }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(17);
+    components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.bindingType)?);
+    if let Some(v_) = &value_.bindingID {
+        components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+        ))
+    }(&value_.accessPoint)?);
+    components_.push(_encode_EstablishOperationalBindingArgumentData_initiator(
+        &value_.initiator,
+    )?);
+    components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 6),
+            X690Value::from_explicit(&x690_identity(&v_1)?),
+        ))
+    }(&value_.agreement)?);
+    if value_.valid.as_ref().is_some_and(|v| !v.is_empty()) {
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 7),
+            X690Value::from_explicit(&_encode_Validity(&value_.valid.as_ref().unwrap())?),
+        ));
+    }
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 8),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_EstablishOperationalBindingArgumentData(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "EstablishOperationalBindingArgumentData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_EstablishOperationalBindingArgumentData,
+        _eal_components_for_EstablishOperationalBindingArgumentData,
+        _rctl2_components_for_EstablishOperationalBindingArgumentData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingType")
+                    );
+                }
+                Ok(BER.validate_object_identifier(&el.inner()?)?)
+            }(_el)?,
+            "bindingID" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingID")
+                    );
+                }
+                Ok(_validate_OperationalBindingID(&el.inner()?)?)
+            }(_el)?,
+            "accessPoint" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "accessPoint")
+                    );
+                }
+                Ok(_validate_AccessPoint(&el.inner()?)?)
+            }(_el)?,
+            "initiator" => _validate_EstablishOperationalBindingArgumentData_initiator(_el)?,
+            "agreement" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "agreement")
+                    );
+                }
+                Ok(BER.validate_any(&el.inner()?)?)
+            }(_el)?,
+            "valid" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "valid"));
+                }
+                Ok(_validate_Validity(&el.inner()?)?)
+            }(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 8 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -452,7 +553,6 @@ pub fn OpBindingSet() -> Vec<OPERATIONAL_BINDING> {
 ///   ... }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct OperationalBindingID {
     pub identifier: INTEGER,
@@ -468,15 +568,9 @@ impl OperationalBindingID {
         }
     }
 }
-impl TryFrom<X690Element> for OperationalBindingID {
+impl TryFrom<&X690Element> for OperationalBindingID {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OperationalBindingID(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OperationalBindingID {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OperationalBindingID(el)
     }
 }
@@ -503,41 +597,84 @@ pub const _rctl2_components_for_OperationalBindingID: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OperationalBindingID: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OperationalBindingID(el: &X690Element) -> ASN1Result<OperationalBindingID> {
-    |el_: &X690Element| -> ASN1Result<OperationalBindingID> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OperationalBindingID,
-            _eal_components_for_OperationalBindingID,
-            _rctl2_components_for_OperationalBindingID,
-        )?;
-        let identifier = ber_decode_integer(_components.get("identifier").unwrap())?;
-        let version = ber_decode_integer(_components.get("version").unwrap())?;
-        Ok(OperationalBindingID {
-            identifier,
-            version,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OperationalBindingID")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OperationalBindingID,
+        _eal_components_for_OperationalBindingID,
+        _rctl2_components_for_OperationalBindingID,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut identifier_: OPTIONAL<INTEGER> = None;
+    let mut version_: OPTIONAL<INTEGER> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "identifier" => identifier_ = Some(BER.decode_integer(_el)?),
+            "version" => version_ = Some(BER.decode_integer(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(OperationalBindingID {
+        identifier: identifier_.unwrap(),
+        version: version_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_OperationalBindingID(value_: &OperationalBindingID) -> ASN1Result<X690Element> {
-    |value_: &OperationalBindingID| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(ber_encode_integer(&value_.identifier)?);
-        components_.push(ber_encode_integer(&value_.version)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(BER.encode_integer(&value_.identifier)?);
+    components_.push(BER.encode_integer(&value_.version)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_OperationalBindingID(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OperationalBindingID")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OperationalBindingID,
+        _eal_components_for_OperationalBindingID,
+        _rctl2_components_for_OperationalBindingID,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "identifier" => BER.validate_integer(_el)?,
+            "version" => BER.validate_integer(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -555,8 +692,7 @@ pub fn _encode_OperationalBindingID(value_: &OperationalBindingID) -> ASN1Result
 ///   ... }
 /// ```
 ///
-///
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Validity {
     pub validFrom: OPTIONAL<Validity_validFrom>,
     pub validUntil: OPTIONAL<Validity_validUntil>,
@@ -580,6 +716,29 @@ impl Validity {
     pub fn _default_value_for_validUntil() -> Validity_validUntil {
         Validity_validUntil::explicitTermination(())
     }
+    pub fn is_empty(&self) -> bool {
+        self.validFrom.is_none()
+        && self.validUntil.is_none()
+        && self._unrecognized.len() == 0
+    }
+    pub fn lower_bounded(&self) -> bool {
+        if self.validFrom.is_none() {
+            return false;
+        }
+        match self.validFrom.as_ref().unwrap() {
+            Validity_validFrom::now(_) => true,
+            _ => false,
+        }
+    }
+    pub fn upper_bounded(&self) -> bool {
+        if self.validUntil.is_none() {
+            return false;
+        }
+        match self.validUntil.as_ref().unwrap() {
+            Validity_validUntil::explicitTermination(_) => true,
+            _ => false,
+        }
+    }
 }
 impl Default for Validity {
     fn default() -> Self {
@@ -590,15 +749,9 @@ impl Default for Validity {
         }
     }
 }
-impl TryFrom<X690Element> for Validity {
+impl TryFrom<&X690Element> for Validity {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Validity(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Validity {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Validity(el)
     }
 }
@@ -625,75 +778,110 @@ pub const _rctl2_components_for_Validity: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Validity: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Validity(el: &X690Element) -> ASN1Result<Validity> {
-    |el_: &X690Element| -> ASN1Result<Validity> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Validity,
-            _eal_components_for_Validity,
-            _rctl2_components_for_Validity,
-        )?;
-        let validFrom: OPTIONAL<Validity_validFrom> = match _components.get("validFrom") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Validity_validFrom> {
-                Ok(_decode_Validity_validFrom(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let validUntil: OPTIONAL<Validity_validUntil> = match _components.get("validUntil") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Validity_validUntil> {
-                Ok(_decode_Validity_validUntil(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(Validity {
-            validFrom,
-            validUntil,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Validity")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Validity,
+        _eal_components_for_Validity,
+        _rctl2_components_for_Validity,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut validFrom_: OPTIONAL<Validity_validFrom> = None;
+    let mut validUntil_: OPTIONAL<Validity_validUntil> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "validFrom" => {
+                validFrom_ = Some(|el: &X690Element| -> ASN1Result<Validity_validFrom> {
+                    Ok(_decode_Validity_validFrom(&el.inner()?)?)
+                }(_el)?)
+            }
+            "validUntil" => {
+                validUntil_ = Some(|el: &X690Element| -> ASN1Result<Validity_validUntil> {
+                    Ok(_decode_Validity_validUntil(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(Validity {
+        validFrom: validFrom_,
+        validUntil: validUntil_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_Validity(value_: &Validity) -> ASN1Result<X690Element> {
-    |value_: &Validity| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        if let Some(v_) = &value_.validFrom {
-            if *v_ != Validity::_default_value_for_validFrom() {
-                components_.push(|v_1: &Validity_validFrom| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_Validity_validFrom(&v_1)?,
-                        ))),
-                    ))
-                }(&v_)?);
-            }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    if value_.lower_bounded() {
+        let v = value_.validFrom.as_ref().unwrap();
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&_encode_Validity_validFrom(&v)?),
+        ));
+    }
+    if value_.upper_bounded() {
+        let v = value_.validUntil.as_ref().unwrap();
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(&_encode_Validity_validUntil(&v)?),
+        ));
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_Validity(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Validity")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Validity,
+        _eal_components_for_Validity,
+        _rctl2_components_for_Validity,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "validFrom" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "validFrom")
+                    );
+                }
+                Ok(_validate_Validity_validFrom(&el.inner()?)?)
+            }(_el)?,
+            "validUntil" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "validUntil")
+                    );
+                }
+                Ok(_validate_Validity_validUntil(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
         }
-        if let Some(v_) = &value_.validUntil {
-            if *v_ != Validity::_default_value_for_validUntil() {
-                components_.push(|v_1: &Validity_validUntil| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        1,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_Validity_validUntil(&v_1)?,
-                        ))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -704,48 +892,42 @@ pub fn _encode_Validity(value_: &Validity) -> ASN1Result<X690Element> {
 ///   generalizedTime  GeneralizedTime,
 ///   ... }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Time {
     utcTime(UTCTime),
     generalizedTime(GeneralizedTime),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for Time {
+impl TryFrom<&X690Element> for Time {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Time(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Time {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Time(el)
     }
 }
 
 pub fn _decode_Time(el: &X690Element) -> ASN1Result<Time> {
-    |el: &X690Element| -> ASN1Result<Time> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 23) => Ok(Time::utcTime(ber_decode_utc_time(&el)?)),
-            (TagClass::UNIVERSAL, 24) => {
-                Ok(Time::generalizedTime(ber_decode_generalized_time(&el)?))
-            }
-            _ => Ok(Time::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 23) => Ok(Time::utcTime(BER.decode_utc_time(&el)?)),
+        (TagClass::UNIVERSAL, 24) => Ok(Time::generalizedTime(BER.decode_generalized_time(&el)?)),
+        _ => Ok(Time::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
-    |value: &Time| -> ASN1Result<X690Element> {
-        match value {
-            Time::utcTime(v) => ber_encode_utc_time(&v),
-            Time::generalizedTime(v) => ber_encode_generalized_time(&v),
-            Time::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        Time::utcTime(v) => BER.encode_utc_time(&v),
+        Time::generalizedTime(v) => BER.encode_generalized_time(&v),
+        Time::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_Time(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 23) => BER.validate_utc_time(&el),
+        (TagClass::UNIVERSAL, 24) => BER.validate_generalized_time(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -760,18 +942,19 @@ pub fn _decode_EstablishOperationalBindingResult(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingResult> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingResultData>(
-        _decode_EstablishOperationalBindingResultData,
-        &el,
-    )
+        _decode_EstablishOperationalBindingResultData, el)
 }
 
 pub fn _encode_EstablishOperationalBindingResult(
     value_: &EstablishOperationalBindingResult,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingResultData>(
-        _encode_EstablishOperationalBindingResultData,
-        &value_,
-    )
+        _encode_EstablishOperationalBindingResultData, value_)
+}
+
+pub fn _validate_EstablishOperationalBindingResult(el: &X690Element) -> ASN1Result<()> {
+    _validate_OPTIONALLY_PROTECTED_SEQ::<EstablishOperationalBindingResultData>(
+        _validate_EstablishOperationalBindingResultData, el)
 }
 
 /// ### ASN.1 Definition:
@@ -793,7 +976,6 @@ pub fn _encode_EstablishOperationalBindingResult(
 ///   ...,
 ///   COMPONENTS OF      CommonResultsSeq }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct EstablishOperationalBindingResultData {
@@ -835,15 +1017,9 @@ impl EstablishOperationalBindingResultData {
         false
     }
 }
-impl TryFrom<X690Element> for EstablishOperationalBindingResultData {
+impl TryFrom<&X690Element> for EstablishOperationalBindingResultData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_EstablishOperationalBindingResultData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for EstablishOperationalBindingResultData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_EstablishOperationalBindingResultData(el)
     }
 }
@@ -909,185 +1085,289 @@ pub const _eal_components_for_EstablishOperationalBindingResultData: &[Component
 pub fn _decode_EstablishOperationalBindingResultData(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingResultData> {
-    |el_: &X690Element| -> ASN1Result<EstablishOperationalBindingResultData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_EstablishOperationalBindingResultData,
-            _eal_components_for_EstablishOperationalBindingResultData,
-            _rctl2_components_for_EstablishOperationalBindingResultData,
-        )?;
-        let bindingType = |el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
-            Ok(ber_decode_object_identifier(&el.inner()?)?)
-        }(_components.get("bindingType").unwrap())?;
-        let bindingID: OPTIONAL<OperationalBindingID> = match _components.get("bindingID") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<OperationalBindingID> {
-                Ok(_decode_OperationalBindingID(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let accessPoint = |el: &X690Element| -> ASN1Result<AccessPoint> {
-            Ok(_decode_AccessPoint(&el.inner()?)?)
-        }(_components.get("accessPoint").unwrap())?;
-        let initiator = _decode_EstablishOperationalBindingResultData_initiator(
-            _components.get("initiator").unwrap(),
-        )?;
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "EstablishOperationalBindingResultData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_EstablishOperationalBindingResultData,
+        _eal_components_for_EstablishOperationalBindingResultData,
+        _rctl2_components_for_EstablishOperationalBindingResultData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut bindingType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut bindingID_: OPTIONAL<OperationalBindingID> = None;
+    let mut accessPoint_: OPTIONAL<AccessPoint> = None;
+    let mut initiator_: OPTIONAL<EstablishOperationalBindingResultData_initiator> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut performer_: OPTIONAL<DistinguishedName> = None;
+    let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+    let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => {
+                bindingType_ = Some(|el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
+                    Ok(BER.decode_object_identifier(&el.inner()?)?)
+                }(_el)?)
+            }
+            "bindingID" => {
+                bindingID_ = Some(|el: &X690Element| -> ASN1Result<OperationalBindingID> {
+                    Ok(_decode_OperationalBindingID(&el.inner()?)?)
+                }(_el)?)
+            }
+            "accessPoint" => {
+                accessPoint_ = Some(|el: &X690Element| -> ASN1Result<AccessPoint> {
+                    Ok(_decode_AccessPoint(&el.inner()?)?)
+                }(_el)?)
+            }
+            "initiator" => {
+                initiator_ = Some(_decode_EstablishOperationalBindingResultData_initiator(
+                    _el,
+                )?)
+            }
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(EstablishOperationalBindingResultData {
-            bindingType,
-            bindingID,
-            accessPoint,
-            initiator,
-            _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            "performer" => {
+                performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                    Ok(_decode_DistinguishedName(&el.inner()?)?)
+                }(_el)?)
+            }
+            "aliasDereferenced" => {
+                aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                    Ok(BER.decode_boolean(&el.inner()?)?)
+                }(_el)?)
+            }
+            "notification" => {
+                notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                    Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                ))
+                            }
+                        };
+                        let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
+                        for el in elements.iter() {
+                            items.push(_decode_Attribute(el)?);
+                        }
+                        Ok(items)
+                    }(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(EstablishOperationalBindingResultData {
+        bindingType: bindingType_.unwrap(),
+        bindingID: bindingID_,
+        accessPoint: accessPoint_.unwrap(),
+        initiator: initiator_.unwrap(),
+        _unrecognized,
+        securityParameters: securityParameters_,
+        performer: performer_,
+        aliasDereferenced: aliasDereferenced_,
+        notification: notification_,
+    })
 }
 
 pub fn _encode_EstablishOperationalBindingResultData(
     value_: &EstablishOperationalBindingResultData,
 ) -> ASN1Result<X690Element> {
-    |value_: &EstablishOperationalBindingResultData| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(18);
-        components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(18);
+    components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+        ))
+    }(&value_.bindingType)?);
+    if let Some(v_) = &value_.bindingID {
+        components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    ber_encode_object_identifier(&v_1)?,
-                ))),
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
             ))
-        }(&value_.bindingType)?);
-        if let Some(v_) = &value_.bindingID {
-            components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    1,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_OperationalBindingID(&v_1)?,
-                    ))),
-                ))
-            }(&v_)?);
-        }
-        components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
+        }(&v_)?);
+    }
+    components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+        ))
+    }(&value_.accessPoint)?);
+    components_.push(_encode_EstablishOperationalBindingResultData_initiator(
+        &value_.initiator,
+    )?);
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
-                TagClass::CONTEXT,
-                2,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_AccessPoint(&v_1)?))),
+                Tag::new(TagClass::CONTEXT, 30),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
             ))
-        }(&value_.accessPoint)?);
-        components_.push(_encode_EstablishOperationalBindingResultData_initiator(
-            &value_.initiator,
-        )?);
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.performer {
+        components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 29),
+                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.aliasDereferenced {
+        if *v_ != EstablishOperationalBindingResultData::_default_value_for_aliasDereferenced() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    30,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
+                    Tag::new(TagClass::CONTEXT, 28),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
-        if let Some(v_) = &value_.performer {
-            components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    29,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                        &v_1,
-                    )?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.aliasDereferenced {
-            if *v_ != EstablishOperationalBindingResultData::_default_value_for_aliasDereferenced()
-            {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        28,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.notification {
-            components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    27,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<
-                        Attribute,
-                    >|
-                     -> ASN1Result<
-                        X690Element,
-                    > {
+    }
+    if let Some(v_) = &value_.notification {
+        components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 27),
+                X690Value::from_explicit(
+                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
                         }
                         Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
                         ))
-                    }(
-                        &v_1
-                    )?))),
-                ))
-            }(&v_)?);
+                    }(&v_1)?,
+                ),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_EstablishOperationalBindingResultData(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "EstablishOperationalBindingResultData",
+            ))
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_EstablishOperationalBindingResultData,
+        _eal_components_for_EstablishOperationalBindingResultData,
+        _rctl2_components_for_EstablishOperationalBindingResultData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingType")
+                    );
+                }
+                Ok(BER.validate_object_identifier(&el.inner()?)?)
+            }(_el)?,
+            "bindingID" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingID")
+                    );
+                }
+                Ok(_validate_OperationalBindingID(&el.inner()?)?)
+            }(_el)?,
+            "accessPoint" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "accessPoint")
+                    );
+                }
+                Ok(_validate_AccessPoint(&el.inner()?)?)
+            }(_el)?,
+            "initiator" => _validate_EstablishOperationalBindingResultData_initiator(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            "performer" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "performer")
+                    );
+                }
+                Ok(_validate_DistinguishedName(&el.inner()?)?)
+            }(_el)?,
+            "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "aliasDereferenced",
+                    ));
+                }
+                Ok(BER.validate_boolean(&el.inner()?)?)
+            }(_el)?,
+            "notification" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "notification")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_Attribute(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "notification",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1103,9 +1383,34 @@ pub fn _encode_EstablishOperationalBindingResultData(
 ///
 pub fn modifyOperationalBinding() -> OPERATION {
     OPERATION {
-        Errors: Some(Vec::<_>::from([operationalBindingError(), securityError()])), /* OBJECT_FIELD_SETTING */
+        Errors: Some(Vec::from([operationalBindingError(), securityError()])), /* OBJECT_FIELD_SETTING */
         operationCode: Some(id_op_modifyOperationalBinding), /* OBJECT_FIELD_SETTING */
         ..Default::default()
+    }
+}
+
+pub mod modifyOperationalBinding {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ArgumentType = ModifyOperationalBindingArgument; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ArgumentType(el: &X690Element) -> ASN1Result<ArgumentType> {
+        _decode_ModifyOperationalBindingArgument(el)
+    }
+    pub fn _encode_ArgumentType(value_: &ArgumentType) -> ASN1Result<X690Element> {
+        _encode_ModifyOperationalBindingArgument(value_)
+    }
+    pub fn _validate_ArgumentType(el: &X690Element) -> ASN1Result<()> {
+        _validate_ModifyOperationalBindingArgument(el)
+    }
+    pub type ResultType = ModifyOperationalBindingResult; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ResultType(el: &X690Element) -> ASN1Result<ResultType> {
+        _decode_ModifyOperationalBindingResult(el)
+    }
+    pub fn _encode_ResultType(value_: &ResultType) -> ASN1Result<X690Element> {
+        _encode_ModifyOperationalBindingResult(value_)
+    }
+    pub fn _validate_ResultType(el: &X690Element) -> ASN1Result<()> {
+        _validate_ModifyOperationalBindingResult(el)
     }
 }
 
@@ -1122,18 +1427,19 @@ pub fn _decode_ModifyOperationalBindingArgument(
     el: &X690Element,
 ) -> ASN1Result<ModifyOperationalBindingArgument> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<ModifyOperationalBindingArgumentData>(
-        _decode_ModifyOperationalBindingArgumentData,
-        &el,
-    )
+        _decode_ModifyOperationalBindingArgumentData, el)
 }
 
 pub fn _encode_ModifyOperationalBindingArgument(
     value_: &ModifyOperationalBindingArgument,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<ModifyOperationalBindingArgumentData>(
-        _encode_ModifyOperationalBindingArgumentData,
-        &value_,
-    )
+        _encode_ModifyOperationalBindingArgumentData, value_)
+}
+
+pub fn _validate_ModifyOperationalBindingArgument(el: &X690Element) -> ASN1Result<()> {
+    _validate_OPTIONALLY_PROTECTED_SEQ::<ModifyOperationalBindingArgumentData>(
+        _validate_ModifyOperationalBindingArgumentData, el)
 }
 
 /// ### ASN.1 Definition:
@@ -1158,7 +1464,6 @@ pub fn _encode_ModifyOperationalBindingArgument(
 ///   securityParameters  [9]  SecurityParameters OPTIONAL,
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ModifyOperationalBindingArgumentData {
@@ -1197,15 +1502,9 @@ impl ModifyOperationalBindingArgumentData {
         }
     }
 }
-impl TryFrom<X690Element> for ModifyOperationalBindingArgumentData {
+impl TryFrom<&X690Element> for ModifyOperationalBindingArgumentData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModifyOperationalBindingArgumentData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ModifyOperationalBindingArgumentData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModifyOperationalBindingArgumentData(el)
     }
 }
@@ -1276,154 +1575,241 @@ pub const _eal_components_for_ModifyOperationalBindingArgumentData: &[ComponentS
 pub fn _decode_ModifyOperationalBindingArgumentData(
     el: &X690Element,
 ) -> ASN1Result<ModifyOperationalBindingArgumentData> {
-    |el_: &X690Element| -> ASN1Result<ModifyOperationalBindingArgumentData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ModifyOperationalBindingArgumentData,
-            _eal_components_for_ModifyOperationalBindingArgumentData,
-            _rctl2_components_for_ModifyOperationalBindingArgumentData,
-        )?;
-        let bindingType = |el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
-            Ok(ber_decode_object_identifier(&el.inner()?)?)
-        }(_components.get("bindingType").unwrap())?;
-        let bindingID = |el: &X690Element| -> ASN1Result<OperationalBindingID> {
-            Ok(_decode_OperationalBindingID(&el.inner()?)?)
-        }(_components.get("bindingID").unwrap())?;
-        let accessPoint: OPTIONAL<AccessPoint> = match _components.get("accessPoint") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<AccessPoint> {
-                Ok(_decode_AccessPoint(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let initiator: OPTIONAL<ModifyOperationalBindingArgumentData_initiator> =
-            match _components.get("initiator") {
-                Some(c_) => Some(_decode_ModifyOperationalBindingArgumentData_initiator(c_)?),
-                _ => None,
-            };
-        let newBindingID = |el: &X690Element| -> ASN1Result<OperationalBindingID> {
-            Ok(_decode_OperationalBindingID(&el.inner()?)?)
-        }(_components.get("newBindingID").unwrap())?;
-        let newAgreement: OPTIONAL<X690Element> = match _components.get("newAgreement") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<X690Element> {
-                Ok(x690_identity(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let valid: OPTIONAL<ModifiedValidity> = match _components.get("valid") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<ModifiedValidity> {
-                Ok(_decode_ModifiedValidity(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ModifyOperationalBindingArgumentData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModifyOperationalBindingArgumentData,
+        _eal_components_for_ModifyOperationalBindingArgumentData,
+        _rctl2_components_for_ModifyOperationalBindingArgumentData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut bindingType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut bindingID_: OPTIONAL<OperationalBindingID> = None;
+    let mut accessPoint_: OPTIONAL<AccessPoint> = None;
+    let mut initiator_: OPTIONAL<ModifyOperationalBindingArgumentData_initiator> = None;
+    let mut newBindingID_: OPTIONAL<OperationalBindingID> = None;
+    let mut newAgreement_: OPTIONAL<X690Element> = None;
+    let mut valid_: OPTIONAL<ModifiedValidity> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => {
+                bindingType_ = Some(|el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
+                    Ok(BER.decode_object_identifier(&el.inner()?)?)
+                }(_el)?)
+            }
+            "bindingID" => {
+                bindingID_ = Some(|el: &X690Element| -> ASN1Result<OperationalBindingID> {
+                    Ok(_decode_OperationalBindingID(&el.inner()?)?)
+                }(_el)?)
+            }
+            "accessPoint" => {
+                accessPoint_ = Some(|el: &X690Element| -> ASN1Result<AccessPoint> {
+                    Ok(_decode_AccessPoint(&el.inner()?)?)
+                }(_el)?)
+            }
+            "initiator" => {
+                initiator_ = Some(_decode_ModifyOperationalBindingArgumentData_initiator(_el)?)
+            }
+            "newBindingID" => {
+                newBindingID_ = Some(|el: &X690Element| -> ASN1Result<OperationalBindingID> {
+                    Ok(_decode_OperationalBindingID(&el.inner()?)?)
+                }(_el)?)
+            }
+            "newAgreement" => {
+                newAgreement_ = Some(|el: &X690Element| -> ASN1Result<X690Element> {
+                    Ok(x690_identity(&el.inner()?)?)
+                }(_el)?)
+            }
+            "valid" => {
+                valid_ = Some(|el: &X690Element| -> ASN1Result<ModifiedValidity> {
+                    Ok(_decode_ModifiedValidity(&el.inner()?)?)
+                }(_el)?)
+            }
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        Ok(ModifyOperationalBindingArgumentData {
-            bindingType,
-            bindingID,
-            accessPoint,
-            initiator,
-            newBindingID,
-            newAgreement,
-            valid,
-            securityParameters,
-            _unrecognized,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ModifyOperationalBindingArgumentData {
+        bindingType: bindingType_.unwrap(),
+        bindingID: bindingID_.unwrap(),
+        accessPoint: accessPoint_,
+        initiator: initiator_,
+        newBindingID: newBindingID_.unwrap(),
+        newAgreement: newAgreement_,
+        valid: valid_,
+        securityParameters: securityParameters_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_ModifyOperationalBindingArgumentData(
     value_: &ModifyOperationalBindingArgumentData,
 ) -> ASN1Result<X690Element> {
-    |value_: &ModifyOperationalBindingArgumentData| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(18);
-        components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    ber_encode_object_identifier(&v_1)?,
-                ))),
-            ))
-        }(&value_.bindingType)?);
-        components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                1,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_OperationalBindingID(&v_1)?,
-                ))),
-            ))
-        }(&value_.bindingID)?);
-        if let Some(v_) = &value_.accessPoint {
-            components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    2,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_AccessPoint(&v_1)?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.initiator {
-            components_.push(_encode_ModifyOperationalBindingArgumentData_initiator(&v_)?);
-        }
-        components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                6,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_OperationalBindingID(&v_1)?,
-                ))),
-            ))
-        }(&value_.newBindingID)?);
-        if let Some(v_) = &value_.newAgreement {
-            components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    7,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(x690_identity(&v_1)?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.valid {
-            components_.push(|v_1: &ModifiedValidity| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    8,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_ModifiedValidity(
-                        &v_1,
-                    )?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    9,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
-                ))
-            }(&v_)?);
-        }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(18);
+    components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.bindingType)?);
+    components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+        ))
+    }(&value_.bindingID)?);
+    if let Some(v_) = &value_.accessPoint {
+        components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 2),
+                X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.initiator {
+        components_.push(_encode_ModifyOperationalBindingArgumentData_initiator(&v_)?);
+    }
+    components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 6),
+            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+        ))
+    }(&value_.newBindingID)?);
+    if let Some(v_) = &value_.newAgreement {
+        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 7),
+                X690Value::from_explicit(&x690_identity(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.valid {
+        components_.push(|v_1: &ModifiedValidity| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 8),
+                X690Value::from_explicit(&_encode_ModifiedValidity(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 9),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ModifyOperationalBindingArgumentData(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ModifyOperationalBindingArgumentData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModifyOperationalBindingArgumentData,
+        _eal_components_for_ModifyOperationalBindingArgumentData,
+        _rctl2_components_for_ModifyOperationalBindingArgumentData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingType")
+                    );
+                }
+                Ok(BER.validate_object_identifier(&el.inner()?)?)
+            }(_el)?,
+            "bindingID" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingID")
+                    );
+                }
+                Ok(_validate_OperationalBindingID(&el.inner()?)?)
+            }(_el)?,
+            "accessPoint" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "accessPoint")
+                    );
+                }
+                Ok(_validate_AccessPoint(&el.inner()?)?)
+            }(_el)?,
+            "initiator" => _validate_ModifyOperationalBindingArgumentData_initiator(_el)?,
+            "newBindingID" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "newBindingID")
+                    );
+                }
+                Ok(_validate_OperationalBindingID(&el.inner()?)?)
+            }(_el)?,
+            "newAgreement" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "newAgreement")
+                    );
+                }
+                Ok(BER.validate_any(&el.inner()?)?)
+            }(_el)?,
+            "valid" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 8 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "valid"));
+                }
+                Ok(_validate_ModifiedValidity(&el.inner()?)?)
+            }(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 9 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1441,7 +1827,6 @@ pub fn _encode_ModifyOperationalBindingArgumentData(
 ///     ... } DEFAULT unchanged:NULL,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ModifiedValidity {
@@ -1467,6 +1852,17 @@ impl ModifiedValidity {
     pub fn _default_value_for_validUntil() -> ModifiedValidity_validUntil {
         ModifiedValidity_validUntil::unchanged(())
     }
+    pub fn lower_bounded (&self) -> bool {
+        if self.validFrom.is_none() {
+            return false;
+        }
+        let v = self.validFrom.as_ref().unwrap();
+        if let ModifiedValidity_validFrom::now(_) = v {
+            false
+        } else {
+            true
+        }
+    }
 }
 impl Default for ModifiedValidity {
     fn default() -> Self {
@@ -1477,15 +1873,9 @@ impl Default for ModifiedValidity {
         }
     }
 }
-impl TryFrom<X690Element> for ModifiedValidity {
+impl TryFrom<&X690Element> for ModifiedValidity {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModifiedValidity(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ModifiedValidity {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModifiedValidity(el)
     }
 }
@@ -1512,84 +1902,127 @@ pub const _rctl2_components_for_ModifiedValidity: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ModifiedValidity: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ModifiedValidity(el: &X690Element) -> ASN1Result<ModifiedValidity> {
-    |el_: &X690Element| -> ASN1Result<ModifiedValidity> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ModifiedValidity,
-            _eal_components_for_ModifiedValidity,
-            _rctl2_components_for_ModifiedValidity,
-        )?;
-        let validFrom: OPTIONAL<ModifiedValidity_validFrom> = match _components.get("validFrom") {
-            Some(c_) => Some(
-                |el: &X690Element| -> ASN1Result<ModifiedValidity_validFrom> {
-                    Ok(_decode_ModifiedValidity_validFrom(&el.inner()?)?)
-                }(c_)?,
-            ),
-            _ => None,
-        };
-        let validUntil: OPTIONAL<ModifiedValidity_validUntil> = match _components.get("validUntil")
-        {
-            Some(c_) => Some(
-                |el: &X690Element| -> ASN1Result<ModifiedValidity_validUntil> {
-                    Ok(_decode_ModifiedValidity_validUntil(&el.inner()?)?)
-                }(c_)?,
-            ),
-            _ => None,
-        };
-        Ok(ModifiedValidity {
-            validFrom,
-            validUntil,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ModifiedValidity")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModifiedValidity,
+        _eal_components_for_ModifiedValidity,
+        _rctl2_components_for_ModifiedValidity,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut validFrom_: OPTIONAL<ModifiedValidity_validFrom> = None;
+    let mut validUntil_: OPTIONAL<ModifiedValidity_validUntil> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "validFrom" => {
+                validFrom_ = Some(
+                    |el: &X690Element| -> ASN1Result<ModifiedValidity_validFrom> {
+                        Ok(_decode_ModifiedValidity_validFrom(&el.inner()?)?)
+                    }(_el)?,
+                )
+            }
+            "validUntil" => {
+                validUntil_ = Some(
+                    |el: &X690Element| -> ASN1Result<ModifiedValidity_validUntil> {
+                        Ok(_decode_ModifiedValidity_validUntil(&el.inner()?)?)
+                    }(_el)?,
+                )
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ModifiedValidity {
+        validFrom: validFrom_,
+        validUntil: validUntil_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_ModifiedValidity(value_: &ModifiedValidity) -> ASN1Result<X690Element> {
-    |value_: &ModifiedValidity| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        if let Some(v_) = &value_.validFrom {
-            if *v_ != ModifiedValidity::_default_value_for_validFrom() {
-                components_.push(
-                    |v_1: &ModifiedValidity_validFrom| -> ASN1Result<X690Element> {
-                        Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            0,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_ModifiedValidity_validFrom(&v_1)?,
-                            ))),
-                        ))
-                    }(&v_)?,
-                );
-            }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(2);
+    if value_.lower_bounded() {
+        let v = value_.validFrom.as_ref().unwrap();
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&_encode_ModifiedValidity_validFrom(&v)?),
+        ));
+    }
+    if let Some(v_) = &value_.validUntil {
+        if v_.is_changed() {
+            components_.push(
+                |v_1: &ModifiedValidity_validUntil| -> ASN1Result<X690Element> {
+                    Ok(X690Element::new(
+                        Tag::new(TagClass::CONTEXT, 1),
+                        X690Value::from_explicit(&_encode_ModifiedValidity_validUntil(&v_1)?),
+                    ))
+                }(&v_)?,
+            );
         }
-        if let Some(v_) = &value_.validUntil {
-            if *v_ != ModifiedValidity::_default_value_for_validUntil() {
-                components_.push(
-                    |v_1: &ModifiedValidity_validUntil| -> ASN1Result<X690Element> {
-                        Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            1,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_ModifiedValidity_validUntil(&v_1)?,
-                            ))),
-                        ))
-                    }(&v_)?,
-                );
-            }
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ModifiedValidity(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ModifiedValidity")
+            )
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModifiedValidity,
+        _eal_components_for_ModifiedValidity,
+        _rctl2_components_for_ModifiedValidity,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "validFrom" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "validFrom")
+                    );
+                }
+                Ok(_validate_ModifiedValidity_validFrom(&el.inner()?)?)
+            }(_el)?,
+            "validUntil" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "validUntil")
+                    );
+                }
+                Ok(_validate_ModifiedValidity_validUntil(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1607,17 +2040,9 @@ pub enum ModifyOperationalBindingResult {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for ModifyOperationalBindingResult {
+impl TryFrom<&X690Element> for ModifyOperationalBindingResult {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModifyOperationalBindingResult(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ModifyOperationalBindingResult {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModifyOperationalBindingResult(el)
     }
 }
@@ -1625,37 +2050,56 @@ impl<'a> TryFrom<&'a X690Element> for ModifyOperationalBindingResult {
 pub fn _decode_ModifyOperationalBindingResult(
     el: &X690Element,
 ) -> ASN1Result<ModifyOperationalBindingResult> {
-    |el: &X690Element| -> ASN1Result<ModifyOperationalBindingResult> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => {
-                Ok(ModifyOperationalBindingResult::null(ber_decode_null(&el)?))
-            }
-            (TagClass::CONTEXT, 1) => Ok(
-                ModifyOperationalBindingResult::protected(|el: &X690Element| -> ASN1Result<
-                    OPTIONALLY_PROTECTED_SEQ<ModifyOperationalBindingResultData>,
-                > {
-                    Ok(_decode_OPTIONALLY_PROTECTED_SEQ::<
-                        ModifyOperationalBindingResultData,
-                    >(
-                        _decode_ModifyOperationalBindingResultData, &el.inner()?
-                    )?)
-                }(&el)?),
-            ),
-            _ => Ok(ModifyOperationalBindingResult::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(ModifyOperationalBindingResult::null(BER.decode_null(&el)?)),
+        (TagClass::CONTEXT, 1) => Ok(
+            ModifyOperationalBindingResult::protected(|el: &X690Element| -> ASN1Result<
+                OPTIONALLY_PROTECTED_SEQ<ModifyOperationalBindingResultData>,
+            > {
+                Ok(_decode_OPTIONALLY_PROTECTED_SEQ::<
+                    ModifyOperationalBindingResultData,
+                >(
+                    _decode_ModifyOperationalBindingResultData, &el.inner()?)?)
+            }(&el)?),
+        ),
+        _ => Ok(ModifyOperationalBindingResult::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_ModifyOperationalBindingResult(
     value_: &ModifyOperationalBindingResult,
 ) -> ASN1Result<X690Element> {
-    |value: &ModifyOperationalBindingResult| -> ASN1Result<X690Element> {
-        match value {
-		ModifyOperationalBindingResult::null(v) => ber_encode_null(&v),
-		ModifyOperationalBindingResult::protected(v) => |v_1: &OPTIONALLY_PROTECTED_SEQ<ModifyOperationalBindingResultData>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 1, Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_OPTIONALLY_PROTECTED_SEQ::<ModifyOperationalBindingResultData>(_encode_ModifyOperationalBindingResultData, &v_1)?))))) }(&v),
-		ModifyOperationalBindingResult::_unrecognized(el) => Ok(el.clone()),
-	}
-    }(&value_)
+    match value_ {
+        ModifyOperationalBindingResult::null(v) => BER.encode_null(&v),
+        ModifyOperationalBindingResult::protected(v) => |v_1: &OPTIONALLY_PROTECTED_SEQ<
+            ModifyOperationalBindingResultData,
+        >|
+         -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_OPTIONALLY_PROTECTED_SEQ::<
+                    ModifyOperationalBindingResultData,
+                >(
+                    _encode_ModifyOperationalBindingResultData, &v_1)?),
+            ))
+        }(&v),
+        ModifyOperationalBindingResult::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_ModifyOperationalBindingResult(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "protected"));
+            }
+            Ok(_validate_OPTIONALLY_PROTECTED_SEQ::<
+                ModifyOperationalBindingResultData,
+            >(_validate_ModifyOperationalBindingResultData, &el.inner()?)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1671,7 +2115,6 @@ pub fn _encode_ModifyOperationalBindingResult(
 ///     COMPONENTS OF   CommonResultsSeq
 ///     }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ModifyOperationalBindingResultData {
@@ -1713,15 +2156,9 @@ impl ModifyOperationalBindingResultData {
         false
     }
 }
-impl TryFrom<X690Element> for ModifyOperationalBindingResultData {
+impl TryFrom<&X690Element> for ModifyOperationalBindingResultData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModifyOperationalBindingResultData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ModifyOperationalBindingResultData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModifyOperationalBindingResultData(el)
     }
 }
@@ -1787,152 +2224,235 @@ pub const _eal_components_for_ModifyOperationalBindingResultData: &[ComponentSpe
 pub fn _decode_ModifyOperationalBindingResultData(
     el: &X690Element,
 ) -> ASN1Result<ModifyOperationalBindingResultData> {
-    |el_: &X690Element| -> ASN1Result<ModifyOperationalBindingResultData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ModifyOperationalBindingResultData,
-            _eal_components_for_ModifyOperationalBindingResultData,
-            _rctl2_components_for_ModifyOperationalBindingResultData,
-        )?;
-        let newBindingID = _decode_OperationalBindingID(_components.get("newBindingID").unwrap())?;
-        let bindingType = ber_decode_object_identifier(_components.get("bindingType").unwrap())?;
-        let newAgreement = x690_identity(_components.get("newAgreement").unwrap())?;
-        let valid: OPTIONAL<Validity> = match _components.get("valid") {
-            Some(c_) => Some(_decode_Validity(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ModifyOperationalBindingResultData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModifyOperationalBindingResultData,
+        _eal_components_for_ModifyOperationalBindingResultData,
+        _rctl2_components_for_ModifyOperationalBindingResultData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut newBindingID_: OPTIONAL<OperationalBindingID> = None;
+    let mut bindingType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut newAgreement_: OPTIONAL<X690Element> = None;
+    let mut valid_: OPTIONAL<Validity> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut performer_: OPTIONAL<DistinguishedName> = None;
+    let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+    let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "newBindingID" => newBindingID_ = Some(_decode_OperationalBindingID(_el)?),
+            "bindingType" => bindingType_ = Some(BER.decode_object_identifier(_el)?),
+            "newAgreement" => newAgreement_ = Some(x690_identity(_el)?),
+            "valid" => valid_ = Some(_decode_Validity(_el)?),
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(ModifyOperationalBindingResultData {
-            newBindingID,
-            bindingType,
-            newAgreement,
-            valid,
-            _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            "performer" => {
+                performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                    Ok(_decode_DistinguishedName(&el.inner()?)?)
+                }(_el)?)
+            }
+            "aliasDereferenced" => {
+                aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                    Ok(BER.decode_boolean(&el.inner()?)?)
+                }(_el)?)
+            }
+            "notification" => {
+                notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                    Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                ))
+                            }
+                        };
+                        let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
+                        for el in elements.iter() {
+                            items.push(_decode_Attribute(el)?);
+                        }
+                        Ok(items)
+                    }(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ModifyOperationalBindingResultData {
+        newBindingID: newBindingID_.unwrap(),
+        bindingType: bindingType_.unwrap(),
+        newAgreement: newAgreement_.unwrap(),
+        valid: valid_,
+        _unrecognized,
+        securityParameters: securityParameters_,
+        performer: performer_,
+        aliasDereferenced: aliasDereferenced_,
+        notification: notification_,
+    })
 }
 
 pub fn _encode_ModifyOperationalBindingResultData(
     value_: &ModifyOperationalBindingResultData,
 ) -> ASN1Result<X690Element> {
-    |value_: &ModifyOperationalBindingResultData| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(18);
-        components_.push(_encode_OperationalBindingID(&value_.newBindingID)?);
-        components_.push(ber_encode_object_identifier(&value_.bindingType)?);
-        components_.push(x690_identity(&value_.newAgreement)?);
-        if let Some(v_) = &value_.valid {
-            components_.push(_encode_Validity(&v_)?);
-        }
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(18);
+    components_.push(_encode_OperationalBindingID(&value_.newBindingID)?);
+    components_.push(BER.encode_object_identifier(&value_.bindingType)?);
+    components_.push(x690_identity(&value_.newAgreement)?);
+    if let Some(v_) = &value_.valid {
+        components_.push(_encode_Validity(&v_)?);
+    }
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 30),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.performer {
+        components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 29),
+                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.aliasDereferenced {
+        if *v_ != ModifyOperationalBindingResultData::_default_value_for_aliasDereferenced() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    30,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
+                    Tag::new(TagClass::CONTEXT, 28),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
-        if let Some(v_) = &value_.performer {
-            components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    29,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                        &v_1,
-                    )?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.aliasDereferenced {
-            if *v_ != ModifyOperationalBindingResultData::_default_value_for_aliasDereferenced() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        28,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.notification {
-            components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    27,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<
-                        Attribute,
-                    >|
-                     -> ASN1Result<
-                        X690Element,
-                    > {
+    }
+    if let Some(v_) = &value_.notification {
+        components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 27),
+                X690Value::from_explicit(
+                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
                         }
                         Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
                         ))
-                    }(
-                        &v_1
-                    )?))),
-                ))
-            }(&v_)?);
+                    }(&v_1)?,
+                ),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ModifyOperationalBindingResultData(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ModifyOperationalBindingResultData",
+            ))
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModifyOperationalBindingResultData,
+        _eal_components_for_ModifyOperationalBindingResultData,
+        _rctl2_components_for_ModifyOperationalBindingResultData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "newBindingID" => _validate_OperationalBindingID(_el)?,
+            "bindingType" => BER.validate_object_identifier(_el)?,
+            "newAgreement" => BER.validate_any(_el)?,
+            "valid" => _validate_Validity(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            "performer" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "performer")
+                    );
+                }
+                Ok(_validate_DistinguishedName(&el.inner()?)?)
+            }(_el)?,
+            "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "aliasDereferenced",
+                    ));
+                }
+                Ok(BER.validate_boolean(&el.inner()?)?)
+            }(_el)?,
+            "notification" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "notification")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_Attribute(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "notification",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1948,9 +2468,34 @@ pub fn _encode_ModifyOperationalBindingResultData(
 ///
 pub fn terminateOperationalBinding() -> OPERATION {
     OPERATION {
-        Errors: Some(Vec::<_>::from([operationalBindingError(), securityError()])), /* OBJECT_FIELD_SETTING */
+        Errors: Some(Vec::from([operationalBindingError(), securityError()])), /* OBJECT_FIELD_SETTING */
         operationCode: Some(id_op_terminateOperationalBinding), /* OBJECT_FIELD_SETTING */
         ..Default::default()
+    }
+}
+
+pub mod terminateOperationalBinding {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ArgumentType = TerminateOperationalBindingArgument; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ArgumentType(el: &X690Element) -> ASN1Result<ArgumentType> {
+        _decode_TerminateOperationalBindingArgument(el)
+    }
+    pub fn _encode_ArgumentType(value_: &ArgumentType) -> ASN1Result<X690Element> {
+        _encode_TerminateOperationalBindingArgument(value_)
+    }
+    pub fn _validate_ArgumentType(el: &X690Element) -> ASN1Result<()> {
+        _validate_TerminateOperationalBindingArgument(el)
+    }
+    pub type ResultType = TerminateOperationalBindingResult; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ResultType(el: &X690Element) -> ASN1Result<ResultType> {
+        _decode_TerminateOperationalBindingResult(el)
+    }
+    pub fn _encode_ResultType(value_: &ResultType) -> ASN1Result<X690Element> {
+        _encode_TerminateOperationalBindingResult(value_)
+    }
+    pub fn _validate_ResultType(el: &X690Element) -> ASN1Result<()> {
+        _validate_TerminateOperationalBindingResult(el)
     }
 }
 
@@ -1967,18 +2512,19 @@ pub fn _decode_TerminateOperationalBindingArgument(
     el: &X690Element,
 ) -> ASN1Result<TerminateOperationalBindingArgument> {
     _decode_OPTIONALLY_PROTECTED_SEQ::<TerminateOperationalBindingArgumentData>(
-        _decode_TerminateOperationalBindingArgumentData,
-        &el,
-    )
+        _decode_TerminateOperationalBindingArgumentData, el)
 }
 
 pub fn _encode_TerminateOperationalBindingArgument(
     value_: &TerminateOperationalBindingArgument,
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED_SEQ::<TerminateOperationalBindingArgumentData>(
-        _encode_TerminateOperationalBindingArgumentData,
-        &value_,
-    )
+        _encode_TerminateOperationalBindingArgumentData, value_)
+}
+
+pub fn _validate_TerminateOperationalBindingArgument(el: &X690Element) -> ASN1Result<()> {
+    _validate_OPTIONALLY_PROTECTED_SEQ::<TerminateOperationalBindingArgumentData>(
+        _validate_TerminateOperationalBindingArgumentData, el)
 }
 
 /// ### ASN.1 Definition:
@@ -1999,7 +2545,6 @@ pub fn _encode_TerminateOperationalBindingArgument(
 ///   securityParameters  [6]  SecurityParameters OPTIONAL,
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TerminateOperationalBindingArgumentData {
@@ -2029,15 +2574,9 @@ impl TerminateOperationalBindingArgumentData {
         }
     }
 }
-impl TryFrom<X690Element> for TerminateOperationalBindingArgumentData {
+impl TryFrom<&X690Element> for TerminateOperationalBindingArgumentData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TerminateOperationalBindingArgumentData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TerminateOperationalBindingArgumentData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TerminateOperationalBindingArgumentData(el)
     }
 }
@@ -2087,111 +2626,180 @@ pub const _eal_components_for_TerminateOperationalBindingArgumentData: &[Compone
 pub fn _decode_TerminateOperationalBindingArgumentData(
     el: &X690Element,
 ) -> ASN1Result<TerminateOperationalBindingArgumentData> {
-    |el_: &X690Element| -> ASN1Result<TerminateOperationalBindingArgumentData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TerminateOperationalBindingArgumentData,
-            _eal_components_for_TerminateOperationalBindingArgumentData,
-            _rctl2_components_for_TerminateOperationalBindingArgumentData,
-        )?;
-        let bindingType = |el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
-            Ok(ber_decode_object_identifier(&el.inner()?)?)
-        }(_components.get("bindingType").unwrap())?;
-        let bindingID = |el: &X690Element| -> ASN1Result<OperationalBindingID> {
-            Ok(_decode_OperationalBindingID(&el.inner()?)?)
-        }(_components.get("bindingID").unwrap())?;
-        let initiator: OPTIONAL<TerminateOperationalBindingArgumentData_initiator> =
-            match _components.get("initiator") {
-                Some(c_) => Some(_decode_TerminateOperationalBindingArgumentData_initiator(
-                    c_,
-                )?),
-                _ => None,
-            };
-        let terminateAt: OPTIONAL<Time> = match _components.get("terminateAt") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Time> {
-                Ok(_decode_Time(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TerminateOperationalBindingArgumentData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TerminateOperationalBindingArgumentData,
+        _eal_components_for_TerminateOperationalBindingArgumentData,
+        _rctl2_components_for_TerminateOperationalBindingArgumentData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut bindingType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut bindingID_: OPTIONAL<OperationalBindingID> = None;
+    let mut initiator_: OPTIONAL<TerminateOperationalBindingArgumentData_initiator> = None;
+    let mut terminateAt_: OPTIONAL<Time> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => {
+                bindingType_ = Some(|el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
+                    Ok(BER.decode_object_identifier(&el.inner()?)?)
+                }(_el)?)
+            }
+            "bindingID" => {
+                bindingID_ = Some(|el: &X690Element| -> ASN1Result<OperationalBindingID> {
+                    Ok(_decode_OperationalBindingID(&el.inner()?)?)
+                }(_el)?)
+            }
+            "initiator" => {
+                initiator_ = Some(_decode_TerminateOperationalBindingArgumentData_initiator(
+                    _el,
+                )?)
+            }
+            "terminateAt" => {
+                terminateAt_ = Some(|el: &X690Element| -> ASN1Result<Time> {
+                    Ok(_decode_Time(&el.inner()?)?)
+                }(_el)?)
+            }
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        Ok(TerminateOperationalBindingArgumentData {
-            bindingType,
-            bindingID,
-            initiator,
-            terminateAt,
-            securityParameters,
-            _unrecognized,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(TerminateOperationalBindingArgumentData {
+        bindingType: bindingType_.unwrap(),
+        bindingID: bindingID_.unwrap(),
+        initiator: initiator_,
+        terminateAt: terminateAt_,
+        securityParameters: securityParameters_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_TerminateOperationalBindingArgumentData(
     value_: &TerminateOperationalBindingArgumentData,
 ) -> ASN1Result<X690Element> {
-    |value_: &TerminateOperationalBindingArgumentData| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(15);
-        components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    ber_encode_object_identifier(&v_1)?,
-                ))),
-            ))
-        }(&value_.bindingType)?);
-        components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                1,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_OperationalBindingID(&v_1)?,
-                ))),
-            ))
-        }(&value_.bindingID)?);
-        if let Some(v_) = &value_.initiator {
-            components_.push(_encode_TerminateOperationalBindingArgumentData_initiator(
-                &v_,
-            )?);
-        }
-        if let Some(v_) = &value_.terminateAt {
-            components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    5,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Time(&v_1)?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    6,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
-                ))
-            }(&v_)?);
-        }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(15);
+    components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.bindingType)?);
+    components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+        ))
+    }(&value_.bindingID)?);
+    if let Some(v_) = &value_.initiator {
+        components_.push(_encode_TerminateOperationalBindingArgumentData_initiator(
+            &v_,
+        )?);
+    }
+    if let Some(v_) = &value_.terminateAt {
+        components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 5),
+                X690Value::from_explicit(&_encode_Time(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 6),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_TerminateOperationalBindingArgumentData(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TerminateOperationalBindingArgumentData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TerminateOperationalBindingArgumentData,
+        _eal_components_for_TerminateOperationalBindingArgumentData,
+        _rctl2_components_for_TerminateOperationalBindingArgumentData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingType" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingType")
+                    );
+                }
+                Ok(BER.validate_object_identifier(&el.inner()?)?)
+            }(_el)?,
+            "bindingID" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingID")
+                    );
+                }
+                Ok(_validate_OperationalBindingID(&el.inner()?)?)
+            }(_el)?,
+            "initiator" => _validate_TerminateOperationalBindingArgumentData_initiator(_el)?,
+            "terminateAt" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "terminateAt")
+                    );
+                }
+                Ok(_validate_Time(&el.inner()?)?)
+            }(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2209,17 +2817,9 @@ pub enum TerminateOperationalBindingResult {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for TerminateOperationalBindingResult {
+impl TryFrom<&X690Element> for TerminateOperationalBindingResult {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TerminateOperationalBindingResult(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TerminateOperationalBindingResult {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TerminateOperationalBindingResult(el)
     }
 }
@@ -2227,38 +2827,59 @@ impl<'a> TryFrom<&'a X690Element> for TerminateOperationalBindingResult {
 pub fn _decode_TerminateOperationalBindingResult(
     el: &X690Element,
 ) -> ASN1Result<TerminateOperationalBindingResult> {
-    |el: &X690Element| -> ASN1Result<TerminateOperationalBindingResult> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => Ok(TerminateOperationalBindingResult::null(
-                ber_decode_null(&el)?,
-            )),
-            (TagClass::CONTEXT, 1) => Ok(TerminateOperationalBindingResult::protected(
-                |el: &X690Element| -> ASN1Result<
-                    OPTIONALLY_PROTECTED_SEQ<TerminateOperationalBindingResultData>,
-                > {
-                    Ok(_decode_OPTIONALLY_PROTECTED_SEQ::<
-                        TerminateOperationalBindingResultData,
-                    >(
-                        _decode_TerminateOperationalBindingResultData,
-                        &el.inner()?,
-                    )?)
-                }(&el)?,
-            )),
-            _ => Ok(TerminateOperationalBindingResult::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(TerminateOperationalBindingResult::null(
+            BER.decode_null(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(
+            TerminateOperationalBindingResult::protected(|el: &X690Element| -> ASN1Result<
+                OPTIONALLY_PROTECTED_SEQ<TerminateOperationalBindingResultData>,
+            > {
+                Ok(_decode_OPTIONALLY_PROTECTED_SEQ::<
+                    TerminateOperationalBindingResultData,
+                >(
+                    _decode_TerminateOperationalBindingResultData, &el.inner()?)?)
+            }(&el)?),
+        ),
+        _ => Ok(TerminateOperationalBindingResult::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_TerminateOperationalBindingResult(
     value_: &TerminateOperationalBindingResult,
 ) -> ASN1Result<X690Element> {
-    |value: &TerminateOperationalBindingResult| -> ASN1Result<X690Element> {
-        match value {
-		TerminateOperationalBindingResult::null(v) => ber_encode_null(&v),
-		TerminateOperationalBindingResult::protected(v) => |v_1: &OPTIONALLY_PROTECTED_SEQ<TerminateOperationalBindingResultData>| -> ASN1Result<X690Element> { Ok(X690Element::new(TagClass::CONTEXT, 1, Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_OPTIONALLY_PROTECTED_SEQ::<TerminateOperationalBindingResultData>(_encode_TerminateOperationalBindingResultData, &v_1)?))))) }(&v),
-		TerminateOperationalBindingResult::_unrecognized(el) => Ok(el.clone()),
-	}
-    }(&value_)
+    match value_ {
+        TerminateOperationalBindingResult::null(v) => BER.encode_null(&v),
+        TerminateOperationalBindingResult::protected(v) => |v_1: &OPTIONALLY_PROTECTED_SEQ<
+            TerminateOperationalBindingResultData,
+        >|
+         -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_OPTIONALLY_PROTECTED_SEQ::<
+                    TerminateOperationalBindingResultData,
+                >(
+                    _encode_TerminateOperationalBindingResultData, v_1)?),
+            ))
+        }(&v),
+        TerminateOperationalBindingResult::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_TerminateOperationalBindingResult(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "protected"));
+            }
+            Ok(_validate_OPTIONALLY_PROTECTED_SEQ::<
+                TerminateOperationalBindingResultData,
+            >(
+                _validate_TerminateOperationalBindingResultData, &el.inner()?)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2272,7 +2893,6 @@ pub fn _encode_TerminateOperationalBindingResult(
 ///   ...,
 ///   COMPONENTS OF   CommonResultsSeq }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TerminateOperationalBindingResultData {
@@ -2311,15 +2931,9 @@ impl TerminateOperationalBindingResultData {
         false
     }
 }
-impl TryFrom<X690Element> for TerminateOperationalBindingResultData {
+impl TryFrom<&X690Element> for TerminateOperationalBindingResultData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TerminateOperationalBindingResultData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TerminateOperationalBindingResultData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TerminateOperationalBindingResultData(el)
     }
 }
@@ -2384,150 +2998,230 @@ pub const _eal_components_for_TerminateOperationalBindingResultData: &[Component
 pub fn _decode_TerminateOperationalBindingResultData(
     el: &X690Element,
 ) -> ASN1Result<TerminateOperationalBindingResultData> {
-    |el_: &X690Element| -> ASN1Result<TerminateOperationalBindingResultData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TerminateOperationalBindingResultData,
-            _eal_components_for_TerminateOperationalBindingResultData,
-            _rctl2_components_for_TerminateOperationalBindingResultData,
-        )?;
-        let bindingID = _decode_OperationalBindingID(_components.get("bindingID").unwrap())?;
-        let bindingType = ber_decode_object_identifier(_components.get("bindingType").unwrap())?;
-        let terminateAt: OPTIONAL<GeneralizedTime> = match _components.get("terminateAt") {
-            Some(c_) => Some(ber_decode_generalized_time(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TerminateOperationalBindingResultData",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TerminateOperationalBindingResultData,
+        _eal_components_for_TerminateOperationalBindingResultData,
+        _rctl2_components_for_TerminateOperationalBindingResultData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut bindingID_: OPTIONAL<OperationalBindingID> = None;
+    let mut bindingType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut terminateAt_: OPTIONAL<GeneralizedTime> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut performer_: OPTIONAL<DistinguishedName> = None;
+    let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+    let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingID" => bindingID_ = Some(_decode_OperationalBindingID(_el)?),
+            "bindingType" => bindingType_ = Some(BER.decode_object_identifier(_el)?),
+            "terminateAt" => terminateAt_ = Some(BER.decode_generalized_time(_el)?),
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(TerminateOperationalBindingResultData {
-            bindingID,
-            bindingType,
-            terminateAt,
-            _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            "performer" => {
+                performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                    Ok(_decode_DistinguishedName(&el.inner()?)?)
+                }(_el)?)
+            }
+            "aliasDereferenced" => {
+                aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                    Ok(BER.decode_boolean(&el.inner()?)?)
+                }(_el)?)
+            }
+            "notification" => {
+                notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                    Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                ))
+                            }
+                        };
+                        let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
+                        for el in elements.iter() {
+                            items.push(_decode_Attribute(el)?);
+                        }
+                        Ok(items)
+                    }(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(TerminateOperationalBindingResultData {
+        bindingID: bindingID_.unwrap(),
+        bindingType: bindingType_.unwrap(),
+        terminateAt: terminateAt_,
+        _unrecognized,
+        securityParameters: securityParameters_,
+        performer: performer_,
+        aliasDereferenced: aliasDereferenced_,
+        notification: notification_,
+    })
 }
 
 pub fn _encode_TerminateOperationalBindingResultData(
     value_: &TerminateOperationalBindingResultData,
 ) -> ASN1Result<X690Element> {
-    |value_: &TerminateOperationalBindingResultData| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(17);
-        components_.push(_encode_OperationalBindingID(&value_.bindingID)?);
-        components_.push(ber_encode_object_identifier(&value_.bindingType)?);
-        if let Some(v_) = &value_.terminateAt {
-            components_.push(ber_encode_generalized_time(&v_)?);
-        }
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(17);
+    components_.push(_encode_OperationalBindingID(&value_.bindingID)?);
+    components_.push(BER.encode_object_identifier(&value_.bindingType)?);
+    if let Some(v_) = &value_.terminateAt {
+        components_.push(BER.encode_generalized_time(&v_)?);
+    }
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 30),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.performer {
+        components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 29),
+                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.aliasDereferenced {
+        if *v_ != TerminateOperationalBindingResultData::_default_value_for_aliasDereferenced() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    30,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
+                    Tag::new(TagClass::CONTEXT, 28),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
-        if let Some(v_) = &value_.performer {
-            components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    29,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                        &v_1,
-                    )?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.aliasDereferenced {
-            if *v_ != TerminateOperationalBindingResultData::_default_value_for_aliasDereferenced()
-            {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        28,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.notification {
-            components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    27,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<
-                        Attribute,
-                    >|
-                     -> ASN1Result<
-                        X690Element,
-                    > {
+    }
+    if let Some(v_) = &value_.notification {
+        components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 27),
+                X690Value::from_explicit(
+                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
                         }
                         Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
                         ))
-                    }(
-                        &v_1
-                    )?))),
-                ))
-            }(&v_)?);
+                    }(&v_1)?,
+                ),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_TerminateOperationalBindingResultData(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TerminateOperationalBindingResultData",
+            ))
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TerminateOperationalBindingResultData,
+        _eal_components_for_TerminateOperationalBindingResultData,
+        _rctl2_components_for_TerminateOperationalBindingResultData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "bindingID" => _validate_OperationalBindingID(_el)?,
+            "bindingType" => BER.validate_object_identifier(_el)?,
+            "terminateAt" => BER.validate_generalized_time(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            "performer" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "performer")
+                    );
+                }
+                Ok(_validate_DistinguishedName(&el.inner()?)?)
+            }(_el)?,
+            "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "aliasDereferenced",
+                    ));
+                }
+                Ok(BER.validate_boolean(&el.inner()?)?)
+            }(_el)?,
+            "notification" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "notification")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_Attribute(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "notification",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2542,6 +3236,21 @@ pub fn _encode_TerminateOperationalBindingResultData(
 pub fn operationalBindingError() -> ERROR {
     ERROR {
         errorCode: Some(id_err_operationalBindingError), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod operationalBindingError {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ParameterType = OPTIONALLY_PROTECTED_SEQ<OpBindingErrorParam>; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ParameterType(el: &X690Element) -> ASN1Result<ParameterType> {
+        _decode_OPTIONALLY_PROTECTED_SEQ::<OpBindingErrorParam>(_decode_OpBindingErrorParam, el)
+    }
+    pub fn _encode_ParameterType(value_: &ParameterType) -> ASN1Result<X690Element> {
+        _encode_OPTIONALLY_PROTECTED_SEQ::<OpBindingErrorParam>(_encode_OpBindingErrorParam, value_)
+    }
+    pub fn _validate_ParameterType(el: &X690Element) -> ASN1Result<()> {
+        _validate_OPTIONALLY_PROTECTED_SEQ::<OpBindingErrorParam>(_validate_OpBindingErrorParam, el)
     }
 }
 
@@ -2572,7 +3281,6 @@ pub fn operationalBindingError() -> ERROR {
 ///   ...,
 ///   COMPONENTS OF           CommonResultsSeq }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OpBindingErrorParam {
@@ -2614,15 +3322,9 @@ impl OpBindingErrorParam {
         false
     }
 }
-impl TryFrom<X690Element> for OpBindingErrorParam {
+impl TryFrom<&X690Element> for OpBindingErrorParam {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OpBindingErrorParam(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OpBindingErrorParam {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OpBindingErrorParam(el)
     }
 }
@@ -2692,198 +3394,304 @@ pub const _rctl2_components_for_OpBindingErrorParam: &[ComponentSpec; 4] = &[
 pub const _eal_components_for_OpBindingErrorParam: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OpBindingErrorParam(el: &X690Element) -> ASN1Result<OpBindingErrorParam> {
-    |el_: &X690Element| -> ASN1Result<OpBindingErrorParam> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OpBindingErrorParam,
-            _eal_components_for_OpBindingErrorParam,
-            _rctl2_components_for_OpBindingErrorParam,
-        )?;
-        let problem = |el: &X690Element| -> ASN1Result<OpBindingErrorParam_problem> {
-            Ok(_decode_OpBindingErrorParam_problem(&el.inner()?)?)
-        }(_components.get("problem").unwrap())?;
-        let bindingType: OPTIONAL<OBJECT_IDENTIFIER> = match _components.get("bindingType") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
-                Ok(ber_decode_object_identifier(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let agreementProposal: OPTIONAL<X690Element> = match _components.get("agreementProposal") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<X690Element> {
-                Ok(x690_identity(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let retryAt: OPTIONAL<Time> = match _components.get("retryAt") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Time> {
-                Ok(_decode_Time(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OpBindingErrorParam")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OpBindingErrorParam,
+        _eal_components_for_OpBindingErrorParam,
+        _rctl2_components_for_OpBindingErrorParam,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut problem_: OPTIONAL<OpBindingErrorParam_problem> = None;
+    let mut bindingType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut agreementProposal_: OPTIONAL<X690Element> = None;
+    let mut retryAt_: OPTIONAL<Time> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut performer_: OPTIONAL<DistinguishedName> = None;
+    let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+    let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "problem" => {
+                problem_ = Some(
+                    |el: &X690Element| -> ASN1Result<OpBindingErrorParam_problem> {
+                        Ok(_decode_OpBindingErrorParam_problem(&el.inner()?)?)
+                    }(_el)?,
+                )
+            }
+            "bindingType" => {
+                bindingType_ = Some(|el: &X690Element| -> ASN1Result<OBJECT_IDENTIFIER> {
+                    Ok(BER.decode_object_identifier(&el.inner()?)?)
+                }(_el)?)
+            }
+            "agreementProposal" => {
+                agreementProposal_ = Some(|el: &X690Element| -> ASN1Result<X690Element> {
+                    Ok(x690_identity(&el.inner()?)?)
+                }(_el)?)
+            }
+            "retryAt" => {
+                retryAt_ = Some(|el: &X690Element| -> ASN1Result<Time> {
+                    Ok(_decode_Time(&el.inner()?)?)
+                }(_el)?)
+            }
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(OpBindingErrorParam {
-            problem,
-            bindingType,
-            agreementProposal,
-            retryAt,
-            _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            "performer" => {
+                performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                    Ok(_decode_DistinguishedName(&el.inner()?)?)
+                }(_el)?)
+            }
+            "aliasDereferenced" => {
+                aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                    Ok(BER.decode_boolean(&el.inner()?)?)
+                }(_el)?)
+            }
+            "notification" => {
+                notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                    Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                ))
+                            }
+                        };
+                        let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
+                        for el in elements.iter() {
+                            items.push(_decode_Attribute(el)?);
+                        }
+                        Ok(items)
+                    }(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(OpBindingErrorParam {
+        problem: problem_.unwrap(),
+        bindingType: bindingType_,
+        agreementProposal: agreementProposal_,
+        retryAt: retryAt_,
+        _unrecognized,
+        securityParameters: securityParameters_,
+        performer: performer_,
+        aliasDereferenced: aliasDereferenced_,
+        notification: notification_,
+    })
 }
 
 pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X690Element> {
-    |value_: &OpBindingErrorParam| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(18);
-        components_.push(
-            |v_1: &OpBindingErrorParam_problem| -> ASN1Result<X690Element> {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(18);
+    components_.push(
+        |v_1: &OpBindingErrorParam_problem| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::from_explicit(&_encode_OpBindingErrorParam_problem(&v_1)?),
+            ))
+        }(&value_.problem)?,
+    );
+    if let Some(v_) = &value_.bindingType {
+        components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.agreementProposal {
+        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 2),
+                X690Value::from_explicit(&x690_identity(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.retryAt {
+        components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 3),
+                X690Value::from_explicit(&_encode_Time(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 30),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.performer {
+        components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 29),
+                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.aliasDereferenced {
+        if *v_ != OpBindingErrorParam::_default_value_for_aliasDereferenced() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    0,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_OpBindingErrorParam_problem(&v_1)?,
-                    ))),
-                ))
-            }(&value_.problem)?,
-        );
-        if let Some(v_) = &value_.bindingType {
-            components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    1,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        ber_encode_object_identifier(&v_1)?,
-                    ))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.agreementProposal {
-            components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    2,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(x690_identity(&v_1)?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.retryAt {
-            components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    3,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Time(&v_1)?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    30,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.performer {
-            components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    29,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                        &v_1,
-                    )?))),
+                    Tag::new(TagClass::CONTEXT, 28),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
-        if let Some(v_) = &value_.aliasDereferenced {
-            if *v_ != OpBindingErrorParam::_default_value_for_aliasDereferenced() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        28,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.notification {
-            components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    27,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<
-                        Attribute,
-                    >|
-                     -> ASN1Result<
-                        X690Element,
-                    > {
+    }
+    if let Some(v_) = &value_.notification {
+        components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 27),
+                X690Value::from_explicit(
+                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
                         }
                         Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
                         ))
-                    }(
-                        &v_1
-                    )?))),
-                ))
-            }(&v_)?);
+                    }(&v_1)?,
+                ),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_OpBindingErrorParam(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OpBindingErrorParam")
+            )
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OpBindingErrorParam,
+        _eal_components_for_OpBindingErrorParam,
+        _rctl2_components_for_OpBindingErrorParam,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "problem" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "problem")
+                    );
+                }
+                Ok(_validate_OpBindingErrorParam_problem(&el.inner()?)?)
+            }(_el)?,
+            "bindingType" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "bindingType")
+                    );
+                }
+                Ok(BER.validate_object_identifier(&el.inner()?)?)
+            }(_el)?,
+            "agreementProposal" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "agreementProposal",
+                    ));
+                }
+                Ok(BER.validate_any(&el.inner()?)?)
+            }(_el)?,
+            "retryAt" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "retryAt")
+                    );
+                }
+                Ok(_validate_Time(&el.inner()?)?)
+            }(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            "performer" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "performer")
+                    );
+                }
+                Ok(_validate_DistinguishedName(&el.inner()?)?)
+            }(_el)?,
+            "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "aliasDereferenced",
+                    ));
+                }
+                Ok(BER.validate_boolean(&el.inner()?)?)
+            }(_el)?,
+            "notification" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "notification")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_Attribute(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "notification",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2898,17 +3706,9 @@ pub enum EstablishOperationalBindingArgumentData_initiator {
     roleB_initiates(X690Element),
 }
 
-impl TryFrom<X690Element> for EstablishOperationalBindingArgumentData_initiator {
+impl TryFrom<&X690Element> for EstablishOperationalBindingArgumentData_initiator {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_EstablishOperationalBindingArgumentData_initiator(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for EstablishOperationalBindingArgumentData_initiator {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_EstablishOperationalBindingArgumentData_initiator(el)
     }
 }
@@ -2916,69 +3716,108 @@ impl<'a> TryFrom<&'a X690Element> for EstablishOperationalBindingArgumentData_in
 pub fn _decode_EstablishOperationalBindingArgumentData_initiator(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingArgumentData_initiator> {
-    |el: &X690Element| -> ASN1Result<EstablishOperationalBindingArgumentData_initiator> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 3) => Ok(
-                EstablishOperationalBindingArgumentData_initiator::symmetric(x690_identity(
-                    &el.inner()?,
-                )?),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 3) => Ok(
+            EstablishOperationalBindingArgumentData_initiator::symmetric(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            (TagClass::CONTEXT, 4) => Ok(
-                EstablishOperationalBindingArgumentData_initiator::roleA_initiates(x690_identity(
-                    &el.inner()?,
-                )?),
+        ),
+        (TagClass::CONTEXT, 4) => Ok(
+            EstablishOperationalBindingArgumentData_initiator::roleA_initiates(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            (TagClass::CONTEXT, 5) => Ok(
-                EstablishOperationalBindingArgumentData_initiator::roleB_initiates(x690_identity(
-                    &el.inner()?,
-                )?),
+        ),
+        (TagClass::CONTEXT, 5) => Ok(
+            EstablishOperationalBindingArgumentData_initiator::roleB_initiates(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "EstablishOperationalBindingArgumentData-initiator",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
     value_: &EstablishOperationalBindingArgumentData_initiator,
 ) -> ASN1Result<X690Element> {
-    |value: &EstablishOperationalBindingArgumentData_initiator| -> ASN1Result<X690Element> {
-        match value {
-            EstablishOperationalBindingArgumentData_initiator::symmetric(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        3,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            EstablishOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        4,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            EstablishOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        5,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
+    match value_ {
+        EstablishOperationalBindingArgumentData_initiator::symmetric(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 3),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
         }
-    }(&value_)
+        EstablishOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 4),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        EstablishOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 5),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name =
+                Some("EstablishOperationalBindingArgumentData-initiator".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_EstablishOperationalBindingArgumentData_initiator(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 3) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "symmetric"));
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 4) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleA-initiates")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 5) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleB-initiates")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "EstablishOperationalBindingArgumentData-initiator",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2986,61 +3825,66 @@ pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
 /// ```asn1
 /// Validity-validFrom ::= CHOICE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Validity_validFrom {
     now(NULL),
     time(Time),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for Validity_validFrom {
+impl TryFrom<&X690Element> for Validity_validFrom {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Validity_validFrom(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Validity_validFrom {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Validity_validFrom(el)
     }
 }
 
 pub fn _decode_Validity_validFrom(el: &X690Element) -> ASN1Result<Validity_validFrom> {
-    |el: &X690Element| -> ASN1Result<Validity_validFrom> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(Validity_validFrom::now(ber_decode_null(&el.inner()?)?)),
-            (TagClass::CONTEXT, 1) => Ok(Validity_validFrom::time(
-                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
-            )),
-            _ => Ok(Validity_validFrom::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(Validity_validFrom::now(
+            |el: &X690Element| -> ASN1Result<NULL> { Ok(BER.decode_null(&el.inner()?)?) }(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(Validity_validFrom::time(
+            |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+        )),
+        _ => Ok(Validity_validFrom::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_Validity_validFrom(value_: &Validity_validFrom) -> ASN1Result<X690Element> {
-    |value: &Validity_validFrom| -> ASN1Result<X690Element> {
-        match value {
-            Validity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
-                let el_1 = ber_encode_null(&v_1)?;
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    0,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                ))
-            }(&v),
-            Validity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    1,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Time(&v_1)?))),
-                ))
-            }(&v),
-            Validity_validFrom::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        Validity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+            ))
+        }(&v),
+        Validity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_Time(&v_1)?),
+            ))
+        }(&v),
+        Validity_validFrom::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_Validity_validFrom(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "now"));
+            }
+            Ok(BER.validate_null(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "time"));
+            }
+            Ok(_validate_Time(&el.inner()?)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3048,65 +3892,69 @@ pub fn _encode_Validity_validFrom(value_: &Validity_validFrom) -> ASN1Result<X69
 /// ```asn1
 /// Validity-validUntil ::= CHOICE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Validity_validUntil {
     explicitTermination(NULL),
     time(Time),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for Validity_validUntil {
+impl TryFrom<&X690Element> for Validity_validUntil {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Validity_validUntil(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Validity_validUntil {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Validity_validUntil(el)
     }
 }
 
 pub fn _decode_Validity_validUntil(el: &X690Element) -> ASN1Result<Validity_validUntil> {
-    |el: &X690Element| -> ASN1Result<Validity_validUntil> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(Validity_validUntil::explicitTermination(
-                ber_decode_null(&el.inner()?)?,
-            )),
-            (TagClass::CONTEXT, 1) => Ok(Validity_validUntil::time(
-                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
-            )),
-            _ => Ok(Validity_validUntil::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(Validity_validUntil::explicitTermination(
+            |el: &X690Element| -> ASN1Result<NULL> { Ok(BER.decode_null(&el.inner()?)?) }(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(Validity_validUntil::time(
+            |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+        )),
+        _ => Ok(Validity_validUntil::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_Validity_validUntil(value_: &Validity_validUntil) -> ASN1Result<X690Element> {
-    |value: &Validity_validUntil| -> ASN1Result<X690Element> {
-        match value {
-            Validity_validUntil::explicitTermination(v) => {
-                |v_1: &NULL| -> ASN1Result<X690Element> {
-                    let el_1 = ber_encode_null(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
+    match value_ {
+        Validity_validUntil::explicitTermination(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+            ))
+        }(&v),
+        Validity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_Time(&v_1)?),
+            ))
+        }(&v),
+        Validity_validUntil::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_Validity_validUntil(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "explicitTermination",
+                ));
             }
-            Validity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    1,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Time(&v_1)?))),
-                ))
-            }(&v),
-            Validity_validUntil::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+            Ok(BER.validate_null(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "time"));
+            }
+            Ok(_validate_Time(&el.inner()?)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3121,17 +3969,9 @@ pub enum EstablishOperationalBindingResultData_initiator {
     roleB_replies(X690Element),
 }
 
-impl TryFrom<X690Element> for EstablishOperationalBindingResultData_initiator {
+impl TryFrom<&X690Element> for EstablishOperationalBindingResultData_initiator {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_EstablishOperationalBindingResultData_initiator(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for EstablishOperationalBindingResultData_initiator {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_EstablishOperationalBindingResultData_initiator(el)
     }
 }
@@ -3139,69 +3979,106 @@ impl<'a> TryFrom<&'a X690Element> for EstablishOperationalBindingResultData_init
 pub fn _decode_EstablishOperationalBindingResultData_initiator(
     el: &X690Element,
 ) -> ASN1Result<EstablishOperationalBindingResultData_initiator> {
-    |el: &X690Element| -> ASN1Result<EstablishOperationalBindingResultData_initiator> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 3) => {
-                Ok(EstablishOperationalBindingResultData_initiator::symmetric(
-                    x690_identity(&el.inner()?)?,
-                ))
-            }
-            (TagClass::CONTEXT, 4) => Ok(
-                EstablishOperationalBindingResultData_initiator::roleA_replies(x690_identity(
-                    &el.inner()?,
-                )?),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 3) => Ok(EstablishOperationalBindingResultData_initiator::symmetric(
+            |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                &el,
+            )?,
+        )),
+        (TagClass::CONTEXT, 4) => Ok(
+            EstablishOperationalBindingResultData_initiator::roleA_replies(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            (TagClass::CONTEXT, 5) => Ok(
-                EstablishOperationalBindingResultData_initiator::roleB_replies(x690_identity(
-                    &el.inner()?,
-                )?),
+        ),
+        (TagClass::CONTEXT, 5) => Ok(
+            EstablishOperationalBindingResultData_initiator::roleB_replies(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "EstablishOperationalBindingResultData-initiator",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_EstablishOperationalBindingResultData_initiator(
     value_: &EstablishOperationalBindingResultData_initiator,
 ) -> ASN1Result<X690Element> {
-    |value: &EstablishOperationalBindingResultData_initiator| -> ASN1Result<X690Element> {
-        match value {
-            EstablishOperationalBindingResultData_initiator::symmetric(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        3,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            EstablishOperationalBindingResultData_initiator::roleA_replies(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        4,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            EstablishOperationalBindingResultData_initiator::roleB_replies(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        5,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
+    match value_ {
+        EstablishOperationalBindingResultData_initiator::symmetric(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 3),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
         }
-    }(&value_)
+        EstablishOperationalBindingResultData_initiator::roleA_replies(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 4),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        EstablishOperationalBindingResultData_initiator::roleB_replies(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 5),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name =
+                Some("EstablishOperationalBindingResultData-initiator".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_EstablishOperationalBindingResultData_initiator(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 3) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "symmetric"));
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 4) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleA-replies")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 5) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleB-replies")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "EstablishOperationalBindingResultData-initiator",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3216,17 +4093,9 @@ pub enum ModifyOperationalBindingArgumentData_initiator {
     roleB_initiates(X690Element),
 }
 
-impl TryFrom<X690Element> for ModifyOperationalBindingArgumentData_initiator {
+impl TryFrom<&X690Element> for ModifyOperationalBindingArgumentData_initiator {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModifyOperationalBindingArgumentData_initiator(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ModifyOperationalBindingArgumentData_initiator {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModifyOperationalBindingArgumentData_initiator(el)
     }
 }
@@ -3234,69 +4103,105 @@ impl<'a> TryFrom<&'a X690Element> for ModifyOperationalBindingArgumentData_initi
 pub fn _decode_ModifyOperationalBindingArgumentData_initiator(
     el: &X690Element,
 ) -> ASN1Result<ModifyOperationalBindingArgumentData_initiator> {
-    |el: &X690Element| -> ASN1Result<ModifyOperationalBindingArgumentData_initiator> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 3) => {
-                Ok(ModifyOperationalBindingArgumentData_initiator::symmetric(
-                    x690_identity(&el.inner()?)?,
-                ))
-            }
-            (TagClass::CONTEXT, 4) => Ok(
-                ModifyOperationalBindingArgumentData_initiator::roleA_initiates(x690_identity(
-                    &el.inner()?,
-                )?),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 3) => Ok(ModifyOperationalBindingArgumentData_initiator::symmetric(
+            |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                &el,
+            )?,
+        )),
+        (TagClass::CONTEXT, 4) => Ok(
+            ModifyOperationalBindingArgumentData_initiator::roleA_initiates(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            (TagClass::CONTEXT, 5) => Ok(
-                ModifyOperationalBindingArgumentData_initiator::roleB_initiates(x690_identity(
-                    &el.inner()?,
-                )?),
+        ),
+        (TagClass::CONTEXT, 5) => Ok(
+            ModifyOperationalBindingArgumentData_initiator::roleB_initiates(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ModifyOperationalBindingArgumentData-initiator",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
     value_: &ModifyOperationalBindingArgumentData_initiator,
 ) -> ASN1Result<X690Element> {
-    |value: &ModifyOperationalBindingArgumentData_initiator| -> ASN1Result<X690Element> {
-        match value {
-            ModifyOperationalBindingArgumentData_initiator::symmetric(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        3,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            ModifyOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        4,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            ModifyOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        5,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
+    match value_ {
+        ModifyOperationalBindingArgumentData_initiator::symmetric(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 3),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
         }
-    }(&value_)
+        ModifyOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 4),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        ModifyOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 5),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("ModifyOperationalBindingArgumentData-initiator".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_ModifyOperationalBindingArgumentData_initiator(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 3) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "symmetric"));
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 4) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleA-initiates")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 5) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleB-initiates")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ModifyOperationalBindingArgumentData-initiator",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3304,24 +4209,16 @@ pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
 /// ```asn1
 /// ModifiedValidity-validFrom ::= CHOICE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum ModifiedValidity_validFrom {
     now(NULL),
     time(Time),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for ModifiedValidity_validFrom {
+impl TryFrom<&X690Element> for ModifiedValidity_validFrom {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModifiedValidity_validFrom(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ModifiedValidity_validFrom {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModifiedValidity_validFrom(el)
     }
 }
@@ -3329,42 +4226,53 @@ impl<'a> TryFrom<&'a X690Element> for ModifiedValidity_validFrom {
 pub fn _decode_ModifiedValidity_validFrom(
     el: &X690Element,
 ) -> ASN1Result<ModifiedValidity_validFrom> {
-    |el: &X690Element| -> ASN1Result<ModifiedValidity_validFrom> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(ModifiedValidity_validFrom::now(ber_decode_null(
-                &el.inner()?,
-            )?)),
-            (TagClass::CONTEXT, 1) => Ok(ModifiedValidity_validFrom::time(
-                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
-            )),
-            _ => Ok(ModifiedValidity_validFrom::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(ModifiedValidity_validFrom::now(
+            |el: &X690Element| -> ASN1Result<NULL> { Ok(BER.decode_null(&el.inner()?)?) }(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(ModifiedValidity_validFrom::time(
+            |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+        )),
+        _ => Ok(ModifiedValidity_validFrom::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_ModifiedValidity_validFrom(
     value_: &ModifiedValidity_validFrom,
 ) -> ASN1Result<X690Element> {
-    |value: &ModifiedValidity_validFrom| -> ASN1Result<X690Element> {
-        match value {
-            ModifiedValidity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
-                let el_1 = ber_encode_null(&v_1)?;
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    0,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                ))
-            }(&v),
-            ModifiedValidity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    1,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Time(&v_1)?))),
-                ))
-            }(&v),
-            ModifiedValidity_validFrom::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        ModifiedValidity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+            ))
+        }(&v),
+        ModifiedValidity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_Time(&v_1)?),
+            ))
+        }(&v),
+        ModifiedValidity_validFrom::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_ModifiedValidity_validFrom(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "now"));
+            }
+            Ok(BER.validate_null(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "time"));
+            }
+            Ok(_validate_Time(&el.inner()?)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3372,7 +4280,7 @@ pub fn _encode_ModifiedValidity_validFrom(
 /// ```asn1
 /// ModifiedValidity-validUntil ::= CHOICE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum ModifiedValidity_validUntil {
     explicitTermination(NULL),
     time(Time),
@@ -3380,17 +4288,20 @@ pub enum ModifiedValidity_validUntil {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for ModifiedValidity_validUntil {
-    type Error = ASN1Error;
+impl ModifiedValidity_validUntil {
 
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModifiedValidity_validUntil(&el)
+    pub fn is_changed (&self) -> bool {
+        match self {
+            ModifiedValidity_validUntil::unchanged(_) => false,
+            _ => true,
+        }
     }
-}
-impl<'a> TryFrom<&'a X690Element> for ModifiedValidity_validUntil {
-    type Error = ASN1Error;
 
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+}
+
+impl TryFrom<&X690Element> for ModifiedValidity_validUntil {
+    type Error = ASN1Error;
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModifiedValidity_validUntil(el)
     }
 }
@@ -3398,55 +4309,73 @@ impl<'a> TryFrom<&'a X690Element> for ModifiedValidity_validUntil {
 pub fn _decode_ModifiedValidity_validUntil(
     el: &X690Element,
 ) -> ASN1Result<ModifiedValidity_validUntil> {
-    |el: &X690Element| -> ASN1Result<ModifiedValidity_validUntil> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(ModifiedValidity_validUntil::explicitTermination(
-                ber_decode_null(&el.inner()?)?,
-            )),
-            (TagClass::CONTEXT, 1) => Ok(ModifiedValidity_validUntil::time(
-                |el2: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el2)?) }(&el.inner()?)?,
-            )),
-            (TagClass::CONTEXT, 2) => Ok(ModifiedValidity_validUntil::unchanged(ber_decode_null(
-                &el.inner()?,
-            )?)),
-            _ => Ok(ModifiedValidity_validUntil::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(ModifiedValidity_validUntil::explicitTermination(
+            |el: &X690Element| -> ASN1Result<NULL> { Ok(BER.decode_null(&el.inner()?)?) }(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(ModifiedValidity_validUntil::time(
+            |el: &X690Element| -> ASN1Result<Time> { Ok(_decode_Time(&el.inner()?)?) }(&el)?,
+        )),
+        (TagClass::CONTEXT, 2) => Ok(ModifiedValidity_validUntil::unchanged(
+            |el: &X690Element| -> ASN1Result<NULL> { Ok(BER.decode_null(&el.inner()?)?) }(&el)?,
+        )),
+        _ => Ok(ModifiedValidity_validUntil::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_ModifiedValidity_validUntil(
     value_: &ModifiedValidity_validUntil,
 ) -> ASN1Result<X690Element> {
-    |value: &ModifiedValidity_validUntil| -> ASN1Result<X690Element> {
-        match value {
-            ModifiedValidity_validUntil::explicitTermination(v) => {
-                |v_1: &NULL| -> ASN1Result<X690Element> {
-                    let el_1 = ber_encode_null(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            ModifiedValidity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
+    match value_ {
+        ModifiedValidity_validUntil::explicitTermination(v) => {
+            |v_1: &NULL| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    1,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Time(&v_1)?))),
+                    Tag::new(TagClass::CONTEXT, 0),
+                    X690Value::from_explicit(&BER.encode_null(&v_1)?),
                 ))
-            }(&v),
-            ModifiedValidity_validUntil::unchanged(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
-                let el_1 = ber_encode_null(&v_1)?;
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    2,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                ))
-            }(&v),
-            ModifiedValidity_validUntil::_unrecognized(el) => Ok(el.clone()),
+            }(&v)
         }
-    }(&value_)
+        ModifiedValidity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 1),
+                X690Value::from_explicit(&_encode_Time(&v_1)?),
+            ))
+        }(&v),
+        ModifiedValidity_validUntil::unchanged(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 2),
+                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+            ))
+        }(&v),
+        ModifiedValidity_validUntil::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_ModifiedValidity_validUntil(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "explicitTermination",
+                ));
+            }
+            Ok(BER.validate_null(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "time"));
+            }
+            Ok(_validate_Time(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 2) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "unchanged"));
+            }
+            Ok(BER.validate_null(&el.inner()?)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3461,17 +4390,9 @@ pub enum TerminateOperationalBindingArgumentData_initiator {
     roleB_initiates(X690Element),
 }
 
-impl TryFrom<X690Element> for TerminateOperationalBindingArgumentData_initiator {
+impl TryFrom<&X690Element> for TerminateOperationalBindingArgumentData_initiator {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TerminateOperationalBindingArgumentData_initiator(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TerminateOperationalBindingArgumentData_initiator {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TerminateOperationalBindingArgumentData_initiator(el)
     }
 }
@@ -3479,69 +4400,108 @@ impl<'a> TryFrom<&'a X690Element> for TerminateOperationalBindingArgumentData_in
 pub fn _decode_TerminateOperationalBindingArgumentData_initiator(
     el: &X690Element,
 ) -> ASN1Result<TerminateOperationalBindingArgumentData_initiator> {
-    |el: &X690Element| -> ASN1Result<TerminateOperationalBindingArgumentData_initiator> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 2) => Ok(
-                TerminateOperationalBindingArgumentData_initiator::symmetric(x690_identity(
-                    &el.inner()?,
-                )?),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 2) => Ok(
+            TerminateOperationalBindingArgumentData_initiator::symmetric(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            (TagClass::CONTEXT, 3) => Ok(
-                TerminateOperationalBindingArgumentData_initiator::roleA_initiates(x690_identity(
-                    &el.inner()?,
-                )?),
+        ),
+        (TagClass::CONTEXT, 3) => Ok(
+            TerminateOperationalBindingArgumentData_initiator::roleA_initiates(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            (TagClass::CONTEXT, 4) => Ok(
-                TerminateOperationalBindingArgumentData_initiator::roleB_initiates(x690_identity(
-                    &el.inner()?,
-                )?),
+        ),
+        (TagClass::CONTEXT, 4) => Ok(
+            TerminateOperationalBindingArgumentData_initiator::roleB_initiates(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "TerminateOperationalBindingArgumentData-initiator",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_TerminateOperationalBindingArgumentData_initiator(
     value_: &TerminateOperationalBindingArgumentData_initiator,
 ) -> ASN1Result<X690Element> {
-    |value: &TerminateOperationalBindingArgumentData_initiator| -> ASN1Result<X690Element> {
-        match value {
-            TerminateOperationalBindingArgumentData_initiator::symmetric(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        2,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            TerminateOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        3,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
-            TerminateOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        4,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
+    match value_ {
+        TerminateOperationalBindingArgumentData_initiator::symmetric(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
         }
-    }(&value_)
+        TerminateOperationalBindingArgumentData_initiator::roleA_initiates(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 3),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        TerminateOperationalBindingArgumentData_initiator::roleB_initiates(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 4),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name =
+                Some("TerminateOperationalBindingArgumentData-initiator".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_TerminateOperationalBindingArgumentData_initiator(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 2) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "symmetric"));
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 3) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleA-initiates")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 4) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "roleB-initiates")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "TerminateOperationalBindingArgumentData-initiator",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3580,11 +4540,15 @@ pub const OpBindingErrorParam_problem_invalidNewID: OpBindingErrorParam_problem 
 pub fn _decode_OpBindingErrorParam_problem(
     el: &X690Element,
 ) -> ASN1Result<OpBindingErrorParam_problem> {
-    ber_decode_enumerated(&el)
+    BER.decode_enumerated(&el)
 }
 
 pub fn _encode_OpBindingErrorParam_problem(
     value_: &OpBindingErrorParam_problem,
 ) -> ASN1Result<X690Element> {
-    ber_encode_enumerated(&value_)
+    BER.encode_enumerated(&value_)
+}
+
+pub fn _validate_OpBindingErrorParam_problem(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_enumerated(&el)
 }

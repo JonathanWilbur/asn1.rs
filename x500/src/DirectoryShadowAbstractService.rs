@@ -29,7 +29,6 @@ use crate::EnhancedSecurity::*;
 use crate::InformationFramework::*;
 use crate::OperationalBindingManagement::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -99,6 +98,21 @@ pub fn shadowOperationalBinding() -> OPERATIONAL_BINDING {
     }
 }
 
+pub mod shadowOperationalBinding {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Agreement = ShadowingAgreementInfo; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Agreement(el: &X690Element) -> ASN1Result<Agreement> {
+        _decode_ShadowingAgreementInfo(el)
+    }
+    pub fn _encode_Agreement(value_: &Agreement) -> ASN1Result<X690Element> {
+        _encode_ShadowingAgreementInfo(value_)
+    }
+    pub fn _validate_Agreement(el: &X690Element) -> ASN1Result<()> {
+        _validate_ShadowingAgreementInfo(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -106,7 +120,6 @@ pub fn shadowOperationalBinding() -> OPERATIONAL_BINDING {
 ///   secondaryShadows  SET OF SupplierAndConsumers,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ModificationParameter {
@@ -124,15 +137,9 @@ impl ModificationParameter {
         }
     }
 }
-impl TryFrom<X690Element> for ModificationParameter {
+impl TryFrom<&X690Element> for ModificationParameter {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ModificationParameter(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ModificationParameter {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ModificationParameter(el)
     }
 }
@@ -150,60 +157,123 @@ pub const _rctl2_components_for_ModificationParameter: &[ComponentSpec; 0] = &[]
 pub const _eal_components_for_ModificationParameter: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ModificationParameter(el: &X690Element) -> ASN1Result<ModificationParameter> {
-    |el_: &X690Element| -> ASN1Result<ModificationParameter> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ModificationParameter,
-            _eal_components_for_ModificationParameter,
-            _rctl2_components_for_ModificationParameter,
-        )?;
-        let secondaryShadows = |el: &X690Element| -> ASN1Result<SET_OF<SupplierAndConsumers>> {
-            let elements = match el.value.borrow() {
-                X690Encoding::Constructed(children) => children,
-                _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-            };
-            let mut items: SET_OF<SupplierAndConsumers> = Vec::with_capacity(elements.len());
-            for el in elements {
-                items.push(_decode_SupplierAndConsumers(el)?);
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ModificationParameter")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModificationParameter,
+        _eal_components_for_ModificationParameter,
+        _rctl2_components_for_ModificationParameter,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut secondaryShadows_: OPTIONAL<Vec<SupplierAndConsumers>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "secondaryShadows" => {
+                secondaryShadows_ = Some(
+                    |el: &X690Element| -> ASN1Result<SET_OF<SupplierAndConsumers>> {
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "secondaryShadows",
+                                ))
+                            }
+                        };
+                        let mut items: SET_OF<SupplierAndConsumers> =
+                            Vec::with_capacity(elements.len());
+                        for el in elements.iter() {
+                            items.push(_decode_SupplierAndConsumers(el)?);
+                        }
+                        Ok(items)
+                    }(_el)?,
+                )
             }
-            Ok(items)
-        }(_components.get("secondaryShadows").unwrap())?;
-        Ok(ModificationParameter {
-            secondaryShadows,
-            _unrecognized,
-        })
-    }(&el)
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ModificationParameter {
+        secondaryShadows: secondaryShadows_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_ModificationParameter(value_: &ModificationParameter) -> ASN1Result<X690Element> {
-    |value_: &ModificationParameter| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(11);
-        components_.push(
-            |value_: &SET_OF<SupplierAndConsumers>| -> ASN1Result<X690Element> {
-                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                for v in value_ {
-                    children.push(_encode_SupplierAndConsumers(&v)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(11);
+    components_.push(
+        |value_: &SET_OF<SupplierAndConsumers>| -> ASN1Result<X690Element> {
+            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+            for v in value_ {
+                children.push(_encode_SupplierAndConsumers(&v)?);
+            }
+            Ok(X690Element::new(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                X690Value::Constructed(Arc::new(children)),
+            ))
+        }(&value_.secondaryShadows)?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ModificationParameter(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ModificationParameter")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ModificationParameter,
+        _eal_components_for_ModificationParameter,
+        _rctl2_components_for_ModificationParameter,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "secondaryShadows" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_SupplierAndConsumers(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "secondaryShadows",
+                    )),
                 }
-                Ok(X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                    Arc::new(X690Encoding::Constructed(children)),
-                ))
-            }(&value_.secondaryShadows)?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -221,6 +291,10 @@ pub fn _encode_AgreementID(value_: &AgreementID) -> ASN1Result<X690Element> {
     _encode_OperationalBindingID(&value_)
 }
 
+pub fn _validate_AgreementID(el: &X690Element) -> ASN1Result<()> {
+    _validate_OperationalBindingID(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -230,7 +304,6 @@ pub fn _encode_AgreementID(value_: &AgreementID) -> ASN1Result<X690Element> {
 ///   master                 AccessPoint OPTIONAL,
 ///   secondaryShadows  [2]  BOOLEAN DEFAULT FALSE }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ShadowingAgreementInfo {
@@ -260,15 +333,9 @@ impl ShadowingAgreementInfo {
         false
     }
 }
-impl TryFrom<X690Element> for ShadowingAgreementInfo {
+impl TryFrom<&X690Element> for ShadowingAgreementInfo {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ShadowingAgreementInfo(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ShadowingAgreementInfo {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ShadowingAgreementInfo(el)
     }
 }
@@ -312,68 +379,134 @@ pub const _rctl2_components_for_ShadowingAgreementInfo: &[ComponentSpec; 0] = &[
 pub const _eal_components_for_ShadowingAgreementInfo: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ShadowingAgreementInfo(el: &X690Element) -> ASN1Result<ShadowingAgreementInfo> {
-    |el_: &X690Element| -> ASN1Result<ShadowingAgreementInfo> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ShadowingAgreementInfo,
-            _eal_components_for_ShadowingAgreementInfo,
-            _rctl2_components_for_ShadowingAgreementInfo,
-        )?;
-        let shadowSubject = _decode_UnitOfReplication(_components.get("shadowSubject").unwrap())?;
-        let updateMode: OPTIONAL<UpdateMode> = match _components.get("updateMode") {
-            Some(c_) => Some(_decode_UpdateMode(c_)?),
-            _ => None,
-        };
-        let master: OPTIONAL<AccessPoint> = match _components.get("master") {
-            Some(c_) => Some(_decode_AccessPoint(c_)?),
-            _ => None,
-        };
-        let secondaryShadows: OPTIONAL<BOOLEAN> = match _components.get("secondaryShadows") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        Ok(ShadowingAgreementInfo {
-            shadowSubject,
-            updateMode,
-            master,
-            secondaryShadows,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ShadowingAgreementInfo",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ShadowingAgreementInfo,
+        _eal_components_for_ShadowingAgreementInfo,
+        _rctl2_components_for_ShadowingAgreementInfo,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut shadowSubject_: OPTIONAL<UnitOfReplication> = None;
+    let mut updateMode_: OPTIONAL<UpdateMode> = None;
+    let mut master_: OPTIONAL<AccessPoint> = None;
+    let mut secondaryShadows_: OPTIONAL<BOOLEAN> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "shadowSubject" => shadowSubject_ = Some(_decode_UnitOfReplication(_el)?),
+            "updateMode" => updateMode_ = Some(_decode_UpdateMode(_el)?),
+            "master" => master_ = Some(_decode_AccessPoint(_el)?),
+            "secondaryShadows" => secondaryShadows_ = Some(BER.decode_boolean(_el)?),
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ShadowingAgreementInfo",
+                ))
+            }
+        }
+    }
+    Ok(ShadowingAgreementInfo {
+        shadowSubject: shadowSubject_.unwrap(),
+        updateMode: updateMode_,
+        master: master_,
+        secondaryShadows: secondaryShadows_,
+    })
 }
 
 pub fn _encode_ShadowingAgreementInfo(value_: &ShadowingAgreementInfo) -> ASN1Result<X690Element> {
-    |value_: &ShadowingAgreementInfo| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(9);
-        components_.push(_encode_UnitOfReplication(&value_.shadowSubject)?);
-        if let Some(v_) = &value_.updateMode {
-            if *v_ != ShadowingAgreementInfo::_default_value_for_updateMode() {
-                components_.push(_encode_UpdateMode(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    components_.push(_encode_UnitOfReplication(&value_.shadowSubject)?);
+    let default_update_mode = ShadowingAgreementInfo::_default_value_for_updateMode();
+    let updateMode = value_.updateMode.as_ref().unwrap_or(&default_update_mode);
+    let updateMode_is_default: bool = match updateMode {
+        UpdateMode::supplierInitiated(s) => {
+            match s {
+                SupplierUpdateMode::onChange(_) => true,
+                _ => false,
+            }
+        },
+        _ => false,
+    };
+    if !updateMode_is_default {
+        components_.push(_encode_UpdateMode(updateMode)?);
+    }
+    if let Some(v_) = &value_.master {
+        components_.push(_encode_AccessPoint(&v_)?);
+    }
+    if let Some(v_) = &value_.secondaryShadows {
+        if *v_ != ShadowingAgreementInfo::_default_value_for_secondaryShadows() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
+                let mut el_1 = BER.encode_boolean(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 2;
+                Ok(el_1)
+            }(&v_)?);
+        }
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ShadowingAgreementInfo(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ShadowingAgreementInfo",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ShadowingAgreementInfo,
+        _eal_components_for_ShadowingAgreementInfo,
+        _rctl2_components_for_ShadowingAgreementInfo,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "shadowSubject" => _validate_UnitOfReplication(_el)?,
+            "updateMode" => _validate_UpdateMode(_el)?,
+            "master" => _validate_AccessPoint(_el)?,
+            "secondaryShadows" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "secondaryShadows",
+                    ));
+                }
+                Ok(BER.validate_boolean(&el)?)
+            }(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ShadowingAgreementInfo",
+                ))
             }
         }
-        if let Some(v_) = &value_.master {
-            components_.push(_encode_AccessPoint(&v_)?);
-        }
-        if let Some(v_) = &value_.secondaryShadows {
-            if *v_ != ShadowingAgreementInfo::_default_value_for_secondaryShadows() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_boolean(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
-                }(&v_)?);
-            }
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -390,7 +523,6 @@ pub fn _encode_ShadowingAgreementInfo(value_: &ShadowingAgreementInfo) -> ASN1Re
 ///     selectedContexts    SET SIZE (1..MAX) OF CONTEXT.&id,
 ///     ... } OPTIONAL }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UnitOfReplication {
@@ -423,15 +555,9 @@ impl UnitOfReplication {
         false
     }
 }
-impl TryFrom<X690Element> for UnitOfReplication {
+impl TryFrom<&X690Element> for UnitOfReplication {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UnitOfReplication(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UnitOfReplication {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UnitOfReplication(el)
     }
 }
@@ -489,88 +615,138 @@ pub const _rctl2_components_for_UnitOfReplication: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_UnitOfReplication: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UnitOfReplication(el: &X690Element) -> ASN1Result<UnitOfReplication> {
-    |el_: &X690Element| -> ASN1Result<UnitOfReplication> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UnitOfReplication,
-            _eal_components_for_UnitOfReplication,
-            _rctl2_components_for_UnitOfReplication,
-        )?;
-        let area = _decode_AreaSpecification(_components.get("area").unwrap())?;
-        let attributes = _decode_AttributeSelection(_components.get("attributes").unwrap())?;
-        let knowledge: OPTIONAL<Knowledge> = match _components.get("knowledge") {
-            Some(c_) => Some(_decode_Knowledge(c_)?),
-            _ => None,
-        };
-        let subordinates: OPTIONAL<BOOLEAN> = match _components.get("subordinates") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        let contextSelection: OPTIONAL<ContextSelection> = match _components.get("contextSelection")
-        {
-            Some(c_) => Some(_decode_ContextSelection(c_)?),
-            _ => None,
-        };
-        let supplyContexts: OPTIONAL<UnitOfReplication_supplyContexts> =
-            match _components.get("supplyContexts") {
-                Some(c_) => Some(
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UnitOfReplication")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UnitOfReplication,
+        _eal_components_for_UnitOfReplication,
+        _rctl2_components_for_UnitOfReplication,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut area_: OPTIONAL<AreaSpecification> = None;
+    let mut attributes_: OPTIONAL<AttributeSelection> = None;
+    let mut knowledge_: OPTIONAL<Knowledge> = None;
+    let mut subordinates_: OPTIONAL<BOOLEAN> = None;
+    let mut contextSelection_: OPTIONAL<ContextSelection> = None;
+    let mut supplyContexts_: OPTIONAL<UnitOfReplication_supplyContexts> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "area" => area_ = Some(_decode_AreaSpecification(_el)?),
+            "attributes" => attributes_ = Some(_decode_AttributeSelection(_el)?),
+            "knowledge" => knowledge_ = Some(_decode_Knowledge(_el)?),
+            "subordinates" => subordinates_ = Some(BER.decode_boolean(_el)?),
+            "contextSelection" => contextSelection_ = Some(_decode_ContextSelection(_el)?),
+            "supplyContexts" => {
+                supplyContexts_ = Some(
                     |el: &X690Element| -> ASN1Result<UnitOfReplication_supplyContexts> {
                         Ok(_decode_UnitOfReplication_supplyContexts(&el.inner()?)?)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        Ok(UnitOfReplication {
-            area,
-            attributes,
-            knowledge,
-            subordinates,
-            contextSelection,
-            supplyContexts,
-        })
-    }(&el)
+                    }(_el)?,
+                )
+            }
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UnitOfReplication")
+                )
+            }
+        }
+    }
+    Ok(UnitOfReplication {
+        area: area_.unwrap(),
+        attributes: attributes_.unwrap(),
+        knowledge: knowledge_,
+        subordinates: subordinates_,
+        contextSelection: contextSelection_,
+        supplyContexts: supplyContexts_,
+    })
 }
 
 pub fn _encode_UnitOfReplication(value_: &UnitOfReplication) -> ASN1Result<X690Element> {
-    |value_: &UnitOfReplication| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(11);
-        components_.push(_encode_AreaSpecification(&value_.area)?);
-        components_.push(_encode_AttributeSelection(&value_.attributes)?);
-        if let Some(v_) = &value_.knowledge {
-            components_.push(_encode_Knowledge(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(11);
+    components_.push(_encode_AreaSpecification(&value_.area)?);
+    components_.push(_encode_AttributeSelection(&value_.attributes)?);
+    if let Some(v_) = &value_.knowledge {
+        components_.push(_encode_Knowledge(&v_)?);
+    }
+    if let Some(v_) = &value_.subordinates {
+        if *v_ != UnitOfReplication::_default_value_for_subordinates() {
+            components_.push(BER.encode_boolean(&v_)?);
         }
-        if let Some(v_) = &value_.subordinates {
-            if *v_ != UnitOfReplication::_default_value_for_subordinates() {
-                components_.push(ber_encode_boolean(&v_)?);
+    }
+    if let Some(v_) = &value_.contextSelection {
+        components_.push(_encode_ContextSelection(&v_)?);
+    }
+    if let Some(v_) = &value_.supplyContexts {
+        components_.push(
+            |v_1: &UnitOfReplication_supplyContexts| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 0),
+                    X690Value::from_explicit(&_encode_UnitOfReplication_supplyContexts(&v_1)?),
+                ))
+            }(&v_)?,
+        );
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_UnitOfReplication(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UnitOfReplication")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UnitOfReplication,
+        _eal_components_for_UnitOfReplication,
+        _rctl2_components_for_UnitOfReplication,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "area" => _validate_AreaSpecification(_el)?,
+            "attributes" => _validate_AttributeSelection(_el)?,
+            "knowledge" => _validate_Knowledge(_el)?,
+            "subordinates" => BER.validate_boolean(_el)?,
+            "contextSelection" => _validate_ContextSelection(_el)?,
+            "supplyContexts" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "supplyContexts")
+                    );
+                }
+                Ok(_validate_UnitOfReplication_supplyContexts(&el.inner()?)?)
+            }(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UnitOfReplication")
+                )
             }
         }
-        if let Some(v_) = &value_.contextSelection {
-            components_.push(_encode_ContextSelection(&v_)?);
-        }
-        if let Some(v_) = &value_.supplyContexts {
-            components_.push(
-                |v_1: &UnitOfReplication_supplyContexts| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_UnitOfReplication_supplyContexts(&v_1)?,
-                        ))),
-                    ))
-                }(&v_)?,
-            );
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -581,7 +757,6 @@ pub fn _encode_UnitOfReplication(value_: &UnitOfReplication) -> ASN1Result<X690E
 ///   replicationArea  SubtreeSpecification,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct AreaSpecification {
@@ -602,15 +777,9 @@ impl AreaSpecification {
         }
     }
 }
-impl TryFrom<X690Element> for AreaSpecification {
+impl TryFrom<&X690Element> for AreaSpecification {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_AreaSpecification(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for AreaSpecification {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AreaSpecification(el)
     }
 }
@@ -637,42 +806,84 @@ pub const _rctl2_components_for_AreaSpecification: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_AreaSpecification: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_AreaSpecification(el: &X690Element) -> ASN1Result<AreaSpecification> {
-    |el_: &X690Element| -> ASN1Result<AreaSpecification> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_AreaSpecification,
-            _eal_components_for_AreaSpecification,
-            _rctl2_components_for_AreaSpecification,
-        )?;
-        let contextPrefix = _decode_DistinguishedName(_components.get("contextPrefix").unwrap())?;
-        let replicationArea =
-            _decode_SubtreeSpecification(_components.get("replicationArea").unwrap())?;
-        Ok(AreaSpecification {
-            contextPrefix,
-            replicationArea,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AreaSpecification")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_AreaSpecification,
+        _eal_components_for_AreaSpecification,
+        _rctl2_components_for_AreaSpecification,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut contextPrefix_: OPTIONAL<DistinguishedName> = None;
+    let mut replicationArea_: OPTIONAL<SubtreeSpecification> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "contextPrefix" => contextPrefix_ = Some(_decode_DistinguishedName(_el)?),
+            "replicationArea" => replicationArea_ = Some(_decode_SubtreeSpecification(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(AreaSpecification {
+        contextPrefix: contextPrefix_.unwrap(),
+        replicationArea: replicationArea_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_AreaSpecification(value_: &AreaSpecification) -> ASN1Result<X690Element> {
-    |value_: &AreaSpecification| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(_encode_DistinguishedName(&value_.contextPrefix)?);
-        components_.push(_encode_SubtreeSpecification(&value_.replicationArea)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(_encode_DistinguishedName(&value_.contextPrefix)?);
+    components_.push(_encode_SubtreeSpecification(&value_.replicationArea)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_AreaSpecification(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AreaSpecification")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_AreaSpecification,
+        _eal_components_for_AreaSpecification,
+        _rctl2_components_for_AreaSpecification,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "contextPrefix" => _validate_DistinguishedName(_el)?,
+            "replicationArea" => _validate_SubtreeSpecification(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -686,7 +897,6 @@ pub fn _encode_AreaSpecification(value_: &AreaSpecification) -> ASN1Result<X690E
 ///   extendedKnowledge  BOOLEAN DEFAULT FALSE,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Knowledge {
@@ -710,15 +920,9 @@ impl Knowledge {
         false
     }
 }
-impl TryFrom<X690Element> for Knowledge {
+impl TryFrom<&X690Element> for Knowledge {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Knowledge(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Knowledge {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Knowledge(el)
     }
 }
@@ -745,49 +949,80 @@ pub const _rctl2_components_for_Knowledge: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Knowledge: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Knowledge(el: &X690Element) -> ASN1Result<Knowledge> {
-    |el_: &X690Element| -> ASN1Result<Knowledge> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Knowledge,
-            _eal_components_for_Knowledge,
-            _rctl2_components_for_Knowledge,
-        )?;
-        let knowledgeType =
-            _decode_Knowledge_knowledgeType(_components.get("knowledgeType").unwrap())?;
-        let extendedKnowledge: OPTIONAL<BOOLEAN> = match _components.get("extendedKnowledge") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        Ok(Knowledge {
-            knowledgeType,
-            extendedKnowledge,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Knowledge")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Knowledge,
+        _eal_components_for_Knowledge,
+        _rctl2_components_for_Knowledge,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut knowledgeType_: OPTIONAL<Knowledge_knowledgeType> = None;
+    let mut extendedKnowledge_: OPTIONAL<BOOLEAN> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "knowledgeType" => knowledgeType_ = Some(_decode_Knowledge_knowledgeType(_el)?),
+            "extendedKnowledge" => extendedKnowledge_ = Some(BER.decode_boolean(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(Knowledge {
+        knowledgeType: knowledgeType_.unwrap(),
+        extendedKnowledge: extendedKnowledge_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_Knowledge(value_: &Knowledge) -> ASN1Result<X690Element> {
-    |value_: &Knowledge| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(_encode_Knowledge_knowledgeType(&value_.knowledgeType)?);
-        if let Some(v_) = &value_.extendedKnowledge {
-            if *v_ != Knowledge::_default_value_for_extendedKnowledge() {
-                components_.push(ber_encode_boolean(&v_)?);
-            }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(_encode_Knowledge_knowledgeType(&value_.knowledgeType)?);
+    if let Some(v_) = &value_.extendedKnowledge {
+        if *v_ != Knowledge::_default_value_for_extendedKnowledge() {
+            components_.push(BER.encode_boolean(&v_)?);
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_Knowledge(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Knowledge")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Knowledge,
+        _eal_components_for_Knowledge,
+        _rctl2_components_for_Knowledge,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "knowledgeType" => _validate_Knowledge_knowledgeType(_el)?,
+            "extendedKnowledge" => BER.validate_boolean(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -798,31 +1033,42 @@ pub fn _encode_Knowledge(value_: &Knowledge) -> ASN1Result<X690Element> {
 pub type AttributeSelection = Vec<ClassAttributeSelection>; // SetOfType
 
 pub fn _decode_AttributeSelection(el: &X690Element) -> ASN1Result<AttributeSelection> {
-    |el: &X690Element| -> ASN1Result<SET_OF<ClassAttributeSelection>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SET_OF<ClassAttributeSelection> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_ClassAttributeSelection(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeSelection")
+            )
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SET_OF<ClassAttributeSelection> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_ClassAttributeSelection(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_AttributeSelection(value_: &AttributeSelection) -> ASN1Result<X690Element> {
-    |value_: &SET_OF<ClassAttributeSelection>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_ClassAttributeSelection(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_ClassAttributeSelection(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_AttributeSelection(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_ClassAttributeSelection(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeSelection")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -832,7 +1078,6 @@ pub fn _encode_AttributeSelection(value_: &AttributeSelection) -> ASN1Result<X69
 ///   class            OBJECT IDENTIFIER OPTIONAL,
 ///   classAttributes  ClassAttributes DEFAULT allAttributes:NULL }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ClassAttributeSelection {
@@ -861,15 +1106,9 @@ impl Default for ClassAttributeSelection {
         }
     }
 }
-impl TryFrom<X690Element> for ClassAttributeSelection {
+impl TryFrom<&X690Element> for ClassAttributeSelection {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ClassAttributeSelection(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ClassAttributeSelection {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ClassAttributeSelection(el)
     }
 }
@@ -900,53 +1139,101 @@ pub const _rctl2_components_for_ClassAttributeSelection: &[ComponentSpec; 0] = &
 pub const _eal_components_for_ClassAttributeSelection: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ClassAttributeSelection(el: &X690Element) -> ASN1Result<ClassAttributeSelection> {
-    |el_: &X690Element| -> ASN1Result<ClassAttributeSelection> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ClassAttributeSelection,
-            _eal_components_for_ClassAttributeSelection,
-            _rctl2_components_for_ClassAttributeSelection,
-        )?;
-        let class: OPTIONAL<OBJECT_IDENTIFIER> = match _components.get("class") {
-            Some(c_) => Some(ber_decode_object_identifier(c_)?),
-            _ => None,
-        };
-        let classAttributes: OPTIONAL<ClassAttributes> = match _components.get("classAttributes") {
-            Some(c_) => Some(_decode_ClassAttributes(c_)?),
-            _ => None,
-        };
-        Ok(ClassAttributeSelection {
-            class,
-            classAttributes,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ClassAttributeSelection",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ClassAttributeSelection,
+        _eal_components_for_ClassAttributeSelection,
+        _rctl2_components_for_ClassAttributeSelection,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut class_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut classAttributes_: OPTIONAL<ClassAttributes> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "class" => class_ = Some(BER.decode_object_identifier(_el)?),
+            "classAttributes" => classAttributes_ = Some(_decode_ClassAttributes(_el)?),
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ClassAttributeSelection",
+                ))
+            }
+        }
+    }
+    Ok(ClassAttributeSelection {
+        class: class_,
+        classAttributes: classAttributes_,
+    })
 }
 
 pub fn _encode_ClassAttributeSelection(
     value_: &ClassAttributeSelection,
 ) -> ASN1Result<X690Element> {
-    |value_: &ClassAttributeSelection| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        if let Some(v_) = &value_.class {
-            components_.push(ber_encode_object_identifier(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    if let Some(v_) = &value_.class {
+        components_.push(BER.encode_object_identifier(&v_)?);
+    }
+    if let Some(v_) = &value_.classAttributes {
+        match v_ {
+            ClassAttributes::allAttributes(_) => (),
+            _ => components_.push(_encode_ClassAttributes(&v_)?)
+        };
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ClassAttributeSelection(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ClassAttributeSelection",
+            ))
         }
-        if let Some(v_) = &value_.classAttributes {
-            match v_ {
-                ClassAttributes::allAttributes(()) => {}
-                _ => components_.push(_encode_ClassAttributes(&v_)?),
-            };
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ClassAttributeSelection,
+        _eal_components_for_ClassAttributeSelection,
+        _rctl2_components_for_ClassAttributeSelection,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "class" => BER.validate_object_identifier(_el)?,
+            "classAttributes" => _validate_ClassAttributes(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ClassAttributeSelection",
+                ))
+            }
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -966,51 +1253,58 @@ pub enum ClassAttributes {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for ClassAttributes {
+impl TryFrom<&X690Element> for ClassAttributes {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ClassAttributes(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ClassAttributes {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ClassAttributes(el)
     }
 }
 
 pub fn _decode_ClassAttributes(el: &X690Element) -> ASN1Result<ClassAttributes> {
-    |el: &X690Element| -> ASN1Result<ClassAttributes> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => Ok(ClassAttributes::allAttributes(())),
-            (TagClass::CONTEXT, 0) => Ok(ClassAttributes::include(_decode_AttributeTypes(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(ClassAttributes::exclude(_decode_AttributeTypes(&el)?)),
-            _ => Ok(ClassAttributes::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(ClassAttributes::allAttributes(BER.decode_null(&el)?)),
+        (TagClass::CONTEXT, 0) => Ok(ClassAttributes::include(_decode_AttributeTypes(&el)?)),
+        (TagClass::CONTEXT, 1) => Ok(ClassAttributes::exclude(_decode_AttributeTypes(&el)?)),
+        _ => Ok(ClassAttributes::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_ClassAttributes(value_: &ClassAttributes) -> ASN1Result<X690Element> {
-    |value: &ClassAttributes| -> ASN1Result<X690Element> {
-        match value {
-            ClassAttributes::allAttributes(v) => ber_encode_null(&v),
-            ClassAttributes::include(v) => |v_1: &AttributeTypes| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AttributeTypes(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&v),
-            ClassAttributes::exclude(v) => |v_1: &AttributeTypes| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_AttributeTypes(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v),
-            ClassAttributes::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        ClassAttributes::allAttributes(v) => BER.encode_null(&v),
+        ClassAttributes::include(v) => |v_1: &AttributeTypes| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_AttributeTypes(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&v),
+        ClassAttributes::exclude(v) => |v_1: &AttributeTypes| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_AttributeTypes(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v),
+        ClassAttributes::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_ClassAttributes(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "include"));
+            }
+            Ok(_validate_AttributeTypes(&el)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "exclude"));
+            }
+            Ok(_validate_AttributeTypes(&el)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1021,31 +1315,40 @@ pub fn _encode_ClassAttributes(value_: &ClassAttributes) -> ASN1Result<X690Eleme
 pub type AttributeTypes = Vec<AttributeType>; // SetOfType
 
 pub fn _decode_AttributeTypes(el: &X690Element) -> ASN1Result<AttributeTypes> {
-    |el: &X690Element| -> ASN1Result<SET_OF<AttributeType>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SET_OF<AttributeType> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_AttributeType(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeTypes"))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SET_OF<AttributeType> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_AttributeType(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_AttributeTypes(value_: &AttributeTypes) -> ASN1Result<X690Element> {
-    |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_AttributeType(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_AttributeType(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_AttributeTypes(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_AttributeType(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeTypes")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1056,69 +1359,72 @@ pub fn _encode_AttributeTypes(value_: &AttributeTypes) -> ASN1Result<X690Element
 ///   consumerInitiated  [1]  ConsumerUpdateMode,
 ///   ... }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum UpdateMode {
     supplierInitiated(SupplierUpdateMode),
     consumerInitiated(ConsumerUpdateMode),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for UpdateMode {
+impl TryFrom<&X690Element> for UpdateMode {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UpdateMode(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UpdateMode {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UpdateMode(el)
     }
 }
 
 pub fn _decode_UpdateMode(el: &X690Element) -> ASN1Result<UpdateMode> {
-    |el: &X690Element| -> ASN1Result<UpdateMode> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(UpdateMode::supplierInitiated(
-                |el: &X690Element| -> ASN1Result<SupplierUpdateMode> {
-                    Ok(_decode_SupplierUpdateMode(&el.inner()?)?)
-                }(&el)?,
-            )),
-            (TagClass::CONTEXT, 1) => Ok(UpdateMode::consumerInitiated(
-                _decode_ConsumerUpdateMode(&el)?,
-            )),
-            _ => Ok(UpdateMode::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(UpdateMode::supplierInitiated(
+            |el: &X690Element| -> ASN1Result<SupplierUpdateMode> {
+                Ok(_decode_SupplierUpdateMode(&el.inner()?)?)
+            }(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(UpdateMode::consumerInitiated(_decode_ConsumerUpdateMode(
+            &el,
+        )?)),
+        _ => Ok(UpdateMode::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_UpdateMode(value_: &UpdateMode) -> ASN1Result<X690Element> {
-    |value: &UpdateMode| -> ASN1Result<X690Element> {
-        match value {
-            UpdateMode::supplierInitiated(v) => {
-                |v_1: &SupplierUpdateMode| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_SupplierUpdateMode(&v_1)?,
-                        ))),
-                    ))
-                }(&v)
+    match value_ {
+        UpdateMode::supplierInitiated(v) => |v_1: &SupplierUpdateMode| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::from_explicit(&_encode_SupplierUpdateMode(&v_1)?),
+            ))
+        }(&v),
+        UpdateMode::consumerInitiated(v) => |v_1: &ConsumerUpdateMode| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_ConsumerUpdateMode(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v),
+        UpdateMode::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_UpdateMode(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "supplierInitiated")
+                );
             }
-            UpdateMode::consumerInitiated(v) => {
-                |v_1: &ConsumerUpdateMode| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_ConsumerUpdateMode(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
+            Ok(_validate_SupplierUpdateMode(&el.inner()?)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "consumerInitiated")
+                );
             }
-            UpdateMode::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+            Ok(_validate_ConsumerUpdateMode(&el)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1129,48 +1435,44 @@ pub fn _encode_UpdateMode(value_: &UpdateMode) -> ASN1Result<X690Element> {
 ///   scheduled  SchedulingParameters,
 ///   ... }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum SupplierUpdateMode {
     onChange(BOOLEAN),
     scheduled(SchedulingParameters),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for SupplierUpdateMode {
+impl TryFrom<&X690Element> for SupplierUpdateMode {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SupplierUpdateMode(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SupplierUpdateMode {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SupplierUpdateMode(el)
     }
 }
 
 pub fn _decode_SupplierUpdateMode(el: &X690Element) -> ASN1Result<SupplierUpdateMode> {
-    |el: &X690Element| -> ASN1Result<SupplierUpdateMode> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 1) => Ok(SupplierUpdateMode::onChange(ber_decode_boolean(&el)?)),
-            (TagClass::UNIVERSAL, 16) => Ok(SupplierUpdateMode::scheduled(
-                _decode_SchedulingParameters(&el)?,
-            )),
-            _ => Ok(SupplierUpdateMode::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 1) => Ok(SupplierUpdateMode::onChange(BER.decode_boolean(&el)?)),
+        (TagClass::UNIVERSAL, 16) => Ok(SupplierUpdateMode::scheduled(
+            _decode_SchedulingParameters(&el)?,
+        )),
+        _ => Ok(SupplierUpdateMode::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_SupplierUpdateMode(value_: &SupplierUpdateMode) -> ASN1Result<X690Element> {
-    |value: &SupplierUpdateMode| -> ASN1Result<X690Element> {
-        match value {
-            SupplierUpdateMode::onChange(v) => ber_encode_boolean(&v),
-            SupplierUpdateMode::scheduled(v) => _encode_SchedulingParameters(&v),
-            SupplierUpdateMode::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        SupplierUpdateMode::onChange(v) => BER.encode_boolean(&v),
+        SupplierUpdateMode::scheduled(v) => _encode_SchedulingParameters(&v),
+        SupplierUpdateMode::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_SupplierUpdateMode(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 1) => BER.validate_boolean(&el),
+        (TagClass::UNIVERSAL, 16) => _validate_SchedulingParameters(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1188,6 +1490,10 @@ pub fn _encode_ConsumerUpdateMode(value_: &ConsumerUpdateMode) -> ASN1Result<X69
     _encode_SchedulingParameters(&value_)
 }
 
+pub fn _validate_ConsumerUpdateMode(el: &X690Element) -> ASN1Result<()> {
+    _validate_SchedulingParameters(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1198,8 +1504,7 @@ pub fn _encode_ConsumerUpdateMode(value_: &ConsumerUpdateMode) -> ASN1Result<X69
 ///   ... }
 /// ```
 ///
-///
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct SchedulingParameters {
     pub periodic: OPTIONAL<PeriodicStrategy>,
     pub othertimes: OPTIONAL<BOOLEAN>,
@@ -1230,15 +1535,9 @@ impl Default for SchedulingParameters {
         }
     }
 }
-impl TryFrom<X690Element> for SchedulingParameters {
+impl TryFrom<&X690Element> for SchedulingParameters {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SchedulingParameters(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SchedulingParameters {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SchedulingParameters(el)
     }
 }
@@ -1265,53 +1564,90 @@ pub const _rctl2_components_for_SchedulingParameters: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_SchedulingParameters: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_SchedulingParameters(el: &X690Element) -> ASN1Result<SchedulingParameters> {
-    |el_: &X690Element| -> ASN1Result<SchedulingParameters> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SchedulingParameters,
-            _eal_components_for_SchedulingParameters,
-            _rctl2_components_for_SchedulingParameters,
-        )?;
-        let periodic: OPTIONAL<PeriodicStrategy> = match _components.get("periodic") {
-            Some(c_) => Some(_decode_PeriodicStrategy(c_)?),
-            _ => None,
-        };
-        let othertimes: OPTIONAL<BOOLEAN> = match _components.get("othertimes") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        Ok(SchedulingParameters {
-            periodic,
-            othertimes,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SchedulingParameters")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SchedulingParameters,
+        _eal_components_for_SchedulingParameters,
+        _rctl2_components_for_SchedulingParameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut periodic_: OPTIONAL<PeriodicStrategy> = None;
+    let mut othertimes_: OPTIONAL<BOOLEAN> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "periodic" => periodic_ = Some(_decode_PeriodicStrategy(_el)?),
+            "othertimes" => othertimes_ = Some(BER.decode_boolean(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(SchedulingParameters {
+        periodic: periodic_,
+        othertimes: othertimes_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_SchedulingParameters(value_: &SchedulingParameters) -> ASN1Result<X690Element> {
-    |value_: &SchedulingParameters| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        if let Some(v_) = &value_.periodic {
-            components_.push(_encode_PeriodicStrategy(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    if let Some(v_) = &value_.periodic {
+        components_.push(_encode_PeriodicStrategy(&v_)?);
+    }
+    if let Some(v_) = &value_.othertimes {
+        if *v_ != SchedulingParameters::_default_value_for_othertimes() {
+            components_.push(BER.encode_boolean(&v_)?);
         }
-        if let Some(v_) = &value_.othertimes {
-            if *v_ != SchedulingParameters::_default_value_for_othertimes() {
-                components_.push(ber_encode_boolean(&v_)?);
-            }
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_SchedulingParameters(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SchedulingParameters")
+            )
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SchedulingParameters,
+        _eal_components_for_SchedulingParameters,
+        _rctl2_components_for_SchedulingParameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "periodic" => _validate_PeriodicStrategy(_el)?,
+            "othertimes" => BER.validate_boolean(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1324,8 +1660,7 @@ pub fn _encode_SchedulingParameters(value_: &SchedulingParameters) -> ASN1Result
 ///   ... }
 /// ```
 ///
-///
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct PeriodicStrategy {
     pub beginTime: OPTIONAL<Time>,
     pub windowSize: INTEGER,
@@ -1347,15 +1682,9 @@ impl PeriodicStrategy {
         }
     }
 }
-impl TryFrom<X690Element> for PeriodicStrategy {
+impl TryFrom<&X690Element> for PeriodicStrategy {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PeriodicStrategy(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PeriodicStrategy {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PeriodicStrategy(el)
     }
 }
@@ -1389,49 +1718,91 @@ pub const _rctl2_components_for_PeriodicStrategy: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_PeriodicStrategy: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_PeriodicStrategy(el: &X690Element) -> ASN1Result<PeriodicStrategy> {
-    |el_: &X690Element| -> ASN1Result<PeriodicStrategy> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_PeriodicStrategy,
-            _eal_components_for_PeriodicStrategy,
-            _rctl2_components_for_PeriodicStrategy,
-        )?;
-        let beginTime: OPTIONAL<Time> = match _components.get("beginTime") {
-            Some(c_) => Some(_decode_Time(c_)?),
-            _ => None,
-        };
-        let windowSize = ber_decode_integer(_components.get("windowSize").unwrap())?;
-        let updateInterval = ber_decode_integer(_components.get("updateInterval").unwrap())?;
-        Ok(PeriodicStrategy {
-            beginTime,
-            windowSize,
-            updateInterval,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PeriodicStrategy")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_PeriodicStrategy,
+        _eal_components_for_PeriodicStrategy,
+        _rctl2_components_for_PeriodicStrategy,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut beginTime_: OPTIONAL<Time> = None;
+    let mut windowSize_: OPTIONAL<INTEGER> = None;
+    let mut updateInterval_: OPTIONAL<INTEGER> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "beginTime" => beginTime_ = Some(_decode_Time(_el)?),
+            "windowSize" => windowSize_ = Some(BER.decode_integer(_el)?),
+            "updateInterval" => updateInterval_ = Some(BER.decode_integer(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(PeriodicStrategy {
+        beginTime: beginTime_,
+        windowSize: windowSize_.unwrap(),
+        updateInterval: updateInterval_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_PeriodicStrategy(value_: &PeriodicStrategy) -> ASN1Result<X690Element> {
-    |value_: &PeriodicStrategy| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-        if let Some(v_) = &value_.beginTime {
-            components_.push(_encode_Time(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(13);
+    if let Some(v_) = &value_.beginTime {
+        components_.push(_encode_Time(&v_)?);
+    }
+    components_.push(BER.encode_integer(&value_.windowSize)?);
+    components_.push(BER.encode_integer(&value_.updateInterval)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_PeriodicStrategy(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PeriodicStrategy")
+            )
         }
-        components_.push(ber_encode_integer(&value_.windowSize)?);
-        components_.push(ber_encode_integer(&value_.updateInterval)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_PeriodicStrategy,
+        _eal_components_for_PeriodicStrategy,
+        _rctl2_components_for_PeriodicStrategy,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "beginTime" => _validate_Time(_el)?,
+            "windowSize" => BER.validate_integer(_el)?,
+            "updateInterval" => BER.validate_integer(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1442,11 +1813,15 @@ pub fn _encode_PeriodicStrategy(value_: &PeriodicStrategy) -> ASN1Result<X690Ele
 pub type Time = GeneralizedTime; // GeneralizedTime
 
 pub fn _decode_Time(el: &X690Element) -> ASN1Result<Time> {
-    ber_decode_generalized_time(&el)
+    BER.decode_generalized_time(&el)
 }
 
 pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
-    ber_encode_generalized_time(&value_)
+    BER.encode_generalized_time(&value_)
+}
+
+pub fn _validate_Time(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_generalized_time(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1485,9 +1860,34 @@ pub fn All_operations_supplier_initiated() -> Vec<OPERATION> {
 ///
 pub fn coordinateShadowUpdate() -> OPERATION {
     OPERATION {
-        Errors: Some(Vec::<_>::from([shadowError()])), /* OBJECT_FIELD_SETTING */
+        Errors: Some(Vec::from([shadowError()])), /* OBJECT_FIELD_SETTING */
         operationCode: Some(id_opcode_coordinateShadowUpdate), /* OBJECT_FIELD_SETTING */
         ..Default::default()
+    }
+}
+
+pub mod coordinateShadowUpdate {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ArgumentType = CoordinateShadowUpdateArgument; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ArgumentType(el: &X690Element) -> ASN1Result<ArgumentType> {
+        _decode_CoordinateShadowUpdateArgument(el)
+    }
+    pub fn _encode_ArgumentType(value_: &ArgumentType) -> ASN1Result<X690Element> {
+        _encode_CoordinateShadowUpdateArgument(value_)
+    }
+    pub fn _validate_ArgumentType(el: &X690Element) -> ASN1Result<()> {
+        _validate_CoordinateShadowUpdateArgument(el)
+    }
+    pub type ResultType = CoordinateShadowUpdateResult; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ResultType(el: &X690Element) -> ASN1Result<ResultType> {
+        _decode_CoordinateShadowUpdateResult(el)
+    }
+    pub fn _encode_ResultType(value_: &ResultType) -> ASN1Result<X690Element> {
+        _encode_CoordinateShadowUpdateResult(value_)
+    }
+    pub fn _validate_ResultType(el: &X690Element) -> ASN1Result<()> {
+        _validate_CoordinateShadowUpdateResult(el)
     }
 }
 
@@ -1504,7 +1904,7 @@ pub fn _decode_CoordinateShadowUpdateArgument(
 ) -> ASN1Result<CoordinateShadowUpdateArgument> {
     _decode_OPTIONALLY_PROTECTED::<CoordinateShadowUpdateArgumentData>(
         _decode_CoordinateShadowUpdateArgumentData,
-        &el,
+        el,
     )
 }
 
@@ -1513,7 +1913,14 @@ pub fn _encode_CoordinateShadowUpdateArgument(
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED::<CoordinateShadowUpdateArgumentData>(
         _encode_CoordinateShadowUpdateArgumentData,
-        &value_,
+        value_,
+    )
+}
+
+pub fn _validate_CoordinateShadowUpdateArgument(el: &X690Element) -> ASN1Result<()> {
+    _validate_OPTIONALLY_PROTECTED::<CoordinateShadowUpdateArgumentData>(
+        _validate_CoordinateShadowUpdateArgumentData,
+        el,
     )
 }
 
@@ -1534,7 +1941,6 @@ pub fn _encode_CoordinateShadowUpdateArgument(
 ///   securityParameters  SecurityParameters OPTIONAL,
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct CoordinateShadowUpdateArgumentData {
@@ -1561,15 +1967,9 @@ impl CoordinateShadowUpdateArgumentData {
         }
     }
 }
-impl TryFrom<X690Element> for CoordinateShadowUpdateArgumentData {
+impl TryFrom<&X690Element> for CoordinateShadowUpdateArgumentData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_CoordinateShadowUpdateArgumentData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for CoordinateShadowUpdateArgumentData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_CoordinateShadowUpdateArgumentData(el)
     }
 }
@@ -1606,36 +2006,53 @@ pub const _eal_components_for_CoordinateShadowUpdateArgumentData: &[ComponentSpe
 pub fn _decode_CoordinateShadowUpdateArgumentData(
     el: &X690Element,
 ) -> ASN1Result<CoordinateShadowUpdateArgumentData> {
-    |el_: &X690Element| -> ASN1Result<CoordinateShadowUpdateArgumentData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<CoordinateShadowUpdateArgumentData> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "CoordinateShadowUpdateArgumentData",
+                ))
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_CoordinateShadowUpdateArgumentData,
             _eal_components_for_CoordinateShadowUpdateArgumentData,
             _rctl2_components_for_CoordinateShadowUpdateArgumentData,
-        )?;
-        let agreementID = _decode_AgreementID(_components.get("agreementID").unwrap())?;
-        let lastUpdate: OPTIONAL<Time> = match _components.get("lastUpdate") {
-            Some(c_) => Some(_decode_Time(c_)?),
-            _ => None,
-        };
-        let updateStrategy = _decode_CoordinateShadowUpdateArgumentData_updateStrategy(
-            _components.get("updateStrategy").unwrap(),
-        )?;
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(_decode_SecurityParameters(c_)?),
-                _ => None,
-            };
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut agreementID_: OPTIONAL<AgreementID> = None;
+        let mut lastUpdate_: OPTIONAL<Time> = None;
+        let mut updateStrategy_: OPTIONAL<CoordinateShadowUpdateArgumentData_updateStrategy> = None;
+        let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+        let mut _unrecognized: Vec<X690Element> = vec![];
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "agreementID" => agreementID_ = Some(_decode_AgreementID(_el)?),
+                "lastUpdate" => lastUpdate_ = Some(_decode_Time(_el)?),
+                "updateStrategy" => {
+                    updateStrategy_ = Some(
+                        _decode_CoordinateShadowUpdateArgumentData_updateStrategy(_el)?,
+                    )
+                }
+                "securityParameters" => {
+                    securityParameters_ = Some(_decode_SecurityParameters(_el)?)
+                }
+                _ => _unrecognized.push(_el.clone()),
+            }
+        }
         Ok(CoordinateShadowUpdateArgumentData {
-            agreementID,
-            lastUpdate,
-            updateStrategy,
-            securityParameters,
+            agreementID: agreementID_.unwrap(),
+            lastUpdate: lastUpdate_,
+            updateStrategy: updateStrategy_.unwrap(),
+            securityParameters: securityParameters_,
             _unrecognized,
         })
     }(&el)
@@ -1658,17 +2075,62 @@ pub fn _encode_CoordinateShadowUpdateArgumentData(
                 components_.push(_encode_SecurityParameters(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 0;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_CoordinateShadowUpdateArgumentData(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "CoordinateShadowUpdateArgumentData",
+            ));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "CoordinateShadowUpdateArgumentData",
+                    ))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_CoordinateShadowUpdateArgumentData,
+                _eal_components_for_CoordinateShadowUpdateArgumentData,
+                _rctl2_components_for_CoordinateShadowUpdateArgumentData,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "agreementID" => _validate_AgreementID(_el)?,
+                    "lastUpdate" => _validate_Time(_el)?,
+                    "updateStrategy" => {
+                        _validate_CoordinateShadowUpdateArgumentData_updateStrategy(_el)?
+                    }
+                    "securityParameters" => _validate_SecurityParameters(_el)?,
+                    _ => (),
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1686,17 +2148,9 @@ pub enum CoordinateShadowUpdateResult {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for CoordinateShadowUpdateResult {
+impl TryFrom<&X690Element> for CoordinateShadowUpdateResult {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_CoordinateShadowUpdateResult(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for CoordinateShadowUpdateResult {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_CoordinateShadowUpdateResult(el)
     }
 }
@@ -1704,38 +2158,41 @@ impl<'a> TryFrom<&'a X690Element> for CoordinateShadowUpdateResult {
 pub fn _decode_CoordinateShadowUpdateResult(
     el: &X690Element,
 ) -> ASN1Result<CoordinateShadowUpdateResult> {
-    |el: &X690Element| -> ASN1Result<CoordinateShadowUpdateResult> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => {
-                ber_decode_null(&el)?;
-                Ok(CoordinateShadowUpdateResult::null(()))
-            }
-            (TagClass::UNIVERSAL, 16) => Ok(CoordinateShadowUpdateResult::information(
-                _decode_OPTIONALLY_PROTECTED::<CoordinateShadowUpdateResultData>(
-                    _decode_CoordinateShadowUpdateResultData,
-                    &el,
-                )?,
-            )),
-            _ => Ok(CoordinateShadowUpdateResult::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(CoordinateShadowUpdateResult::null(BER.decode_null(&el)?)),
+        (TagClass::UNIVERSAL, 16) => Ok(CoordinateShadowUpdateResult::information(
+            _decode_OPTIONALLY_PROTECTED::<CoordinateShadowUpdateResultData>(
+                _decode_CoordinateShadowUpdateResultData,
+                el,
+            )?,
+        )),
+        _ => Ok(CoordinateShadowUpdateResult::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_CoordinateShadowUpdateResult(
     value_: &CoordinateShadowUpdateResult,
 ) -> ASN1Result<X690Element> {
-    |value: &CoordinateShadowUpdateResult| -> ASN1Result<X690Element> {
-        match value {
-            CoordinateShadowUpdateResult::null(v) => ber_encode_null(&v),
-            CoordinateShadowUpdateResult::information(v) => {
-                _encode_OPTIONALLY_PROTECTED::<CoordinateShadowUpdateResultData>(
-                    _encode_CoordinateShadowUpdateResultData,
-                    &v,
-                )
-            }
-            CoordinateShadowUpdateResult::_unrecognized(el) => Ok(el.clone()),
+    match value_ {
+        CoordinateShadowUpdateResult::null(v) => BER.encode_null(&v),
+        CoordinateShadowUpdateResult::information(v) => {
+            _encode_OPTIONALLY_PROTECTED::<CoordinateShadowUpdateResultData>(
+                _encode_CoordinateShadowUpdateResultData,
+                v,
+            )
         }
-    }(&value_)
+        CoordinateShadowUpdateResult::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_CoordinateShadowUpdateResult(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::UNIVERSAL, 16) => _validate_OPTIONALLY_PROTECTED::<
+            CoordinateShadowUpdateResultData,
+        >(_validate_CoordinateShadowUpdateResultData, el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1748,7 +2205,6 @@ pub fn _encode_CoordinateShadowUpdateResult(
 ///   ...,
 ///   COMPONENTS OF CommonResultsSeq }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct CoordinateShadowUpdateResultData {
@@ -1784,15 +2240,9 @@ impl CoordinateShadowUpdateResultData {
         false
     }
 }
-impl TryFrom<X690Element> for CoordinateShadowUpdateResultData {
+impl TryFrom<&X690Element> for CoordinateShadowUpdateResultData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_CoordinateShadowUpdateResultData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for CoordinateShadowUpdateResultData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_CoordinateShadowUpdateResultData(el)
     }
 }
@@ -1850,66 +2300,87 @@ pub const _eal_components_for_CoordinateShadowUpdateResultData: &[ComponentSpec;
 pub fn _decode_CoordinateShadowUpdateResultData(
     el: &X690Element,
 ) -> ASN1Result<CoordinateShadowUpdateResultData> {
-    |el_: &X690Element| -> ASN1Result<CoordinateShadowUpdateResultData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<CoordinateShadowUpdateResultData> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "CoordinateShadowUpdateResultData",
+                ))
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_CoordinateShadowUpdateResultData,
             _eal_components_for_CoordinateShadowUpdateResultData,
             _rctl2_components_for_CoordinateShadowUpdateResultData,
-        )?;
-        let agreementID = _decode_AgreementID(_components.get("agreementID").unwrap())?;
-        let lastUpdate: OPTIONAL<Time> = match _components.get("lastUpdate") {
-            Some(c_) => Some(_decode_Time(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
-                    Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut agreementID_: OPTIONAL<AgreementID> = None;
+        let mut lastUpdate_: OPTIONAL<Time> = None;
+        let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+        let mut performer_: OPTIONAL<DistinguishedName> = None;
+        let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+        let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+        let mut _unrecognized: Vec<X690Element> = vec![];
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "agreementID" => agreementID_ = Some(_decode_AgreementID(_el)?),
+                "lastUpdate" => lastUpdate_ = Some(_decode_Time(_el)?),
+                "securityParameters" => {
+                    securityParameters_ =
+                        Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+                            Ok(_decode_SecurityParameters(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "performer" => {
+                    performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                        Ok(_decode_DistinguishedName(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "aliasDereferenced" => {
+                    aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                        Ok(BER.decode_boolean(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "notification" => {
+                    notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                            let elements = match &el.value {
+                                X690Value::Constructed(children) => children,
+                                _ => {
+                                    return Err(el.to_asn1_err_named(
+                                        ASN1ErrorCode::invalid_construction,
+                                        "notification",
+                                    ))
+                                }
+                            };
+                            let mut items: SEQUENCE_OF<Attribute> =
+                                Vec::with_capacity(elements.len());
+                            for el in elements.iter() {
+                                items.push(_decode_Attribute(el)?);
+                            }
+                            Ok(items)
+                        }(&el.inner()?)?)
+                    }(_el)?)
+                }
+                _ => _unrecognized.push(_el.clone()),
+            }
+        }
         Ok(CoordinateShadowUpdateResultData {
-            agreementID,
-            lastUpdate,
+            agreementID: agreementID_.unwrap(),
+            lastUpdate: lastUpdate_,
             _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
+            securityParameters: securityParameters_,
+            performer: performer_,
+            aliasDereferenced: aliasDereferenced_,
+            notification: notification_,
         })
     }(&el)
 }
@@ -1927,22 +2398,16 @@ pub fn _encode_CoordinateShadowUpdateResultData(
             if let Some(v_) = &value_.securityParameters {
                 components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        30,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_SecurityParameters(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 30),
+                        X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
                     ))
                 }(&v_)?);
             }
             if let Some(v_) = &value_.performer {
                 components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        29,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                            &v_1,
-                        )?))),
+                        Tag::new(TagClass::CONTEXT, 29),
+                        X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -1950,9 +2415,8 @@ pub fn _encode_CoordinateShadowUpdateResultData(
                 if *v_ != CoordinateShadowUpdateResultData::_default_value_for_aliasDereferenced() {
                     components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            28,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
+                            Tag::new(TagClass::CONTEXT, 28),
+                            X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -1960,37 +2424,128 @@ pub fn _encode_CoordinateShadowUpdateResultData(
             if let Some(v_) = &value_.notification {
                 components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        27,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                        Tag::new(TagClass::CONTEXT, 27),
+                        X690Value::from_explicit(
+                            &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                                 let mut children: Vec<X690Element> =
                                     Vec::with_capacity(value_.len());
                                 for v in value_ {
                                     children.push(_encode_Attribute(&v)?);
                                 }
                                 Ok(X690Element::new(
-                                    TagClass::UNIVERSAL,
-                                    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                                    Arc::new(X690Encoding::Constructed(children)),
+                                    Tag::new(
+                                        TagClass::UNIVERSAL,
+                                        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
+                                    ),
+                                    X690Value::Constructed(Arc::new(children)),
                                 ))
                             }(&v_1)?,
-                        ))),
+                        ),
                     ))
                 }(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 0;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_CoordinateShadowUpdateResultData(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "CoordinateShadowUpdateResultData",
+            ));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "CoordinateShadowUpdateResultData",
+                    ))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_CoordinateShadowUpdateResultData,
+                _eal_components_for_CoordinateShadowUpdateResultData,
+                _rctl2_components_for_CoordinateShadowUpdateResultData,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "agreementID" => _validate_AgreementID(_el)?,
+                    "lastUpdate" => _validate_Time(_el)?,
+                    "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "securityParameters",
+                            ));
+                        }
+                        Ok(_validate_SecurityParameters(&el.inner()?)?)
+                    }(_el)?,
+                    "performer" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "performer",
+                            ));
+                        }
+                        Ok(_validate_DistinguishedName(&el.inner()?)?)
+                    }(_el)?,
+                    "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "aliasDereferenced",
+                            ));
+                        }
+                        Ok(BER.validate_boolean(&el.inner()?)?)
+                    }(_el)?,
+                    "notification" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "notification",
+                            ));
+                        }
+                        Ok(|el: &X690Element| -> ASN1Result<()> {
+                            match &el.value {
+                                X690Value::Constructed(subs) => {
+                                    for sub in subs.iter() {
+                                        _validate_Attribute(&sub)?;
+                                    }
+                                    Ok(())
+                                }
+                                _ => Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                )),
+                            }
+                        }(&el.inner()?)?)
+                    }(_el)?,
+                    _ => (),
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2007,9 +2562,34 @@ pub fn _encode_CoordinateShadowUpdateResultData(
 ///
 pub fn requestShadowUpdate() -> OPERATION {
     OPERATION {
-        Errors: Some(Vec::<_>::from([shadowError()])), /* OBJECT_FIELD_SETTING */
+        Errors: Some(Vec::from([shadowError()])), /* OBJECT_FIELD_SETTING */
         operationCode: Some(id_opcode_requestShadowUpdate), /* OBJECT_FIELD_SETTING */
         ..Default::default()
+    }
+}
+
+pub mod requestShadowUpdate {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ArgumentType = RequestShadowUpdateArgument; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ArgumentType(el: &X690Element) -> ASN1Result<ArgumentType> {
+        _decode_RequestShadowUpdateArgument(el)
+    }
+    pub fn _encode_ArgumentType(value_: &ArgumentType) -> ASN1Result<X690Element> {
+        _encode_RequestShadowUpdateArgument(value_)
+    }
+    pub fn _validate_ArgumentType(el: &X690Element) -> ASN1Result<()> {
+        _validate_RequestShadowUpdateArgument(el)
+    }
+    pub type ResultType = RequestShadowUpdateResult; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ResultType(el: &X690Element) -> ASN1Result<ResultType> {
+        _decode_RequestShadowUpdateResult(el)
+    }
+    pub fn _encode_ResultType(value_: &ResultType) -> ASN1Result<X690Element> {
+        _encode_RequestShadowUpdateResult(value_)
+    }
+    pub fn _validate_ResultType(el: &X690Element) -> ASN1Result<()> {
+        _validate_RequestShadowUpdateResult(el)
     }
 }
 
@@ -2025,7 +2605,7 @@ pub fn _decode_RequestShadowUpdateArgument(
 ) -> ASN1Result<RequestShadowUpdateArgument> {
     _decode_OPTIONALLY_PROTECTED::<RequestShadowUpdateArgumentData>(
         _decode_RequestShadowUpdateArgumentData,
-        &el,
+        el,
     )
 }
 
@@ -2034,7 +2614,14 @@ pub fn _encode_RequestShadowUpdateArgument(
 ) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED::<RequestShadowUpdateArgumentData>(
         _encode_RequestShadowUpdateArgumentData,
-        &value_,
+        value_,
+    )
+}
+
+pub fn _validate_RequestShadowUpdateArgument(el: &X690Element) -> ASN1Result<()> {
+    _validate_OPTIONALLY_PROTECTED::<RequestShadowUpdateArgumentData>(
+        _validate_RequestShadowUpdateArgumentData,
+        el,
     )
 }
 
@@ -2054,7 +2641,6 @@ pub fn _encode_RequestShadowUpdateArgument(
 ///   securityParameters  SecurityParameters OPTIONAL,
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct RequestShadowUpdateArgumentData {
@@ -2081,15 +2667,9 @@ impl RequestShadowUpdateArgumentData {
         }
     }
 }
-impl TryFrom<X690Element> for RequestShadowUpdateArgumentData {
+impl TryFrom<&X690Element> for RequestShadowUpdateArgumentData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_RequestShadowUpdateArgumentData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for RequestShadowUpdateArgumentData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_RequestShadowUpdateArgumentData(el)
     }
 }
@@ -2126,36 +2706,54 @@ pub const _eal_components_for_RequestShadowUpdateArgumentData: &[ComponentSpec; 
 pub fn _decode_RequestShadowUpdateArgumentData(
     el: &X690Element,
 ) -> ASN1Result<RequestShadowUpdateArgumentData> {
-    |el_: &X690Element| -> ASN1Result<RequestShadowUpdateArgumentData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<RequestShadowUpdateArgumentData> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "RequestShadowUpdateArgumentData",
+                ))
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_RequestShadowUpdateArgumentData,
             _eal_components_for_RequestShadowUpdateArgumentData,
             _rctl2_components_for_RequestShadowUpdateArgumentData,
-        )?;
-        let agreementID = _decode_AgreementID(_components.get("agreementID").unwrap())?;
-        let lastUpdate: OPTIONAL<Time> = match _components.get("lastUpdate") {
-            Some(c_) => Some(_decode_Time(c_)?),
-            _ => None,
-        };
-        let requestedStrategy = _decode_RequestShadowUpdateArgumentData_requestedStrategy(
-            _components.get("requestedStrategy").unwrap(),
-        )?;
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(_decode_SecurityParameters(c_)?),
-                _ => None,
-            };
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut agreementID_: OPTIONAL<AgreementID> = None;
+        let mut lastUpdate_: OPTIONAL<Time> = None;
+        let mut requestedStrategy_: OPTIONAL<RequestShadowUpdateArgumentData_requestedStrategy> =
+            None;
+        let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+        let mut _unrecognized: Vec<X690Element> = vec![];
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "agreementID" => agreementID_ = Some(_decode_AgreementID(_el)?),
+                "lastUpdate" => lastUpdate_ = Some(_decode_Time(_el)?),
+                "requestedStrategy" => {
+                    requestedStrategy_ = Some(
+                        _decode_RequestShadowUpdateArgumentData_requestedStrategy(_el)?,
+                    )
+                }
+                "securityParameters" => {
+                    securityParameters_ = Some(_decode_SecurityParameters(_el)?)
+                }
+                _ => _unrecognized.push(_el.clone()),
+            }
+        }
         Ok(RequestShadowUpdateArgumentData {
-            agreementID,
-            lastUpdate,
-            requestedStrategy,
-            securityParameters,
+            agreementID: agreementID_.unwrap(),
+            lastUpdate: lastUpdate_,
+            requestedStrategy: requestedStrategy_.unwrap(),
+            securityParameters: securityParameters_,
             _unrecognized,
         })
     }(&el)
@@ -2178,17 +2776,62 @@ pub fn _encode_RequestShadowUpdateArgumentData(
                 components_.push(_encode_SecurityParameters(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 0;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_RequestShadowUpdateArgumentData(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "RequestShadowUpdateArgumentData",
+            ));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "RequestShadowUpdateArgumentData",
+                    ))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_RequestShadowUpdateArgumentData,
+                _eal_components_for_RequestShadowUpdateArgumentData,
+                _rctl2_components_for_RequestShadowUpdateArgumentData,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "agreementID" => _validate_AgreementID(_el)?,
+                    "lastUpdate" => _validate_Time(_el)?,
+                    "requestedStrategy" => {
+                        _validate_RequestShadowUpdateArgumentData_requestedStrategy(_el)?
+                    }
+                    "securityParameters" => _validate_SecurityParameters(_el)?,
+                    _ => (),
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2207,17 +2850,9 @@ pub enum RequestShadowUpdateResult {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for RequestShadowUpdateResult {
+impl TryFrom<&X690Element> for RequestShadowUpdateResult {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_RequestShadowUpdateResult(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for RequestShadowUpdateResult {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_RequestShadowUpdateResult(el)
     }
 }
@@ -2225,38 +2860,43 @@ impl<'a> TryFrom<&'a X690Element> for RequestShadowUpdateResult {
 pub fn _decode_RequestShadowUpdateResult(
     el: &X690Element,
 ) -> ASN1Result<RequestShadowUpdateResult> {
-    |el: &X690Element| -> ASN1Result<RequestShadowUpdateResult> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => {
-                ber_decode_null(&el)?;
-                Ok(RequestShadowUpdateResult::null(()))
-            }
-            (TagClass::UNIVERSAL, 16) => Ok(RequestShadowUpdateResult::information(
-                _decode_OPTIONALLY_PROTECTED::<RequestShadowUpdateResultData>(
-                    _decode_RequestShadowUpdateResultData,
-                    &el,
-                )?,
-            )),
-            _ => Ok(RequestShadowUpdateResult::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(RequestShadowUpdateResult::null(BER.decode_null(&el)?)),
+        (TagClass::UNIVERSAL, 16) => Ok(RequestShadowUpdateResult::information(
+            _decode_OPTIONALLY_PROTECTED::<RequestShadowUpdateResultData>(
+                _decode_RequestShadowUpdateResultData,
+                el,
+            )?,
+        )),
+        _ => Ok(RequestShadowUpdateResult::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_RequestShadowUpdateResult(
     value_: &RequestShadowUpdateResult,
 ) -> ASN1Result<X690Element> {
-    |value: &RequestShadowUpdateResult| -> ASN1Result<X690Element> {
-        match value {
-            RequestShadowUpdateResult::null(v) => ber_encode_null(&v),
-            RequestShadowUpdateResult::information(v) => {
-                _encode_OPTIONALLY_PROTECTED::<RequestShadowUpdateResultData>(
-                    _encode_RequestShadowUpdateResultData,
-                    &v,
-                )
-            }
-            RequestShadowUpdateResult::_unrecognized(el) => Ok(el.clone()),
+    match value_ {
+        RequestShadowUpdateResult::null(v) => BER.encode_null(&v),
+        RequestShadowUpdateResult::information(v) => _encode_OPTIONALLY_PROTECTED::<
+            RequestShadowUpdateResultData,
+        >(
+            _encode_RequestShadowUpdateResultData, v
+        ),
+        RequestShadowUpdateResult::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_RequestShadowUpdateResult(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::UNIVERSAL, 16) => {
+            _validate_OPTIONALLY_PROTECTED::<RequestShadowUpdateResultData>(
+                _validate_RequestShadowUpdateResultData,
+                el,
+            )
         }
-    }(&value_)
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2269,7 +2909,6 @@ pub fn _encode_RequestShadowUpdateResult(
 ///   ...,
 ///   COMPONENTS OF CommonResultsSeq }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct RequestShadowUpdateResultData {
@@ -2305,15 +2944,9 @@ impl RequestShadowUpdateResultData {
         false
     }
 }
-impl TryFrom<X690Element> for RequestShadowUpdateResultData {
+impl TryFrom<&X690Element> for RequestShadowUpdateResultData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_RequestShadowUpdateResultData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for RequestShadowUpdateResultData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_RequestShadowUpdateResultData(el)
     }
 }
@@ -2371,66 +3004,87 @@ pub const _eal_components_for_RequestShadowUpdateResultData: &[ComponentSpec; 0]
 pub fn _decode_RequestShadowUpdateResultData(
     el: &X690Element,
 ) -> ASN1Result<RequestShadowUpdateResultData> {
-    |el_: &X690Element| -> ASN1Result<RequestShadowUpdateResultData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<RequestShadowUpdateResultData> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "RequestShadowUpdateResultData",
+                ))
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_RequestShadowUpdateResultData,
             _eal_components_for_RequestShadowUpdateResultData,
             _rctl2_components_for_RequestShadowUpdateResultData,
-        )?;
-        let agreementID = _decode_AgreementID(_components.get("agreementID").unwrap())?;
-        let lastUpdate: OPTIONAL<Time> = match _components.get("lastUpdate") {
-            Some(c_) => Some(_decode_Time(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
-                    Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut agreementID_: OPTIONAL<AgreementID> = None;
+        let mut lastUpdate_: OPTIONAL<Time> = None;
+        let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+        let mut performer_: OPTIONAL<DistinguishedName> = None;
+        let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+        let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+        let mut _unrecognized: Vec<X690Element> = vec![];
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "agreementID" => agreementID_ = Some(_decode_AgreementID(_el)?),
+                "lastUpdate" => lastUpdate_ = Some(_decode_Time(_el)?),
+                "securityParameters" => {
+                    securityParameters_ =
+                        Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+                            Ok(_decode_SecurityParameters(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "performer" => {
+                    performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                        Ok(_decode_DistinguishedName(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "aliasDereferenced" => {
+                    aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                        Ok(BER.decode_boolean(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "notification" => {
+                    notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                            let elements = match &el.value {
+                                X690Value::Constructed(children) => children,
+                                _ => {
+                                    return Err(el.to_asn1_err_named(
+                                        ASN1ErrorCode::invalid_construction,
+                                        "notification",
+                                    ))
+                                }
+                            };
+                            let mut items: SEQUENCE_OF<Attribute> =
+                                Vec::with_capacity(elements.len());
+                            for el in elements.iter() {
+                                items.push(_decode_Attribute(el)?);
+                            }
+                            Ok(items)
+                        }(&el.inner()?)?)
+                    }(_el)?)
+                }
+                _ => _unrecognized.push(_el.clone()),
+            }
+        }
         Ok(RequestShadowUpdateResultData {
-            agreementID,
-            lastUpdate,
+            agreementID: agreementID_.unwrap(),
+            lastUpdate: lastUpdate_,
             _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
+            securityParameters: securityParameters_,
+            performer: performer_,
+            aliasDereferenced: aliasDereferenced_,
+            notification: notification_,
         })
     }(&el)
 }
@@ -2448,22 +3102,16 @@ pub fn _encode_RequestShadowUpdateResultData(
             if let Some(v_) = &value_.securityParameters {
                 components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        30,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_SecurityParameters(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 30),
+                        X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
                     ))
                 }(&v_)?);
             }
             if let Some(v_) = &value_.performer {
                 components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        29,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                            &v_1,
-                        )?))),
+                        Tag::new(TagClass::CONTEXT, 29),
+                        X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -2471,9 +3119,8 @@ pub fn _encode_RequestShadowUpdateResultData(
                 if *v_ != RequestShadowUpdateResultData::_default_value_for_aliasDereferenced() {
                     components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            28,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
+                            Tag::new(TagClass::CONTEXT, 28),
+                            X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -2481,37 +3128,128 @@ pub fn _encode_RequestShadowUpdateResultData(
             if let Some(v_) = &value_.notification {
                 components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        27,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                        Tag::new(TagClass::CONTEXT, 27),
+                        X690Value::from_explicit(
+                            &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                                 let mut children: Vec<X690Element> =
                                     Vec::with_capacity(value_.len());
                                 for v in value_ {
                                     children.push(_encode_Attribute(&v)?);
                                 }
                                 Ok(X690Element::new(
-                                    TagClass::UNIVERSAL,
-                                    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                                    Arc::new(X690Encoding::Constructed(children)),
+                                    Tag::new(
+                                        TagClass::UNIVERSAL,
+                                        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
+                                    ),
+                                    X690Value::Constructed(Arc::new(children)),
                                 ))
                             }(&v_1)?,
-                        ))),
+                        ),
                     ))
                 }(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 0;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_RequestShadowUpdateResultData(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "RequestShadowUpdateResultData",
+            ));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "RequestShadowUpdateResultData",
+                    ))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_RequestShadowUpdateResultData,
+                _eal_components_for_RequestShadowUpdateResultData,
+                _rctl2_components_for_RequestShadowUpdateResultData,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "agreementID" => _validate_AgreementID(_el)?,
+                    "lastUpdate" => _validate_Time(_el)?,
+                    "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "securityParameters",
+                            ));
+                        }
+                        Ok(_validate_SecurityParameters(&el.inner()?)?)
+                    }(_el)?,
+                    "performer" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "performer",
+                            ));
+                        }
+                        Ok(_validate_DistinguishedName(&el.inner()?)?)
+                    }(_el)?,
+                    "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "aliasDereferenced",
+                            ));
+                        }
+                        Ok(BER.validate_boolean(&el.inner()?)?)
+                    }(_el)?,
+                    "notification" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "notification",
+                            ));
+                        }
+                        Ok(|el: &X690Element| -> ASN1Result<()> {
+                            match &el.value {
+                                X690Value::Constructed(subs) => {
+                                    for sub in subs.iter() {
+                                        _validate_Attribute(&sub)?;
+                                    }
+                                    Ok(())
+                                }
+                                _ => Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                )),
+                            }
+                        }(&el.inner()?)?)
+                    }(_el)?,
+                    _ => (),
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2527,9 +3265,34 @@ pub fn _encode_RequestShadowUpdateResultData(
 ///
 pub fn updateShadow() -> OPERATION {
     OPERATION {
-        Errors: Some(Vec::<_>::from([shadowError()])), /* OBJECT_FIELD_SETTING */
-        operationCode: Some(id_opcode_updateShadow),   /* OBJECT_FIELD_SETTING */
+        Errors: Some(Vec::from([shadowError()])), /* OBJECT_FIELD_SETTING */
+        operationCode: Some(id_opcode_updateShadow), /* OBJECT_FIELD_SETTING */
         ..Default::default()
+    }
+}
+
+pub mod updateShadow {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ArgumentType = UpdateShadowArgument; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ArgumentType(el: &X690Element) -> ASN1Result<ArgumentType> {
+        _decode_UpdateShadowArgument(el)
+    }
+    pub fn _encode_ArgumentType(value_: &ArgumentType) -> ASN1Result<X690Element> {
+        _encode_UpdateShadowArgument(value_)
+    }
+    pub fn _validate_ArgumentType(el: &X690Element) -> ASN1Result<()> {
+        _validate_UpdateShadowArgument(el)
+    }
+    pub type ResultType = UpdateShadowResult; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ResultType(el: &X690Element) -> ASN1Result<ResultType> {
+        _decode_UpdateShadowResult(el)
+    }
+    pub fn _encode_ResultType(value_: &ResultType) -> ASN1Result<X690Element> {
+        _encode_UpdateShadowResult(value_)
+    }
+    pub fn _validate_ResultType(el: &X690Element) -> ASN1Result<()> {
+        _validate_UpdateShadowResult(el)
     }
 }
 
@@ -2541,13 +3304,20 @@ pub fn updateShadow() -> OPERATION {
 pub type UpdateShadowArgument = OPTIONALLY_PROTECTED<UpdateShadowArgumentData>; // DefinedType
 
 pub fn _decode_UpdateShadowArgument(el: &X690Element) -> ASN1Result<UpdateShadowArgument> {
-    _decode_OPTIONALLY_PROTECTED::<UpdateShadowArgumentData>(_decode_UpdateShadowArgumentData, &el)
+    _decode_OPTIONALLY_PROTECTED::<UpdateShadowArgumentData>(_decode_UpdateShadowArgumentData, el)
 }
 
 pub fn _encode_UpdateShadowArgument(value_: &UpdateShadowArgument) -> ASN1Result<X690Element> {
     _encode_OPTIONALLY_PROTECTED::<UpdateShadowArgumentData>(
         _encode_UpdateShadowArgumentData,
-        &value_,
+        value_,
+    )
+}
+
+pub fn _validate_UpdateShadowArgument(el: &X690Element) -> ASN1Result<()> {
+    _validate_OPTIONALLY_PROTECTED::<UpdateShadowArgumentData>(
+        _validate_UpdateShadowArgumentData,
+        el,
     )
 }
 
@@ -2562,7 +3332,6 @@ pub fn _encode_UpdateShadowArgument(value_: &UpdateShadowArgument) -> ASN1Result
 ///   securityParameters  SecurityParameters OPTIONAL,
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UpdateShadowArgumentData {
@@ -2592,15 +3361,9 @@ impl UpdateShadowArgumentData {
         }
     }
 }
-impl TryFrom<X690Element> for UpdateShadowArgumentData {
+impl TryFrom<&X690Element> for UpdateShadowArgumentData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UpdateShadowArgumentData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UpdateShadowArgumentData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UpdateShadowArgumentData(el)
     }
 }
@@ -2642,36 +3405,52 @@ pub const _rctl2_components_for_UpdateShadowArgumentData: &[ComponentSpec; 0] = 
 pub const _eal_components_for_UpdateShadowArgumentData: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UpdateShadowArgumentData(el: &X690Element) -> ASN1Result<UpdateShadowArgumentData> {
-    |el_: &X690Element| -> ASN1Result<UpdateShadowArgumentData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<UpdateShadowArgumentData> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "UpdateShadowArgumentData",
+                ))
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_UpdateShadowArgumentData,
             _eal_components_for_UpdateShadowArgumentData,
             _rctl2_components_for_UpdateShadowArgumentData,
-        )?;
-        let agreementID = _decode_AgreementID(_components.get("agreementID").unwrap())?;
-        let updateTime = _decode_Time(_components.get("updateTime").unwrap())?;
-        let updateWindow: OPTIONAL<UpdateWindow> = match _components.get("updateWindow") {
-            Some(c_) => Some(_decode_UpdateWindow(c_)?),
-            _ => None,
-        };
-        let updatedInfo = _decode_RefreshInformation(_components.get("updatedInfo").unwrap())?;
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(_decode_SecurityParameters(c_)?),
-                _ => None,
-            };
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut agreementID_: OPTIONAL<AgreementID> = None;
+        let mut updateTime_: OPTIONAL<Time> = None;
+        let mut updateWindow_: OPTIONAL<UpdateWindow> = None;
+        let mut updatedInfo_: OPTIONAL<RefreshInformation> = None;
+        let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+        let mut _unrecognized: Vec<X690Element> = vec![];
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "agreementID" => agreementID_ = Some(_decode_AgreementID(_el)?),
+                "updateTime" => updateTime_ = Some(_decode_Time(_el)?),
+                "updateWindow" => updateWindow_ = Some(_decode_UpdateWindow(_el)?),
+                "updatedInfo" => updatedInfo_ = Some(_decode_RefreshInformation(_el)?),
+                "securityParameters" => {
+                    securityParameters_ = Some(_decode_SecurityParameters(_el)?)
+                }
+                _ => _unrecognized.push(_el.clone()),
+            }
+        }
         Ok(UpdateShadowArgumentData {
-            agreementID,
-            updateTime,
-            updateWindow,
-            updatedInfo,
-            securityParameters,
+            agreementID: agreementID_.unwrap(),
+            updateTime: updateTime_.unwrap(),
+            updateWindow: updateWindow_,
+            updatedInfo: updatedInfo_.unwrap(),
+            securityParameters: securityParameters_,
             _unrecognized,
         })
     }(&el)
@@ -2693,17 +3472,61 @@ pub fn _encode_UpdateShadowArgumentData(
                 components_.push(_encode_SecurityParameters(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 0;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_UpdateShadowArgumentData(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UpdateShadowArgumentData",
+            ));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "UpdateShadowArgumentData",
+                    ))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_UpdateShadowArgumentData,
+                _eal_components_for_UpdateShadowArgumentData,
+                _rctl2_components_for_UpdateShadowArgumentData,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "agreementID" => _validate_AgreementID(_el)?,
+                    "updateTime" => _validate_Time(_el)?,
+                    "updateWindow" => _validate_UpdateWindow(_el)?,
+                    "updatedInfo" => _validate_RefreshInformation(_el)?,
+                    "securityParameters" => _validate_SecurityParameters(_el)?,
+                    _ => (),
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2721,49 +3544,48 @@ pub enum UpdateShadowResult {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for UpdateShadowResult {
+impl TryFrom<&X690Element> for UpdateShadowResult {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UpdateShadowResult(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UpdateShadowResult {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UpdateShadowResult(el)
     }
 }
 
 pub fn _decode_UpdateShadowResult(el: &X690Element) -> ASN1Result<UpdateShadowResult> {
-    |el: &X690Element| -> ASN1Result<UpdateShadowResult> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => {
-                ber_decode_null(&el)?;
-                Ok(UpdateShadowResult::null(()))
-            }
-            (TagClass::UNIVERSAL, 16) => Ok(UpdateShadowResult::information(
-                _decode_OPTIONALLY_PROTECTED::<UpdateShadowResultData>(
-                    _decode_UpdateShadowResultData,
-                    &el,
-                )?,
-            )),
-            _ => Ok(UpdateShadowResult::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(UpdateShadowResult::null(BER.decode_null(&el)?)),
+        (TagClass::UNIVERSAL, 16) => Ok(UpdateShadowResult::information(
+            _decode_OPTIONALLY_PROTECTED::<UpdateShadowResultData>(
+                _decode_UpdateShadowResultData,
+                el,
+            )?,
+        )),
+        _ => Ok(UpdateShadowResult::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_UpdateShadowResult(value_: &UpdateShadowResult) -> ASN1Result<X690Element> {
-    |value: &UpdateShadowResult| -> ASN1Result<X690Element> {
-        match value {
-            UpdateShadowResult::null(v) => ber_encode_null(&v),
-            UpdateShadowResult::information(v) => _encode_OPTIONALLY_PROTECTED::<
-                UpdateShadowResultData,
-            >(_encode_UpdateShadowResultData, &v),
-            UpdateShadowResult::_unrecognized(el) => Ok(el.clone()),
+    match value_ {
+        UpdateShadowResult::null(v) => BER.encode_null(&v),
+        UpdateShadowResult::information(v) => {
+            _encode_OPTIONALLY_PROTECTED::<UpdateShadowResultData>(
+                _encode_UpdateShadowResultData,
+                v,
+            )
         }
-    }(&value_)
+        UpdateShadowResult::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_UpdateShadowResult(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::UNIVERSAL, 16) => _validate_OPTIONALLY_PROTECTED::<UpdateShadowResultData>(
+            _validate_UpdateShadowResultData,
+            el,
+        ),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2776,7 +3598,6 @@ pub fn _encode_UpdateShadowResult(value_: &UpdateShadowResult) -> ASN1Result<X69
 ///   ...,
 ///   COMPONENTS OF CommonResultsSeq }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UpdateShadowResultData {
@@ -2812,15 +3633,9 @@ impl UpdateShadowResultData {
         false
     }
 }
-impl TryFrom<X690Element> for UpdateShadowResultData {
+impl TryFrom<&X690Element> for UpdateShadowResultData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UpdateShadowResultData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UpdateShadowResultData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UpdateShadowResultData(el)
     }
 }
@@ -2876,66 +3691,87 @@ pub const _rctl2_components_for_UpdateShadowResultData: &[ComponentSpec; 4] = &[
 pub const _eal_components_for_UpdateShadowResultData: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UpdateShadowResultData(el: &X690Element) -> ASN1Result<UpdateShadowResultData> {
-    |el_: &X690Element| -> ASN1Result<UpdateShadowResultData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<UpdateShadowResultData> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "UpdateShadowResultData",
+                ))
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_UpdateShadowResultData,
             _eal_components_for_UpdateShadowResultData,
             _rctl2_components_for_UpdateShadowResultData,
-        )?;
-        let agreementID = _decode_AgreementID(_components.get("agreementID").unwrap())?;
-        let lastUpdate: OPTIONAL<Time> = match _components.get("lastUpdate") {
-            Some(c_) => Some(_decode_Time(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
-                    Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut agreementID_: OPTIONAL<AgreementID> = None;
+        let mut lastUpdate_: OPTIONAL<Time> = None;
+        let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+        let mut performer_: OPTIONAL<DistinguishedName> = None;
+        let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+        let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+        let mut _unrecognized: Vec<X690Element> = vec![];
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "agreementID" => agreementID_ = Some(_decode_AgreementID(_el)?),
+                "lastUpdate" => lastUpdate_ = Some(_decode_Time(_el)?),
+                "securityParameters" => {
+                    securityParameters_ =
+                        Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+                            Ok(_decode_SecurityParameters(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "performer" => {
+                    performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                        Ok(_decode_DistinguishedName(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "aliasDereferenced" => {
+                    aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                        Ok(BER.decode_boolean(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "notification" => {
+                    notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                        Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                            let elements = match &el.value {
+                                X690Value::Constructed(children) => children,
+                                _ => {
+                                    return Err(el.to_asn1_err_named(
+                                        ASN1ErrorCode::invalid_construction,
+                                        "notification",
+                                    ))
+                                }
+                            };
+                            let mut items: SEQUENCE_OF<Attribute> =
+                                Vec::with_capacity(elements.len());
+                            for el in elements.iter() {
+                                items.push(_decode_Attribute(el)?);
+                            }
+                            Ok(items)
+                        }(&el.inner()?)?)
+                    }(_el)?)
+                }
+                _ => _unrecognized.push(_el.clone()),
+            }
+        }
         Ok(UpdateShadowResultData {
-            agreementID,
-            lastUpdate,
+            agreementID: agreementID_.unwrap(),
+            lastUpdate: lastUpdate_,
             _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
+            securityParameters: securityParameters_,
+            performer: performer_,
+            aliasDereferenced: aliasDereferenced_,
+            notification: notification_,
         })
     }(&el)
 }
@@ -2951,22 +3787,16 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
             if let Some(v_) = &value_.securityParameters {
                 components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        30,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_SecurityParameters(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 30),
+                        X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
                     ))
                 }(&v_)?);
             }
             if let Some(v_) = &value_.performer {
                 components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        29,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                            &v_1,
-                        )?))),
+                        Tag::new(TagClass::CONTEXT, 29),
+                        X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -2974,9 +3804,8 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
                 if *v_ != UpdateShadowResultData::_default_value_for_aliasDereferenced() {
                     components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            28,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
+                            Tag::new(TagClass::CONTEXT, 28),
+                            X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -2984,37 +3813,128 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
             if let Some(v_) = &value_.notification {
                 components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        27,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                        Tag::new(TagClass::CONTEXT, 27),
+                        X690Value::from_explicit(
+                            &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                                 let mut children: Vec<X690Element> =
                                     Vec::with_capacity(value_.len());
                                 for v in value_ {
                                     children.push(_encode_Attribute(&v)?);
                                 }
                                 Ok(X690Element::new(
-                                    TagClass::UNIVERSAL,
-                                    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                                    Arc::new(X690Encoding::Constructed(children)),
+                                    Tag::new(
+                                        TagClass::UNIVERSAL,
+                                        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
+                                    ),
+                                    X690Value::Constructed(Arc::new(children)),
                                 ))
                             }(&v_1)?,
-                        ))),
+                        ),
                     ))
                 }(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 0;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_UpdateShadowResultData(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UpdateShadowResultData",
+            ));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "UpdateShadowResultData",
+                    ))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_UpdateShadowResultData,
+                _eal_components_for_UpdateShadowResultData,
+                _rctl2_components_for_UpdateShadowResultData,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "agreementID" => _validate_AgreementID(_el)?,
+                    "lastUpdate" => _validate_Time(_el)?,
+                    "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "securityParameters",
+                            ));
+                        }
+                        Ok(_validate_SecurityParameters(&el.inner()?)?)
+                    }(_el)?,
+                    "performer" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "performer",
+                            ));
+                        }
+                        Ok(_validate_DistinguishedName(&el.inner()?)?)
+                    }(_el)?,
+                    "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "aliasDereferenced",
+                            ));
+                        }
+                        Ok(BER.validate_boolean(&el.inner()?)?)
+                    }(_el)?,
+                    "notification" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "notification",
+                            ));
+                        }
+                        Ok(|el: &X690Element| -> ASN1Result<()> {
+                            match &el.value {
+                                X690Value::Constructed(subs) => {
+                                    for sub in subs.iter() {
+                                        _validate_Attribute(&sub)?;
+                                    }
+                                    Ok(())
+                                }
+                                _ => Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                )),
+                            }
+                        }(&el.inner()?)?)
+                    }(_el)?,
+                    _ => (),
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -3025,7 +3945,6 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
 ///   stop   Time,
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UpdateWindow {
@@ -3042,15 +3961,9 @@ impl UpdateWindow {
         }
     }
 }
-impl TryFrom<X690Element> for UpdateWindow {
+impl TryFrom<&X690Element> for UpdateWindow {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UpdateWindow(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UpdateWindow {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UpdateWindow(el)
     }
 }
@@ -3077,41 +3990,76 @@ pub const _rctl2_components_for_UpdateWindow: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_UpdateWindow: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UpdateWindow(el: &X690Element) -> ASN1Result<UpdateWindow> {
-    |el_: &X690Element| -> ASN1Result<UpdateWindow> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UpdateWindow,
-            _eal_components_for_UpdateWindow,
-            _rctl2_components_for_UpdateWindow,
-        )?;
-        let start = _decode_Time(_components.get("start").unwrap())?;
-        let stop = _decode_Time(_components.get("stop").unwrap())?;
-        Ok(UpdateWindow {
-            start,
-            stop,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UpdateWindow")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UpdateWindow,
+        _eal_components_for_UpdateWindow,
+        _rctl2_components_for_UpdateWindow,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut start_: OPTIONAL<Time> = None;
+    let mut stop_: OPTIONAL<Time> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "start" => start_ = Some(_decode_Time(_el)?),
+            "stop" => stop_ = Some(_decode_Time(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(UpdateWindow {
+        start: start_.unwrap(),
+        stop: stop_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_UpdateWindow(value_: &UpdateWindow) -> ASN1Result<X690Element> {
-    |value_: &UpdateWindow| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(_encode_Time(&value_.start)?);
-        components_.push(_encode_Time(&value_.stop)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(_encode_Time(&value_.start)?);
+    components_.push(_encode_Time(&value_.stop)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_UpdateWindow(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UpdateWindow")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UpdateWindow,
+        _eal_components_for_UpdateWindow,
+        _rctl2_components_for_UpdateWindow,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "start" => _validate_Time(_el)?,
+            "stop" => _validate_Time(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3133,62 +4081,69 @@ pub enum RefreshInformation {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for RefreshInformation {
+impl TryFrom<&X690Element> for RefreshInformation {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_RefreshInformation(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for RefreshInformation {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_RefreshInformation(el)
     }
 }
 
 pub fn _decode_RefreshInformation(el: &X690Element) -> ASN1Result<RefreshInformation> {
-    |el: &X690Element| -> ASN1Result<RefreshInformation> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => {
-                ber_decode_null(&el)?;
-                Ok(RefreshInformation::noRefresh(()))
-            }
-            (TagClass::CONTEXT, 0) => Ok(RefreshInformation::total(_decode_TotalRefresh(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(RefreshInformation::incremental(
-                _decode_IncrementalRefresh(&el)?,
-            )),
-            (TagClass::UNIVERSAL, 8) => {
-                Ok(RefreshInformation::otherStrategy(ber_decode_external(&el)?))
-            }
-            _ => Ok(RefreshInformation::_unrecognized(el.clone())),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(RefreshInformation::noRefresh(BER.decode_null(&el)?)),
+        (TagClass::CONTEXT, 0) => Ok(RefreshInformation::total(_decode_TotalRefresh(&el)?)),
+        (TagClass::CONTEXT, 1) => Ok(RefreshInformation::incremental(_decode_IncrementalRefresh(
+            &el,
+        )?)),
+        (TagClass::UNIVERSAL, 8) => {
+            Ok(RefreshInformation::otherStrategy(BER.decode_external(&el)?))
         }
-    }(&el)
+        _ => Ok(RefreshInformation::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_RefreshInformation(value_: &RefreshInformation) -> ASN1Result<X690Element> {
-    |value: &RefreshInformation| -> ASN1Result<X690Element> {
-        match value {
-            RefreshInformation::noRefresh(v) => ber_encode_null(&v),
-            RefreshInformation::total(v) => |v_1: &TotalRefresh| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_TotalRefresh(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
+    match value_ {
+        RefreshInformation::noRefresh(v) => BER.encode_null(&v),
+        RefreshInformation::total(v) => |v_1: &TotalRefresh| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_TotalRefresh(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&v),
+        RefreshInformation::incremental(v) => {
+            |v_1: &IncrementalRefresh| -> ASN1Result<X690Element> {
+                let mut el_1 = _encode_IncrementalRefresh(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 1;
                 Ok(el_1)
-            }(&v),
-            RefreshInformation::incremental(v) => {
-                |v_1: &IncrementalRefresh| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_IncrementalRefresh(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
-            }
-            RefreshInformation::otherStrategy(v) => ber_encode_external(&v),
-            RefreshInformation::_unrecognized(el) => Ok(el.clone()),
+            }(&v)
         }
-    }(&value_)
+        RefreshInformation::otherStrategy(v) => BER.encode_external(&v),
+        RefreshInformation::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_RefreshInformation(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "total"));
+            }
+            Ok(_validate_TotalRefresh(&el)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "incremental")
+                );
+            }
+            Ok(_validate_IncrementalRefresh(&el)?)
+        }(&el),
+        (TagClass::UNIVERSAL, 8) => BER.validate_external(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3199,7 +4154,6 @@ pub fn _encode_RefreshInformation(value_: &RefreshInformation) -> ASN1Result<X69
 ///   subtree  SET SIZE (1..MAX) OF Subtree OPTIONAL,
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TotalRefresh {
@@ -3229,15 +4183,9 @@ impl Default for TotalRefresh {
         }
     }
 }
-impl TryFrom<X690Element> for TotalRefresh {
+impl TryFrom<&X690Element> for TotalRefresh {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TotalRefresh(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TotalRefresh {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TotalRefresh(el)
     }
 }
@@ -3264,71 +4212,114 @@ pub const _rctl2_components_for_TotalRefresh: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_TotalRefresh: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_TotalRefresh(el: &X690Element) -> ASN1Result<TotalRefresh> {
-    |el_: &X690Element| -> ASN1Result<TotalRefresh> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TotalRefresh,
-            _eal_components_for_TotalRefresh,
-            _rctl2_components_for_TotalRefresh,
-        )?;
-        let sDSE: OPTIONAL<SDSEContent> = match _components.get("sDSE") {
-            Some(c_) => Some(_decode_SDSEContent(c_)?),
-            _ => None,
-        };
-        let subtree: OPTIONAL<Vec<Subtree>> = match _components.get("subtree") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<SET_OF<Subtree>> {
-                let elements = match el.value.borrow() {
-                    X690Encoding::Constructed(children) => children,
-                    _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                };
-                let mut items: SET_OF<Subtree> = Vec::with_capacity(elements.len());
-                for el in elements {
-                    items.push(_decode_Subtree(el)?);
-                }
-                Ok(items)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(TotalRefresh {
-            sDSE,
-            subtree,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TotalRefresh")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TotalRefresh,
+        _eal_components_for_TotalRefresh,
+        _rctl2_components_for_TotalRefresh,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut sDSE_: OPTIONAL<SDSEContent> = None;
+    let mut subtree_: OPTIONAL<Vec<Subtree>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "sDSE" => sDSE_ = Some(_decode_SDSEContent(_el)?),
+            "subtree" => {
+                subtree_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<Subtree>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el
+                                .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "subtree"))
+                        }
+                    };
+                    let mut items: SET_OF<Subtree> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_Subtree(el)?);
+                    }
+                    Ok(items)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(TotalRefresh {
+        sDSE: sDSE_,
+        subtree: subtree_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_TotalRefresh(value_: &TotalRefresh) -> ASN1Result<X690Element> {
-    |value_: &TotalRefresh| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        if let Some(v_) = &value_.sDSE {
-            components_.push(_encode_SDSEContent(&v_)?);
-        }
-        if let Some(v_) = &value_.subtree {
-            components_.push(|value_: &SET_OF<Subtree>| -> ASN1Result<X690Element> {
-                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                for v in value_ {
-                    children.push(_encode_Subtree(&v)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    if let Some(v_) = &value_.sDSE {
+        components_.push(_encode_SDSEContent(&v_)?);
+    }
+    if let Some(v_) = &value_.subtree {
+        components_.push(|value_: &SET_OF<Subtree>| -> ASN1Result<X690Element> {
+            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+            for v in value_ {
+                children.push(_encode_Subtree(&v)?);
+            }
+            Ok(X690Element::new(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                X690Value::Constructed(Arc::new(children)),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_TotalRefresh(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TotalRefresh")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TotalRefresh,
+        _eal_components_for_TotalRefresh,
+        _rctl2_components_for_TotalRefresh,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "sDSE" => _validate_SDSEContent(_el)?,
+            "subtree" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_Subtree(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "subtree")),
                 }
-                Ok(X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                    Arc::new(X690Encoding::Constructed(children)),
-                ))
-            }(&v_)?);
+            }(_el)?,
+            _ => (),
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3342,7 +4333,6 @@ pub fn _encode_TotalRefresh(value_: &TotalRefresh) -> ASN1Result<X690Element> {
 ///   attValIncomplete  SET OF AttributeType DEFAULT {},
 ///   ...}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct SDSEContent {
@@ -3378,15 +4368,9 @@ impl SDSEContent {
         Vec::from([])
     }
 }
-impl TryFrom<X690Element> for SDSEContent {
+impl TryFrom<&X690Element> for SDSEContent {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SDSEContent(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SDSEContent {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SDSEContent(el)
     }
 }
@@ -3434,122 +4418,204 @@ pub const _rctl2_components_for_SDSEContent: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_SDSEContent: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_SDSEContent(el: &X690Element) -> ASN1Result<SDSEContent> {
-    |el_: &X690Element| -> ASN1Result<SDSEContent> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SDSEContent,
-            _eal_components_for_SDSEContent,
-            _rctl2_components_for_SDSEContent,
-        )?;
-        let sDSEType = _decode_SDSEType(_components.get("sDSEType").unwrap())?;
-        let subComplete: OPTIONAL<BOOLEAN> = match _components.get("subComplete") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        let attComplete: OPTIONAL<BOOLEAN> = match _components.get("attComplete") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        let attributes = |el: &X690Element| -> ASN1Result<SET_OF<Attribute>> {
-            let elements = match el.value.borrow() {
-                X690Encoding::Constructed(children) => children,
-                _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-            };
-            let mut items: SET_OF<Attribute> = Vec::with_capacity(elements.len());
-            for el in elements {
-                items.push(_decode_Attribute(el)?);
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SDSEContent")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SDSEContent,
+        _eal_components_for_SDSEContent,
+        _rctl2_components_for_SDSEContent,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut sDSEType_: OPTIONAL<SDSEType> = None;
+    let mut subComplete_: OPTIONAL<BOOLEAN> = None;
+    let mut attComplete_: OPTIONAL<BOOLEAN> = None;
+    let mut attributes_: OPTIONAL<Vec<Attribute>> = None;
+    let mut attValIncomplete_: OPTIONAL<Vec<AttributeType>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "sDSEType" => sDSEType_ = Some(_decode_SDSEType(_el)?),
+            "subComplete" => subComplete_ = Some(BER.decode_boolean(_el)?),
+            "attComplete" => attComplete_ = Some(BER.decode_boolean(_el)?),
+            "attributes" => {
+                attributes_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<Attribute>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "attributes",
+                            ))
+                        }
+                    };
+                    let mut items: SET_OF<Attribute> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_Attribute(el)?);
+                    }
+                    Ok(items)
+                }(_el)?)
             }
-            Ok(items)
-        }(_components.get("attributes").unwrap())?;
-        let attValIncomplete: OPTIONAL<Vec<AttributeType>> =
-            match _components.get("attValIncomplete") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SET_OF<AttributeType>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            "attValIncomplete" => {
+                attValIncomplete_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<AttributeType>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "attValIncomplete",
+                            ))
+                        }
                     };
                     let mut items: SET_OF<AttributeType> = Vec::with_capacity(elements.len());
-                    for el in elements {
+                    for el in elements.iter() {
                         items.push(_decode_AttributeType(el)?);
                     }
                     Ok(items)
-                }(c_)?),
-                _ => None,
-            };
-        Ok(SDSEContent {
-            sDSEType,
-            subComplete,
-            attComplete,
-            attributes,
-            attValIncomplete,
-            _unrecognized,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(SDSEContent {
+        sDSEType: sDSEType_.unwrap(),
+        subComplete: subComplete_,
+        attComplete: attComplete_,
+        attributes: attributes_.unwrap(),
+        attValIncomplete: attValIncomplete_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_SDSEContent(value_: &SDSEContent) -> ASN1Result<X690Element> {
-    |value_: &SDSEContent| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(15);
-        components_.push(_encode_SDSEType(&value_.sDSEType)?);
-        if let Some(v_) = &value_.subComplete {
-            if *v_ != SDSEContent::_default_value_for_subComplete() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_boolean(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.attComplete {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(15);
+    components_.push(_encode_SDSEType(&value_.sDSEType)?);
+    if let Some(v_) = &value_.subComplete {
+        if *v_ != SDSEContent::_default_value_for_subComplete() {
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_boolean(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
+                let mut el_1 = BER.encode_boolean(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 0;
                 Ok(el_1)
             }(&v_)?);
         }
-        components_.push(|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
-            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-            for v in value_ {
-                children.push(_encode_Attribute(&v)?);
-            }
-            Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                Arc::new(X690Encoding::Constructed(children)),
-            ))
-        }(&value_.attributes)?);
-        if let Some(v_) = &value_.attValIncomplete {
-            if *v_ != SDSEContent::_default_value_for_attValIncomplete() {
-                components_.push(
-                    |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
-                        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                        for v in value_ {
-                            children.push(_encode_AttributeType(&v)?);
-                        }
-                        Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
-                        ))
-                    }(&v_)?,
-                );
-            }
+    }
+    if let Some(v_) = &value_.attComplete {
+        components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_boolean(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    components_.push(|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+        for v in value_ {
+            children.push(_encode_Attribute(&v)?);
         }
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+            X690Value::Constructed(Arc::new(children)),
         ))
-    }(&value_)
+    }(&value_.attributes)?);
+    if let Some(v_) = &value_.attValIncomplete {
+        if *v_ != SDSEContent::_default_value_for_attValIncomplete() {
+            components_.push(
+                |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
+                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                    for v in value_ {
+                        children.push(_encode_AttributeType(&v)?);
+                    }
+                    Ok(X690Element::new(
+                        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                        X690Value::Constructed(Arc::new(children)),
+                    ))
+                }(&v_)?,
+            );
+        }
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_SDSEContent(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SDSEContent")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SDSEContent,
+        _eal_components_for_SDSEContent,
+        _rctl2_components_for_SDSEContent,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "sDSEType" => _validate_SDSEType(_el)?,
+            "subComplete" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "subComplete")
+                    );
+                }
+                Ok(BER.validate_boolean(&el)?)
+            }(_el)?,
+            "attComplete" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "attComplete")
+                    );
+                }
+                Ok(BER.validate_boolean(&el)?)
+            }(_el)?,
+            "attributes" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_Attribute(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => {
+                        Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "attributes"))
+                    }
+                }
+            }(_el)?,
+            "attValIncomplete" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_AttributeType(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "attValIncomplete",
+                    )),
+                }
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3567,6 +4633,10 @@ pub fn _encode_SDSEType(value_: &SDSEType) -> ASN1Result<X690Element> {
     _encode_DSEType(&value_)
 }
 
+pub fn _validate_SDSEType(el: &X690Element) -> ASN1Result<()> {
+    _validate_DSEType(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3575,7 +4645,6 @@ pub fn _encode_SDSEType(value_: &SDSEType) -> ASN1Result<X690Element> {
 ///   COMPONENTS OF TotalRefresh,
 ///   ...}
 /// ```
-///
 ///
 // TODO: CHECK_RECURSIVE_DEFINITION
 #[derive(Debug, Clone)]
@@ -3600,15 +4669,9 @@ impl Subtree {
         }
     }
 }
-impl TryFrom<X690Element> for Subtree {
+impl TryFrom<&X690Element> for Subtree {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Subtree(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Subtree {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Subtree(el)
     }
 }
@@ -3642,74 +4705,119 @@ pub const _rctl2_components_for_Subtree: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Subtree: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Subtree(el: &X690Element) -> ASN1Result<Subtree> {
-    |el_: &X690Element| -> ASN1Result<Subtree> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Subtree,
-            _eal_components_for_Subtree,
-            _rctl2_components_for_Subtree,
-        )?;
-        let rdn = _decode_RelativeDistinguishedName(_components.get("rdn").unwrap())?;
-        let sDSE: OPTIONAL<SDSEContent> = match _components.get("sDSE") {
-            Some(c_) => Some(_decode_SDSEContent(c_)?),
-            _ => None,
-        };
-        let subtree: OPTIONAL<Vec<Subtree>> = match _components.get("subtree") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<SET_OF<Subtree>> {
-                let elements = match el.value.borrow() {
-                    X690Encoding::Constructed(children) => children,
-                    _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                };
-                let mut items: SET_OF<Subtree> = Vec::with_capacity(elements.len());
-                for el in elements {
-                    items.push(_decode_Subtree(el)?);
-                }
-                Ok(items)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(Subtree {
-            rdn,
-            sDSE,
-            subtree,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Subtree")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Subtree,
+        _eal_components_for_Subtree,
+        _rctl2_components_for_Subtree,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut rdn_: OPTIONAL<RelativeDistinguishedName> = None;
+    let mut sDSE_: OPTIONAL<SDSEContent> = None;
+    let mut subtree_: OPTIONAL<Vec<Subtree>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "rdn" => rdn_ = Some(_decode_RelativeDistinguishedName(_el)?),
+            "sDSE" => sDSE_ = Some(_decode_SDSEContent(_el)?),
+            "subtree" => {
+                subtree_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<Subtree>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el
+                                .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "subtree"))
+                        }
+                    };
+                    let mut items: SET_OF<Subtree> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_Subtree(el)?);
+                    }
+                    Ok(items)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(Subtree {
+        rdn: rdn_.unwrap(),
+        sDSE: sDSE_,
+        subtree: subtree_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_Subtree(value_: &Subtree) -> ASN1Result<X690Element> {
-    |value_: &Subtree| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-        components_.push(_encode_RelativeDistinguishedName(&value_.rdn)?);
-        if let Some(v_) = &value_.sDSE {
-            components_.push(_encode_SDSEContent(&v_)?);
-        }
-        if let Some(v_) = &value_.subtree {
-            components_.push(|value_: &SET_OF<Subtree>| -> ASN1Result<X690Element> {
-                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                for v in value_ {
-                    children.push(_encode_Subtree(&v)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(13);
+    components_.push(_encode_RelativeDistinguishedName(&value_.rdn)?);
+    if let Some(v_) = &value_.sDSE {
+        components_.push(_encode_SDSEContent(&v_)?);
+    }
+    if let Some(v_) = &value_.subtree {
+        components_.push(|value_: &SET_OF<Subtree>| -> ASN1Result<X690Element> {
+            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+            for v in value_ {
+                children.push(_encode_Subtree(&v)?);
+            }
+            Ok(X690Element::new(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                X690Value::Constructed(Arc::new(children)),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_Subtree(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Subtree")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Subtree,
+        _eal_components_for_Subtree,
+        _rctl2_components_for_Subtree,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "rdn" => _validate_RelativeDistinguishedName(_el)?,
+            "sDSE" => _validate_SDSEContent(_el)?,
+            "subtree" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_Subtree(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "subtree")),
                 }
-                Ok(X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                    Arc::new(X690Encoding::Constructed(children)),
-                ))
-            }(&v_)?);
+            }(_el)?,
+            _ => (),
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3720,31 +4828,42 @@ pub fn _encode_Subtree(value_: &Subtree) -> ASN1Result<X690Element> {
 pub type IncrementalRefresh = Vec<IncrementalStepRefresh>; // SequenceOfType
 
 pub fn _decode_IncrementalRefresh(el: &X690Element) -> ASN1Result<IncrementalRefresh> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<IncrementalStepRefresh>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<IncrementalStepRefresh> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_IncrementalStepRefresh(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "IncrementalRefresh")
+            )
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<IncrementalStepRefresh> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_IncrementalStepRefresh(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_IncrementalRefresh(value_: &IncrementalRefresh) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<IncrementalStepRefresh>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_IncrementalStepRefresh(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_IncrementalStepRefresh(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_IncrementalRefresh(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_IncrementalStepRefresh(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "IncrementalRefresh")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3758,7 +4877,6 @@ pub fn _encode_IncrementalRefresh(value_: &IncrementalRefresh) -> ASN1Result<X69
 ///             ...} OPTIONAL,
 ///   subordinateUpdates  SEQUENCE SIZE (1..MAX) OF SubordinateChanges OPTIONAL }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct IncrementalStepRefresh {
@@ -3784,15 +4902,9 @@ impl Default for IncrementalStepRefresh {
         }
     }
 }
-impl TryFrom<X690Element> for IncrementalStepRefresh {
+impl TryFrom<&X690Element> for IncrementalStepRefresh {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_IncrementalStepRefresh(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for IncrementalStepRefresh {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_IncrementalStepRefresh(el)
     }
 }
@@ -3823,75 +4935,140 @@ pub const _rctl2_components_for_IncrementalStepRefresh: &[ComponentSpec; 0] = &[
 pub const _eal_components_for_IncrementalStepRefresh: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_IncrementalStepRefresh(el: &X690Element) -> ASN1Result<IncrementalStepRefresh> {
-    |el_: &X690Element| -> ASN1Result<IncrementalStepRefresh> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_IncrementalStepRefresh,
-            _eal_components_for_IncrementalStepRefresh,
-            _rctl2_components_for_IncrementalStepRefresh,
-        )?;
-        let sDSEChanges: OPTIONAL<IncrementalStepRefresh_sDSEChanges> =
-            match _components.get("sDSEChanges") {
-                Some(c_) => Some(_decode_IncrementalStepRefresh_sDSEChanges(c_)?),
-                _ => None,
-            };
-        let subordinateUpdates: OPTIONAL<Vec<SubordinateChanges>> =
-            match _components.get("subordinateUpdates") {
-                Some(c_) => Some(
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "IncrementalStepRefresh",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_IncrementalStepRefresh,
+        _eal_components_for_IncrementalStepRefresh,
+        _rctl2_components_for_IncrementalStepRefresh,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut sDSEChanges_: OPTIONAL<IncrementalStepRefresh_sDSEChanges> = None;
+    let mut subordinateUpdates_: OPTIONAL<Vec<SubordinateChanges>> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "sDSEChanges" => sDSEChanges_ = Some(_decode_IncrementalStepRefresh_sDSEChanges(_el)?),
+            "subordinateUpdates" => {
+                subordinateUpdates_ = Some(
                     |el: &X690Element| -> ASN1Result<SEQUENCE_OF<SubordinateChanges>> {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "subordinateUpdates",
+                                ))
+                            }
                         };
                         let mut items: SEQUENCE_OF<SubordinateChanges> =
                             Vec::with_capacity(elements.len());
-                        for el in elements {
+                        for el in elements.iter() {
                             items.push(_decode_SubordinateChanges(el)?);
                         }
                         Ok(items)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        Ok(IncrementalStepRefresh {
-            sDSEChanges,
-            subordinateUpdates,
-        })
-    }(&el)
+                    }(_el)?,
+                )
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "IncrementalStepRefresh",
+                ))
+            }
+        }
+    }
+    Ok(IncrementalStepRefresh {
+        sDSEChanges: sDSEChanges_,
+        subordinateUpdates: subordinateUpdates_,
+    })
 }
 
 pub fn _encode_IncrementalStepRefresh(value_: &IncrementalStepRefresh) -> ASN1Result<X690Element> {
-    |value_: &IncrementalStepRefresh| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        if let Some(v_) = &value_.sDSEChanges {
-            components_.push(_encode_IncrementalStepRefresh_sDSEChanges(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    if let Some(v_) = &value_.sDSEChanges {
+        components_.push(_encode_IncrementalStepRefresh_sDSEChanges(&v_)?);
+    }
+    if let Some(v_) = &value_.subordinateUpdates {
+        components_.push(
+            |value_: &SEQUENCE_OF<SubordinateChanges>| -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(_encode_SubordinateChanges(&v)?);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v_)?,
+        );
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_IncrementalStepRefresh(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "IncrementalStepRefresh",
+            ))
         }
-        if let Some(v_) = &value_.subordinateUpdates {
-            components_.push(
-                |value_: &SEQUENCE_OF<SubordinateChanges>| -> ASN1Result<X690Element> {
-                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                    for v in value_ {
-                        children.push(_encode_SubordinateChanges(&v)?);
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_IncrementalStepRefresh,
+        _eal_components_for_IncrementalStepRefresh,
+        _rctl2_components_for_IncrementalStepRefresh,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "sDSEChanges" => _validate_IncrementalStepRefresh_sDSEChanges(_el)?,
+            "subordinateUpdates" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_SubordinateChanges(&sub)?;
+                        }
+                        Ok(())
                     }
-                    Ok(X690Element::new(
-                        TagClass::UNIVERSAL,
-                        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                        Arc::new(X690Encoding::Constructed(children)),
-                    ))
-                }(&v_)?,
-            );
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "subordinateUpdates",
+                    )),
+                }
+            }(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "IncrementalStepRefresh",
+                ))
+            }
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3910,7 +5087,6 @@ pub fn _encode_IncrementalStepRefresh(value_: &IncrementalStepRefresh) -> ASN1Re
 ///   attValIncomplete  SET OF AttributeType DEFAULT {},
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ContentChange {
@@ -3949,15 +5125,9 @@ impl ContentChange {
         Vec::from([])
     }
 }
-impl TryFrom<X690Element> for ContentChange {
+impl TryFrom<&X690Element> for ContentChange {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ContentChange(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ContentChange {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ContentChange(el)
     }
 }
@@ -4018,116 +5188,177 @@ pub const _rctl2_components_for_ContentChange: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ContentChange: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ContentChange(el: &X690Element) -> ASN1Result<ContentChange> {
-    |el_: &X690Element| -> ASN1Result<ContentChange> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ContentChange,
-            _eal_components_for_ContentChange,
-            _rctl2_components_for_ContentChange,
-        )?;
-        let rename: OPTIONAL<ContentChange_rename> = match _components.get("rename") {
-            Some(c_) => Some(_decode_ContentChange_rename(c_)?),
-            _ => None,
-        };
-        let attributeChanges: OPTIONAL<ContentChange_attributeChanges> =
-            match _components.get("attributeChanges") {
-                Some(c_) => Some(_decode_ContentChange_attributeChanges(c_)?),
-                _ => None,
-            };
-        let sDSEType = _decode_SDSEType(_components.get("sDSEType").unwrap())?;
-        let subComplete: OPTIONAL<BOOLEAN> = match _components.get("subComplete") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        let attComplete: OPTIONAL<BOOLEAN> = match _components.get("attComplete") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        let attValIncomplete: OPTIONAL<Vec<AttributeType>> =
-            match _components.get("attValIncomplete") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SET_OF<AttributeType>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ContentChange")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ContentChange,
+        _eal_components_for_ContentChange,
+        _rctl2_components_for_ContentChange,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut rename_: OPTIONAL<ContentChange_rename> = None;
+    let mut attributeChanges_: OPTIONAL<ContentChange_attributeChanges> = None;
+    let mut sDSEType_: OPTIONAL<SDSEType> = None;
+    let mut subComplete_: OPTIONAL<BOOLEAN> = None;
+    let mut attComplete_: OPTIONAL<BOOLEAN> = None;
+    let mut attValIncomplete_: OPTIONAL<Vec<AttributeType>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "rename" => rename_ = Some(_decode_ContentChange_rename(_el)?),
+            "attributeChanges" => {
+                attributeChanges_ = Some(_decode_ContentChange_attributeChanges(_el)?)
+            }
+            "sDSEType" => sDSEType_ = Some(_decode_SDSEType(_el)?),
+            "subComplete" => subComplete_ = Some(BER.decode_boolean(_el)?),
+            "attComplete" => attComplete_ = Some(BER.decode_boolean(_el)?),
+            "attValIncomplete" => {
+                attValIncomplete_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<AttributeType>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "attValIncomplete",
+                            ))
+                        }
                     };
                     let mut items: SET_OF<AttributeType> = Vec::with_capacity(elements.len());
-                    for el in elements {
+                    for el in elements.iter() {
                         items.push(_decode_AttributeType(el)?);
                     }
                     Ok(items)
-                }(c_)?),
-                _ => None,
-            };
-        Ok(ContentChange {
-            rename,
-            attributeChanges,
-            sDSEType,
-            subComplete,
-            attComplete,
-            attValIncomplete,
-            _unrecognized,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ContentChange {
+        rename: rename_,
+        attributeChanges: attributeChanges_,
+        sDSEType: sDSEType_.unwrap(),
+        subComplete: subComplete_,
+        attComplete: attComplete_,
+        attValIncomplete: attValIncomplete_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_ContentChange(value_: &ContentChange) -> ASN1Result<X690Element> {
-    |value_: &ContentChange| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(16);
-        if let Some(v_) = &value_.rename {
-            components_.push(_encode_ContentChange_rename(&v_)?);
-        }
-        if let Some(v_) = &value_.attributeChanges {
-            components_.push(_encode_ContentChange_attributeChanges(&v_)?);
-        }
-        components_.push(_encode_SDSEType(&value_.sDSEType)?);
-        if let Some(v_) = &value_.subComplete {
-            if *v_ != ContentChange::_default_value_for_subComplete() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    let mut el_1 = ber_encode_boolean(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.attComplete {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(16);
+    if let Some(v_) = &value_.rename {
+        components_.push(_encode_ContentChange_rename(&v_)?);
+    }
+    if let Some(v_) = &value_.attributeChanges {
+        components_.push(_encode_ContentChange_attributeChanges(&v_)?);
+    }
+    components_.push(_encode_SDSEType(&value_.sDSEType)?);
+    if let Some(v_) = &value_.subComplete {
+        if *v_ != ContentChange::_default_value_for_subComplete() {
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_boolean(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
+                let mut el_1 = BER.encode_boolean(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 2;
                 Ok(el_1)
             }(&v_)?);
         }
-        if let Some(v_) = &value_.attValIncomplete {
-            if *v_ != ContentChange::_default_value_for_attValIncomplete() {
-                components_.push(
-                    |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
-                        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                        for v in value_ {
-                            children.push(_encode_AttributeType(&v)?);
-                        }
-                        Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
-                        ))
-                    }(&v_)?,
-                );
-            }
+    }
+    if let Some(v_) = &value_.attComplete {
+        components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_boolean(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.attValIncomplete {
+        if *v_ != ContentChange::_default_value_for_attValIncomplete() {
+            components_.push(
+                |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
+                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                    for v in value_ {
+                        children.push(_encode_AttributeType(&v)?);
+                    }
+                    Ok(X690Element::new(
+                        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                        X690Value::Constructed(Arc::new(children)),
+                    ))
+                }(&v_)?,
+            );
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ContentChange(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ContentChange")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ContentChange,
+        _eal_components_for_ContentChange,
+        _rctl2_components_for_ContentChange,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "rename" => _validate_ContentChange_rename(_el)?,
+            "attributeChanges" => _validate_ContentChange_attributeChanges(_el)?,
+            "sDSEType" => _validate_SDSEType(_el)?,
+            "subComplete" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "subComplete")
+                    );
+                }
+                Ok(BER.validate_boolean(&el)?)
+            }(_el)?,
+            "attComplete" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "attComplete")
+                    );
+                }
+                Ok(BER.validate_boolean(&el)?)
+            }(_el)?,
+            "attValIncomplete" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_AttributeType(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "attValIncomplete",
+                    )),
+                }
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4138,7 +5369,6 @@ pub fn _encode_ContentChange(value_: &ContentChange) -> ASN1Result<X690Element> 
 ///   changes      IncrementalStepRefresh,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct SubordinateChanges {
@@ -4159,15 +5389,9 @@ impl SubordinateChanges {
         }
     }
 }
-impl TryFrom<X690Element> for SubordinateChanges {
+impl TryFrom<&X690Element> for SubordinateChanges {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SubordinateChanges(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SubordinateChanges {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SubordinateChanges(el)
     }
 }
@@ -4194,42 +5418,84 @@ pub const _rctl2_components_for_SubordinateChanges: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_SubordinateChanges: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_SubordinateChanges(el: &X690Element) -> ASN1Result<SubordinateChanges> {
-    |el_: &X690Element| -> ASN1Result<SubordinateChanges> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SubordinateChanges,
-            _eal_components_for_SubordinateChanges,
-            _rctl2_components_for_SubordinateChanges,
-        )?;
-        let subordinate =
-            _decode_RelativeDistinguishedName(_components.get("subordinate").unwrap())?;
-        let changes = _decode_IncrementalStepRefresh(_components.get("changes").unwrap())?;
-        Ok(SubordinateChanges {
-            subordinate,
-            changes,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubordinateChanges")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SubordinateChanges,
+        _eal_components_for_SubordinateChanges,
+        _rctl2_components_for_SubordinateChanges,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut subordinate_: OPTIONAL<RelativeDistinguishedName> = None;
+    let mut changes_: OPTIONAL<IncrementalStepRefresh> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "subordinate" => subordinate_ = Some(_decode_RelativeDistinguishedName(_el)?),
+            "changes" => changes_ = Some(_decode_IncrementalStepRefresh(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(SubordinateChanges {
+        subordinate: subordinate_.unwrap(),
+        changes: changes_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_SubordinateChanges(value_: &SubordinateChanges) -> ASN1Result<X690Element> {
-    |value_: &SubordinateChanges| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(_encode_RelativeDistinguishedName(&value_.subordinate)?);
-        components_.push(_encode_IncrementalStepRefresh(&value_.changes)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(_encode_RelativeDistinguishedName(&value_.subordinate)?);
+    components_.push(_encode_IncrementalStepRefresh(&value_.changes)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_SubordinateChanges(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubordinateChanges")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_SubordinateChanges,
+        _eal_components_for_SubordinateChanges,
+        _rctl2_components_for_SubordinateChanges,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "subordinate" => _validate_RelativeDistinguishedName(_el)?,
+            "changes" => _validate_IncrementalStepRefresh(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4247,6 +5513,21 @@ pub fn shadowError() -> ERROR {
     }
 }
 
+pub mod shadowError {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type ParameterType = OPTIONALLY_PROTECTED_SEQ<ShadowErrorData>; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ParameterType(el: &X690Element) -> ASN1Result<ParameterType> {
+        _decode_OPTIONALLY_PROTECTED_SEQ::<ShadowErrorData>(_decode_ShadowErrorData, el)
+    }
+    pub fn _encode_ParameterType(value_: &ParameterType) -> ASN1Result<X690Element> {
+        _encode_OPTIONALLY_PROTECTED_SEQ::<ShadowErrorData>(_encode_ShadowErrorData, value_)
+    }
+    pub fn _validate_ParameterType(el: &X690Element) -> ASN1Result<()> {
+        _validate_OPTIONALLY_PROTECTED_SEQ::<ShadowErrorData>(_validate_ShadowErrorData, el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -4258,7 +5539,6 @@ pub fn shadowError() -> ERROR {
 ///   ...,
 ///   COMPONENTS OF CommonResultsSeq }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ShadowErrorData {
@@ -4297,15 +5577,9 @@ impl ShadowErrorData {
         false
     }
 }
-impl TryFrom<X690Element> for ShadowErrorData {
+impl TryFrom<&X690Element> for ShadowErrorData {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ShadowErrorData(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ShadowErrorData {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ShadowErrorData(el)
     }
 }
@@ -4368,152 +5642,224 @@ pub const _rctl2_components_for_ShadowErrorData: &[ComponentSpec; 4] = &[
 pub const _eal_components_for_ShadowErrorData: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ShadowErrorData(el: &X690Element) -> ASN1Result<ShadowErrorData> {
-    |el_: &X690Element| -> ASN1Result<ShadowErrorData> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ShadowErrorData,
-            _eal_components_for_ShadowErrorData,
-            _rctl2_components_for_ShadowErrorData,
-        )?;
-        let problem = _decode_ShadowProblem(_components.get("problem").unwrap())?;
-        let lastUpdate: OPTIONAL<Time> = match _components.get("lastUpdate") {
-            Some(c_) => Some(_decode_Time(c_)?),
-            _ => None,
-        };
-        let updateWindow: OPTIONAL<UpdateWindow> = match _components.get("updateWindow") {
-            Some(c_) => Some(_decode_UpdateWindow(c_)?),
-            _ => None,
-        };
-        let securityParameters: OPTIONAL<SecurityParameters> =
-            match _components.get("securityParameters") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ShadowErrorData"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ShadowErrorData,
+        _eal_components_for_ShadowErrorData,
+        _rctl2_components_for_ShadowErrorData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut problem_: OPTIONAL<ShadowProblem> = None;
+    let mut lastUpdate_: OPTIONAL<Time> = None;
+    let mut updateWindow_: OPTIONAL<UpdateWindow> = None;
+    let mut securityParameters_: OPTIONAL<SecurityParameters> = None;
+    let mut performer_: OPTIONAL<DistinguishedName> = None;
+    let mut aliasDereferenced_: OPTIONAL<BOOLEAN> = None;
+    let mut notification_: OPTIONAL<Vec<Attribute>> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "problem" => problem_ = Some(_decode_ShadowProblem(_el)?),
+            "lastUpdate" => lastUpdate_ = Some(_decode_Time(_el)?),
+            "updateWindow" => updateWindow_ = Some(_decode_UpdateWindow(_el)?),
+            "securityParameters" => {
+                securityParameters_ = Some(|el: &X690Element| -> ASN1Result<SecurityParameters> {
                     Ok(_decode_SecurityParameters(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let performer: OPTIONAL<DistinguishedName> = match _components.get("performer") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
-                Ok(_decode_DistinguishedName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let aliasDereferenced: OPTIONAL<BOOLEAN> = match _components.get("aliasDereferenced") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let notification: OPTIONAL<Vec<Attribute>> = match _components.get("notification") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
-                Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
-                    }
-                    Ok(items)
-                }(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(ShadowErrorData {
-            problem,
-            lastUpdate,
-            updateWindow,
-            _unrecognized,
-            securityParameters,
-            performer,
-            aliasDereferenced,
-            notification,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            "performer" => {
+                performer_ = Some(|el: &X690Element| -> ASN1Result<DistinguishedName> {
+                    Ok(_decode_DistinguishedName(&el.inner()?)?)
+                }(_el)?)
+            }
+            "aliasDereferenced" => {
+                aliasDereferenced_ = Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+                    Ok(BER.decode_boolean(&el.inner()?)?)
+                }(_el)?)
+            }
+            "notification" => {
+                notification_ = Some(|el: &X690Element| -> ASN1Result<Vec<Attribute>> {
+                    Ok(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<Attribute>> {
+                        let elements = match &el.value {
+                            X690Value::Constructed(children) => children,
+                            _ => {
+                                return Err(el.to_asn1_err_named(
+                                    ASN1ErrorCode::invalid_construction,
+                                    "notification",
+                                ))
+                            }
+                        };
+                        let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
+                        for el in elements.iter() {
+                            items.push(_decode_Attribute(el)?);
+                        }
+                        Ok(items)
+                    }(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ShadowErrorData {
+        problem: problem_.unwrap(),
+        lastUpdate: lastUpdate_,
+        updateWindow: updateWindow_,
+        _unrecognized,
+        securityParameters: securityParameters_,
+        performer: performer_,
+        aliasDereferenced: aliasDereferenced_,
+        notification: notification_,
+    })
 }
 
 pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Element> {
-    |value_: &ShadowErrorData| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(17);
-        components_.push(_encode_ShadowProblem(&value_.problem)?);
-        if let Some(v_) = &value_.lastUpdate {
-            components_.push(_encode_Time(&v_)?);
-        }
-        if let Some(v_) = &value_.updateWindow {
-            components_.push(_encode_UpdateWindow(&v_)?);
-        }
-        if let Some(v_) = &value_.securityParameters {
-            components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(17);
+    components_.push(_encode_ShadowProblem(&value_.problem)?);
+    if let Some(v_) = &value_.lastUpdate {
+        components_.push(_encode_Time(&v_)?);
+    }
+    if let Some(v_) = &value_.updateWindow {
+        components_.push(_encode_UpdateWindow(&v_)?);
+    }
+    if let Some(v_) = &value_.securityParameters {
+        components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 30),
+                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.performer {
+        components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 29),
+                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.aliasDereferenced {
+        if *v_ != ShadowErrorData::_default_value_for_aliasDereferenced() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    30,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(
-                        _encode_SecurityParameters(&v_1)?,
-                    ))),
+                    Tag::new(TagClass::CONTEXT, 28),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
-        if let Some(v_) = &value_.performer {
-            components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    29,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_DistinguishedName(
-                        &v_1,
-                    )?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.aliasDereferenced {
-            if *v_ != ShadowErrorData::_default_value_for_aliasDereferenced() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        28,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.notification {
-            components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    27,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SEQUENCE_OF<
-                        Attribute,
-                    >|
-                     -> ASN1Result<
-                        X690Element,
-                    > {
+    }
+    if let Some(v_) = &value_.notification {
+        components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 27),
+                X690Value::from_explicit(
+                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
                         }
                         Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
                         ))
-                    }(
-                        &v_1
-                    )?))),
-                ))
-            }(&v_)?);
+                    }(&v_1)?,
+                ),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ShadowErrorData(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ShadowErrorData"))
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ShadowErrorData,
+        _eal_components_for_ShadowErrorData,
+        _rctl2_components_for_ShadowErrorData,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "problem" => _validate_ShadowProblem(_el)?,
+            "lastUpdate" => _validate_Time(_el)?,
+            "updateWindow" => _validate_UpdateWindow(_el)?,
+            "securityParameters" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "securityParameters",
+                    ));
+                }
+                Ok(_validate_SecurityParameters(&el.inner()?)?)
+            }(_el)?,
+            "performer" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "performer")
+                    );
+                }
+                Ok(_validate_DistinguishedName(&el.inner()?)?)
+            }(_el)?,
+            "aliasDereferenced" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 28 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "aliasDereferenced",
+                    ));
+                }
+                Ok(BER.validate_boolean(&el.inner()?)?)
+            }(_el)?,
+            "notification" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 27 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "notification")
+                    );
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_Attribute(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "notification",
+                        )),
+                    }
+                }(&el.inner()?)?)
+            }(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4532,36 +5878,40 @@ pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Eleme
 ///   invalidSequencing          (10),
 ///   insufficientResources      (11) }
 /// ```
-pub type ShadowProblem = INTEGER;
+pub type ShadowProblem = i8;
 
-pub const ShadowProblem_invalidAgreementID: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_invalidAgreementID: ShadowProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_inactiveAgreement: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_inactiveAgreement: ShadowProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_invalidInformationReceived: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_invalidInformationReceived: ShadowProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_unsupportedStrategy: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_unsupportedStrategy: ShadowProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_missedPrevious: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_missedPrevious: ShadowProblem = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_fullUpdateRequired: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_fullUpdateRequired: ShadowProblem = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_unwillingToPerform: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_unwillingToPerform: ShadowProblem = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_unsuitableTiming: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_unsuitableTiming: ShadowProblem = 8; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_updateAlreadyReceived: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_updateAlreadyReceived: ShadowProblem = 9; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_invalidSequencing: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_invalidSequencing: ShadowProblem = 10; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ShadowProblem_insufficientResources: i32 = 11; /* LONG_NAMED_INTEGER_VALUE */
+pub const ShadowProblem_insufficientResources: ShadowProblem = 11; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ShadowProblem(el: &X690Element) -> ASN1Result<ShadowProblem> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_ShadowProblem(value_: &ShadowProblem) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_ShadowProblem(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -4576,6 +5926,21 @@ pub fn shadowOperationalBinding_roleA() -> OP_BIND_ROLE {
         establish: Some(true), /* OBJECT_FIELD_SETTING */
         modify: Some(true),    /* OBJECT_FIELD_SETTING */
         terminate: Some(true), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod shadowOperationalBinding_roleA {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type EstablishParam = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_EstablishParam(el: &X690Element) -> ASN1Result<EstablishParam> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_EstablishParam(value_: &EstablishParam) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_EstablishParam(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -4594,6 +5959,31 @@ pub fn shadowOperationalBinding_roleB() -> OP_BIND_ROLE {
     }
 }
 
+pub mod shadowOperationalBinding_roleB {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type EstablishParam = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_EstablishParam(el: &X690Element) -> ASN1Result<EstablishParam> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_EstablishParam(value_: &EstablishParam) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_EstablishParam(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
+    }
+    pub type ModifyParam = ModificationParameter; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_ModifyParam(el: &X690Element) -> ASN1Result<ModifyParam> {
+        _decode_ModificationParameter(el)
+    }
+    pub fn _encode_ModifyParam(value_: &ModifyParam) -> ASN1Result<X690Element> {
+        _encode_ModificationParameter(value_)
+    }
+    pub fn _validate_ModifyParam(el: &X690Element) -> ASN1Result<()> {
+        _validate_ModificationParameter(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -4606,17 +5996,9 @@ pub enum UnitOfReplication_supplyContexts {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for UnitOfReplication_supplyContexts {
+impl TryFrom<&X690Element> for UnitOfReplication_supplyContexts {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UnitOfReplication_supplyContexts(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UnitOfReplication_supplyContexts {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UnitOfReplication_supplyContexts(el)
     }
 }
@@ -4624,49 +6006,72 @@ impl<'a> TryFrom<&'a X690Element> for UnitOfReplication_supplyContexts {
 pub fn _decode_UnitOfReplication_supplyContexts(
     el: &X690Element,
 ) -> ASN1Result<UnitOfReplication_supplyContexts> {
-    |el: &X690Element| -> ASN1Result<UnitOfReplication_supplyContexts> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 5) => Ok(UnitOfReplication_supplyContexts::allContexts(())),
-            (TagClass::UNIVERSAL, 17) => Ok(UnitOfReplication_supplyContexts::selectedContexts(
-                |el: &X690Element| -> ASN1Result<SET_OF<OBJECT_IDENTIFIER>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SET_OF<OBJECT_IDENTIFIER> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(ber_decode_object_identifier(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => Ok(UnitOfReplication_supplyContexts::allContexts(
+            BER.decode_null(&el)?,
+        )),
+        (TagClass::UNIVERSAL, 17) => Ok(UnitOfReplication_supplyContexts::selectedContexts(
+            |el: &X690Element| -> ASN1Result<SET_OF<OBJECT_IDENTIFIER>> {
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "selectedContexts",
+                        ))
                     }
-                    Ok(items)
-                }(&el)?,
-            )),
-            _ => Ok(UnitOfReplication_supplyContexts::_unrecognized(el.clone())),
-        }
-    }(&el)
+                };
+                let mut items: SET_OF<OBJECT_IDENTIFIER> = Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(BER.decode_object_identifier(el)?);
+                }
+                Ok(items)
+            }(&el)?,
+        )),
+        _ => Ok(UnitOfReplication_supplyContexts::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_UnitOfReplication_supplyContexts(
     value_: &UnitOfReplication_supplyContexts,
 ) -> ASN1Result<X690Element> {
-    |value: &UnitOfReplication_supplyContexts| -> ASN1Result<X690Element> {
-        match value {
-            UnitOfReplication_supplyContexts::allContexts(v) => ber_encode_null(&v),
-            UnitOfReplication_supplyContexts::selectedContexts(v) => {
-                |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
-                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                    for v in value_ {
-                        children.push(ber_encode_object_identifier(&v)?);
-                    }
-                    Ok(X690Element::new(
-                        TagClass::UNIVERSAL,
-                        ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                        Arc::new(X690Encoding::Constructed(children)),
-                    ))
-                }(&v)
-            }
-            UnitOfReplication_supplyContexts::_unrecognized(el) => Ok(el.clone()),
+    match value_ {
+        UnitOfReplication_supplyContexts::allContexts(v) => BER.encode_null(&v),
+        UnitOfReplication_supplyContexts::selectedContexts(v) => {
+            |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(BER.encode_object_identifier(&v)?);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v)
         }
-    }(&value_)
+        UnitOfReplication_supplyContexts::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_UnitOfReplication_supplyContexts(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::UNIVERSAL, 17) => |el: &X690Element| -> ASN1Result<()> {
+            match &el.value {
+                X690Value::Constructed(subs) => {
+                    for sub in subs.iter() {
+                        BER.validate_object_identifier(&sub)?;
+                    }
+                    Ok(())
+                }
+                _ => {
+                    Err(el
+                        .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "selectedContexts"))
+                }
+            }
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -4683,13 +6088,17 @@ pub const Knowledge_knowledgeType_shadow: Knowledge_knowledgeType = 1; /* LONG_N
 pub const Knowledge_knowledgeType_both: Knowledge_knowledgeType = 2; /* LONG_NAMED_ENUMERATED_VALUE */
 
 pub fn _decode_Knowledge_knowledgeType(el: &X690Element) -> ASN1Result<Knowledge_knowledgeType> {
-    ber_decode_enumerated(&el)
+    BER.decode_enumerated(&el)
 }
 
 pub fn _encode_Knowledge_knowledgeType(
     value_: &Knowledge_knowledgeType,
 ) -> ASN1Result<X690Element> {
-    ber_encode_enumerated(&value_)
+    BER.encode_enumerated(&value_)
+}
+
+pub fn _validate_Knowledge_knowledgeType(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_enumerated(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -4711,13 +6120,19 @@ pub const CoordinateShadowUpdateArgumentData_updateStrategy_standard_total:
 pub fn _decode_CoordinateShadowUpdateArgumentData_updateStrategy_standard(
     el: &X690Element,
 ) -> ASN1Result<CoordinateShadowUpdateArgumentData_updateStrategy_standard> {
-    ber_decode_enumerated(&el)
+    BER.decode_enumerated(&el)
 }
 
 pub fn _encode_CoordinateShadowUpdateArgumentData_updateStrategy_standard(
     value_: &CoordinateShadowUpdateArgumentData_updateStrategy_standard,
 ) -> ASN1Result<X690Element> {
-    ber_encode_enumerated(&value_)
+    BER.encode_enumerated(&value_)
+}
+
+pub fn _validate_CoordinateShadowUpdateArgumentData_updateStrategy_standard(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    BER.validate_enumerated(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -4732,17 +6147,9 @@ pub enum CoordinateShadowUpdateArgumentData_updateStrategy {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for CoordinateShadowUpdateArgumentData_updateStrategy {
+impl TryFrom<&X690Element> for CoordinateShadowUpdateArgumentData_updateStrategy {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_CoordinateShadowUpdateArgumentData_updateStrategy(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for CoordinateShadowUpdateArgumentData_updateStrategy {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_CoordinateShadowUpdateArgumentData_updateStrategy(el)
     }
 }
@@ -4750,33 +6157,41 @@ impl<'a> TryFrom<&'a X690Element> for CoordinateShadowUpdateArgumentData_updateS
 pub fn _decode_CoordinateShadowUpdateArgumentData_updateStrategy(
     el: &X690Element,
 ) -> ASN1Result<CoordinateShadowUpdateArgumentData_updateStrategy> {
-    |el: &X690Element| -> ASN1Result<CoordinateShadowUpdateArgumentData_updateStrategy> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 10) => {
-                Ok(CoordinateShadowUpdateArgumentData_updateStrategy::standard(
-                    _decode_CoordinateShadowUpdateArgumentData_updateStrategy_standard(&el)?,
-                ))
-            }
-            (TagClass::UNIVERSAL, 8) => Ok(
-                CoordinateShadowUpdateArgumentData_updateStrategy::other(ber_decode_external(&el)?),
-            ),
-            _ => Ok(CoordinateShadowUpdateArgumentData_updateStrategy::_unrecognized(el.clone())),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 10) => {
+            Ok(CoordinateShadowUpdateArgumentData_updateStrategy::standard(
+                _decode_CoordinateShadowUpdateArgumentData_updateStrategy_standard(&el)?,
+            ))
         }
-    }(&el)
+        (TagClass::UNIVERSAL, 8) => Ok(CoordinateShadowUpdateArgumentData_updateStrategy::other(
+            BER.decode_external(&el)?,
+        )),
+        _ => Ok(CoordinateShadowUpdateArgumentData_updateStrategy::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_CoordinateShadowUpdateArgumentData_updateStrategy(
     value_: &CoordinateShadowUpdateArgumentData_updateStrategy,
 ) -> ASN1Result<X690Element> {
-    |value: &CoordinateShadowUpdateArgumentData_updateStrategy| -> ASN1Result<X690Element> {
-        match value {
-            CoordinateShadowUpdateArgumentData_updateStrategy::standard(v) => {
-                _encode_CoordinateShadowUpdateArgumentData_updateStrategy_standard(&v)
-            }
-            CoordinateShadowUpdateArgumentData_updateStrategy::other(v) => ber_encode_external(&v),
-            CoordinateShadowUpdateArgumentData_updateStrategy::_unrecognized(el) => Ok(el.clone()),
+    match value_ {
+        CoordinateShadowUpdateArgumentData_updateStrategy::standard(v) => {
+            _encode_CoordinateShadowUpdateArgumentData_updateStrategy_standard(&v)
         }
-    }(&value_)
+        CoordinateShadowUpdateArgumentData_updateStrategy::other(v) => BER.encode_external(&v),
+        CoordinateShadowUpdateArgumentData_updateStrategy::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_CoordinateShadowUpdateArgumentData_updateStrategy(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 10) => {
+            _validate_CoordinateShadowUpdateArgumentData_updateStrategy_standard(&el)
+        }
+        (TagClass::UNIVERSAL, 8) => BER.validate_external(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -4795,13 +6210,19 @@ pub const RequestShadowUpdateArgumentData_requestedStrategy_standard_total:
 pub fn _decode_RequestShadowUpdateArgumentData_requestedStrategy_standard(
     el: &X690Element,
 ) -> ASN1Result<RequestShadowUpdateArgumentData_requestedStrategy_standard> {
-    ber_decode_enumerated(&el)
+    BER.decode_enumerated(&el)
 }
 
 pub fn _encode_RequestShadowUpdateArgumentData_requestedStrategy_standard(
     value_: &RequestShadowUpdateArgumentData_requestedStrategy_standard,
 ) -> ASN1Result<X690Element> {
-    ber_encode_enumerated(&value_)
+    BER.encode_enumerated(&value_)
+}
+
+pub fn _validate_RequestShadowUpdateArgumentData_requestedStrategy_standard(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    BER.validate_enumerated(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -4816,17 +6237,9 @@ pub enum RequestShadowUpdateArgumentData_requestedStrategy {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for RequestShadowUpdateArgumentData_requestedStrategy {
+impl TryFrom<&X690Element> for RequestShadowUpdateArgumentData_requestedStrategy {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_RequestShadowUpdateArgumentData_requestedStrategy(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for RequestShadowUpdateArgumentData_requestedStrategy {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_RequestShadowUpdateArgumentData_requestedStrategy(el)
     }
 }
@@ -4834,33 +6247,41 @@ impl<'a> TryFrom<&'a X690Element> for RequestShadowUpdateArgumentData_requestedS
 pub fn _decode_RequestShadowUpdateArgumentData_requestedStrategy(
     el: &X690Element,
 ) -> ASN1Result<RequestShadowUpdateArgumentData_requestedStrategy> {
-    |el: &X690Element| -> ASN1Result<RequestShadowUpdateArgumentData_requestedStrategy> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 10) => {
-                Ok(RequestShadowUpdateArgumentData_requestedStrategy::standard(
-                    _decode_RequestShadowUpdateArgumentData_requestedStrategy_standard(&el)?,
-                ))
-            }
-            (TagClass::UNIVERSAL, 8) => Ok(
-                RequestShadowUpdateArgumentData_requestedStrategy::other(ber_decode_external(&el)?),
-            ),
-            _ => Ok(RequestShadowUpdateArgumentData_requestedStrategy::_unrecognized(el.clone())),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 10) => {
+            Ok(RequestShadowUpdateArgumentData_requestedStrategy::standard(
+                _decode_RequestShadowUpdateArgumentData_requestedStrategy_standard(&el)?,
+            ))
         }
-    }(&el)
+        (TagClass::UNIVERSAL, 8) => Ok(RequestShadowUpdateArgumentData_requestedStrategy::other(
+            BER.decode_external(&el)?,
+        )),
+        _ => Ok(RequestShadowUpdateArgumentData_requestedStrategy::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_RequestShadowUpdateArgumentData_requestedStrategy(
     value_: &RequestShadowUpdateArgumentData_requestedStrategy,
 ) -> ASN1Result<X690Element> {
-    |value: &RequestShadowUpdateArgumentData_requestedStrategy| -> ASN1Result<X690Element> {
-        match value {
-            RequestShadowUpdateArgumentData_requestedStrategy::standard(v) => {
-                _encode_RequestShadowUpdateArgumentData_requestedStrategy_standard(&v)
-            }
-            RequestShadowUpdateArgumentData_requestedStrategy::other(v) => ber_encode_external(&v),
-            RequestShadowUpdateArgumentData_requestedStrategy::_unrecognized(el) => Ok(el.clone()),
+    match value_ {
+        RequestShadowUpdateArgumentData_requestedStrategy::standard(v) => {
+            _encode_RequestShadowUpdateArgumentData_requestedStrategy_standard(&v)
         }
-    }(&value_)
+        RequestShadowUpdateArgumentData_requestedStrategy::other(v) => BER.encode_external(&v),
+        RequestShadowUpdateArgumentData_requestedStrategy::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_RequestShadowUpdateArgumentData_requestedStrategy(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 10) => {
+            _validate_RequestShadowUpdateArgumentData_requestedStrategy_standard(&el)
+        }
+        (TagClass::UNIVERSAL, 8) => BER.validate_external(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -4876,17 +6297,9 @@ pub enum IncrementalStepRefresh_sDSEChanges {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for IncrementalStepRefresh_sDSEChanges {
+impl TryFrom<&X690Element> for IncrementalStepRefresh_sDSEChanges {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_IncrementalStepRefresh_sDSEChanges(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for IncrementalStepRefresh_sDSEChanges {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_IncrementalStepRefresh_sDSEChanges(el)
     }
 }
@@ -4894,50 +6307,64 @@ impl<'a> TryFrom<&'a X690Element> for IncrementalStepRefresh_sDSEChanges {
 pub fn _decode_IncrementalStepRefresh_sDSEChanges(
     el: &X690Element,
 ) -> ASN1Result<IncrementalStepRefresh_sDSEChanges> {
-    |el: &X690Element| -> ASN1Result<IncrementalStepRefresh_sDSEChanges> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(IncrementalStepRefresh_sDSEChanges::add(
-                _decode_SDSEContent(&el)?,
-            )),
-            (TagClass::UNIVERSAL, 5) => {
-                ber_decode_null(&el)?;
-                Ok(IncrementalStepRefresh_sDSEChanges::remove(()))
-            }
-            (TagClass::CONTEXT, 1) => Ok(IncrementalStepRefresh_sDSEChanges::modify(
-                _decode_ContentChange(&el)?,
-            )),
-            _ => Ok(IncrementalStepRefresh_sDSEChanges::_unrecognized(
-                el.clone(),
-            )),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(IncrementalStepRefresh_sDSEChanges::add(
+            _decode_SDSEContent(&el)?,
+        )),
+        (TagClass::UNIVERSAL, 5) => Ok(IncrementalStepRefresh_sDSEChanges::remove(
+            BER.decode_null(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(IncrementalStepRefresh_sDSEChanges::modify(
+            _decode_ContentChange(&el)?,
+        )),
+        _ => Ok(IncrementalStepRefresh_sDSEChanges::_unrecognized(
+            el.clone(),
+        )),
+    }
 }
 
 pub fn _encode_IncrementalStepRefresh_sDSEChanges(
     value_: &IncrementalStepRefresh_sDSEChanges,
 ) -> ASN1Result<X690Element> {
-    |value: &IncrementalStepRefresh_sDSEChanges| -> ASN1Result<X690Element> {
-        match value {
-            IncrementalStepRefresh_sDSEChanges::add(v) => {
-                |v_1: &SDSEContent| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_SDSEContent(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
-                }(&v)
-            }
-            IncrementalStepRefresh_sDSEChanges::remove(v) => ber_encode_null(&v),
-            IncrementalStepRefresh_sDSEChanges::modify(v) => {
-                |v_1: &ContentChange| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_ContentChange(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
-            }
-            IncrementalStepRefresh_sDSEChanges::_unrecognized(el) => Ok(el.clone()),
+    match value_ {
+        IncrementalStepRefresh_sDSEChanges::add(v) => {
+            |v_1: &SDSEContent| -> ASN1Result<X690Element> {
+                let mut el_1 = _encode_SDSEContent(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 0;
+                Ok(el_1)
+            }(&v)
         }
-    }(&value_)
+        IncrementalStepRefresh_sDSEChanges::remove(v) => BER.encode_null(&v),
+        IncrementalStepRefresh_sDSEChanges::modify(v) => {
+            |v_1: &ContentChange| -> ASN1Result<X690Element> {
+                let mut el_1 = _encode_ContentChange(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 1;
+                Ok(el_1)
+            }(&v)
+        }
+        IncrementalStepRefresh_sDSEChanges::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_IncrementalStepRefresh_sDSEChanges(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "add"));
+            }
+            Ok(_validate_SDSEContent(&el)?)
+        }(&el),
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "modify"));
+            }
+            Ok(_validate_ContentChange(&el)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -4951,46 +6378,54 @@ pub enum ContentChange_rename {
     newDN(DistinguishedName),
 }
 
-impl TryFrom<X690Element> for ContentChange_rename {
+impl TryFrom<&X690Element> for ContentChange_rename {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ContentChange_rename(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ContentChange_rename {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ContentChange_rename(el)
     }
 }
 
 pub fn _decode_ContentChange_rename(el: &X690Element) -> ASN1Result<ContentChange_rename> {
-    |el: &X690Element| -> ASN1Result<ContentChange_rename> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 17) => Ok(ContentChange_rename::newRDN(
-                _decode_RelativeDistinguishedName(&el)?,
-            )),
-            (TagClass::UNIVERSAL, 16) => {
-                Ok(ContentChange_rename::newDN(_decode_DistinguishedName(&el)?))
-            }
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 17) => Ok(ContentChange_rename::newRDN(
+            _decode_RelativeDistinguishedName(&el)?,
+        )),
+        (TagClass::UNIVERSAL, 16) => {
+            Ok(ContentChange_rename::newDN(_decode_DistinguishedName(&el)?))
         }
-    }(&el)
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ContentChange-rename",
+            ))
+        }
+    }
 }
 
 pub fn _encode_ContentChange_rename(value_: &ContentChange_rename) -> ASN1Result<X690Element> {
-    |value: &ContentChange_rename| -> ASN1Result<X690Element> {
-        match value {
-            ContentChange_rename::newRDN(v) => _encode_RelativeDistinguishedName(&v),
-            ContentChange_rename::newDN(v) => _encode_DistinguishedName(&v),
+    match value_ {
+        ContentChange_rename::newRDN(v) => _encode_RelativeDistinguishedName(&v),
+        ContentChange_rename::newDN(v) => _encode_DistinguishedName(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("ContentChange-rename".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_ContentChange_rename(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 17) => _validate_RelativeDistinguishedName(&el),
+        (TagClass::UNIVERSAL, 16) => _validate_DistinguishedName(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ContentChange-rename",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -5004,17 +6439,9 @@ pub enum ContentChange_attributeChanges {
     changes(Vec<EntryModification>),
 }
 
-impl TryFrom<X690Element> for ContentChange_attributeChanges {
+impl TryFrom<&X690Element> for ContentChange_attributeChanges {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ContentChange_attributeChanges(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ContentChange_attributeChanges {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ContentChange_attributeChanges(el)
     }
 }
@@ -5022,86 +6449,137 @@ impl<'a> TryFrom<&'a X690Element> for ContentChange_attributeChanges {
 pub fn _decode_ContentChange_attributeChanges(
     el: &X690Element,
 ) -> ASN1Result<ContentChange_attributeChanges> {
-    |el: &X690Element| -> ASN1Result<ContentChange_attributeChanges> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(ContentChange_attributeChanges::replace(
-                |el: &X690Element| -> ASN1Result<SET_OF<Attribute>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SET_OF<Attribute> = Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_Attribute(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(ContentChange_attributeChanges::replace(
+            |el: &X690Element| -> ASN1Result<SET_OF<Attribute>> {
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(
+                            el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "replace")
+                        )
                     }
-                    Ok(items)
-                }(&el)?,
-            )),
-            (TagClass::CONTEXT, 1) => Ok(ContentChange_attributeChanges::changes(
-                |el: &X690Element| -> ASN1Result<SEQUENCE_OF<EntryModification>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<EntryModification> =
-                        Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_EntryModification(el)?);
+                };
+                let mut items: SET_OF<Attribute> = Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(_decode_Attribute(el)?);
+                }
+                Ok(items)
+            }(&el)?,
+        )),
+        (TagClass::CONTEXT, 1) => Ok(ContentChange_attributeChanges::changes(
+            |el: &X690Element| -> ASN1Result<SEQUENCE_OF<EntryModification>> {
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(
+                            el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "changes")
+                        )
                     }
-                    Ok(items)
-                }(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+                };
+                let mut items: SEQUENCE_OF<EntryModification> = Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(_decode_EntryModification(el)?);
+                }
+                Ok(items)
+            }(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ContentChange-attributeChanges",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_ContentChange_attributeChanges(
     value_: &ContentChange_attributeChanges,
 ) -> ASN1Result<X690Element> {
-    |value: &ContentChange_attributeChanges| -> ASN1Result<X690Element> {
-        match value {
-            ContentChange_attributeChanges::replace(v) => {
-                |v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
-                    let mut el_1 = |value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+    match value_ {
+        ContentChange_attributeChanges::replace(v) => {
+            |v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
+                let mut el_1 = |value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                    for v in value_ {
+                        children.push(_encode_Attribute(&v)?);
+                    }
+                    Ok(X690Element::new(
+                        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                        X690Value::Constructed(Arc::new(children)),
+                    ))
+                }(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 0;
+                Ok(el_1)
+            }(&v)
+        }
+        ContentChange_attributeChanges::changes(v) => {
+            |v_1: &Vec<EntryModification>| -> ASN1Result<X690Element> {
+                let mut el_1 =
+                    |value_: &SEQUENCE_OF<EntryModification>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
-                            children.push(_encode_Attribute(&v)?);
+                            children.push(_encode_EntryModification(&v)?);
                         }
                         Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
+                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            X690Value::Constructed(Arc::new(children)),
                         ))
                     }(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
-                }(&v)
-            }
-            ContentChange_attributeChanges::changes(v) => {
-                |v_1: &Vec<EntryModification>| -> ASN1Result<X690Element> {
-                    let mut el_1 =
-                        |value_: &SEQUENCE_OF<EntryModification>| -> ASN1Result<X690Element> {
-                            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                            for v in value_ {
-                                children.push(_encode_EntryModification(&v)?);
-                            }
-                            Ok(X690Element::new(
-                                TagClass::UNIVERSAL,
-                                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                                Arc::new(X690Encoding::Constructed(children)),
-                            ))
-                        }(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
-            }
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 1;
+                Ok(el_1)
+            }(&v)
         }
-    }(&value_)
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("ContentChange-attributeChanges".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_ContentChange_attributeChanges(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "replace"));
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_Attribute(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "replace")),
+                }
+            }(&el)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "changes"));
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_EntryModification(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "changes")),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ContentChange-attributeChanges",
+            ))
+        }
+    }
 }

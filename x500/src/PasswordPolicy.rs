@@ -24,7 +24,6 @@ use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -44,10 +43,10 @@ use x690::*;
 pub fn userPwd() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(userPwdMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(userPwdDescription().id),      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(userPwdDescription().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("userPwd")])), /* OBJECT_FIELD_SETTING */
-        id: id_at_userPwd(),                            /* OBJECT_FIELD_SETTING */
+        id: id_at_userPwd(),                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -57,6 +56,21 @@ pub fn userPwd() -> ATTRIBUTE {
         usage: Some(AttributeUsage_userApplications), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod userPwd {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UserPwd; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UserPwd(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UserPwd(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UserPwd(el)
     }
 }
 
@@ -78,39 +92,35 @@ pub enum UserPwd {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for UserPwd {
+impl TryFrom<&X690Element> for UserPwd {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UserPwd(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UserPwd {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UserPwd(el)
     }
 }
 
 pub fn _decode_UserPwd(el: &X690Element) -> ASN1Result<UserPwd> {
-    |el: &X690Element| -> ASN1Result<UserPwd> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 12) => Ok(UserPwd::clear(ber_decode_utf8_string(&el)?)),
-            (TagClass::UNIVERSAL, 16) => Ok(UserPwd::encrypted(_decode_UserPwd_encrypted(&el)?)),
-            _ => Ok(UserPwd::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 12) => Ok(UserPwd::clear(BER.decode_utf8_string(&el)?)),
+        (TagClass::UNIVERSAL, 16) => Ok(UserPwd::encrypted(_decode_UserPwd_encrypted(&el)?)),
+        _ => Ok(UserPwd::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_UserPwd(value_: &UserPwd) -> ASN1Result<X690Element> {
-    |value: &UserPwd| -> ASN1Result<X690Element> {
-        match value {
-            UserPwd::clear(v) => ber_encode_utf8_string(&v),
-            UserPwd::encrypted(v) => _encode_UserPwd_encrypted(&v),
-            UserPwd::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        UserPwd::clear(v) => BER.encode_utf8_string(&v),
+        UserPwd::encrypted(v) => _encode_UserPwd_encrypted(&v),
+        UserPwd::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_UserPwd(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 12) => BER.validate_utf8_string(&el),
+        (TagClass::UNIVERSAL, 16) => _validate_UserPwd_encrypted(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -132,11 +142,11 @@ pub fn pwdStartTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdStartTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdStartTime(),                               /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdStartTime(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -144,6 +154,21 @@ pub fn pwdStartTime() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdStartTime {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = GeneralizedTime; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_generalized_time(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_generalized_time(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_generalized_time(el)
     }
 }
 
@@ -166,11 +191,11 @@ pub fn pwdExpiryTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdExpiryTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdExpiryTime(),                              /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdExpiryTime(),                    /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -178,6 +203,21 @@ pub fn pwdExpiryTime() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdExpiryTime {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = GeneralizedTime; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_generalized_time(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_generalized_time(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_generalized_time(el)
     }
 }
 
@@ -200,11 +240,11 @@ pub fn pwdEndTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),         /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdEndTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdEndTime(),                                 /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdEndTime(),                       /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -212,6 +252,21 @@ pub fn pwdEndTime() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdEndTime {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = GeneralizedTime; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_generalized_time(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_generalized_time(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_generalized_time(el)
     }
 }
 
@@ -234,11 +289,11 @@ pub fn pwdFails() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdFails")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdFails(),                           /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdFails(),                 /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -246,6 +301,21 @@ pub fn pwdFails() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdFails {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -268,11 +338,11 @@ pub fn pwdFailureTime() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(generalizedTimeMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(generalizedTimeOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                              /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),               /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(generalizedTime().id),                 /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                    /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),     /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(generalizedTime().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdFailureTime")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdFailureTime(),                             /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdFailureTime(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -280,6 +350,21 @@ pub fn pwdFailureTime() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdFailureTime {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = GeneralizedTime; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_generalized_time(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_generalized_time(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_generalized_time(el)
     }
 }
 
@@ -302,11 +387,11 @@ pub fn pwdGracesUsed() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),       /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdGracesUsed")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdGracesUsed(),                      /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdGracesUsed(),            /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -314,6 +399,21 @@ pub fn pwdGracesUsed() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdGracesUsed {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -356,9 +456,9 @@ pub fn userPwdRecentlyExpired() -> ATTRIBUTE {
 pub fn pwdModifyEntryAllowed() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(booleanMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(boolean().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(boolean().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdModifyEntryAllowed")])), /* OBJECT_FIELD_SETTING */
         id: id_oa_pwdModifyEntryAllowed(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -369,6 +469,21 @@ pub fn pwdModifyEntryAllowed() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdModifyEntryAllowed {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = BOOLEAN; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_boolean(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_boolean(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_boolean(el)
     }
 }
 
@@ -389,11 +504,11 @@ pub fn pwdModifyEntryAllowed() -> ATTRIBUTE {
 pub fn pwdChangeAllowed() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(booleanMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(boolean().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(boolean().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdChangeAllowed")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdChangeAllowed(),                   /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdChangeAllowed(),         /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -402,6 +517,21 @@ pub fn pwdChangeAllowed() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdChangeAllowed {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = BOOLEAN; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_boolean(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_boolean(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_boolean(el)
     }
 }
 
@@ -424,11 +554,11 @@ pub fn pwdMaxAge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMaxAge")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMaxAge(),                          /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMaxAge(),                /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -436,6 +566,21 @@ pub fn pwdMaxAge() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdMaxAge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -458,11 +603,11 @@ pub fn pwdExpiryAge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdExpiryAge")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdExpiryAge(),                       /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdExpiryAge(),             /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -470,6 +615,21 @@ pub fn pwdExpiryAge() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdExpiryAge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -490,11 +650,11 @@ pub fn pwdExpiryAge() -> ATTRIBUTE {
 pub fn pwdMinLength() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMinLength")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMinLength(),                       /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMinLength(),             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -503,6 +663,21 @@ pub fn pwdMinLength() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdMinLength {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -523,11 +698,11 @@ pub fn pwdMinLength() -> ATTRIBUTE {
 pub fn pwdVocabulary() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(bitStringMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),   /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(pwdVocabularyDescription().id),  /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(pwdVocabularyDescription().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdVocabulary")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdVocabulary(),                        /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdVocabulary(),              /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -536,6 +711,21 @@ pub fn pwdVocabulary() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdVocabulary {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PwdVocabulary; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PwdVocabulary(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PwdVocabulary(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PwdVocabulary(el)
     }
 }
 
@@ -556,11 +746,15 @@ pub const PwdVocabulary_noPersonNames: BIT = 1; /* LONG_NAMED_BIT */
 pub const PwdVocabulary_noGeographicalNames: BIT = 2; /* LONG_NAMED_BIT */
 
 pub fn _decode_PwdVocabulary(el: &X690Element) -> ASN1Result<PwdVocabulary> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_PwdVocabulary(value_: &PwdVocabulary) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_PwdVocabulary(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -595,6 +789,21 @@ pub fn pwdAlphabet() -> ATTRIBUTE {
     }
 }
 
+pub mod pwdAlphabet {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PwdAlphabet; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PwdAlphabet(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PwdAlphabet(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PwdAlphabet(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -603,31 +812,38 @@ pub fn pwdAlphabet() -> ATTRIBUTE {
 pub type PwdAlphabet = Vec<UTF8String>; // SequenceOfType
 
 pub fn _decode_PwdAlphabet(el: &X690Element) -> ASN1Result<PwdAlphabet> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<UTF8String>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<UTF8String> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(ber_decode_utf8_string(el)?);
-        }
-        Ok(items)
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PwdAlphabet")),
+    };
+    let mut items: SEQUENCE_OF<UTF8String> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(BER.decode_utf8_string(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_PwdAlphabet(value_: &PwdAlphabet) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<UTF8String>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(ber_encode_utf8_string(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(BER.encode_utf8_string(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_PwdAlphabet(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                BER.validate_utf8_string(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PwdAlphabet")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -644,11 +860,11 @@ pub fn _encode_PwdAlphabet(value_: &PwdAlphabet) -> ASN1Result<X690Element> {
 ///
 pub fn pwdDictionaries() -> ATTRIBUTE {
     ATTRIBUTE {
-        derivation: Some(Box::new(uri())), /* OBJECT_FIELD_SETTING */
+        derivation: Some(Box::new(uri())),                        /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(directoryString().id), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(directoryString().id),         /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdDictionaries")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdDictionaries(),       /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdDictionaries(),                    /* OBJECT_FIELD_SETTING */
         equality_match: None,
         ordering_match: None,
         substrings_match: None,
@@ -659,6 +875,11 @@ pub fn pwdDictionaries() -> ATTRIBUTE {
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod pwdDictionaries {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -680,11 +901,11 @@ pub fn pwdExpiryWarning() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdExpiryWarning")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdExpiryWarning(),                   /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdExpiryWarning(),         /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -692,6 +913,21 @@ pub fn pwdExpiryWarning() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdExpiryWarning {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -714,11 +950,11 @@ pub fn pwdGraces() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdGraces")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdGraces(),                          /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdGraces(),                /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -726,6 +962,21 @@ pub fn pwdGraces() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdGraces {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -748,11 +999,11 @@ pub fn pwdFailureDuration() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdFailureDuration")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdFailureDuration(),                 /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdFailureDuration(),       /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -760,6 +1011,21 @@ pub fn pwdFailureDuration() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdFailureDuration {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -782,11 +1048,11 @@ pub fn pwdLockoutDuration() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdLockoutDuration")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdLockoutDuration(),                 /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdLockoutDuration(),       /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -794,6 +1060,21 @@ pub fn pwdLockoutDuration() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdLockoutDuration {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -816,11 +1097,11 @@ pub fn pwdMaxFailures() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMaxFailures")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMaxFailures(),                     /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMaxFailures(),           /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -828,6 +1109,21 @@ pub fn pwdMaxFailures() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdMaxFailures {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -850,11 +1146,11 @@ pub fn pwdMaxTimeInHistory() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMaxTimeInHistory")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMaxTimeInHistory(),                /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMaxTimeInHistory(),      /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -862,6 +1158,21 @@ pub fn pwdMaxTimeInHistory() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdMaxTimeInHistory {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -884,11 +1195,11 @@ pub fn pwdMinTimeInHistory() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdMinTimeInHistory")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdMinTimeInHistory(),                /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdMinTimeInHistory(),      /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -896,6 +1207,21 @@ pub fn pwdMinTimeInHistory() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdMinTimeInHistory {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -918,11 +1244,11 @@ pub fn pwdHistorySlots() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdHistorySlots")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdHistorySlots(),                    /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdHistorySlots(),          /* OBJECT_FIELD_SETTING */
         derivation: None,
         substrings_match: None,
         collective: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
@@ -930,6 +1256,21 @@ pub fn pwdHistorySlots() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdHistorySlots {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -952,9 +1293,9 @@ pub fn pwdRecentlyExpiredDuration() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(integerMatch())), /* OBJECT_FIELD_SETTING */
         ordering_match: Some(Box::new(integerOrderingMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),            /* OBJECT_FIELD_SETTING */
         usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(integer().id),                 /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(integer().id),       /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdRecentlyExpiredDuration")])), /* OBJECT_FIELD_SETTING */
         id: id_oa_pwdRecentlyExpiredDuration(), /* OBJECT_FIELD_SETTING */
         derivation: None,
@@ -964,6 +1305,21 @@ pub fn pwdRecentlyExpiredDuration() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdRecentlyExpiredDuration {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -984,11 +1340,11 @@ pub fn pwdRecentlyExpiredDuration() -> ATTRIBUTE {
 pub fn pwdEncAlg() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(pwdEncAlgMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation),   /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(pwdEncAlgDescription().id),      /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(pwdEncAlgDescription().id), /* OBJECT_FIELD_SETTING */
         ldapName: Some(Vec::from([String::from("pwdEncAlg")])), /* OBJECT_FIELD_SETTING */
-        id: id_oa_pwdEncAlg(),                            /* OBJECT_FIELD_SETTING */
+        id: id_oa_pwdEncAlg(),                  /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -997,6 +1353,21 @@ pub fn pwdEncAlg() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdEncAlg {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PwdEncAlg; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PwdEncAlg(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PwdEncAlg(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PwdEncAlg(el)
     }
 }
 
@@ -1013,6 +1384,10 @@ pub fn _decode_PwdEncAlg(el: &X690Element) -> ASN1Result<PwdEncAlg> {
 
 pub fn _encode_PwdEncAlg(value_: &PwdEncAlg) -> ASN1Result<X690Element> {
     _encode_AlgorithmIdentifier(&value_)
+}
+
+pub fn _validate_PwdEncAlg(el: &X690Element) -> ASN1Result<()> {
+    _validate_AlgorithmIdentifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1037,6 +1412,21 @@ pub fn userPwdMatch() -> MATCHING_RULE {
     }
 }
 
+pub mod userPwdMatch {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type AssertionType = UserPwd; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_AssertionType(el: &X690Element) -> ASN1Result<AssertionType> {
+        _decode_UserPwd(el)
+    }
+    pub fn _encode_AssertionType(value_: &AssertionType) -> ASN1Result<X690Element> {
+        _encode_UserPwd(value_)
+    }
+    pub fn _validate_AssertionType(el: &X690Element) -> ASN1Result<()> {
+        _validate_UserPwd(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1056,6 +1446,21 @@ pub fn pwdEncAlgMatch() -> MATCHING_RULE {
         ParentMatchingRules: None,
         uniqueMatchIndicator: None,
         ldapDesc: None,
+    }
+}
+
+pub mod pwdEncAlgMatch {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type AssertionType = PwdEncAlg; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_AssertionType(el: &X690Element) -> ASN1Result<AssertionType> {
+        _decode_PwdEncAlg(el)
+    }
+    pub fn _encode_AssertionType(value_: &AssertionType) -> ASN1Result<X690Element> {
+        _encode_PwdEncAlg(value_)
+    }
+    pub fn _validate_AssertionType(el: &X690Element) -> ASN1Result<()> {
+        _validate_PwdEncAlg(el)
     }
 }
 
@@ -1087,6 +1492,21 @@ pub fn userPwdDescription() -> SYNTAX_NAME {
     }
 }
 
+pub mod userPwdDescription {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UserPwd; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UserPwd(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UserPwd(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UserPwd(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1101,6 +1521,21 @@ pub fn pwdVocabularyDescription() -> SYNTAX_NAME {
     SYNTAX_NAME {
         ldapDesc: String::from("Password Vocabulary Description"), /* OBJECT_FIELD_SETTING */
         id: id_asx_pwdVocabularyDescription(),                     /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdVocabularyDescription {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PwdVocabulary; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PwdVocabulary(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PwdVocabulary(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PwdVocabulary(el)
     }
 }
 
@@ -1121,6 +1556,21 @@ pub fn pwdAlphabetDescription() -> SYNTAX_NAME {
     }
 }
 
+pub mod pwdAlphabetDescription {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PwdAlphabet; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PwdAlphabet(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PwdAlphabet(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PwdAlphabet(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1135,6 +1585,21 @@ pub fn pwdEncAlgDescription() -> SYNTAX_NAME {
     SYNTAX_NAME {
         ldapDesc: String::from("Password Alphabet Description"), /* OBJECT_FIELD_SETTING */
         id: id_asx_pwdEncAlgDescription(),                       /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pwdEncAlgDescription {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PwdEncAlg; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PwdEncAlg(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PwdEncAlg(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PwdEncAlg(el)
     }
 }
 
@@ -1518,7 +1983,6 @@ pub fn id_asx_pwdEncAlgDescription() -> OBJECT_IDENTIFIER {
 /// UserPwd-encrypted ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct UserPwd_encrypted {
     pub algorithmIdentifier: AlgorithmIdentifier,
@@ -1538,15 +2002,9 @@ impl UserPwd_encrypted {
         }
     }
 }
-impl TryFrom<X690Element> for UserPwd_encrypted {
+impl TryFrom<&X690Element> for UserPwd_encrypted {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UserPwd_encrypted(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UserPwd_encrypted {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UserPwd_encrypted(el)
     }
 }
@@ -1573,40 +2031,82 @@ pub const _rctl2_components_for_UserPwd_encrypted: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_UserPwd_encrypted: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UserPwd_encrypted(el: &X690Element) -> ASN1Result<UserPwd_encrypted> {
-    |el_: &X690Element| -> ASN1Result<UserPwd_encrypted> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UserPwd_encrypted,
-            _eal_components_for_UserPwd_encrypted,
-            _rctl2_components_for_UserPwd_encrypted,
-        )?;
-        let algorithmIdentifier =
-            _decode_AlgorithmIdentifier(_components.get("algorithmIdentifier").unwrap())?;
-        let encryptedString = ber_decode_octet_string(_components.get("encryptedString").unwrap())?;
-        Ok(UserPwd_encrypted {
-            algorithmIdentifier,
-            encryptedString,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UserPwd-encrypted")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UserPwd_encrypted,
+        _eal_components_for_UserPwd_encrypted,
+        _rctl2_components_for_UserPwd_encrypted,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut algorithmIdentifier_: OPTIONAL<AlgorithmIdentifier> = None;
+    let mut encryptedString_: OPTIONAL<OCTET_STRING> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "algorithmIdentifier" => algorithmIdentifier_ = Some(_decode_AlgorithmIdentifier(_el)?),
+            "encryptedString" => encryptedString_ = Some(BER.decode_octet_string(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(UserPwd_encrypted {
+        algorithmIdentifier: algorithmIdentifier_.unwrap(),
+        encryptedString: encryptedString_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_UserPwd_encrypted(value_: &UserPwd_encrypted) -> ASN1Result<X690Element> {
-    |value_: &UserPwd_encrypted| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(_encode_AlgorithmIdentifier(&value_.algorithmIdentifier)?);
-        components_.push(ber_encode_octet_string(&value_.encryptedString)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(_encode_AlgorithmIdentifier(&value_.algorithmIdentifier)?);
+    components_.push(BER.encode_octet_string(&value_.encryptedString)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_UserPwd_encrypted(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UserPwd-encrypted")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UserPwd_encrypted,
+        _eal_components_for_UserPwd_encrypted,
+        _rctl2_components_for_UserPwd_encrypted,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "algorithmIdentifier" => _validate_AlgorithmIdentifier(_el)?,
+            "encryptedString" => BER.validate_octet_string(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }

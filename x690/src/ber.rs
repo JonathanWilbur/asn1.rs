@@ -103,6 +103,10 @@ use std::str::FromStr;
 
 pub const BER: BasicEncodingRules = BasicEncodingRules::new();
 
+pub fn validate_any (el: &X690Element) -> ASN1Result<()> {
+    BER.validate_any(el)
+}
+
 // BIT STRING is constructed in a such a way that the octets of each subelement
 // cannot simply be concatenated. As such, this function deconstructed a
 // constructed BIT STRING to obtain a single BIT STRING.

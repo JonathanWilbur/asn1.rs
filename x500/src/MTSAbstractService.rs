@@ -21,7 +21,6 @@
 //!
 use crate::SelectedAttributeTypes::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -97,13 +96,17 @@ pub const G3FacsimileNonBasicParameters_processable_mode_26: BIT = 71; /* LONG_N
 pub fn _decode_G3FacsimileNonBasicParameters(
     el: &X690Element,
 ) -> ASN1Result<G3FacsimileNonBasicParameters> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_G3FacsimileNonBasicParameters(
     value_: &G3FacsimileNonBasicParameters,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_G3FacsimileNonBasicParameters(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -116,7 +119,6 @@ pub fn _encode_G3FacsimileNonBasicParameters(
 ///   extension-attributes                ExtensionAttributes OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ORAddress {
@@ -137,15 +139,9 @@ impl ORAddress {
         }
     }
 }
-impl TryFrom<X690Element> for ORAddress {
+impl TryFrom<&X690Element> for ORAddress {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ORAddress(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ORAddress {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ORAddress(el)
     }
 }
@@ -179,57 +175,94 @@ pub const _rctl2_components_for_ORAddress: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ORAddress: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ORAddress(el: &X690Element) -> ASN1Result<ORAddress> {
-    |el_: &X690Element| -> ASN1Result<ORAddress> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ORAddress,
-            _eal_components_for_ORAddress,
-            _rctl2_components_for_ORAddress,
-        )?;
-        let built_in_standard_attributes = _decode_BuiltInStandardAttributes(
-            _components.get("built-in-standard-attributes").unwrap(),
-        )?;
-        let built_in_domain_defined_attributes: OPTIONAL<BuiltInDomainDefinedAttributes> =
-            match _components.get("built-in-domain-defined-attributes") {
-                Some(c_) => Some(_decode_BuiltInDomainDefinedAttributes(c_)?),
-                _ => None,
-            };
-        let extension_attributes: OPTIONAL<ExtensionAttributes> =
-            match _components.get("extension-attributes") {
-                Some(c_) => Some(_decode_ExtensionAttributes(c_)?),
-                _ => None,
-            };
-        Ok(ORAddress {
-            built_in_standard_attributes,
-            built_in_domain_defined_attributes,
-            extension_attributes,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ORAddress")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ORAddress,
+        _eal_components_for_ORAddress,
+        _rctl2_components_for_ORAddress,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut built_in_standard_attributes_: OPTIONAL<BuiltInStandardAttributes> = None;
+    let mut built_in_domain_defined_attributes_: OPTIONAL<BuiltInDomainDefinedAttributes> = None;
+    let mut extension_attributes_: OPTIONAL<ExtensionAttributes> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "built-in-standard-attributes" => {
+                built_in_standard_attributes_ = Some(_decode_BuiltInStandardAttributes(_el)?)
+            }
+            "built-in-domain-defined-attributes" => {
+                built_in_domain_defined_attributes_ =
+                    Some(_decode_BuiltInDomainDefinedAttributes(_el)?)
+            }
+            "extension-attributes" => {
+                extension_attributes_ = Some(_decode_ExtensionAttributes(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ORAddress"))
+            }
+        }
+    }
+    Ok(ORAddress {
+        built_in_standard_attributes: built_in_standard_attributes_.unwrap(),
+        built_in_domain_defined_attributes: built_in_domain_defined_attributes_,
+        extension_attributes: extension_attributes_,
+    })
 }
 
 pub fn _encode_ORAddress(value_: &ORAddress) -> ASN1Result<X690Element> {
-    |value_: &ORAddress| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-        components_.push(_encode_BuiltInStandardAttributes(
-            &value_.built_in_standard_attributes,
-        )?);
-        if let Some(v_) = &value_.built_in_domain_defined_attributes {
-            components_.push(_encode_BuiltInDomainDefinedAttributes(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    components_.push(_encode_BuiltInStandardAttributes(
+        &value_.built_in_standard_attributes,
+    )?);
+    if let Some(v_) = &value_.built_in_domain_defined_attributes {
+        components_.push(_encode_BuiltInDomainDefinedAttributes(&v_)?);
+    }
+    if let Some(v_) = &value_.extension_attributes {
+        components_.push(_encode_ExtensionAttributes(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ORAddress(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ORAddress")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ORAddress,
+        _eal_components_for_ORAddress,
+        _rctl2_components_for_ORAddress,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "built-in-standard-attributes" => _validate_BuiltInStandardAttributes(_el)?,
+            "built-in-domain-defined-attributes" => _validate_BuiltInDomainDefinedAttributes(_el)?,
+            "extension-attributes" => _validate_ExtensionAttributes(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ORAddress"))
+            }
         }
-        if let Some(v_) = &value_.extension_attributes {
-            components_.push(_encode_ExtensionAttributes(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -251,7 +284,6 @@ pub fn _encode_ORAddress(value_: &ORAddress) -> ASN1Result<X690Element> {
 ///   -- see also teletex-organizational-unit-names
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct BuiltInStandardAttributes {
@@ -305,15 +337,9 @@ impl Default for BuiltInStandardAttributes {
         }
     }
 }
-impl TryFrom<X690Element> for BuiltInStandardAttributes {
+impl TryFrom<&X690Element> for BuiltInStandardAttributes {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_BuiltInStandardAttributes(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for BuiltInStandardAttributes {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_BuiltInStandardAttributes(el)
     }
 }
@@ -391,152 +417,247 @@ pub const _eal_components_for_BuiltInStandardAttributes: &[ComponentSpec; 0] = &
 pub fn _decode_BuiltInStandardAttributes(
     el: &X690Element,
 ) -> ASN1Result<BuiltInStandardAttributes> {
-    |el_: &X690Element| -> ASN1Result<BuiltInStandardAttributes> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_BuiltInStandardAttributes,
-            _eal_components_for_BuiltInStandardAttributes,
-            _rctl2_components_for_BuiltInStandardAttributes,
-        )?;
-        let country_name: OPTIONAL<CountryName> = match _components.get("country-name") {
-            Some(c_) => Some(_decode_CountryName(c_)?),
-            _ => None,
-        };
-        let administration_domain_name: OPTIONAL<AdministrationDomainName> =
-            match _components.get("administration-domain-name") {
-                Some(c_) => Some(_decode_AdministrationDomainName(c_)?),
-                _ => None,
-            };
-        let network_address: OPTIONAL<NetworkAddress> = match _components.get("network-address") {
-            Some(c_) => Some(_decode_NetworkAddress(c_)?),
-            _ => None,
-        };
-        let terminal_identifier: OPTIONAL<TerminalIdentifier> =
-            match _components.get("terminal-identifier") {
-                Some(c_) => Some(_decode_TerminalIdentifier(c_)?),
-                _ => None,
-            };
-        let private_domain_name: OPTIONAL<PrivateDomainName> =
-            match _components.get("private-domain-name") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<PrivateDomainName> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "BuiltInStandardAttributes",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_BuiltInStandardAttributes,
+        _eal_components_for_BuiltInStandardAttributes,
+        _rctl2_components_for_BuiltInStandardAttributes,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut country_name_: OPTIONAL<CountryName> = None;
+    let mut administration_domain_name_: OPTIONAL<AdministrationDomainName> = None;
+    let mut network_address_: OPTIONAL<NetworkAddress> = None;
+    let mut terminal_identifier_: OPTIONAL<TerminalIdentifier> = None;
+    let mut private_domain_name_: OPTIONAL<PrivateDomainName> = None;
+    let mut organization_name_: OPTIONAL<OrganizationName> = None;
+    let mut numeric_user_identifier_: OPTIONAL<NumericUserIdentifier> = None;
+    let mut personal_name_: OPTIONAL<PersonalName> = None;
+    let mut organizational_unit_names_: OPTIONAL<OrganizationalUnitNames> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "country-name" => country_name_ = Some(_decode_CountryName(_el)?),
+            "administration-domain-name" => {
+                administration_domain_name_ = Some(_decode_AdministrationDomainName(_el)?)
+            }
+            "network-address" => network_address_ = Some(_decode_NetworkAddress(_el)?),
+            "terminal-identifier" => terminal_identifier_ = Some(_decode_TerminalIdentifier(_el)?),
+            "private-domain-name" => {
+                private_domain_name_ = Some(|el: &X690Element| -> ASN1Result<PrivateDomainName> {
                     Ok(_decode_PrivateDomainName(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let organization_name: OPTIONAL<OrganizationName> =
-            match _components.get("organization-name") {
-                Some(c_) => Some(_decode_OrganizationName(c_)?),
-                _ => None,
-            };
-        let numeric_user_identifier: OPTIONAL<NumericUserIdentifier> =
-            match _components.get("numeric-user-identifier") {
-                Some(c_) => Some(_decode_NumericUserIdentifier(c_)?),
-                _ => None,
-            };
-        let personal_name: OPTIONAL<PersonalName> = match _components.get("personal-name") {
-            Some(c_) => Some(_decode_PersonalName(c_)?),
-            _ => None,
-        };
-        let organizational_unit_names: OPTIONAL<OrganizationalUnitNames> =
-            match _components.get("organizational-unit-names") {
-                Some(c_) => Some(_decode_OrganizationalUnitNames(c_)?),
-                _ => None,
-            };
-        Ok(BuiltInStandardAttributes {
-            country_name,
-            administration_domain_name,
-            network_address,
-            terminal_identifier,
-            private_domain_name,
-            organization_name,
-            numeric_user_identifier,
-            personal_name,
-            organizational_unit_names,
-        })
-    }(&el)
+                }(_el)?)
+            }
+            "organization-name" => organization_name_ = Some(_decode_OrganizationName(_el)?),
+            "numeric-user-identifier" => {
+                numeric_user_identifier_ = Some(_decode_NumericUserIdentifier(_el)?)
+            }
+            "personal-name" => personal_name_ = Some(_decode_PersonalName(_el)?),
+            "organizational-unit-names" => {
+                organizational_unit_names_ = Some(_decode_OrganizationalUnitNames(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "BuiltInStandardAttributes",
+                ))
+            }
+        }
+    }
+    Ok(BuiltInStandardAttributes {
+        country_name: country_name_,
+        administration_domain_name: administration_domain_name_,
+        network_address: network_address_,
+        terminal_identifier: terminal_identifier_,
+        private_domain_name: private_domain_name_,
+        organization_name: organization_name_,
+        numeric_user_identifier: numeric_user_identifier_,
+        personal_name: personal_name_,
+        organizational_unit_names: organizational_unit_names_,
+    })
 }
 
 pub fn _encode_BuiltInStandardAttributes(
     value_: &BuiltInStandardAttributes,
 ) -> ASN1Result<X690Element> {
-    |value_: &BuiltInStandardAttributes| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(14);
-        if let Some(v_) = &value_.country_name {
-            components_.push(_encode_CountryName(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(14);
+    if let Some(v_) = &value_.country_name {
+        components_.push(_encode_CountryName(&v_)?);
+    }
+    if let Some(v_) = &value_.administration_domain_name {
+        components_.push(_encode_AdministrationDomainName(&v_)?);
+    }
+    if let Some(v_) = &value_.network_address {
+        components_.push(|v_1: &NetworkAddress| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_NetworkAddress(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.terminal_identifier {
+        components_.push(|v_1: &TerminalIdentifier| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_TerminalIdentifier(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.private_domain_name {
+        components_.push(|v_1: &PrivateDomainName| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 2),
+                X690Value::from_explicit(&_encode_PrivateDomainName(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.organization_name {
+        components_.push(|v_1: &OrganizationName| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_OrganizationName(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.numeric_user_identifier {
+        components_.push(|v_1: &NumericUserIdentifier| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_NumericUserIdentifier(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 4;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.personal_name {
+        components_.push(|v_1: &PersonalName| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_PersonalName(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 5;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.organizational_unit_names {
+        components_.push(|v_1: &OrganizationalUnitNames| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_OrganizationalUnitNames(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 6;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_BuiltInStandardAttributes(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "BuiltInStandardAttributes",
+            ))
         }
-        if let Some(v_) = &value_.administration_domain_name {
-            components_.push(_encode_AdministrationDomainName(&v_)?);
-        }
-        if let Some(v_) = &value_.network_address {
-            components_.push(|v_1: &NetworkAddress| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_NetworkAddress(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.terminal_identifier {
-            components_.push(|v_1: &TerminalIdentifier| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_TerminalIdentifier(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.private_domain_name {
-            components_.push(|v_1: &PrivateDomainName| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    2,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_PrivateDomainName(
-                        &v_1,
-                    )?))),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_BuiltInStandardAttributes,
+        _eal_components_for_BuiltInStandardAttributes,
+        _rctl2_components_for_BuiltInStandardAttributes,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "country-name" => _validate_CountryName(_el)?,
+            "administration-domain-name" => _validate_AdministrationDomainName(_el)?,
+            "network-address" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "network-address",
+                    ));
+                }
+                Ok(_validate_NetworkAddress(&el)?)
+            }(_el)?,
+            "terminal-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "terminal-identifier",
+                    ));
+                }
+                Ok(_validate_TerminalIdentifier(&el)?)
+            }(_el)?,
+            "private-domain-name" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "private-domain-name",
+                    ));
+                }
+                Ok(_validate_PrivateDomainName(&el.inner()?)?)
+            }(_el)?,
+            "organization-name" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "organization-name",
+                    ));
+                }
+                Ok(_validate_OrganizationName(&el)?)
+            }(_el)?,
+            "numeric-user-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "numeric-user-identifier",
+                    ));
+                }
+                Ok(_validate_NumericUserIdentifier(&el)?)
+            }(_el)?,
+            "personal-name" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "personal-name")
+                    );
+                }
+                Ok(_validate_PersonalName(&el)?)
+            }(_el)?,
+            "organizational-unit-names" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "organizational-unit-names",
+                    ));
+                }
+                Ok(_validate_OrganizationalUnitNames(&el)?)
+            }(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "BuiltInStandardAttributes",
                 ))
-            }(&v_)?);
+            }
         }
-        if let Some(v_) = &value_.organization_name {
-            components_.push(|v_1: &OrganizationName| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_OrganizationName(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.numeric_user_identifier {
-            components_.push(|v_1: &NumericUserIdentifier| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_NumericUserIdentifier(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 4;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.personal_name {
-            components_.push(|v_1: &PersonalName| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_PersonalName(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 5;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.organizational_unit_names {
-            components_.push(|v_1: &OrganizationalUnitNames| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_OrganizationalUnitNames(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 6;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -553,17 +674,9 @@ pub enum CountryName {
     iso_3166_alpha2_code(PrintableString),
 }
 
-impl TryFrom<X690Element> for CountryName {
+impl TryFrom<&X690Element> for CountryName {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_CountryName(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for CountryName {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_CountryName(el)
     }
 }
@@ -571,16 +684,17 @@ impl<'a> TryFrom<&'a X690Element> for CountryName {
 pub fn _decode_CountryName(el: &X690Element) -> ASN1Result<CountryName> {
     |el: &X690Element| -> ASN1Result<CountryName> {
         Ok(|el: &X690Element| -> ASN1Result<CountryName> {
-            match (el.tag_class, el.tag_number) {
+            match (el.tag.tag_class, el.tag.tag_number) {
                 (TagClass::UNIVERSAL, 18) => {
-                    Ok(CountryName::x121_dcc_code(ber_decode_numeric_string(&el)?))
+                    Ok(CountryName::x121_dcc_code(BER.decode_numeric_string(&el)?))
                 }
                 (TagClass::UNIVERSAL, 19) => Ok(CountryName::iso_3166_alpha2_code(
-                    ber_decode_printable_string(&el)?,
+                    BER.decode_printable_string(&el)?,
                 )),
                 _ => {
-                    return Err(ASN1Error::new(
+                    return Err(el.to_asn1_err_named(
                         ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                        "CountryName",
                     ))
                 }
             }
@@ -591,18 +705,42 @@ pub fn _decode_CountryName(el: &X690Element) -> ASN1Result<CountryName> {
 pub fn _encode_CountryName(value_: &CountryName) -> ASN1Result<X690Element> {
     |v_1: &CountryName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::APPLICATION,
-            1,
-            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                |value: &CountryName| -> ASN1Result<X690Element> {
-                    match value {
-                        CountryName::x121_dcc_code(v) => ber_encode_numeric_string(&v),
-                        CountryName::iso_3166_alpha2_code(v) => ber_encode_printable_string(&v),
+            Tag::new(TagClass::APPLICATION, 1),
+            X690Value::from_explicit(&|value_: &CountryName| -> ASN1Result<X690Element> {
+                match value_ {
+                    CountryName::x121_dcc_code(v) => BER.encode_numeric_string(&v),
+                    CountryName::iso_3166_alpha2_code(v) => BER.encode_printable_string(&v),
+                    _ => {
+                        let mut err = ASN1Error::new(
+                            ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                        );
+                        err.component_name = Some("CountryName".to_string());
+                        Err(err)
                     }
-                }(&v_1)?,
-            ))),
+                }
+            }(&v_1)?),
         ))
     }(&value_)
+}
+
+pub fn _validate_CountryName(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "CountryName"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            match (el.tag.tag_class, el.tag.tag_number) {
+                (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
+                (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                        "CountryName",
+                    ))
+                }
+            }
+        }(&el.inner()?)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -619,17 +757,9 @@ pub enum AdministrationDomainName {
     printable(PrintableString),
 }
 
-impl TryFrom<X690Element> for AdministrationDomainName {
+impl TryFrom<&X690Element> for AdministrationDomainName {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_AdministrationDomainName(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for AdministrationDomainName {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AdministrationDomainName(el)
     }
 }
@@ -637,16 +767,17 @@ impl<'a> TryFrom<&'a X690Element> for AdministrationDomainName {
 pub fn _decode_AdministrationDomainName(el: &X690Element) -> ASN1Result<AdministrationDomainName> {
     |el: &X690Element| -> ASN1Result<AdministrationDomainName> {
         Ok(|el: &X690Element| -> ASN1Result<AdministrationDomainName> {
-            match (el.tag_class, el.tag_number) {
+            match (el.tag.tag_class, el.tag.tag_number) {
                 (TagClass::UNIVERSAL, 18) => Ok(AdministrationDomainName::numeric(
-                    ber_decode_numeric_string(&el)?,
+                    BER.decode_numeric_string(&el)?,
                 )),
                 (TagClass::UNIVERSAL, 19) => Ok(AdministrationDomainName::printable(
-                    ber_decode_printable_string(&el)?,
+                    BER.decode_printable_string(&el)?,
                 )),
                 _ => {
-                    return Err(ASN1Error::new(
+                    return Err(el.to_asn1_err_named(
                         ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                        "AdministrationDomainName",
                     ))
                 }
             }
@@ -659,18 +790,47 @@ pub fn _encode_AdministrationDomainName(
 ) -> ASN1Result<X690Element> {
     |v_1: &AdministrationDomainName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::APPLICATION,
-            2,
-            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                |value: &AdministrationDomainName| -> ASN1Result<X690Element> {
-                    match value {
-                        AdministrationDomainName::numeric(v) => ber_encode_numeric_string(&v),
-                        AdministrationDomainName::printable(v) => ber_encode_printable_string(&v),
+            Tag::new(TagClass::APPLICATION, 2),
+            X690Value::from_explicit(
+                &|value_: &AdministrationDomainName| -> ASN1Result<X690Element> {
+                    match value_ {
+                        AdministrationDomainName::numeric(v) => BER.encode_numeric_string(&v),
+                        AdministrationDomainName::printable(v) => BER.encode_printable_string(&v),
+                        _ => {
+                            let mut err = ASN1Error::new(
+                                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                            );
+                            err.component_name = Some("AdministrationDomainName".to_string());
+                            Err(err)
+                        }
                     }
                 }(&v_1)?,
-            ))),
+            ),
         ))
     }(&value_)
+}
+
+pub fn _validate_AdministrationDomainName(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 2 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "AdministrationDomainName",
+            ));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            match (el.tag.tag_class, el.tag.tag_number) {
+                (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
+                (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
+                _ => {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                        "AdministrationDomainName",
+                    ))
+                }
+            }
+        }(&el.inner()?)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -688,6 +848,10 @@ pub fn _encode_NetworkAddress(value_: &NetworkAddress) -> ASN1Result<X690Element
     _encode_X121Address(&value_)
 }
 
+pub fn _validate_NetworkAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_X121Address(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -696,11 +860,15 @@ pub fn _encode_NetworkAddress(value_: &NetworkAddress) -> ASN1Result<X690Element
 pub type X121Address = NumericString; // NumericString
 
 pub fn _decode_X121Address(el: &X690Element) -> ASN1Result<X121Address> {
-    ber_decode_numeric_string(&el)
+    BER.decode_numeric_string(&el)
 }
 
 pub fn _encode_X121Address(value_: &X121Address) -> ASN1Result<X690Element> {
-    ber_encode_numeric_string(&value_)
+    BER.encode_numeric_string(&value_)
+}
+
+pub fn _validate_X121Address(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_numeric_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -711,11 +879,15 @@ pub fn _encode_X121Address(value_: &X121Address) -> ASN1Result<X690Element> {
 pub type TerminalIdentifier = PrintableString; // PrintableString
 
 pub fn _decode_TerminalIdentifier(el: &X690Element) -> ASN1Result<TerminalIdentifier> {
-    ber_decode_printable_string(&el)
+    BER.decode_printable_string(&el)
 }
 
 pub fn _encode_TerminalIdentifier(value_: &TerminalIdentifier) -> ASN1Result<X690Element> {
-    ber_encode_printable_string(&value_)
+    BER.encode_printable_string(&value_)
+}
+
+pub fn _validate_TerminalIdentifier(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_printable_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -732,46 +904,54 @@ pub enum PrivateDomainName {
     printable(PrintableString),
 }
 
-impl TryFrom<X690Element> for PrivateDomainName {
+impl TryFrom<&X690Element> for PrivateDomainName {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PrivateDomainName(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PrivateDomainName {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PrivateDomainName(el)
     }
 }
 
 pub fn _decode_PrivateDomainName(el: &X690Element) -> ASN1Result<PrivateDomainName> {
-    |el: &X690Element| -> ASN1Result<PrivateDomainName> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 18) => {
-                Ok(PrivateDomainName::numeric(ber_decode_numeric_string(&el)?))
-            }
-            (TagClass::UNIVERSAL, 19) => Ok(PrivateDomainName::printable(
-                ber_decode_printable_string(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => {
+            Ok(PrivateDomainName::numeric(BER.decode_numeric_string(&el)?))
         }
-    }(&el)
+        (TagClass::UNIVERSAL, 19) => Ok(PrivateDomainName::printable(
+            BER.decode_printable_string(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PrivateDomainName",
+            ))
+        }
+    }
 }
 
 pub fn _encode_PrivateDomainName(value_: &PrivateDomainName) -> ASN1Result<X690Element> {
-    |value: &PrivateDomainName| -> ASN1Result<X690Element> {
-        match value {
-            PrivateDomainName::numeric(v) => ber_encode_numeric_string(&v),
-            PrivateDomainName::printable(v) => ber_encode_printable_string(&v),
+    match value_ {
+        PrivateDomainName::numeric(v) => BER.encode_numeric_string(&v),
+        PrivateDomainName::printable(v) => BER.encode_printable_string(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("PrivateDomainName".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_PrivateDomainName(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
+        (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PrivateDomainName",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -782,11 +962,15 @@ pub fn _encode_PrivateDomainName(value_: &PrivateDomainName) -> ASN1Result<X690E
 pub type OrganizationName = PrintableString; // PrintableString
 
 pub fn _decode_OrganizationName(el: &X690Element) -> ASN1Result<OrganizationName> {
-    ber_decode_printable_string(&el)
+    BER.decode_printable_string(&el)
 }
 
 pub fn _encode_OrganizationName(value_: &OrganizationName) -> ASN1Result<X690Element> {
-    ber_encode_printable_string(&value_)
+    BER.encode_printable_string(&value_)
+}
+
+pub fn _validate_OrganizationName(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_printable_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -797,11 +981,15 @@ pub fn _encode_OrganizationName(value_: &OrganizationName) -> ASN1Result<X690Ele
 pub type NumericUserIdentifier = NumericString; // NumericString
 
 pub fn _decode_NumericUserIdentifier(el: &X690Element) -> ASN1Result<NumericUserIdentifier> {
-    ber_decode_numeric_string(&el)
+    BER.decode_numeric_string(&el)
 }
 
 pub fn _encode_NumericUserIdentifier(value_: &NumericUserIdentifier) -> ASN1Result<X690Element> {
-    ber_encode_numeric_string(&value_)
+    BER.encode_numeric_string(&value_)
+}
+
+pub fn _validate_NumericUserIdentifier(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_numeric_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -817,7 +1005,6 @@ pub fn _encode_NumericUserIdentifier(value_: &NumericUserIdentifier) -> ASN1Resu
 ///     [3]  PrintableString(SIZE (1..ub-generation-qualifier-length)) OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct PersonalName {
@@ -841,15 +1028,9 @@ impl PersonalName {
         }
     }
 }
-impl TryFrom<X690Element> for PersonalName {
+impl TryFrom<&X690Element> for PersonalName {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PersonalName(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PersonalName {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PersonalName(el)
     }
 }
@@ -890,81 +1071,126 @@ pub const _rctl2_components_for_PersonalName: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_PersonalName: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_PersonalName(el: &X690Element) -> ASN1Result<PersonalName> {
-    |el_: &X690Element| -> ASN1Result<PersonalName> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_PersonalName,
-            _eal_components_for_PersonalName,
-            _rctl2_components_for_PersonalName,
-            40,
-        )?;
-        let surname = ber_decode_printable_string(_components.get("surname").unwrap())?;
-        let given_name: OPTIONAL<PrintableString> = match _components.get("given-name") {
-            Some(c_) => Some(ber_decode_printable_string(c_)?),
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PersonalName")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_PersonalName,
+        _eal_components_for_PersonalName,
+        _rctl2_components_for_PersonalName,
+        40,
+    )?;
+    let surname_ = BER.decode_printable_string(_components.get("surname").unwrap())?;
+    let given_name_: OPTIONAL<PrintableString> = match _components.get("given-name") {
+        Some(c_) => Some(BER.decode_printable_string(c_)?),
+        _ => None,
+    };
+    let initials_: OPTIONAL<PrintableString> = match _components.get("initials") {
+        Some(c_) => Some(BER.decode_printable_string(c_)?),
+        _ => None,
+    };
+    let generation_qualifier_: OPTIONAL<PrintableString> =
+        match _components.get("generation-qualifier") {
+            Some(c_) => Some(BER.decode_printable_string(c_)?),
             _ => None,
         };
-        let initials: OPTIONAL<PrintableString> = match _components.get("initials") {
-            Some(c_) => Some(ber_decode_printable_string(c_)?),
-            _ => None,
-        };
-        let generation_qualifier: OPTIONAL<PrintableString> =
-            match _components.get("generation-qualifier") {
-                Some(c_) => Some(ber_decode_printable_string(c_)?),
-                _ => None,
-            };
-        Ok(PersonalName {
-            surname,
-            given_name,
-            initials,
-            generation_qualifier,
-        })
-    }(&el)
+    Ok(PersonalName {
+        surname: surname_,
+        given_name: given_name_,
+        initials: initials_,
+        generation_qualifier: generation_qualifier_,
+    })
 }
 
 pub fn _encode_PersonalName(value_: &PersonalName) -> ASN1Result<X690Element> {
-    |value_: &PersonalName| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
+        let mut el_1 = BER.encode_printable_string(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.surname)?);
+    if let Some(v_) = &value_.given_name {
         components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-            let mut el_1 = ber_encode_printable_string(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
+            let mut el_1 = BER.encode_printable_string(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
             Ok(el_1)
-        }(&value_.surname)?);
-        if let Some(v_) = &value_.given_name {
-            components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_printable_string(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.initials {
+        components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_printable_string(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 2;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.generation_qualifier {
+        components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_printable_string(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_PersonalName(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PersonalName")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_PersonalName,
+        _eal_components_for_PersonalName,
+        _rctl2_components_for_PersonalName,
+        40,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "surname"));
         }
-        if let Some(v_) = &value_.initials {
-            components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_printable_string(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.generation_qualifier {
-            components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_printable_string(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+        Ok(BER.validate_printable_string(&el)?)
+    }(_components.get("surname").unwrap())?;
+    match _components.get("given-name") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "given-name"));
+            }
+            Ok(BER.validate_printable_string(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("initials") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "initials"));
+            }
+            Ok(BER.validate_printable_string(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("generation-qualifier") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "generation-qualifier",
+                ));
+            }
+            Ok(BER.validate_printable_string(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -976,33 +1202,48 @@ pub fn _encode_PersonalName(value_: &PersonalName) -> ASN1Result<X690Element> {
 pub type OrganizationalUnitNames = Vec<OrganizationalUnitName>; // SequenceOfType
 
 pub fn _decode_OrganizationalUnitNames(el: &X690Element) -> ASN1Result<OrganizationalUnitNames> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<OrganizationalUnitName>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<OrganizationalUnitName> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_OrganizationalUnitName(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OrganizationalUnitNames",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<OrganizationalUnitName> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_OrganizationalUnitName(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_OrganizationalUnitNames(
     value_: &OrganizationalUnitNames,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<OrganizationalUnitName>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_OrganizationalUnitName(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_OrganizationalUnitName(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_OrganizationalUnitNames(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_OrganizationalUnitName(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "OrganizationalUnitNames",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1014,11 +1255,15 @@ pub fn _encode_OrganizationalUnitNames(
 pub type OrganizationalUnitName = PrintableString; // PrintableString
 
 pub fn _decode_OrganizationalUnitName(el: &X690Element) -> ASN1Result<OrganizationalUnitName> {
-    ber_decode_printable_string(&el)
+    BER.decode_printable_string(&el)
 }
 
 pub fn _encode_OrganizationalUnitName(value_: &OrganizationalUnitName) -> ASN1Result<X690Element> {
-    ber_encode_printable_string(&value_)
+    BER.encode_printable_string(&value_)
+}
+
+pub fn _validate_OrganizationalUnitName(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_printable_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1033,34 +1278,48 @@ pub type BuiltInDomainDefinedAttributes = Vec<BuiltInDomainDefinedAttribute>; //
 pub fn _decode_BuiltInDomainDefinedAttributes(
     el: &X690Element,
 ) -> ASN1Result<BuiltInDomainDefinedAttributes> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<BuiltInDomainDefinedAttribute>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<BuiltInDomainDefinedAttribute> =
-            Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_BuiltInDomainDefinedAttribute(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "BuiltInDomainDefinedAttributes",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<BuiltInDomainDefinedAttribute> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_BuiltInDomainDefinedAttribute(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_BuiltInDomainDefinedAttributes(
     value_: &BuiltInDomainDefinedAttributes,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<BuiltInDomainDefinedAttribute>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_BuiltInDomainDefinedAttribute(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_BuiltInDomainDefinedAttribute(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_BuiltInDomainDefinedAttributes(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_BuiltInDomainDefinedAttribute(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "BuiltInDomainDefinedAttributes",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1072,7 +1331,6 @@ pub fn _encode_BuiltInDomainDefinedAttributes(
 /// }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct BuiltInDomainDefinedAttribute {
     pub type_: PrintableString,
@@ -1083,15 +1341,9 @@ impl BuiltInDomainDefinedAttribute {
         BuiltInDomainDefinedAttribute { type_, value }
     }
 }
-impl TryFrom<X690Element> for BuiltInDomainDefinedAttribute {
+impl TryFrom<&X690Element> for BuiltInDomainDefinedAttribute {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_BuiltInDomainDefinedAttribute(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for BuiltInDomainDefinedAttribute {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_BuiltInDomainDefinedAttribute(el)
     }
 }
@@ -1120,37 +1372,94 @@ pub const _eal_components_for_BuiltInDomainDefinedAttribute: &[ComponentSpec; 0]
 pub fn _decode_BuiltInDomainDefinedAttribute(
     el: &X690Element,
 ) -> ASN1Result<BuiltInDomainDefinedAttribute> {
-    |el_: &X690Element| -> ASN1Result<BuiltInDomainDefinedAttribute> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_BuiltInDomainDefinedAttribute,
-            _eal_components_for_BuiltInDomainDefinedAttribute,
-            _rctl2_components_for_BuiltInDomainDefinedAttribute,
-        )?;
-        let type_ = ber_decode_printable_string(_components.get("type").unwrap())?;
-        let value = ber_decode_printable_string(_components.get("value").unwrap())?;
-        Ok(BuiltInDomainDefinedAttribute { type_, value })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "BuiltInDomainDefinedAttribute",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_BuiltInDomainDefinedAttribute,
+        _eal_components_for_BuiltInDomainDefinedAttribute,
+        _rctl2_components_for_BuiltInDomainDefinedAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut type__: OPTIONAL<PrintableString> = None;
+    let mut value_: OPTIONAL<PrintableString> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => type__ = Some(BER.decode_printable_string(_el)?),
+            "value" => value_ = Some(BER.decode_printable_string(_el)?),
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "BuiltInDomainDefinedAttribute",
+                ))
+            }
+        }
+    }
+    Ok(BuiltInDomainDefinedAttribute {
+        type_: type__.unwrap(),
+        value: value_.unwrap(),
+    })
 }
 
 pub fn _encode_BuiltInDomainDefinedAttribute(
     value_: &BuiltInDomainDefinedAttribute,
 ) -> ASN1Result<X690Element> {
-    |value_: &BuiltInDomainDefinedAttribute| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(ber_encode_printable_string(&value_.type_)?);
-        components_.push(ber_encode_printable_string(&value_.value)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(BER.encode_printable_string(&value_.type_)?);
+    components_.push(BER.encode_printable_string(&value_.value)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_BuiltInDomainDefinedAttribute(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "BuiltInDomainDefinedAttribute",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_BuiltInDomainDefinedAttribute,
+        _eal_components_for_BuiltInDomainDefinedAttribute,
+        _rctl2_components_for_BuiltInDomainDefinedAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => BER.validate_printable_string(_el)?,
+            "value" => BER.validate_printable_string(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "BuiltInDomainDefinedAttribute",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1162,31 +1471,42 @@ pub fn _encode_BuiltInDomainDefinedAttribute(
 pub type ExtensionAttributes = Vec<ExtensionAttribute>; // SetOfType
 
 pub fn _decode_ExtensionAttributes(el: &X690Element) -> ASN1Result<ExtensionAttributes> {
-    |el: &X690Element| -> ASN1Result<SET_OF<ExtensionAttribute>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SET_OF<ExtensionAttribute> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_ExtensionAttribute(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttributes")
+            )
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SET_OF<ExtensionAttribute> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_ExtensionAttribute(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_ExtensionAttributes(value_: &ExtensionAttributes) -> ASN1Result<X690Element> {
-    |value_: &SET_OF<ExtensionAttribute>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_ExtensionAttribute(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_ExtensionAttribute(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_ExtensionAttributes(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_ExtensionAttribute(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttributes")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1201,7 +1521,6 @@ pub fn _encode_ExtensionAttributes(value_: &ExtensionAttributes) -> ASN1Result<X
 /// }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct ExtensionAttribute {
     pub extension_attribute_type: INTEGER,
@@ -1215,15 +1534,9 @@ impl ExtensionAttribute {
         }
     }
 }
-impl TryFrom<X690Element> for ExtensionAttribute {
+impl TryFrom<&X690Element> for ExtensionAttribute {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ExtensionAttribute(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ExtensionAttribute {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtensionAttribute(el)
     }
 }
@@ -1250,50 +1563,114 @@ pub const _rctl2_components_for_ExtensionAttribute: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ExtensionAttribute: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ExtensionAttribute(el: &X690Element) -> ASN1Result<ExtensionAttribute> {
-    |el_: &X690Element| -> ASN1Result<ExtensionAttribute> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ExtensionAttribute,
-            _eal_components_for_ExtensionAttribute,
-            _rctl2_components_for_ExtensionAttribute,
-        )?;
-        let extension_attribute_type =
-            ber_decode_integer(_components.get("extension-attribute-type").unwrap())?;
-        let extension_attribute_value =
-            x690_identity(_components.get("extension-attribute-value").unwrap())?;
-        Ok(ExtensionAttribute {
-            extension_attribute_type,
-            extension_attribute_value,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttribute")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtensionAttribute,
+        _eal_components_for_ExtensionAttribute,
+        _rctl2_components_for_ExtensionAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut extension_attribute_type_: OPTIONAL<INTEGER> = None;
+    let mut extension_attribute_value_: OPTIONAL<X690Element> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "extension-attribute-type" => {
+                extension_attribute_type_ = Some(BER.decode_integer(_el)?)
+            }
+            "extension-attribute-value" => extension_attribute_value_ = Some(x690_identity(_el)?),
+            _ => {
+                return Err(_el
+                    .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttribute"))
+            }
+        }
+    }
+    Ok(ExtensionAttribute {
+        extension_attribute_type: extension_attribute_type_.unwrap(),
+        extension_attribute_value: extension_attribute_value_.unwrap(),
+    })
 }
 
 pub fn _encode_ExtensionAttribute(value_: &ExtensionAttribute) -> ASN1Result<X690Element> {
-    |value_: &ExtensionAttribute| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-            let mut el_1 = ber_encode_integer(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
-            Ok(el_1)
-        }(&value_.extension_attribute_type)?);
-        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-            let mut el_1 = x690_identity(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 1;
-            Ok(el_1)
-        }(&value_.extension_attribute_value)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+        let mut el_1 = BER.encode_integer(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.extension_attribute_type)?);
+    components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
+        let mut el_1 = x690_identity(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 1;
+        Ok(el_1)
+    }(&value_.extension_attribute_value)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ExtensionAttribute(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttribute")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtensionAttribute,
+        _eal_components_for_ExtensionAttribute,
+        _rctl2_components_for_ExtensionAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "extension-attribute-type" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "extension-attribute-type",
+                    ));
+                }
+                Ok(BER.validate_integer(&el)?)
+            }(_el)?,
+            "extension-attribute-value" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "extension-attribute-value",
+                    ));
+                }
+                Ok(BER.validate_any(&el)?)
+            }(_el)?,
+            _ => {
+                return Err(_el
+                    .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttribute"))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1309,7 +1686,7 @@ pub fn _encode_ExtensionAttribute(value_: &ExtensionAttribute) -> ASN1Result<X69
 ///
 #[derive(Debug)]
 pub struct EXTENSION_ATTRIBUTE {
-    pub id: INTEGER,
+    pub id: u16,
 }
 impl EXTENSION_ATTRIBUTE {}
 
@@ -1397,7 +1774,22 @@ pub fn ExtensionAttributeTable() -> Vec<EXTENSION_ATTRIBUTE> {
 ///
 pub fn common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![1], /* OBJECT_FIELD_SETTING */
+        id: 1, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod common_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = CommonName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_CommonName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_CommonName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_CommonName(el)
     }
 }
 
@@ -1409,11 +1801,15 @@ pub fn common_name() -> EXTENSION_ATTRIBUTE {
 pub type CommonName = PrintableString; // PrintableString
 
 pub fn _decode_CommonName(el: &X690Element) -> ASN1Result<CommonName> {
-    ber_decode_printable_string(&el)
+    BER.decode_printable_string(&el)
 }
 
 pub fn _encode_CommonName(value_: &CommonName) -> ASN1Result<X690Element> {
-    ber_encode_printable_string(&value_)
+    BER.encode_printable_string(&value_)
+}
+
+pub fn _validate_CommonName(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_printable_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1427,7 +1823,22 @@ pub fn _encode_CommonName(value_: &CommonName) -> ASN1Result<X690Element> {
 ///
 pub fn teletex_common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![2], /* OBJECT_FIELD_SETTING */
+        id: 2, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod teletex_common_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = TeletexCommonName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_TeletexCommonName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_TeletexCommonName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_TeletexCommonName(el)
     }
 }
 
@@ -1439,11 +1850,15 @@ pub fn teletex_common_name() -> EXTENSION_ATTRIBUTE {
 pub type TeletexCommonName = TeletexString; // TeletexString
 
 pub fn _decode_TeletexCommonName(el: &X690Element) -> ASN1Result<TeletexCommonName> {
-    ber_decode_t61_string(&el)
+    BER.decode_t61_string(&el)
 }
 
 pub fn _encode_TeletexCommonName(value_: &TeletexCommonName) -> ASN1Result<X690Element> {
-    ber_encode_t61_string(&value_)
+    BER.encode_t61_string(&value_)
+}
+
+pub fn _validate_TeletexCommonName(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_t61_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1458,7 +1873,22 @@ pub fn _encode_TeletexCommonName(value_: &TeletexCommonName) -> ASN1Result<X690E
 ///
 pub fn universal_common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![24], /* OBJECT_FIELD_SETTING */
+        id: 24, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_common_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalCommonName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalCommonName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalCommonName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalCommonName(el)
     }
 }
 
@@ -1477,6 +1907,10 @@ pub fn _encode_UniversalCommonName(value_: &UniversalCommonName) -> ASN1Result<X
     _encode_UniversalOrBMPString(&value_)
 }
 
+pub fn _validate_UniversalCommonName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalOrBMPString(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1489,7 +1923,22 @@ pub fn _encode_UniversalCommonName(value_: &UniversalCommonName) -> ASN1Result<X
 ///
 pub fn teletex_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![3], /* OBJECT_FIELD_SETTING */
+        id: 3, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod teletex_organization_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = TeletexOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_TeletexOrganizationName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_TeletexOrganizationName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_TeletexOrganizationName(el)
     }
 }
 
@@ -1502,13 +1951,17 @@ pub fn teletex_organization_name() -> EXTENSION_ATTRIBUTE {
 pub type TeletexOrganizationName = TeletexString; // TeletexString
 
 pub fn _decode_TeletexOrganizationName(el: &X690Element) -> ASN1Result<TeletexOrganizationName> {
-    ber_decode_t61_string(&el)
+    BER.decode_t61_string(&el)
 }
 
 pub fn _encode_TeletexOrganizationName(
     value_: &TeletexOrganizationName,
 ) -> ASN1Result<X690Element> {
-    ber_encode_t61_string(&value_)
+    BER.encode_t61_string(&value_)
+}
+
+pub fn _validate_TeletexOrganizationName(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_t61_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1523,7 +1976,22 @@ pub fn _encode_TeletexOrganizationName(
 ///
 pub fn universal_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![25], /* OBJECT_FIELD_SETTING */
+        id: 25, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_organization_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalOrganizationName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalOrganizationName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalOrganizationName(el)
     }
 }
 
@@ -1546,6 +2014,10 @@ pub fn _encode_UniversalOrganizationName(
     _encode_UniversalOrBMPString(&value_)
 }
 
+pub fn _validate_UniversalOrganizationName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalOrBMPString(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1558,7 +2030,22 @@ pub fn _encode_UniversalOrganizationName(
 ///
 pub fn teletex_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![4], /* OBJECT_FIELD_SETTING */
+        id: 4, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod teletex_personal_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = TeletexPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_TeletexPersonalName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_TeletexPersonalName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_TeletexPersonalName(el)
     }
 }
 
@@ -1575,7 +2062,6 @@ pub fn teletex_personal_name() -> EXTENSION_ATTRIBUTE {
 ///     [3]  TeletexString(SIZE (1..ub-generation-qualifier-length)) OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TeletexPersonalName {
@@ -1599,15 +2085,9 @@ impl TeletexPersonalName {
         }
     }
 }
-impl TryFrom<X690Element> for TeletexPersonalName {
+impl TryFrom<&X690Element> for TeletexPersonalName {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TeletexPersonalName(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TeletexPersonalName {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TeletexPersonalName(el)
     }
 }
@@ -1648,81 +2128,134 @@ pub const _rctl2_components_for_TeletexPersonalName: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_TeletexPersonalName: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_TeletexPersonalName(el: &X690Element) -> ASN1Result<TeletexPersonalName> {
-    |el_: &X690Element| -> ASN1Result<TeletexPersonalName> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TeletexPersonalName,
-            _eal_components_for_TeletexPersonalName,
-            _rctl2_components_for_TeletexPersonalName,
-            40,
-        )?;
-        let surname = ber_decode_t61_string(_components.get("surname").unwrap())?;
-        let given_name: OPTIONAL<TeletexString> = match _components.get("given-name") {
-            Some(c_) => Some(ber_decode_t61_string(c_)?),
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TeletexPersonalName")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_TeletexPersonalName,
+        _eal_components_for_TeletexPersonalName,
+        _rctl2_components_for_TeletexPersonalName,
+        40,
+    )?;
+    let surname_ = BER.decode_t61_string(_components.get("surname").unwrap())?;
+    let given_name_: OPTIONAL<TeletexString> = match _components.get("given-name") {
+        Some(c_) => Some(BER.decode_t61_string(c_)?),
+        _ => None,
+    };
+    let initials_: OPTIONAL<TeletexString> = match _components.get("initials") {
+        Some(c_) => Some(BER.decode_t61_string(c_)?),
+        _ => None,
+    };
+    let generation_qualifier_: OPTIONAL<TeletexString> =
+        match _components.get("generation-qualifier") {
+            Some(c_) => Some(BER.decode_t61_string(c_)?),
             _ => None,
         };
-        let initials: OPTIONAL<TeletexString> = match _components.get("initials") {
-            Some(c_) => Some(ber_decode_t61_string(c_)?),
-            _ => None,
-        };
-        let generation_qualifier: OPTIONAL<TeletexString> =
-            match _components.get("generation-qualifier") {
-                Some(c_) => Some(ber_decode_t61_string(c_)?),
-                _ => None,
-            };
-        Ok(TeletexPersonalName {
-            surname,
-            given_name,
-            initials,
-            generation_qualifier,
-        })
-    }(&el)
+    Ok(TeletexPersonalName {
+        surname: surname_,
+        given_name: given_name_,
+        initials: initials_,
+        generation_qualifier: generation_qualifier_,
+    })
 }
 
 pub fn _encode_TeletexPersonalName(value_: &TeletexPersonalName) -> ASN1Result<X690Element> {
-    |value_: &TeletexPersonalName| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
+        let mut el_1 = BER.encode_t61_string(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.surname)?);
+    if let Some(v_) = &value_.given_name {
         components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-            let mut el_1 = ber_encode_t61_string(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
+            let mut el_1 = BER.encode_t61_string(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
             Ok(el_1)
-        }(&value_.surname)?);
-        if let Some(v_) = &value_.given_name {
-            components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_t61_string(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.initials {
+        components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_t61_string(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 2;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.generation_qualifier {
+        components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_t61_string(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_TeletexPersonalName(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TeletexPersonalName")
+            )
         }
-        if let Some(v_) = &value_.initials {
-            components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_t61_string(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
-            }(&v_)?);
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_TeletexPersonalName,
+        _eal_components_for_TeletexPersonalName,
+        _rctl2_components_for_TeletexPersonalName,
+        40,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "surname"));
         }
-        if let Some(v_) = &value_.generation_qualifier {
-            components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_t61_string(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+        Ok(BER.validate_t61_string(&el)?)
+    }(_components.get("surname").unwrap())?;
+    match _components.get("given-name") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "given-name"));
+            }
+            Ok(BER.validate_t61_string(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("initials") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "initials"));
+            }
+            Ok(BER.validate_t61_string(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("generation-qualifier") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "generation-qualifier",
+                ));
+            }
+            Ok(BER.validate_t61_string(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1737,7 +2270,22 @@ pub fn _encode_TeletexPersonalName(value_: &TeletexPersonalName) -> ASN1Result<X
 ///
 pub fn universal_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![26], /* OBJECT_FIELD_SETTING */
+        id: 26, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_personal_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalPersonalName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalPersonalName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalPersonalName(el)
     }
 }
 
@@ -1757,7 +2305,6 @@ pub fn universal_personal_name() -> EXTENSION_ATTRIBUTE {
 ///       OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UniversalPersonalName {
@@ -1781,15 +2328,9 @@ impl UniversalPersonalName {
         }
     }
 }
-impl TryFrom<X690Element> for UniversalPersonalName {
+impl TryFrom<&X690Element> for UniversalPersonalName {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UniversalPersonalName(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UniversalPersonalName {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UniversalPersonalName(el)
     }
 }
@@ -1830,81 +2371,134 @@ pub const _rctl2_components_for_UniversalPersonalName: &[ComponentSpec; 0] = &[]
 pub const _eal_components_for_UniversalPersonalName: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UniversalPersonalName(el: &X690Element) -> ASN1Result<UniversalPersonalName> {
-    |el_: &X690Element| -> ASN1Result<UniversalPersonalName> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UniversalPersonalName,
-            _eal_components_for_UniversalPersonalName,
-            _rctl2_components_for_UniversalPersonalName,
-            40,
-        )?;
-        let surname = _decode_UniversalOrBMPString(_components.get("surname").unwrap())?;
-        let given_name: OPTIONAL<UniversalOrBMPString> = match _components.get("given-name") {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UniversalPersonalName")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_UniversalPersonalName,
+        _eal_components_for_UniversalPersonalName,
+        _rctl2_components_for_UniversalPersonalName,
+        40,
+    )?;
+    let surname_ = _decode_UniversalOrBMPString(_components.get("surname").unwrap())?;
+    let given_name_: OPTIONAL<UniversalOrBMPString> = match _components.get("given-name") {
+        Some(c_) => Some(_decode_UniversalOrBMPString(c_)?),
+        _ => None,
+    };
+    let initials_: OPTIONAL<UniversalOrBMPString> = match _components.get("initials") {
+        Some(c_) => Some(_decode_UniversalOrBMPString(c_)?),
+        _ => None,
+    };
+    let generation_qualifier_: OPTIONAL<UniversalOrBMPString> =
+        match _components.get("generation-qualifier") {
             Some(c_) => Some(_decode_UniversalOrBMPString(c_)?),
             _ => None,
         };
-        let initials: OPTIONAL<UniversalOrBMPString> = match _components.get("initials") {
-            Some(c_) => Some(_decode_UniversalOrBMPString(c_)?),
-            _ => None,
-        };
-        let generation_qualifier: OPTIONAL<UniversalOrBMPString> =
-            match _components.get("generation-qualifier") {
-                Some(c_) => Some(_decode_UniversalOrBMPString(c_)?),
-                _ => None,
-            };
-        Ok(UniversalPersonalName {
-            surname,
-            given_name,
-            initials,
-            generation_qualifier,
-        })
-    }(&el)
+    Ok(UniversalPersonalName {
+        surname: surname_,
+        given_name: given_name_,
+        initials: initials_,
+        generation_qualifier: generation_qualifier_,
+    })
 }
 
 pub fn _encode_UniversalPersonalName(value_: &UniversalPersonalName) -> ASN1Result<X690Element> {
-    |value_: &UniversalPersonalName| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
+        let mut el_1 = _encode_UniversalOrBMPString(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.surname)?);
+    if let Some(v_) = &value_.given_name {
         components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
             let mut el_1 = _encode_UniversalOrBMPString(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
             Ok(el_1)
-        }(&value_.surname)?);
-        if let Some(v_) = &value_.given_name {
-            components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_UniversalOrBMPString(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.initials {
+        components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_UniversalOrBMPString(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 2;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.generation_qualifier {
+        components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_UniversalOrBMPString(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_UniversalPersonalName(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UniversalPersonalName")
+            )
         }
-        if let Some(v_) = &value_.initials {
-            components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_UniversalOrBMPString(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
-            }(&v_)?);
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_UniversalPersonalName,
+        _eal_components_for_UniversalPersonalName,
+        _rctl2_components_for_UniversalPersonalName,
+        40,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "surname"));
         }
-        if let Some(v_) = &value_.generation_qualifier {
-            components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_UniversalOrBMPString(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+        Ok(_validate_UniversalOrBMPString(&el)?)
+    }(_components.get("surname").unwrap())?;
+    match _components.get("given-name") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "given-name"));
+            }
+            Ok(_validate_UniversalOrBMPString(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("initials") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "initials"));
+            }
+            Ok(_validate_UniversalOrBMPString(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("generation-qualifier") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "generation-qualifier",
+                ));
+            }
+            Ok(_validate_UniversalOrBMPString(&el)?)
+        }(c_)?,
+        _ => (),
+    };
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1919,7 +2513,22 @@ pub fn _encode_UniversalPersonalName(value_: &UniversalPersonalName) -> ASN1Resu
 ///
 pub fn teletex_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![5], /* OBJECT_FIELD_SETTING */
+        id: 5, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod teletex_organizational_unit_names {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = TeletexOrganizationalUnitNames; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_TeletexOrganizationalUnitNames(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_TeletexOrganizationalUnitNames(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_TeletexOrganizationalUnitNames(el)
     }
 }
 
@@ -1934,34 +2543,48 @@ pub type TeletexOrganizationalUnitNames = Vec<TeletexOrganizationalUnitName>; //
 pub fn _decode_TeletexOrganizationalUnitNames(
     el: &X690Element,
 ) -> ASN1Result<TeletexOrganizationalUnitNames> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<TeletexOrganizationalUnitName>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<TeletexOrganizationalUnitName> =
-            Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_TeletexOrganizationalUnitName(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TeletexOrganizationalUnitNames",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<TeletexOrganizationalUnitName> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_TeletexOrganizationalUnitName(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_TeletexOrganizationalUnitNames(
     value_: &TeletexOrganizationalUnitNames,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<TeletexOrganizationalUnitName>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_TeletexOrganizationalUnitName(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_TeletexOrganizationalUnitName(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_TeletexOrganizationalUnitNames(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_TeletexOrganizationalUnitName(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "TeletexOrganizationalUnitNames",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1975,13 +2598,17 @@ pub type TeletexOrganizationalUnitName = TeletexString; // TeletexString
 pub fn _decode_TeletexOrganizationalUnitName(
     el: &X690Element,
 ) -> ASN1Result<TeletexOrganizationalUnitName> {
-    ber_decode_t61_string(&el)
+    BER.decode_t61_string(&el)
 }
 
 pub fn _encode_TeletexOrganizationalUnitName(
     value_: &TeletexOrganizationalUnitName,
 ) -> ASN1Result<X690Element> {
-    ber_encode_t61_string(&value_)
+    BER.encode_t61_string(&value_)
+}
+
+pub fn _validate_TeletexOrganizationalUnitName(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_t61_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1996,7 +2623,22 @@ pub fn _encode_TeletexOrganizationalUnitName(
 ///
 pub fn universal_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![27], /* OBJECT_FIELD_SETTING */
+        id: 27, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_organizational_unit_names {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalOrganizationalUnitNames; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalOrganizationalUnitNames(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalOrganizationalUnitNames(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalOrganizationalUnitNames(el)
     }
 }
 
@@ -2011,34 +2653,49 @@ pub type UniversalOrganizationalUnitNames = Vec<UniversalOrganizationalUnitName>
 pub fn _decode_UniversalOrganizationalUnitNames(
     el: &X690Element,
 ) -> ASN1Result<UniversalOrganizationalUnitNames> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<UniversalOrganizationalUnitName>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<UniversalOrganizationalUnitName> =
-            Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_UniversalOrganizationalUnitName(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UniversalOrganizationalUnitNames",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<UniversalOrganizationalUnitName> =
+        Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_UniversalOrganizationalUnitName(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_UniversalOrganizationalUnitNames(
     value_: &UniversalOrganizationalUnitNames,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<UniversalOrganizationalUnitName>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_UniversalOrganizationalUnitName(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_UniversalOrganizationalUnitName(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_UniversalOrganizationalUnitNames(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_UniversalOrganizationalUnitName(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "UniversalOrganizationalUnitNames",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2061,6 +2718,10 @@ pub fn _encode_UniversalOrganizationalUnitName(
     _encode_UniversalOrBMPString(&value_)
 }
 
+pub fn _validate_UniversalOrganizationalUnitName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalOrBMPString(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2071,7 +2732,6 @@ pub fn _encode_UniversalOrganizationalUnitName(
 ///   iso-639-language-code  PrintableString(SIZE (2 | 5)) OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UniversalOrBMPString {
@@ -2089,15 +2749,9 @@ impl UniversalOrBMPString {
         }
     }
 }
-impl TryFrom<X690Element> for UniversalOrBMPString {
+impl TryFrom<&X690Element> for UniversalOrBMPString {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UniversalOrBMPString(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UniversalOrBMPString {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UniversalOrBMPString(el)
     }
 }
@@ -2127,49 +2781,73 @@ pub const _rctl2_components_for_UniversalOrBMPString: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_UniversalOrBMPString: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UniversalOrBMPString(el: &X690Element) -> ASN1Result<UniversalOrBMPString> {
-    |el_: &X690Element| -> ASN1Result<UniversalOrBMPString> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UniversalOrBMPString")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_UniversalOrBMPString,
+        _eal_components_for_UniversalOrBMPString,
+        _rctl2_components_for_UniversalOrBMPString,
+        20,
+    )?;
+    let character_encoding_ = _decode_UniversalOrBMPString_character_encoding(
+        _components.get("character-encoding").unwrap(),
+    )?;
+    let iso_639_language_code_: OPTIONAL<PrintableString> =
+        match _components.get("iso-639-language-code") {
+            Some(c_) => Some(BER.decode_printable_string(c_)?),
+            _ => None,
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UniversalOrBMPString,
-            _eal_components_for_UniversalOrBMPString,
-            _rctl2_components_for_UniversalOrBMPString,
-            20,
-        )?;
-        let character_encoding = _decode_UniversalOrBMPString_character_encoding(
-            _components.get("character-encoding").unwrap(),
-        )?;
-        let iso_639_language_code: OPTIONAL<PrintableString> =
-            match _components.get("iso-639-language-code") {
-                Some(c_) => Some(ber_decode_printable_string(c_)?),
-                _ => None,
-            };
-        Ok(UniversalOrBMPString {
-            character_encoding,
-            iso_639_language_code,
-        })
-    }(&el)
+    Ok(UniversalOrBMPString {
+        character_encoding: character_encoding_,
+        iso_639_language_code: iso_639_language_code_,
+    })
 }
 
 pub fn _encode_UniversalOrBMPString(value_: &UniversalOrBMPString) -> ASN1Result<X690Element> {
-    |value_: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_UniversalOrBMPString_character_encoding(
-            &value_.character_encoding,
-        )?);
-        if let Some(v_) = &value_.iso_639_language_code {
-            components_.push(ber_encode_printable_string(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_UniversalOrBMPString_character_encoding(
+        &value_.character_encoding,
+    )?);
+    if let Some(v_) = &value_.iso_639_language_code {
+        components_.push(BER.encode_printable_string(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_UniversalOrBMPString(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UniversalOrBMPString")
+            )
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_UniversalOrBMPString,
+        _eal_components_for_UniversalOrBMPString,
+        _rctl2_components_for_UniversalOrBMPString,
+        20,
+    )?;
+    _validate_UniversalOrBMPString_character_encoding(
+        _components.get("character-encoding").unwrap(),
+    )?;
+    match _components.get("iso-639-language-code") {
+        Some(c_) => BER.validate_printable_string(c_)?,
+        _ => (),
+    };
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2183,7 +2861,22 @@ pub fn _encode_UniversalOrBMPString(value_: &UniversalOrBMPString) -> ASN1Result
 ///
 pub fn pds_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![7], /* OBJECT_FIELD_SETTING */
+        id: 7, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod pds_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PDSName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PDSName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PDSName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PDSName(el)
     }
 }
 
@@ -2195,11 +2888,15 @@ pub fn pds_name() -> EXTENSION_ATTRIBUTE {
 pub type PDSName = PrintableString; // PrintableString
 
 pub fn _decode_PDSName(el: &X690Element) -> ASN1Result<PDSName> {
-    ber_decode_printable_string(&el)
+    BER.decode_printable_string(&el)
 }
 
 pub fn _encode_PDSName(value_: &PDSName) -> ASN1Result<X690Element> {
-    ber_encode_printable_string(&value_)
+    BER.encode_printable_string(&value_)
+}
+
+pub fn _validate_PDSName(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_printable_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2214,7 +2911,22 @@ pub fn _encode_PDSName(value_: &PDSName) -> ASN1Result<X690Element> {
 ///
 pub fn physical_delivery_country_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![8], /* OBJECT_FIELD_SETTING */
+        id: 8, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod physical_delivery_country_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PhysicalDeliveryCountryName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PhysicalDeliveryCountryName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PhysicalDeliveryCountryName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PhysicalDeliveryCountryName(el)
     }
 }
 
@@ -2232,17 +2944,9 @@ pub enum PhysicalDeliveryCountryName {
     iso_3166_alpha2_code(PrintableString),
 }
 
-impl TryFrom<X690Element> for PhysicalDeliveryCountryName {
+impl TryFrom<&X690Element> for PhysicalDeliveryCountryName {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PhysicalDeliveryCountryName(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PhysicalDeliveryCountryName {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PhysicalDeliveryCountryName(el)
     }
 }
@@ -2250,32 +2954,48 @@ impl<'a> TryFrom<&'a X690Element> for PhysicalDeliveryCountryName {
 pub fn _decode_PhysicalDeliveryCountryName(
     el: &X690Element,
 ) -> ASN1Result<PhysicalDeliveryCountryName> {
-    |el: &X690Element| -> ASN1Result<PhysicalDeliveryCountryName> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 18) => Ok(PhysicalDeliveryCountryName::x121_dcc_code(
-                ber_decode_numeric_string(&el)?,
-            )),
-            (TagClass::UNIVERSAL, 19) => Ok(PhysicalDeliveryCountryName::iso_3166_alpha2_code(
-                ber_decode_printable_string(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => Ok(PhysicalDeliveryCountryName::x121_dcc_code(
+            BER.decode_numeric_string(&el)?,
+        )),
+        (TagClass::UNIVERSAL, 19) => Ok(PhysicalDeliveryCountryName::iso_3166_alpha2_code(
+            BER.decode_printable_string(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PhysicalDeliveryCountryName",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_PhysicalDeliveryCountryName(
     value_: &PhysicalDeliveryCountryName,
 ) -> ASN1Result<X690Element> {
-    |value: &PhysicalDeliveryCountryName| -> ASN1Result<X690Element> {
-        match value {
-            PhysicalDeliveryCountryName::x121_dcc_code(v) => ber_encode_numeric_string(&v),
-            PhysicalDeliveryCountryName::iso_3166_alpha2_code(v) => ber_encode_printable_string(&v),
+    match value_ {
+        PhysicalDeliveryCountryName::x121_dcc_code(v) => BER.encode_numeric_string(&v),
+        PhysicalDeliveryCountryName::iso_3166_alpha2_code(v) => BER.encode_printable_string(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("PhysicalDeliveryCountryName".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_PhysicalDeliveryCountryName(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
+        (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PhysicalDeliveryCountryName",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2289,7 +3009,22 @@ pub fn _encode_PhysicalDeliveryCountryName(
 ///
 pub fn postal_code() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![9], /* OBJECT_FIELD_SETTING */
+        id: 9, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod postal_code {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PostalCode; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PostalCode(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PostalCode(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PostalCode(el)
     }
 }
 
@@ -2307,46 +3042,52 @@ pub enum PostalCode {
     printable_code(PrintableString),
 }
 
-impl TryFrom<X690Element> for PostalCode {
+impl TryFrom<&X690Element> for PostalCode {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PostalCode(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PostalCode {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PostalCode(el)
     }
 }
 
 pub fn _decode_PostalCode(el: &X690Element) -> ASN1Result<PostalCode> {
-    |el: &X690Element| -> ASN1Result<PostalCode> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 18) => {
-                Ok(PostalCode::numeric_code(ber_decode_numeric_string(&el)?))
-            }
-            (TagClass::UNIVERSAL, 19) => Ok(PostalCode::printable_code(
-                ber_decode_printable_string(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => Ok(PostalCode::numeric_code(BER.decode_numeric_string(&el)?)),
+        (TagClass::UNIVERSAL, 19) => Ok(PostalCode::printable_code(
+            BER.decode_printable_string(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PostalCode",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_PostalCode(value_: &PostalCode) -> ASN1Result<X690Element> {
-    |value: &PostalCode| -> ASN1Result<X690Element> {
-        match value {
-            PostalCode::numeric_code(v) => ber_encode_numeric_string(&v),
-            PostalCode::printable_code(v) => ber_encode_printable_string(&v),
+    match value_ {
+        PostalCode::numeric_code(v) => BER.encode_numeric_string(&v),
+        PostalCode::printable_code(v) => BER.encode_printable_string(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("PostalCode".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_PostalCode(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
+        (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PostalCode",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2361,7 +3102,22 @@ pub fn _encode_PostalCode(value_: &PostalCode) -> ASN1Result<X690Element> {
 ///
 pub fn physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![10], /* OBJECT_FIELD_SETTING */
+        id: 10, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod physical_delivery_office_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PhysicalDeliveryOfficeName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PhysicalDeliveryOfficeName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PhysicalDeliveryOfficeName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PhysicalDeliveryOfficeName(el)
     }
 }
 
@@ -2384,6 +3140,10 @@ pub fn _encode_PhysicalDeliveryOfficeName(
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_PhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2396,7 +3156,22 @@ pub fn _encode_PhysicalDeliveryOfficeName(
 ///
 pub fn universal_physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![29], /* OBJECT_FIELD_SETTING */
+        id: 29, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_physical_delivery_office_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalPhysicalDeliveryOfficeName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalPhysicalDeliveryOfficeName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalPhysicalDeliveryOfficeName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalPhysicalDeliveryOfficeName(el)
     }
 }
 
@@ -2419,6 +3194,10 @@ pub fn _encode_UniversalPhysicalDeliveryOfficeName(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalPhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2431,7 +3210,22 @@ pub fn _encode_UniversalPhysicalDeliveryOfficeName(
 ///
 pub fn physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![11], /* OBJECT_FIELD_SETTING */
+        id: 11, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod physical_delivery_office_number {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PhysicalDeliveryOfficeNumber; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PhysicalDeliveryOfficeNumber(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PhysicalDeliveryOfficeNumber(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PhysicalDeliveryOfficeNumber(el)
     }
 }
 
@@ -2454,6 +3248,10 @@ pub fn _encode_PhysicalDeliveryOfficeNumber(
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_PhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2466,7 +3264,22 @@ pub fn _encode_PhysicalDeliveryOfficeNumber(
 ///
 pub fn universal_physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![30], /* OBJECT_FIELD_SETTING */
+        id: 30, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_physical_delivery_office_number {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalPhysicalDeliveryOfficeNumber; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalPhysicalDeliveryOfficeNumber(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalPhysicalDeliveryOfficeNumber(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalPhysicalDeliveryOfficeNumber(el)
     }
 }
 
@@ -2489,6 +3302,10 @@ pub fn _encode_UniversalPhysicalDeliveryOfficeNumber(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalPhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2501,7 +3318,22 @@ pub fn _encode_UniversalPhysicalDeliveryOfficeNumber(
 ///
 pub fn extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![12], /* OBJECT_FIELD_SETTING */
+        id: 12, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod extension_OR_address_components {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = ExtensionORAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_ExtensionORAddressComponents(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_ExtensionORAddressComponents(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_ExtensionORAddressComponents(el)
     }
 }
 
@@ -2524,6 +3356,10 @@ pub fn _encode_ExtensionORAddressComponents(
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_ExtensionORAddressComponents(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2536,7 +3372,22 @@ pub fn _encode_ExtensionORAddressComponents(
 ///
 pub fn universal_extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![31], /* OBJECT_FIELD_SETTING */
+        id: 31, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_extension_OR_address_components {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalExtensionORAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalExtensionORAddressComponents(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalExtensionORAddressComponents(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalExtensionORAddressComponents(el)
     }
 }
 
@@ -2559,6 +3410,10 @@ pub fn _encode_UniversalExtensionORAddressComponents(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalExtensionORAddressComponents(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2571,7 +3426,22 @@ pub fn _encode_UniversalExtensionORAddressComponents(
 ///
 pub fn physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![13], /* OBJECT_FIELD_SETTING */
+        id: 13, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod physical_delivery_personal_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PhysicalDeliveryPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PhysicalDeliveryPersonalName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PhysicalDeliveryPersonalName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PhysicalDeliveryPersonalName(el)
     }
 }
 
@@ -2594,6 +3464,10 @@ pub fn _encode_PhysicalDeliveryPersonalName(
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_PhysicalDeliveryPersonalName(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2606,7 +3480,22 @@ pub fn _encode_PhysicalDeliveryPersonalName(
 ///
 pub fn universal_physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![32], /* OBJECT_FIELD_SETTING */
+        id: 32, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_physical_delivery_personal_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalPhysicalDeliveryPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalPhysicalDeliveryPersonalName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalPhysicalDeliveryPersonalName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalPhysicalDeliveryPersonalName(el)
     }
 }
 
@@ -2629,6 +3518,10 @@ pub fn _encode_UniversalPhysicalDeliveryPersonalName(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalPhysicalDeliveryPersonalName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2641,7 +3534,22 @@ pub fn _encode_UniversalPhysicalDeliveryPersonalName(
 ///
 pub fn physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![14], /* OBJECT_FIELD_SETTING */
+        id: 14, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod physical_delivery_organization_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PhysicalDeliveryOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PhysicalDeliveryOrganizationName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PhysicalDeliveryOrganizationName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PhysicalDeliveryOrganizationName(el)
     }
 }
 
@@ -2664,6 +3572,10 @@ pub fn _encode_PhysicalDeliveryOrganizationName(
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_PhysicalDeliveryOrganizationName(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2675,7 +3587,22 @@ pub fn _encode_PhysicalDeliveryOrganizationName(
 ///
 pub fn universal_physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![33], /* OBJECT_FIELD_SETTING */
+        id: 33, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_physical_delivery_organization_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalPhysicalDeliveryOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalPhysicalDeliveryOrganizationName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalPhysicalDeliveryOrganizationName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalPhysicalDeliveryOrganizationName(el)
     }
 }
 
@@ -2698,6 +3625,10 @@ pub fn _encode_UniversalPhysicalDeliveryOrganizationName(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalPhysicalDeliveryOrganizationName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2709,7 +3640,22 @@ pub fn _encode_UniversalPhysicalDeliveryOrganizationName(
 ///
 pub fn extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![15], /* OBJECT_FIELD_SETTING */
+        id: 15, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod extension_physical_delivery_address_components {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = ExtensionPhysicalDeliveryAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_ExtensionPhysicalDeliveryAddressComponents(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_ExtensionPhysicalDeliveryAddressComponents(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_ExtensionPhysicalDeliveryAddressComponents(el)
     }
 }
 
@@ -2732,6 +3678,10 @@ pub fn _encode_ExtensionPhysicalDeliveryAddressComponents(
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_ExtensionPhysicalDeliveryAddressComponents(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2743,7 +3693,22 @@ pub fn _encode_ExtensionPhysicalDeliveryAddressComponents(
 ///
 pub fn universal_extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![34], /* OBJECT_FIELD_SETTING */
+        id: 34, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_extension_physical_delivery_address_components {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalExtensionPhysicalDeliveryAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalExtensionPhysicalDeliveryAddressComponents(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalExtensionPhysicalDeliveryAddressComponents(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalExtensionPhysicalDeliveryAddressComponents(el)
     }
 }
 
@@ -2766,6 +3731,12 @@ pub fn _encode_UniversalExtensionPhysicalDeliveryAddressComponents(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalExtensionPhysicalDeliveryAddressComponents(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2778,7 +3749,22 @@ pub fn _encode_UniversalExtensionPhysicalDeliveryAddressComponents(
 ///
 pub fn unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![16], /* OBJECT_FIELD_SETTING */
+        id: 16, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod unformatted_postal_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UnformattedPostalAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UnformattedPostalAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UnformattedPostalAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UnformattedPostalAddress(el)
     }
 }
 
@@ -2793,7 +3779,6 @@ pub fn unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
 ///     TeletexString(SIZE (1..ub-unformatted-address-length)) OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UnformattedPostalAddress {
@@ -2819,15 +3804,9 @@ impl Default for UnformattedPostalAddress {
         }
     }
 }
-impl TryFrom<X690Element> for UnformattedPostalAddress {
+impl TryFrom<&X690Element> for UnformattedPostalAddress {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UnformattedPostalAddress(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UnformattedPostalAddress {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UnformattedPostalAddress(el)
     }
 }
@@ -2854,77 +3833,120 @@ pub const _rctl2_components_for_UnformattedPostalAddress: &[ComponentSpec; 0] = 
 pub const _eal_components_for_UnformattedPostalAddress: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UnformattedPostalAddress(el: &X690Element) -> ASN1Result<UnformattedPostalAddress> {
-    |el_: &X690Element| -> ASN1Result<UnformattedPostalAddress> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UnformattedPostalAddress,
-            _eal_components_for_UnformattedPostalAddress,
-            _rctl2_components_for_UnformattedPostalAddress,
-            20,
-        )?;
-        let printable_address: OPTIONAL<Vec<PrintableString>> =
-            match _components.get("printable-address") {
-                Some(c_) => Some(
-                    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<PrintableString>> {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SEQUENCE_OF<PrintableString> =
-                            Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(ber_decode_printable_string(el)?);
-                        }
-                        Ok(items)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        let teletex_string: OPTIONAL<TeletexString> = match _components.get("teletex-string") {
-            Some(c_) => Some(ber_decode_t61_string(c_)?),
-            _ => None,
-        };
-        Ok(UnformattedPostalAddress {
-            printable_address,
-            teletex_string,
-        })
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UnformattedPostalAddress",
+            ))
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_UnformattedPostalAddress,
+        _eal_components_for_UnformattedPostalAddress,
+        _rctl2_components_for_UnformattedPostalAddress,
+        20,
+    )?;
+    let printable_address_: OPTIONAL<Vec<PrintableString>> = match _components
+        .get("printable-address")
+    {
+        Some(c_) => Some(
+            |el: &X690Element| -> ASN1Result<SEQUENCE_OF<PrintableString>> {
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "printable-address",
+                        ))
+                    }
+                };
+                let mut items: SEQUENCE_OF<PrintableString> = Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(BER.decode_printable_string(el)?);
+                }
+                Ok(items)
+            }(c_)?,
+        ),
+        _ => None,
+    };
+    let teletex_string_: OPTIONAL<TeletexString> = match _components.get("teletex-string") {
+        Some(c_) => Some(BER.decode_t61_string(c_)?),
+        _ => None,
+    };
+    Ok(UnformattedPostalAddress {
+        printable_address: printable_address_,
+        teletex_string: teletex_string_,
+    })
 }
 
 pub fn _encode_UnformattedPostalAddress(
     value_: &UnformattedPostalAddress,
 ) -> ASN1Result<X690Element> {
-    |value_: &UnformattedPostalAddress| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        if let Some(v_) = &value_.printable_address {
-            components_.push(
-                |value_: &SEQUENCE_OF<PrintableString>| -> ASN1Result<X690Element> {
-                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                    for v in value_ {
-                        children.push(ber_encode_printable_string(&v)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    if let Some(v_) = &value_.printable_address {
+        components_.push(
+            |value_: &SEQUENCE_OF<PrintableString>| -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(BER.encode_printable_string(&v)?);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v_)?,
+        );
+    }
+    if let Some(v_) = &value_.teletex_string {
+        components_.push(BER.encode_t61_string(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_UnformattedPostalAddress(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UnformattedPostalAddress",
+            ))
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_UnformattedPostalAddress,
+        _eal_components_for_UnformattedPostalAddress,
+        _rctl2_components_for_UnformattedPostalAddress,
+        20,
+    )?;
+    match _components.get("printable-address") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            match &el.value {
+                X690Value::Constructed(subs) => {
+                    for sub in subs.iter() {
+                        BER.validate_printable_string(&sub)?;
                     }
-                    Ok(X690Element::new(
-                        TagClass::UNIVERSAL,
-                        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                        Arc::new(X690Encoding::Constructed(children)),
-                    ))
-                }(&v_)?,
-            );
-        }
-        if let Some(v_) = &value_.teletex_string {
-            components_.push(ber_encode_t61_string(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+                    Ok(())
+                }
+                _ => Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "printable-address")
+                ),
+            }
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("teletex-string") {
+        Some(c_) => BER.validate_t61_string(c_)?,
+        _ => (),
+    };
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2939,7 +3961,22 @@ pub fn _encode_UnformattedPostalAddress(
 ///
 pub fn universal_unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![35], /* OBJECT_FIELD_SETTING */
+        id: 35, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_unformatted_postal_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalUnformattedPostalAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalUnformattedPostalAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalUnformattedPostalAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalUnformattedPostalAddress(el)
     }
 }
 
@@ -2963,6 +4000,10 @@ pub fn _encode_UniversalUnformattedPostalAddress(
     _encode_UniversalOrBMPString(&value_)
 }
 
+pub fn _validate_UniversalUnformattedPostalAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalOrBMPString(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2974,7 +4015,22 @@ pub fn _encode_UniversalUnformattedPostalAddress(
 ///
 pub fn street_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![17], /* OBJECT_FIELD_SETTING */
+        id: 17, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod street_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = StreetAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_StreetAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_StreetAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_StreetAddress(el)
     }
 }
 
@@ -2993,6 +4049,10 @@ pub fn _encode_StreetAddress(value_: &StreetAddress) -> ASN1Result<X690Element> 
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_StreetAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3005,7 +4065,22 @@ pub fn _encode_StreetAddress(value_: &StreetAddress) -> ASN1Result<X690Element> 
 ///
 pub fn universal_street_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![36], /* OBJECT_FIELD_SETTING */
+        id: 36, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_street_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalStreetAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalStreetAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalStreetAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalStreetAddress(el)
     }
 }
 
@@ -3024,6 +4099,10 @@ pub fn _encode_UniversalStreetAddress(value_: &UniversalStreetAddress) -> ASN1Re
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalStreetAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3036,7 +4115,22 @@ pub fn _encode_UniversalStreetAddress(value_: &UniversalStreetAddress) -> ASN1Re
 ///
 pub fn post_office_box_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![18], /* OBJECT_FIELD_SETTING */
+        id: 18, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod post_office_box_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PostOfficeBoxAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PostOfficeBoxAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PostOfficeBoxAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PostOfficeBoxAddress(el)
     }
 }
 
@@ -3055,6 +4149,10 @@ pub fn _encode_PostOfficeBoxAddress(value_: &PostOfficeBoxAddress) -> ASN1Result
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_PostOfficeBoxAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3067,7 +4165,22 @@ pub fn _encode_PostOfficeBoxAddress(value_: &PostOfficeBoxAddress) -> ASN1Result
 ///
 pub fn universal_post_office_box_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![37], /* OBJECT_FIELD_SETTING */
+        id: 37, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_post_office_box_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalPostOfficeBoxAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalPostOfficeBoxAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalPostOfficeBoxAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalPostOfficeBoxAddress(el)
     }
 }
 
@@ -3090,6 +4203,10 @@ pub fn _encode_UniversalPostOfficeBoxAddress(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalPostOfficeBoxAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3102,7 +4219,22 @@ pub fn _encode_UniversalPostOfficeBoxAddress(
 ///
 pub fn poste_restante_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![19], /* OBJECT_FIELD_SETTING */
+        id: 19, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod poste_restante_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = PosteRestanteAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_PosteRestanteAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_PosteRestanteAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_PosteRestanteAddress(el)
     }
 }
 
@@ -3121,6 +4253,10 @@ pub fn _encode_PosteRestanteAddress(value_: &PosteRestanteAddress) -> ASN1Result
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_PosteRestanteAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3133,7 +4269,22 @@ pub fn _encode_PosteRestanteAddress(value_: &PosteRestanteAddress) -> ASN1Result
 ///
 pub fn universal_poste_restante_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![38], /* OBJECT_FIELD_SETTING */
+        id: 38, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_poste_restante_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalPosteRestanteAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalPosteRestanteAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalPosteRestanteAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalPosteRestanteAddress(el)
     }
 }
 
@@ -3156,6 +4307,10 @@ pub fn _encode_UniversalPosteRestanteAddress(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalPosteRestanteAddress(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3167,7 +4322,22 @@ pub fn _encode_UniversalPosteRestanteAddress(
 ///
 pub fn unique_postal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![20], /* OBJECT_FIELD_SETTING */
+        id: 20, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod unique_postal_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniquePostalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniquePostalName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniquePostalName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniquePostalName(el)
     }
 }
 
@@ -3186,6 +4356,10 @@ pub fn _encode_UniquePostalName(value_: &UniquePostalName) -> ASN1Result<X690Ele
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_UniquePostalName(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3198,7 +4372,22 @@ pub fn _encode_UniquePostalName(value_: &UniquePostalName) -> ASN1Result<X690Ele
 ///
 pub fn universal_unique_postal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![39], /* OBJECT_FIELD_SETTING */
+        id: 39, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_unique_postal_name {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalUniquePostalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalUniquePostalName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalUniquePostalName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalUniquePostalName(el)
     }
 }
 
@@ -3221,6 +4410,10 @@ pub fn _encode_UniversalUniquePostalName(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalUniquePostalName(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3233,7 +4426,22 @@ pub fn _encode_UniversalUniquePostalName(
 ///
 pub fn local_postal_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![21], /* OBJECT_FIELD_SETTING */
+        id: 21, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod local_postal_attributes {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = LocalPostalAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_LocalPostalAttributes(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_LocalPostalAttributes(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_LocalPostalAttributes(el)
     }
 }
 
@@ -3252,6 +4460,10 @@ pub fn _encode_LocalPostalAttributes(value_: &LocalPostalAttributes) -> ASN1Resu
     _encode_PDSParameter(&value_)
 }
 
+pub fn _validate_LocalPostalAttributes(el: &X690Element) -> ASN1Result<()> {
+    _validate_PDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3264,7 +4476,22 @@ pub fn _encode_LocalPostalAttributes(value_: &LocalPostalAttributes) -> ASN1Resu
 ///
 pub fn universal_local_postal_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![40], /* OBJECT_FIELD_SETTING */
+        id: 40, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_local_postal_attributes {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalLocalPostalAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalLocalPostalAttributes(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalLocalPostalAttributes(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalLocalPostalAttributes(el)
     }
 }
 
@@ -3287,6 +4514,10 @@ pub fn _encode_UniversalLocalPostalAttributes(
     _encode_UniversalPDSParameter(&value_)
 }
 
+pub fn _validate_UniversalLocalPostalAttributes(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalPDSParameter(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3295,7 +4526,6 @@ pub fn _encode_UniversalLocalPostalAttributes(
 ///   teletex-string    TeletexString(SIZE (1..ub-pds-parameter-length)) OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct PDSParameter {
@@ -3321,15 +4551,9 @@ impl Default for PDSParameter {
         }
     }
 }
-impl TryFrom<X690Element> for PDSParameter {
+impl TryFrom<&X690Element> for PDSParameter {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PDSParameter(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PDSParameter {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PDSParameter(el)
     }
 }
@@ -3356,50 +4580,66 @@ pub const _rctl2_components_for_PDSParameter: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_PDSParameter: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_PDSParameter(el: &X690Element) -> ASN1Result<PDSParameter> {
-    |el_: &X690Element| -> ASN1Result<PDSParameter> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_PDSParameter,
-            _eal_components_for_PDSParameter,
-            _rctl2_components_for_PDSParameter,
-            20,
-        )?;
-        let printable_string: OPTIONAL<PrintableString> = match _components.get("printable-string")
-        {
-            Some(c_) => Some(ber_decode_printable_string(c_)?),
-            _ => None,
-        };
-        let teletex_string: OPTIONAL<TeletexString> = match _components.get("teletex-string") {
-            Some(c_) => Some(ber_decode_t61_string(c_)?),
-            _ => None,
-        };
-        Ok(PDSParameter {
-            printable_string,
-            teletex_string,
-        })
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PDSParameter")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_PDSParameter,
+        _eal_components_for_PDSParameter,
+        _rctl2_components_for_PDSParameter,
+        20,
+    )?;
+    let printable_string_: OPTIONAL<PrintableString> = match _components.get("printable-string") {
+        Some(c_) => Some(BER.decode_printable_string(c_)?),
+        _ => None,
+    };
+    let teletex_string_: OPTIONAL<TeletexString> = match _components.get("teletex-string") {
+        Some(c_) => Some(BER.decode_t61_string(c_)?),
+        _ => None,
+    };
+    Ok(PDSParameter {
+        printable_string: printable_string_,
+        teletex_string: teletex_string_,
+    })
 }
 
 pub fn _encode_PDSParameter(value_: &PDSParameter) -> ASN1Result<X690Element> {
-    |value_: &PDSParameter| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        if let Some(v_) = &value_.printable_string {
-            components_.push(ber_encode_printable_string(&v_)?);
-        }
-        if let Some(v_) = &value_.teletex_string {
-            components_.push(ber_encode_t61_string(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    if let Some(v_) = &value_.printable_string {
+        components_.push(BER.encode_printable_string(&v_)?);
+    }
+    if let Some(v_) = &value_.teletex_string {
+        components_.push(BER.encode_t61_string(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_PDSParameter(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PDSParameter")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_PDSParameter,
+        _eal_components_for_PDSParameter,
+        _rctl2_components_for_PDSParameter,
+        20,
+    )?;
+    match _components.get("printable-string") {
+        Some(c_) => BER.validate_printable_string(c_)?,
+        _ => (),
+    };
+    match _components.get("teletex-string") {
+        Some(c_) => BER.validate_t61_string(c_)?,
+        _ => (),
+    };
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3417,6 +4657,10 @@ pub fn _encode_UniversalPDSParameter(value_: &UniversalPDSParameter) -> ASN1Resu
     _encode_UniversalOrBMPString(&value_)
 }
 
+pub fn _validate_UniversalPDSParameter(el: &X690Element) -> ASN1Result<()> {
+    _validate_UniversalOrBMPString(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -3429,7 +4673,22 @@ pub fn _encode_UniversalPDSParameter(value_: &UniversalPDSParameter) -> ASN1Resu
 ///
 pub fn extended_network_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![22], /* OBJECT_FIELD_SETTING */
+        id: 22, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod extended_network_address {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = ExtendedNetworkAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_ExtendedNetworkAddress(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_ExtendedNetworkAddress(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_ExtendedNetworkAddress(el)
     }
 }
 
@@ -3452,55 +4711,70 @@ pub enum ExtendedNetworkAddress {
     psap_address(PresentationAddress),
 }
 
-impl TryFrom<X690Element> for ExtendedNetworkAddress {
+impl TryFrom<&X690Element> for ExtendedNetworkAddress {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ExtendedNetworkAddress(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ExtendedNetworkAddress {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtendedNetworkAddress(el)
     }
 }
 
 pub fn _decode_ExtendedNetworkAddress(el: &X690Element) -> ASN1Result<ExtendedNetworkAddress> {
-    |el: &X690Element| -> ASN1Result<ExtendedNetworkAddress> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 16) => Ok(ExtendedNetworkAddress::e163_4_address(
-                _decode_ExtendedNetworkAddress_e163_4_address(&el)?,
-            )),
-            (TagClass::CONTEXT, 0) => Ok(ExtendedNetworkAddress::psap_address(
-                _decode_PresentationAddress(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 16) => Ok(ExtendedNetworkAddress::e163_4_address(
+            _decode_ExtendedNetworkAddress_e163_4_address(&el)?,
+        )),
+        (TagClass::CONTEXT, 0) => Ok(ExtendedNetworkAddress::psap_address(
+            _decode_PresentationAddress(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ExtendedNetworkAddress",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_ExtendedNetworkAddress(value_: &ExtendedNetworkAddress) -> ASN1Result<X690Element> {
-    |value: &ExtendedNetworkAddress| -> ASN1Result<X690Element> {
-        match value {
-            ExtendedNetworkAddress::e163_4_address(v) => {
-                _encode_ExtendedNetworkAddress_e163_4_address(&v)
-            }
-            ExtendedNetworkAddress::psap_address(v) => {
-                |v_1: &PresentationAddress| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_PresentationAddress(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
-                }(&v)
-            }
+    match value_ {
+        ExtendedNetworkAddress::e163_4_address(v) => {
+            _encode_ExtendedNetworkAddress_e163_4_address(&v)
         }
-    }(&value_)
+        ExtendedNetworkAddress::psap_address(v) => {
+            |v_1: &PresentationAddress| -> ASN1Result<X690Element> {
+                let mut el_1 = _encode_PresentationAddress(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 0;
+                Ok(el_1)
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("ExtendedNetworkAddress".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_ExtendedNetworkAddress(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 16) => _validate_ExtendedNetworkAddress_e163_4_address(&el),
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "psap-address")
+                );
+            }
+            Ok(_validate_PresentationAddress(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ExtendedNetworkAddress",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3514,7 +4788,22 @@ pub fn _encode_ExtendedNetworkAddress(value_: &ExtendedNetworkAddress) -> ASN1Re
 ///
 pub fn terminal_type() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![23], /* OBJECT_FIELD_SETTING */
+        id: 23, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod terminal_type {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = TerminalType; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_TerminalType(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_TerminalType(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_TerminalType(el)
     }
 }
 
@@ -3525,26 +4814,30 @@ pub fn terminal_type() -> EXTENSION_ATTRIBUTE {
 ///   telex(3), teletex(4), g3-facsimile(5), g4-facsimile(6), ia5-terminal(7),
 ///   videotex(8)}(0..ub-integer-options)
 /// ```
-pub type TerminalType = INTEGER;
+pub type TerminalType = i8;
 
-pub const TerminalType_telex: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const TerminalType_telex: TerminalType = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const TerminalType_teletex: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const TerminalType_teletex: TerminalType = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const TerminalType_g3_facsimile: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const TerminalType_g3_facsimile: TerminalType = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const TerminalType_g4_facsimile: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const TerminalType_g4_facsimile: TerminalType = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const TerminalType_ia5_terminal: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const TerminalType_ia5_terminal: TerminalType = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const TerminalType_videotex: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const TerminalType_videotex: TerminalType = 8; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_TerminalType(el: &X690Element) -> ASN1Result<TerminalType> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_TerminalType(value_: &TerminalType) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_TerminalType(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3559,7 +4852,22 @@ pub fn _encode_TerminalType(value_: &TerminalType) -> ASN1Result<X690Element> {
 ///
 pub fn teletex_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![6], /* OBJECT_FIELD_SETTING */
+        id: 6, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod teletex_domain_defined_attributes {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = TeletexDomainDefinedAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_TeletexDomainDefinedAttributes(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_TeletexDomainDefinedAttributes(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_TeletexDomainDefinedAttributes(el)
     }
 }
 
@@ -3575,34 +4883,48 @@ pub type TeletexDomainDefinedAttributes = Vec<TeletexDomainDefinedAttribute>; //
 pub fn _decode_TeletexDomainDefinedAttributes(
     el: &X690Element,
 ) -> ASN1Result<TeletexDomainDefinedAttributes> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<TeletexDomainDefinedAttribute>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<TeletexDomainDefinedAttribute> =
-            Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_TeletexDomainDefinedAttribute(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TeletexDomainDefinedAttributes",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<TeletexDomainDefinedAttribute> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_TeletexDomainDefinedAttribute(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_TeletexDomainDefinedAttributes(
     value_: &TeletexDomainDefinedAttributes,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<TeletexDomainDefinedAttribute>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_TeletexDomainDefinedAttribute(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_TeletexDomainDefinedAttribute(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_TeletexDomainDefinedAttributes(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_TeletexDomainDefinedAttribute(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "TeletexDomainDefinedAttributes",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3614,7 +4936,6 @@ pub fn _encode_TeletexDomainDefinedAttributes(
 /// }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct TeletexDomainDefinedAttribute {
     pub type_: TeletexString,
@@ -3625,15 +4946,9 @@ impl TeletexDomainDefinedAttribute {
         TeletexDomainDefinedAttribute { type_, value }
     }
 }
-impl TryFrom<X690Element> for TeletexDomainDefinedAttribute {
+impl TryFrom<&X690Element> for TeletexDomainDefinedAttribute {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TeletexDomainDefinedAttribute(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TeletexDomainDefinedAttribute {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TeletexDomainDefinedAttribute(el)
     }
 }
@@ -3662,37 +4977,94 @@ pub const _eal_components_for_TeletexDomainDefinedAttribute: &[ComponentSpec; 0]
 pub fn _decode_TeletexDomainDefinedAttribute(
     el: &X690Element,
 ) -> ASN1Result<TeletexDomainDefinedAttribute> {
-    |el_: &X690Element| -> ASN1Result<TeletexDomainDefinedAttribute> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TeletexDomainDefinedAttribute,
-            _eal_components_for_TeletexDomainDefinedAttribute,
-            _rctl2_components_for_TeletexDomainDefinedAttribute,
-        )?;
-        let type_ = ber_decode_t61_string(_components.get("type").unwrap())?;
-        let value = ber_decode_t61_string(_components.get("value").unwrap())?;
-        Ok(TeletexDomainDefinedAttribute { type_, value })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TeletexDomainDefinedAttribute",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TeletexDomainDefinedAttribute,
+        _eal_components_for_TeletexDomainDefinedAttribute,
+        _rctl2_components_for_TeletexDomainDefinedAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut type__: OPTIONAL<TeletexString> = None;
+    let mut value_: OPTIONAL<TeletexString> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => type__ = Some(BER.decode_t61_string(_el)?),
+            "value" => value_ = Some(BER.decode_t61_string(_el)?),
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "TeletexDomainDefinedAttribute",
+                ))
+            }
+        }
+    }
+    Ok(TeletexDomainDefinedAttribute {
+        type_: type__.unwrap(),
+        value: value_.unwrap(),
+    })
 }
 
 pub fn _encode_TeletexDomainDefinedAttribute(
     value_: &TeletexDomainDefinedAttribute,
 ) -> ASN1Result<X690Element> {
-    |value_: &TeletexDomainDefinedAttribute| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(ber_encode_t61_string(&value_.type_)?);
-        components_.push(ber_encode_t61_string(&value_.value)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(BER.encode_t61_string(&value_.type_)?);
+    components_.push(BER.encode_t61_string(&value_.value)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_TeletexDomainDefinedAttribute(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "TeletexDomainDefinedAttribute",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TeletexDomainDefinedAttribute,
+        _eal_components_for_TeletexDomainDefinedAttribute,
+        _rctl2_components_for_TeletexDomainDefinedAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => BER.validate_t61_string(_el)?,
+            "value" => BER.validate_t61_string(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "TeletexDomainDefinedAttribute",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3707,7 +5079,22 @@ pub fn _encode_TeletexDomainDefinedAttribute(
 ///
 pub fn universal_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
-        id: vec![28], /* OBJECT_FIELD_SETTING */
+        id: 28, /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod universal_domain_defined_attributes {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = UniversalDomainDefinedAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_UniversalDomainDefinedAttributes(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_UniversalDomainDefinedAttributes(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_UniversalDomainDefinedAttributes(el)
     }
 }
 
@@ -3723,34 +5110,49 @@ pub type UniversalDomainDefinedAttributes = Vec<UniversalDomainDefinedAttribute>
 pub fn _decode_UniversalDomainDefinedAttributes(
     el: &X690Element,
 ) -> ASN1Result<UniversalDomainDefinedAttributes> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<UniversalDomainDefinedAttribute>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<UniversalDomainDefinedAttribute> =
-            Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_UniversalDomainDefinedAttribute(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UniversalDomainDefinedAttributes",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<UniversalDomainDefinedAttribute> =
+        Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_UniversalDomainDefinedAttribute(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_UniversalDomainDefinedAttributes(
     value_: &UniversalDomainDefinedAttributes,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<UniversalDomainDefinedAttribute>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_UniversalDomainDefinedAttribute(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_UniversalDomainDefinedAttribute(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_UniversalDomainDefinedAttributes(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_UniversalDomainDefinedAttribute(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "UniversalDomainDefinedAttributes",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3762,7 +5164,6 @@ pub fn _encode_UniversalDomainDefinedAttributes(
 /// }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct UniversalDomainDefinedAttribute {
     pub type_: UniversalOrBMPString,
@@ -3773,15 +5174,9 @@ impl UniversalDomainDefinedAttribute {
         UniversalDomainDefinedAttribute { type_, value }
     }
 }
-impl TryFrom<X690Element> for UniversalDomainDefinedAttribute {
+impl TryFrom<&X690Element> for UniversalDomainDefinedAttribute {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UniversalDomainDefinedAttribute(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UniversalDomainDefinedAttribute {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UniversalDomainDefinedAttribute(el)
     }
 }
@@ -3810,37 +5205,94 @@ pub const _eal_components_for_UniversalDomainDefinedAttribute: &[ComponentSpec; 
 pub fn _decode_UniversalDomainDefinedAttribute(
     el: &X690Element,
 ) -> ASN1Result<UniversalDomainDefinedAttribute> {
-    |el_: &X690Element| -> ASN1Result<UniversalDomainDefinedAttribute> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UniversalDomainDefinedAttribute,
-            _eal_components_for_UniversalDomainDefinedAttribute,
-            _rctl2_components_for_UniversalDomainDefinedAttribute,
-        )?;
-        let type_ = _decode_UniversalOrBMPString(_components.get("type").unwrap())?;
-        let value = _decode_UniversalOrBMPString(_components.get("value").unwrap())?;
-        Ok(UniversalDomainDefinedAttribute { type_, value })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UniversalDomainDefinedAttribute",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UniversalDomainDefinedAttribute,
+        _eal_components_for_UniversalDomainDefinedAttribute,
+        _rctl2_components_for_UniversalDomainDefinedAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut type__: OPTIONAL<UniversalOrBMPString> = None;
+    let mut value_: OPTIONAL<UniversalOrBMPString> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => type__ = Some(_decode_UniversalOrBMPString(_el)?),
+            "value" => value_ = Some(_decode_UniversalOrBMPString(_el)?),
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "UniversalDomainDefinedAttribute",
+                ))
+            }
+        }
+    }
+    Ok(UniversalDomainDefinedAttribute {
+        type_: type__.unwrap(),
+        value: value_.unwrap(),
+    })
 }
 
 pub fn _encode_UniversalDomainDefinedAttribute(
     value_: &UniversalDomainDefinedAttribute,
 ) -> ASN1Result<X690Element> {
-    |value_: &UniversalDomainDefinedAttribute| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_UniversalOrBMPString(&value_.type_)?);
-        components_.push(_encode_UniversalOrBMPString(&value_.value)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_UniversalOrBMPString(&value_.type_)?);
+    components_.push(_encode_UniversalOrBMPString(&value_.value)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_UniversalDomainDefinedAttribute(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "UniversalDomainDefinedAttribute",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UniversalDomainDefinedAttribute,
+        _eal_components_for_UniversalDomainDefinedAttribute,
+        _rctl2_components_for_UniversalDomainDefinedAttribute,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "type" => _validate_UniversalOrBMPString(_el)?,
+            "value" => _validate_UniversalOrBMPString(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "UniversalDomainDefinedAttribute",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4124,17 +5576,9 @@ pub enum UniversalOrBMPString_character_encoding {
     four_octets(UniversalString),
 }
 
-impl TryFrom<X690Element> for UniversalOrBMPString_character_encoding {
+impl TryFrom<&X690Element> for UniversalOrBMPString_character_encoding {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UniversalOrBMPString_character_encoding(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UniversalOrBMPString_character_encoding {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UniversalOrBMPString_character_encoding(el)
     }
 }
@@ -4142,34 +5586,48 @@ impl<'a> TryFrom<&'a X690Element> for UniversalOrBMPString_character_encoding {
 pub fn _decode_UniversalOrBMPString_character_encoding(
     el: &X690Element,
 ) -> ASN1Result<UniversalOrBMPString_character_encoding> {
-    |el: &X690Element| -> ASN1Result<UniversalOrBMPString_character_encoding> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 30) => Ok(UniversalOrBMPString_character_encoding::two_octets(
-                ber_decode_bmp_string(&el)?,
-            )),
-            (TagClass::UNIVERSAL, 28) => Ok(UniversalOrBMPString_character_encoding::four_octets(
-                ber_decode_universal_string(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 30) => Ok(UniversalOrBMPString_character_encoding::two_octets(
+            BER.decode_bmp_string(&el)?,
+        )),
+        (TagClass::UNIVERSAL, 28) => Ok(UniversalOrBMPString_character_encoding::four_octets(
+            BER.decode_universal_string(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "UniversalOrBMPString-character-encoding",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_UniversalOrBMPString_character_encoding(
     value_: &UniversalOrBMPString_character_encoding,
 ) -> ASN1Result<X690Element> {
-    |value: &UniversalOrBMPString_character_encoding| -> ASN1Result<X690Element> {
-        match value {
-            UniversalOrBMPString_character_encoding::two_octets(v) => ber_encode_bmp_string(&v),
-            UniversalOrBMPString_character_encoding::four_octets(v) => {
-                ber_encode_universal_string(&v)
-            }
+    match value_ {
+        UniversalOrBMPString_character_encoding::two_octets(v) => BER.encode_bmp_string(&v),
+        UniversalOrBMPString_character_encoding::four_octets(v) => BER.encode_universal_string(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("UniversalOrBMPString-character-encoding".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_UniversalOrBMPString_character_encoding(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 30) => BER.validate_bmp_string(&el),
+        (TagClass::UNIVERSAL, 28) => BER.validate_universal_string(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "UniversalOrBMPString-character-encoding",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -4177,7 +5635,6 @@ pub fn _encode_UniversalOrBMPString_character_encoding(
 /// ```asn1
 /// ExtendedNetworkAddress-e163-4-address ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ExtendedNetworkAddress_e163_4_address {
@@ -4192,15 +5649,9 @@ impl ExtendedNetworkAddress_e163_4_address {
         }
     }
 }
-impl TryFrom<X690Element> for ExtendedNetworkAddress_e163_4_address {
+impl TryFrom<&X690Element> for ExtendedNetworkAddress_e163_4_address {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ExtendedNetworkAddress_e163_4_address(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ExtendedNetworkAddress_e163_4_address {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtendedNetworkAddress_e163_4_address(el)
     }
 }
@@ -4229,53 +5680,116 @@ pub const _eal_components_for_ExtendedNetworkAddress_e163_4_address: &[Component
 pub fn _decode_ExtendedNetworkAddress_e163_4_address(
     el: &X690Element,
 ) -> ASN1Result<ExtendedNetworkAddress_e163_4_address> {
-    |el_: &X690Element| -> ASN1Result<ExtendedNetworkAddress_e163_4_address> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ExtendedNetworkAddress_e163_4_address,
-            _eal_components_for_ExtendedNetworkAddress_e163_4_address,
-            _rctl2_components_for_ExtendedNetworkAddress_e163_4_address,
-        )?;
-        let number = ber_decode_numeric_string(_components.get("number").unwrap())?;
-        let sub_address: OPTIONAL<NumericString> = match _components.get("sub-address") {
-            Some(c_) => Some(ber_decode_numeric_string(c_)?),
-            _ => None,
-        };
-        Ok(ExtendedNetworkAddress_e163_4_address {
-            number,
-            sub_address,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ExtendedNetworkAddress-e163-4-address",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtendedNetworkAddress_e163_4_address,
+        _eal_components_for_ExtendedNetworkAddress_e163_4_address,
+        _rctl2_components_for_ExtendedNetworkAddress_e163_4_address,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut number_: OPTIONAL<NumericString> = None;
+    let mut sub_address_: OPTIONAL<NumericString> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "number" => number_ = Some(BER.decode_numeric_string(_el)?),
+            "sub-address" => sub_address_ = Some(BER.decode_numeric_string(_el)?),
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ExtendedNetworkAddress-e163-4-address",
+                ))
+            }
+        }
+    }
+    Ok(ExtendedNetworkAddress_e163_4_address {
+        number: number_.unwrap(),
+        sub_address: sub_address_,
+    })
 }
 
 pub fn _encode_ExtendedNetworkAddress_e163_4_address(
     value_: &ExtendedNetworkAddress_e163_4_address,
 ) -> ASN1Result<X690Element> {
-    |value_: &ExtendedNetworkAddress_e163_4_address| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(|v_1: &NumericString| -> ASN1Result<X690Element> {
+        let mut el_1 = BER.encode_numeric_string(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.number)?);
+    if let Some(v_) = &value_.sub_address {
         components_.push(|v_1: &NumericString| -> ASN1Result<X690Element> {
-            let mut el_1 = ber_encode_numeric_string(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
+            let mut el_1 = BER.encode_numeric_string(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
             Ok(el_1)
-        }(&value_.number)?);
-        if let Some(v_) = &value_.sub_address {
-            components_.push(|v_1: &NumericString| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_numeric_string(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ExtendedNetworkAddress_e163_4_address(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ExtendedNetworkAddress-e163-4-address",
+            ))
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ExtendedNetworkAddress_e163_4_address,
+        _eal_components_for_ExtendedNetworkAddress_e163_4_address,
+        _rctl2_components_for_ExtendedNetworkAddress_e163_4_address,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "number" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "number"));
+                }
+                Ok(BER.validate_numeric_string(&el)?)
+            }(_el)?,
+            "sub-address" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "sub-address")
+                    );
+                }
+                Ok(BER.validate_numeric_string(&el)?)
+            }(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ExtendedNetworkAddress-e163-4-address",
+                ))
+            }
+        }
+    }
+    Ok(())
 }

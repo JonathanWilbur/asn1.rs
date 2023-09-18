@@ -19,11 +19,11 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+use crate::DirectoryAbstractService::*;
 use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -58,6 +58,21 @@ pub fn namingContexts() -> ATTRIBUTE {
     }
 }
 
+pub mod namingContexts {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = DistinguishedName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_DistinguishedName(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_DistinguishedName(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_DistinguishedName(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -86,6 +101,21 @@ pub fn altServer() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod altServer {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = IA5String; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_ia5_string(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_ia5_string(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_ia5_string(el)
     }
 }
 
@@ -120,6 +150,21 @@ pub fn supportedExtension() -> ATTRIBUTE {
     }
 }
 
+pub mod supportedExtension {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = OBJECT_IDENTIFIER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_object_identifier(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_object_identifier(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_object_identifier(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -148,6 +193,21 @@ pub fn supportedControl() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod supportedControl {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = OBJECT_IDENTIFIER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_object_identifier(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_object_identifier(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_object_identifier(el)
     }
 }
 
@@ -182,6 +242,21 @@ pub fn supportedSASLMechanisms() -> ATTRIBUTE {
     }
 }
 
+pub mod supportedSASLMechanisms {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = DirectoryString; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_DirectoryString(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_DirectoryString(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_DirectoryString(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -210,6 +285,21 @@ pub fn supportedLDAPVersion() -> ATTRIBUTE {
         no_user_modification: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod supportedLDAPVersion {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = INTEGER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_integer(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_integer(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_integer(el)
     }
 }
 
@@ -244,6 +334,21 @@ pub fn supportedFeatures() -> ATTRIBUTE {
     }
 }
 
+pub mod supportedFeatures {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = OBJECT_IDENTIFIER; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_object_identifier(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_object_identifier(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_object_identifier(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -260,10 +365,10 @@ pub fn supportedFeatures() -> ATTRIBUTE {
 pub fn ldapSyntaxes() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(objectIdentifierFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_directoryOperation), /* OBJECT_FIELD_SETTING */
-        ldapSyntax: Some(ldapSyntaxDescription().id),   /* OBJECT_FIELD_SETTING */
-        ldapName: Some(Vec::from([String::from("ldapSyntax")])), /* OBJECT_FIELD_SETTING */
-        id: id_soa_ldapSyntaxes(),                      /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_directoryOperation),              /* OBJECT_FIELD_SETTING */
+        ldapSyntax: Some(ldapSyntaxDescription().id),                /* OBJECT_FIELD_SETTING */
+        ldapName: Some(Vec::from([String::from("ldapSyntax")])),     /* OBJECT_FIELD_SETTING */
+        id: id_soa_ldapSyntaxes(),                                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -276,6 +381,21 @@ pub fn ldapSyntaxes() -> ATTRIBUTE {
     }
 }
 
+pub mod ldapSyntaxes {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = LdapSyntaxDescription; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_LdapSyntaxDescription(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_LdapSyntaxDescription(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_LdapSyntaxDescription(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -284,7 +404,6 @@ pub fn ldapSyntaxes() -> ATTRIBUTE {
 ///   description              UnboundedDirectoryString OPTIONAL,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct LdapSyntaxDescription {
@@ -305,15 +424,9 @@ impl LdapSyntaxDescription {
         }
     }
 }
-impl TryFrom<X690Element> for LdapSyntaxDescription {
+impl TryFrom<&X690Element> for LdapSyntaxDescription {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_LdapSyntaxDescription(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for LdapSyntaxDescription {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_LdapSyntaxDescription(el)
     }
 }
@@ -346,46 +459,86 @@ pub const _rctl2_components_for_LdapSyntaxDescription: &[ComponentSpec; 0] = &[]
 pub const _eal_components_for_LdapSyntaxDescription: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_LdapSyntaxDescription(el: &X690Element) -> ASN1Result<LdapSyntaxDescription> {
-    |el_: &X690Element| -> ASN1Result<LdapSyntaxDescription> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_LdapSyntaxDescription,
-            _eal_components_for_LdapSyntaxDescription,
-            _rctl2_components_for_LdapSyntaxDescription,
-        )?;
-        let identifier = ber_decode_object_identifier(_components.get("identifier").unwrap())?;
-        let description: OPTIONAL<UnboundedDirectoryString> = match _components.get("description") {
-            Some(c_) => Some(_decode_UnboundedDirectoryString(c_)?),
-            _ => None,
-        };
-        Ok(LdapSyntaxDescription {
-            identifier,
-            description,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "LdapSyntaxDescription")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_LdapSyntaxDescription,
+        _eal_components_for_LdapSyntaxDescription,
+        _rctl2_components_for_LdapSyntaxDescription,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut identifier_: OPTIONAL<OBJECT_IDENTIFIER> = None;
+    let mut description_: OPTIONAL<UnboundedDirectoryString> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "identifier" => identifier_ = Some(BER.decode_object_identifier(_el)?),
+            "description" => description_ = Some(_decode_UnboundedDirectoryString(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(LdapSyntaxDescription {
+        identifier: identifier_.unwrap(),
+        description: description_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_LdapSyntaxDescription(value_: &LdapSyntaxDescription) -> ASN1Result<X690Element> {
-    |value_: &LdapSyntaxDescription| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(ber_encode_object_identifier(&value_.identifier)?);
-        if let Some(v_) = &value_.description {
-            components_.push(_encode_UnboundedDirectoryString(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(BER.encode_object_identifier(&value_.identifier)?);
+    if let Some(v_) = &value_.description {
+        components_.push(_encode_UnboundedDirectoryString(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_LdapSyntaxDescription(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "LdapSyntaxDescription")
+            )
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_LdapSyntaxDescription,
+        _eal_components_for_LdapSyntaxDescription,
+        _rctl2_components_for_LdapSyntaxDescription,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "identifier" => BER.validate_object_identifier(_el)?,
+            "description" => _validate_UnboundedDirectoryString(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:

@@ -78,46 +78,42 @@ impl ERROR {}
 ///   global  OBJECT IDENTIFIER,
 ///   ... }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Code {
     local(i64),
     global(OBJECT_IDENTIFIER),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for Code {
+impl TryFrom<&X690Element> for Code {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Code(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Code {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Code(el)
     }
 }
 
 pub fn _decode_Code(el: &X690Element) -> ASN1Result<Code> {
-    |el: &X690Element| -> ASN1Result<Code> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 2) => Ok(Code::local(ber_decode_i64(&el)?)),
-            (TagClass::UNIVERSAL, 6) => Ok(Code::global(ber_decode_object_identifier(&el)?)),
-            _ => Ok(Code::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 2) => Ok(Code::local(BER.decode_i64(&el)?)),
+        (TagClass::UNIVERSAL, 6) => Ok(Code::global(BER.decode_object_identifier(&el)?)),
+        _ => Ok(Code::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_Code(value_: &Code) -> ASN1Result<X690Element> {
-    |value: &Code| -> ASN1Result<X690Element> {
-        match value {
-            Code::local(v) => ber_encode_i64(&v),
-            Code::global(v) => ber_encode_object_identifier(&v),
-            Code::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        Code::local(v) => BER.encode_i64(*v),
+        Code::global(v) => BER.encode_object_identifier(&v),
+        Code::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_Code(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 2) => BER.validate_i64(&el),
+        (TagClass::UNIVERSAL, 6) => BER.validate_object_identifier(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -128,46 +124,42 @@ pub fn _encode_Code(value_: &Code) -> ASN1Result<X690Element> {
 ///   absent   NULL,
 ///   ... }
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum InvokeId {
     present(INTEGER),
     absent(NULL),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for InvokeId {
+impl TryFrom<&X690Element> for InvokeId {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_InvokeId(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for InvokeId {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_InvokeId(el)
     }
 }
 
 pub fn _decode_InvokeId(el: &X690Element) -> ASN1Result<InvokeId> {
-    |el: &X690Element| -> ASN1Result<InvokeId> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 2) => Ok(InvokeId::present(ber_decode_integer(&el)?)),
-            (TagClass::UNIVERSAL, 5) => Ok(InvokeId::absent(())),
-            _ => Ok(InvokeId::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 2) => Ok(InvokeId::present(BER.decode_integer(&el)?)),
+        (TagClass::UNIVERSAL, 5) => Ok(InvokeId::absent(BER.decode_null(&el)?)),
+        _ => Ok(InvokeId::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_InvokeId(value_: &InvokeId) -> ASN1Result<X690Element> {
-    |value: &InvokeId| -> ASN1Result<X690Element> {
-        match value {
-            InvokeId::present(v) => ber_encode_integer(&v),
-            InvokeId::absent(v) => ber_encode_null(&v),
-            InvokeId::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+    match value_ {
+        InvokeId::present(v) => BER.encode_integer(&v),
+        InvokeId::absent(v) => BER.encode_null(&v),
+        InvokeId::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_InvokeId(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 2) => BER.validate_integer(&el),
+        (TagClass::UNIVERSAL, 5) => BER.validate_null(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:

@@ -25,7 +25,6 @@ use crate::OperationalBindingManagement::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -45,10 +44,10 @@ use x690::*;
 pub fn dseType() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(bitStringMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                        /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                 /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),         /* OBJECT_FIELD_SETTING */
-        id: id_doa_dseType(),                             /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),              /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),       /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_dseType(),                   /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -58,6 +57,21 @@ pub fn dseType() -> ATTRIBUTE {
         ldapName: None,
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod dseType {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = DSEType; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_DSEType(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_DSEType(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_DSEType(el)
     }
 }
 
@@ -123,11 +137,15 @@ pub const DSEType_familyMember: BIT = 17; /* LONG_NAMED_BIT */
 pub const DSEType_ditBridge: BIT = 18; /* LONG_NAMED_BIT */
 
 pub fn _decode_DSEType(el: &X690Element) -> ASN1Result<DSEType> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_DSEType(value_: &DSEType) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_DSEType(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -146,10 +164,10 @@ pub fn _encode_DSEType(value_: &DSEType) -> ASN1Result<X690Element> {
 pub fn myAccessPoint() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(accessPointMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),                          /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                   /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),           /* OBJECT_FIELD_SETTING */
-        id: id_doa_myAccessPoint(),                         /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_myAccessPoint(),               /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -159,6 +177,21 @@ pub fn myAccessPoint() -> ATTRIBUTE {
         ldapName: None,
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod myAccessPoint {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = AccessPoint; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_AccessPoint(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_AccessPoint(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_AccessPoint(el)
     }
 }
 
@@ -177,9 +210,9 @@ pub fn myAccessPoint() -> ATTRIBUTE {
 pub fn superiorKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(accessPointMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                   /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),           /* OBJECT_FIELD_SETTING */
-        id: id_doa_superiorKnowledge(),                     /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
+        id: id_doa_superiorKnowledge(),           /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -190,6 +223,21 @@ pub fn superiorKnowledge() -> ATTRIBUTE {
         ldapName: None,
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod superiorKnowledge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = AccessPoint; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_AccessPoint(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_AccessPoint(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_AccessPoint(el)
     }
 }
 
@@ -209,10 +257,10 @@ pub fn superiorKnowledge() -> ATTRIBUTE {
 pub fn specificKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(masterAndShadowAccessPointsMatch())), /* OBJECT_FIELD_SETTING */
-        single_valued: Some(true),        /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_distributedOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_specificKnowledge(),   /* OBJECT_FIELD_SETTING */
+        single_valued: Some(true),                                /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_distributedOperation),         /* OBJECT_FIELD_SETTING */
+        id: id_doa_specificKnowledge(),                           /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -222,6 +270,21 @@ pub fn specificKnowledge() -> ATTRIBUTE {
         ldapName: None,
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod specificKnowledge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = MasterAndShadowAccessPoints; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_MasterAndShadowAccessPoints(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_MasterAndShadowAccessPoints(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_MasterAndShadowAccessPoints(el)
     }
 }
 
@@ -240,9 +303,9 @@ pub fn specificKnowledge() -> ATTRIBUTE {
 pub fn nonSpecificKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(masterAndShadowAccessPointsMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_distributedOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_nonSpecificKnowledge(), /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                         /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_distributedOperation),         /* OBJECT_FIELD_SETTING */
+        id: id_doa_nonSpecificKnowledge(),                        /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -256,6 +319,21 @@ pub fn nonSpecificKnowledge() -> ATTRIBUTE {
     }
 }
 
+pub mod nonSpecificKnowledge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = MasterAndShadowAccessPoints; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_MasterAndShadowAccessPoints(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_MasterAndShadowAccessPoints(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_MasterAndShadowAccessPoints(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -264,7 +342,6 @@ pub fn nonSpecificKnowledge() -> ATTRIBUTE {
 ///   agreementID           [3]  OperationalBindingID,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct SupplierOrConsumer {
@@ -291,15 +368,9 @@ impl SupplierOrConsumer {
         }
     }
 }
-impl TryFrom<X690Element> for SupplierOrConsumer {
+impl TryFrom<&X690Element> for SupplierOrConsumer {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SupplierOrConsumer(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SupplierOrConsumer {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SupplierOrConsumer(el)
     }
 }
@@ -340,119 +411,173 @@ pub const _rctl2_components_for_SupplierOrConsumer: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_SupplierOrConsumer: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_SupplierOrConsumer(el: &X690Element) -> ASN1Result<SupplierOrConsumer> {
-    |el_: &X690Element| -> ASN1Result<SupplierOrConsumer> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SupplierOrConsumer,
-            _eal_components_for_SupplierOrConsumer,
-            _rctl2_components_for_SupplierOrConsumer,
-            50,
-        )?;
-        let ae_title = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
-            _components.get("ae-title").unwrap(),
-        )?;
-        let address = |el: &X690Element| -> ASN1Result<PresentationAddress> {
-            Ok(_decode_PresentationAddress(&el.inner()?)?)
-        }(_components.get("address").unwrap())?;
-        let protocolInformation: OPTIONAL<Vec<ProtocolInformation>> = match _components
-            .get("protocolInformation")
-        {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<ProtocolInformation>> {
-                Ok(
-                    |el: &X690Element| -> ASN1Result<SET_OF<ProtocolInformation>> {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SET_OF<ProtocolInformation> =
-                            Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_ProtocolInformation(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SupplierOrConsumer")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_SupplierOrConsumer,
+        _eal_components_for_SupplierOrConsumer,
+        _rctl2_components_for_SupplierOrConsumer,
+        50,
+    )?;
+    let ae_title_ = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
+        _components.get("ae-title").unwrap(),
+    )?;
+    let address_ = |el: &X690Element| -> ASN1Result<PresentationAddress> {
+        Ok(_decode_PresentationAddress(&el.inner()?)?)
+    }(_components.get("address").unwrap())?;
+    let protocolInformation_: OPTIONAL<Vec<ProtocolInformation>> = match _components
+        .get("protocolInformation")
+    {
+        Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<ProtocolInformation>> {
+            Ok(
+                |el: &X690Element| -> ASN1Result<SET_OF<ProtocolInformation>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "protocolInformation",
+                            ))
                         }
-                        Ok(items)
-                    }(&el.inner()?)?,
-                )
-            }(c_)?),
-            _ => None,
-        };
-        let agreementID = |el: &X690Element| -> ASN1Result<OperationalBindingID> {
-            Ok(_decode_OperationalBindingID(&el.inner()?)?)
-        }(_components.get("agreementID").unwrap())?;
-        Ok(SupplierOrConsumer {
-            ae_title,
-            address,
-            protocolInformation,
-            agreementID,
-            _unrecognized,
-        })
-    }(&el)
+                    };
+                    let mut items: SET_OF<ProtocolInformation> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_ProtocolInformation(el)?);
+                    }
+                    Ok(items)
+                }(&el.inner()?)?,
+            )
+        }(c_)?),
+        _ => None,
+    };
+    let agreementID_ = |el: &X690Element| -> ASN1Result<OperationalBindingID> {
+        Ok(_decode_OperationalBindingID(&el.inner()?)?)
+    }(_components.get("agreementID").unwrap())?;
+    Ok(SupplierOrConsumer {
+        ae_title: ae_title_,
+        address: address_,
+        protocolInformation: protocolInformation_,
+        agreementID: agreementID_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X690Element> {
-    |value_: &SupplierOrConsumer| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(14);
-        components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
-            ))
-        }(&value_.ae_title)?);
-        components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                1,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_PresentationAddress(&v_1)?,
-                ))),
-            ))
-        }(&value_.address)?);
-        if let Some(v_) = &value_.protocolInformation {
-            components_.push(
-                |v_1: &Vec<ProtocolInformation>| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        2,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
-                                let mut children: Vec<X690Element> =
-                                    Vec::with_capacity(value_.len());
-                                for v in value_ {
-                                    children.push(_encode_ProtocolInformation(&v)?);
-                                }
-                                Ok(X690Element::new(
-                                    TagClass::UNIVERSAL,
-                                    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                                    Arc::new(X690Encoding::Constructed(children)),
-                                ))
-                            }(&v_1)?,
-                        ))),
-                    ))
-                }(&v_)?,
-            );
-        }
-        components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                3,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_OperationalBindingID(&v_1)?,
-                ))),
-            ))
-        }(&value_.agreementID)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(14);
+    components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&_encode_Name(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.ae_title)?);
+    components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(&_encode_PresentationAddress(&v_1)?),
+        ))
+    }(&value_.address)?);
+    if let Some(v_) = &value_.protocolInformation {
+        components_.push(
+            |v_1: &Vec<ProtocolInformation>| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(
+                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                            for v in value_ {
+                                children.push(_encode_ProtocolInformation(&v)?);
+                            }
+                            Ok(X690Element::new(
+                                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                                X690Value::Constructed(Arc::new(children)),
+                            ))
+                        }(&v_1)?,
+                    ),
+                ))
+            }(&v_)?,
+        );
+    }
+    components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 3),
+            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+        ))
+    }(&value_.agreementID)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_SupplierOrConsumer(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SupplierOrConsumer")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_SupplierOrConsumer,
+        _eal_components_for_SupplierOrConsumer,
+        _rctl2_components_for_SupplierOrConsumer,
+        50,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ae-title"));
+        }
+        Ok(_validate_Name(&el.inner()?)?)
+    }(_components.get("ae-title").unwrap())?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "address"));
+        }
+        Ok(_validate_PresentationAddress(&el.inner()?)?)
+    }(_components.get("address").unwrap())?;
+    match _components.get("protocolInformation") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "protocolInformation",
+                ));
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_ProtocolInformation(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "protocolInformation",
+                    )),
+                }
+            }(&el.inner()?)?)
+        }(c_)?,
+        _ => (),
+    };
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "agreementID"));
+        }
+        Ok(_validate_OperationalBindingID(&el.inner()?)?)
+    }(_components.get("agreementID").unwrap())?;
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -464,7 +589,6 @@ pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X69
 ///   non-supplying-master  [5]  AccessPoint OPTIONAL,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct SupplierInformation {
@@ -500,15 +624,9 @@ impl SupplierInformation {
         true
     }
 }
-impl TryFrom<X690Element> for SupplierInformation {
+impl TryFrom<&X690Element> for SupplierInformation {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SupplierInformation(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SupplierInformation {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SupplierInformation(el)
     }
 }
@@ -563,154 +681,229 @@ pub const _rctl2_components_for_SupplierInformation: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_SupplierInformation: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_SupplierInformation(el: &X690Element) -> ASN1Result<SupplierInformation> {
-    |el_: &X690Element| -> ASN1Result<SupplierInformation> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SupplierInformation,
-            _eal_components_for_SupplierInformation,
-            _rctl2_components_for_SupplierInformation,
-            70,
-        )?;
-        let ae_title = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
-            _components.get("ae-title").unwrap(),
-        )?;
-        let address = |el: &X690Element| -> ASN1Result<PresentationAddress> {
-            Ok(_decode_PresentationAddress(&el.inner()?)?)
-        }(_components.get("address").unwrap())?;
-        let protocolInformation: OPTIONAL<Vec<ProtocolInformation>> = match _components
-            .get("protocolInformation")
-        {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<ProtocolInformation>> {
-                Ok(
-                    |el: &X690Element| -> ASN1Result<SET_OF<ProtocolInformation>> {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SET_OF<ProtocolInformation> =
-                            Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_ProtocolInformation(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SupplierInformation")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_SupplierInformation,
+        _eal_components_for_SupplierInformation,
+        _rctl2_components_for_SupplierInformation,
+        70,
+    )?;
+    let ae_title_ = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
+        _components.get("ae-title").unwrap(),
+    )?;
+    let address_ = |el: &X690Element| -> ASN1Result<PresentationAddress> {
+        Ok(_decode_PresentationAddress(&el.inner()?)?)
+    }(_components.get("address").unwrap())?;
+    let protocolInformation_: OPTIONAL<Vec<ProtocolInformation>> = match _components
+        .get("protocolInformation")
+    {
+        Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<ProtocolInformation>> {
+            Ok(
+                |el: &X690Element| -> ASN1Result<SET_OF<ProtocolInformation>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "protocolInformation",
+                            ))
                         }
-                        Ok(items)
-                    }(&el.inner()?)?,
-                )
-            }(c_)?),
-            _ => None,
-        };
-        let agreementID = |el: &X690Element| -> ASN1Result<OperationalBindingID> {
-            Ok(_decode_OperationalBindingID(&el.inner()?)?)
-        }(_components.get("agreementID").unwrap())?;
-        let supplier_is_master: OPTIONAL<BOOLEAN> = match _components.get("supplier-is-master") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
-                Ok(ber_decode_boolean(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let non_supplying_master: OPTIONAL<AccessPoint> =
-            match _components.get("non-supplying-master") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AccessPoint> {
-                    Ok(_decode_AccessPoint(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        Ok(SupplierInformation {
-            ae_title,
-            address,
-            protocolInformation,
-            agreementID,
-            supplier_is_master,
-            non_supplying_master,
-            _unrecognized,
-        })
-    }(&el)
+                    };
+                    let mut items: SET_OF<ProtocolInformation> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_ProtocolInformation(el)?);
+                    }
+                    Ok(items)
+                }(&el.inner()?)?,
+            )
+        }(c_)?),
+        _ => None,
+    };
+    let agreementID_ = |el: &X690Element| -> ASN1Result<OperationalBindingID> {
+        Ok(_decode_OperationalBindingID(&el.inner()?)?)
+    }(_components.get("agreementID").unwrap())?;
+    let supplier_is_master_: OPTIONAL<BOOLEAN> = match _components.get("supplier-is-master") {
+        Some(c_) => Some(|el: &X690Element| -> ASN1Result<BOOLEAN> {
+            Ok(BER.decode_boolean(&el.inner()?)?)
+        }(c_)?),
+        _ => None,
+    };
+    let non_supplying_master_: OPTIONAL<AccessPoint> = match _components.get("non-supplying-master")
+    {
+        Some(c_) => Some(|el: &X690Element| -> ASN1Result<AccessPoint> {
+            Ok(_decode_AccessPoint(&el.inner()?)?)
+        }(c_)?),
+        _ => None,
+    };
+    Ok(SupplierInformation {
+        ae_title: ae_title_,
+        address: address_,
+        protocolInformation: protocolInformation_,
+        agreementID: agreementID_,
+        supplier_is_master: supplier_is_master_,
+        non_supplying_master: non_supplying_master_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X690Element> {
-    |value_: &SupplierInformation| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(16);
-        components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
-            ))
-        }(&value_.ae_title)?);
-        components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                1,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_PresentationAddress(&v_1)?,
-                ))),
-            ))
-        }(&value_.address)?);
-        if let Some(v_) = &value_.protocolInformation {
-            components_.push(
-                |v_1: &Vec<ProtocolInformation>| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        2,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
-                                let mut children: Vec<X690Element> =
-                                    Vec::with_capacity(value_.len());
-                                for v in value_ {
-                                    children.push(_encode_ProtocolInformation(&v)?);
-                                }
-                                Ok(X690Element::new(
-                                    TagClass::UNIVERSAL,
-                                    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                                    Arc::new(X690Encoding::Constructed(children)),
-                                ))
-                            }(&v_1)?,
-                        ))),
-                    ))
-                }(&v_)?,
-            );
-        }
-        components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                3,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_OperationalBindingID(&v_1)?,
-                ))),
-            ))
-        }(&value_.agreementID)?);
-        if let Some(v_) = &value_.supplier_is_master {
-            if *v_ != SupplierInformation::_default_value_for_supplier_is_master() {
-                components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        4,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_boolean(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.non_supplying_master {
-            components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
+    let mut components_: Vec<X690Element> = Vec::with_capacity(16);
+    components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&_encode_Name(&v_1)?),
+        ))
+    }(&value_.ae_title)?);
+    components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(&_encode_PresentationAddress(&v_1)?),
+        ))
+    }(&value_.address)?);
+    if let Some(v_) = &value_.protocolInformation {
+        components_.push(
+            |v_1: &Vec<ProtocolInformation>| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    5,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_AccessPoint(&v_1)?))),
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(
+                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                            for v in value_ {
+                                children.push(_encode_ProtocolInformation(&v)?);
+                            }
+                            Ok(X690Element::new(
+                                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                                X690Value::Constructed(Arc::new(children)),
+                            ))
+                        }(&v_1)?,
+                    ),
+                ))
+            }(&v_)?,
+        );
+    }
+    components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 3),
+            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+        ))
+    }(&value_.agreementID)?);
+    if let Some(v_) = &value_.supplier_is_master {
+        if *v_ != SupplierInformation::_default_value_for_supplier_is_master() {
+            components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 4),
+                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    }
+    if let Some(v_) = &value_.non_supplying_master {
+        components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 5),
+                X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_SupplierInformation(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SupplierInformation")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_SupplierInformation,
+        _eal_components_for_SupplierInformation,
+        _rctl2_components_for_SupplierInformation,
+        70,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ae-title"));
+        }
+        Ok(_validate_Name(&el.inner()?)?)
+    }(_components.get("ae-title").unwrap())?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "address"));
+        }
+        Ok(_validate_PresentationAddress(&el.inner()?)?)
+    }(_components.get("address").unwrap())?;
+    match _components.get("protocolInformation") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "protocolInformation",
+                ));
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_ProtocolInformation(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "protocolInformation",
+                    )),
+                }
+            }(&el.inner()?)?)
+        }(c_)?,
+        _ => (),
+    };
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "agreementID"));
+        }
+        Ok(_validate_OperationalBindingID(&el.inner()?)?)
+    }(_components.get("agreementID").unwrap())?;
+    match _components.get("supplier-is-master") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "supplier-is-master")
+                );
+            }
+            Ok(BER.validate_boolean(&el.inner()?)?)
+        }(c_)?,
+        _ => (),
+    };
+    match _components.get("non-supplying-master") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "non-supplying-master",
+                ));
+            }
+            Ok(_validate_AccessPoint(&el.inner()?)?)
+        }(c_)?,
+        _ => (),
+    };
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -728,9 +921,9 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
 pub fn supplierKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(supplierOrConsumerInformationMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_supplierKnowledge(),   /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                           /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),                   /* OBJECT_FIELD_SETTING */
+        id: id_doa_supplierKnowledge(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -741,6 +934,21 @@ pub fn supplierKnowledge() -> ATTRIBUTE {
         ldapName: None,
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod supplierKnowledge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = SupplierInformation; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_SupplierInformation(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_SupplierInformation(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_SupplierInformation(el)
     }
 }
 
@@ -759,6 +967,10 @@ pub fn _encode_ConsumerInformation(value_: &ConsumerInformation) -> ASN1Result<X
     _encode_SupplierOrConsumer(&value_)
 }
 
+pub fn _validate_ConsumerInformation(el: &X690Element) -> ASN1Result<()> {
+    _validate_SupplierOrConsumer(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -774,9 +986,9 @@ pub fn _encode_ConsumerInformation(value_: &ConsumerInformation) -> ASN1Result<X
 pub fn consumerKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(supplierOrConsumerInformationMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_consumerKnowledge(),   /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                           /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),                   /* OBJECT_FIELD_SETTING */
+        id: id_doa_consumerKnowledge(),                             /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -790,6 +1002,21 @@ pub fn consumerKnowledge() -> ATTRIBUTE {
     }
 }
 
+pub mod consumerKnowledge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = ConsumerInformation; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_ConsumerInformation(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_ConsumerInformation(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_ConsumerInformation(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -798,7 +1025,6 @@ pub fn consumerKnowledge() -> ATTRIBUTE {
 ///   consumers        [3]  SET OF AccessPoint,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct SupplierAndConsumers {
@@ -825,15 +1051,9 @@ impl SupplierAndConsumers {
         }
     }
 }
-impl TryFrom<X690Element> for SupplierAndConsumers {
+impl TryFrom<&X690Element> for SupplierAndConsumers {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_SupplierAndConsumers(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for SupplierAndConsumers {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SupplierAndConsumers(el)
     }
 }
@@ -874,142 +1094,206 @@ pub const _rctl2_components_for_SupplierAndConsumers: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_SupplierAndConsumers: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_SupplierAndConsumers(el: &X690Element) -> ASN1Result<SupplierAndConsumers> {
-    |el_: &X690Element| -> ASN1Result<SupplierAndConsumers> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_SupplierAndConsumers,
-            _eal_components_for_SupplierAndConsumers,
-            _rctl2_components_for_SupplierAndConsumers,
-            50,
-        )?;
-        let ae_title = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
-            _components.get("ae-title").unwrap(),
-        )?;
-        let address = |el: &X690Element| -> ASN1Result<PresentationAddress> {
-            Ok(_decode_PresentationAddress(&el.inner()?)?)
-        }(_components.get("address").unwrap())?;
-        let protocolInformation: OPTIONAL<Vec<ProtocolInformation>> = match _components
-            .get("protocolInformation")
-        {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<ProtocolInformation>> {
-                Ok(
-                    |el: &X690Element| -> ASN1Result<SET_OF<ProtocolInformation>> {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SET_OF<ProtocolInformation> =
-                            Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_ProtocolInformation(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SupplierAndConsumers")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_SupplierAndConsumers,
+        _eal_components_for_SupplierAndConsumers,
+        _rctl2_components_for_SupplierAndConsumers,
+        50,
+    )?;
+    let ae_title_ = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
+        _components.get("ae-title").unwrap(),
+    )?;
+    let address_ = |el: &X690Element| -> ASN1Result<PresentationAddress> {
+        Ok(_decode_PresentationAddress(&el.inner()?)?)
+    }(_components.get("address").unwrap())?;
+    let protocolInformation_: OPTIONAL<Vec<ProtocolInformation>> = match _components
+        .get("protocolInformation")
+    {
+        Some(c_) => Some(|el: &X690Element| -> ASN1Result<Vec<ProtocolInformation>> {
+            Ok(
+                |el: &X690Element| -> ASN1Result<SET_OF<ProtocolInformation>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "protocolInformation",
+                            ))
                         }
-                        Ok(items)
-                    }(&el.inner()?)?,
-                )
-            }(c_)?),
-            _ => None,
-        };
-        let consumers = |el: &X690Element| -> ASN1Result<Vec<AccessPoint>> {
-            Ok(|el: &X690Element| -> ASN1Result<SET_OF<AccessPoint>> {
-                let elements = match el.value.borrow() {
-                    X690Encoding::Constructed(children) => children,
-                    _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                };
-                let mut items: SET_OF<AccessPoint> = Vec::with_capacity(elements.len());
-                for el in elements {
-                    items.push(_decode_AccessPoint(el)?);
+                    };
+                    let mut items: SET_OF<ProtocolInformation> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_ProtocolInformation(el)?);
+                    }
+                    Ok(items)
+                }(&el.inner()?)?,
+            )
+        }(c_)?),
+        _ => None,
+    };
+    let consumers_ = |el: &X690Element| -> ASN1Result<Vec<AccessPoint>> {
+        Ok(|el: &X690Element| -> ASN1Result<SET_OF<AccessPoint>> {
+            let elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "consumers")
+                    )
                 }
-                Ok(items)
-            }(&el.inner()?)?)
-        }(_components.get("consumers").unwrap())?;
-        Ok(SupplierAndConsumers {
-            ae_title,
-            address,
-            protocolInformation,
-            consumers,
-            _unrecognized,
-        })
-    }(&el)
+            };
+            let mut items: SET_OF<AccessPoint> = Vec::with_capacity(elements.len());
+            for el in elements.iter() {
+                items.push(_decode_AccessPoint(el)?);
+            }
+            Ok(items)
+        }(&el.inner()?)?)
+    }(_components.get("consumers").unwrap())?;
+    Ok(SupplierAndConsumers {
+        ae_title: ae_title_,
+        address: address_,
+        protocolInformation: protocolInformation_,
+        consumers: consumers_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result<X690Element> {
-    |value_: &SupplierAndConsumers| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(14);
-        components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
-            ))
-        }(&value_.ae_title)?);
-        components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                1,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_PresentationAddress(&v_1)?,
-                ))),
-            ))
-        }(&value_.address)?);
-        if let Some(v_) = &value_.protocolInformation {
-            components_.push(
-                |v_1: &Vec<ProtocolInformation>| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        2,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
-                                let mut children: Vec<X690Element> =
-                                    Vec::with_capacity(value_.len());
-                                for v in value_ {
-                                    children.push(_encode_ProtocolInformation(&v)?);
-                                }
-                                Ok(X690Element::new(
-                                    TagClass::UNIVERSAL,
-                                    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                                    Arc::new(X690Encoding::Constructed(children)),
-                                ))
-                            }(&v_1)?,
-                        ))),
-                    ))
-                }(&v_)?,
-            );
-        }
-        components_.push(|v_1: &Vec<AccessPoint>| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                3,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(|value_: &SET_OF<
-                    AccessPoint,
-                >|
-                 -> ASN1Result<
-                    X690Element,
-                > {
-                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                    for v in value_ {
-                        children.push(_encode_AccessPoint(&v)?);
-                    }
-                    Ok(X690Element::new(
-                        TagClass::UNIVERSAL,
-                        ASN1_UNIVERSAL_TAG_NUMBER_SET_OF,
-                        Arc::new(X690Encoding::Constructed(children)),
-                    ))
-                }(&v_1)?))),
-            ))
-        }(&value_.consumers)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(14);
+    components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&_encode_Name(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.ae_title)?);
+    components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(&_encode_PresentationAddress(&v_1)?),
+        ))
+    }(&value_.address)?);
+    if let Some(v_) = &value_.protocolInformation {
+        components_.push(
+            |v_1: &Vec<ProtocolInformation>| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(
+                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                            for v in value_ {
+                                children.push(_encode_ProtocolInformation(&v)?);
+                            }
+                            Ok(X690Element::new(
+                                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                                X690Value::Constructed(Arc::new(children)),
+                            ))
+                        }(&v_1)?,
+                    ),
+                ))
+            }(&v_)?,
+        );
+    }
+    components_.push(|v_1: &Vec<AccessPoint>| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 3),
+            X690Value::from_explicit(&|value_: &SET_OF<AccessPoint>| -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(_encode_AccessPoint(&v)?);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v_1)?),
+        ))
+    }(&value_.consumers)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_SupplierAndConsumers(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SupplierAndConsumers")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_SupplierAndConsumers,
+        _eal_components_for_SupplierAndConsumers,
+        _rctl2_components_for_SupplierAndConsumers,
+        50,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ae-title"));
+        }
+        Ok(_validate_Name(&el.inner()?)?)
+    }(_components.get("ae-title").unwrap())?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "address"));
+        }
+        Ok(_validate_PresentationAddress(&el.inner()?)?)
+    }(_components.get("address").unwrap())?;
+    match _components.get("protocolInformation") {
+        Some(c_) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "protocolInformation",
+                ));
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_ProtocolInformation(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "protocolInformation",
+                    )),
+                }
+            }(&el.inner()?)?)
+        }(c_)?,
+        _ => (),
+    };
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "consumers"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            match &el.value {
+                X690Value::Constructed(subs) => {
+                    for sub in subs.iter() {
+                        _validate_AccessPoint(&sub)?;
+                    }
+                    Ok(())
+                }
+                _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "consumers")),
+            }
+        }(&el.inner()?)?)
+    }(_components.get("consumers").unwrap())?;
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1027,9 +1311,9 @@ pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result
 pub fn secondaryShadows() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(supplierAndConsumersMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true),                            /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation),                    /* OBJECT_FIELD_SETTING */
-        id: id_doa_secondaryShadows(),                               /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                  /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),          /* OBJECT_FIELD_SETTING */
+        id: id_doa_secondaryShadows(),                     /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1040,6 +1324,21 @@ pub fn secondaryShadows() -> ATTRIBUTE {
         ldapName: None,
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod secondaryShadows {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = SupplierAndConsumers; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_SupplierAndConsumers(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_SupplierAndConsumers(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_SupplierAndConsumers(el)
     }
 }
 
@@ -1058,9 +1357,9 @@ pub fn secondaryShadows() -> ATTRIBUTE {
 pub fn ditBridgeKnowledge() -> ATTRIBUTE {
     ATTRIBUTE {
         equality_match: Some(Box::new(directoryStringFirstComponentMatch())), /* OBJECT_FIELD_SETTING */
-        no_user_modification: Some(true), /* OBJECT_FIELD_SETTING */
-        usage: Some(AttributeUsage_dSAOperation), /* OBJECT_FIELD_SETTING */
-        id: id_doa_ditBridgeKnowledge(),  /* OBJECT_FIELD_SETTING */
+        no_user_modification: Some(true),                           /* OBJECT_FIELD_SETTING */
+        usage: Some(AttributeUsage_dSAOperation),                   /* OBJECT_FIELD_SETTING */
+        id: id_doa_ditBridgeKnowledge(),                            /* OBJECT_FIELD_SETTING */
         derivation: None,
         ordering_match: None,
         substrings_match: None,
@@ -1071,6 +1370,21 @@ pub fn ditBridgeKnowledge() -> ATTRIBUTE {
         ldapName: None,
         ldapDesc: None,
         obsolete: Some(false), /* OBJECT_FIELD_SETTING DEFAULT_OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod ditBridgeKnowledge {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = DitBridgeKnowledge; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_DitBridgeKnowledge(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_DitBridgeKnowledge(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_DitBridgeKnowledge(el)
     }
 }
 
@@ -1094,6 +1408,21 @@ pub fn accessPointMatch() -> MATCHING_RULE {
     }
 }
 
+pub mod accessPointMatch {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type AssertionType = Name; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_AssertionType(el: &X690Element) -> ASN1Result<AssertionType> {
+        _decode_Name(el)
+    }
+    pub fn _encode_AssertionType(value_: &AssertionType) -> ASN1Result<X690Element> {
+        _encode_Name(value_)
+    }
+    pub fn _validate_AssertionType(el: &X690Element) -> ASN1Result<()> {
+        _validate_Name(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1111,6 +1440,48 @@ pub fn masterAndShadowAccessPointsMatch() -> MATCHING_RULE {
         ldapSyntax: None,
         ldapName: None,
         ldapDesc: None,
+    }
+}
+
+pub mod masterAndShadowAccessPointsMatch {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type AssertionType = Vec<Name>; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_AssertionType(el: &X690Element) -> ASN1Result<AssertionType> {
+        let elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "&AssertionType")
+                )
+            }
+        };
+        let mut items: SET_OF<Name> = Vec::with_capacity(elements.len());
+        for el in elements.iter() {
+            items.push(_decode_Name(el)?);
+        }
+        Ok(items)
+    }
+    pub fn _encode_AssertionType(value_: &AssertionType) -> ASN1Result<X690Element> {
+        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+        for v in value_ {
+            children.push(_encode_Name(&v)?);
+        }
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+            X690Value::Constructed(Arc::new(children)),
+        ))
+    }
+    pub fn _validate_AssertionType(el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Constructed(subs) => {
+                for sub in subs.iter() {
+                    _validate_Name(&sub)?;
+                }
+                Ok(())
+            }
+            _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "&AssertionType")),
+        }
     }
 }
 
@@ -1136,6 +1507,21 @@ pub fn supplierOrConsumerInformationMatch() -> MATCHING_RULE {
     }
 }
 
+pub mod supplierOrConsumerInformationMatch {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type AssertionType = supplierOrConsumerInformationMatch_AssertionType; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_AssertionType(el: &X690Element) -> ASN1Result<AssertionType> {
+        _decode_supplierOrConsumerInformationMatch_AssertionType(el)
+    }
+    pub fn _encode_AssertionType(value_: &AssertionType) -> ASN1Result<X690Element> {
+        _encode_supplierOrConsumerInformationMatch_AssertionType(value_)
+    }
+    pub fn _validate_AssertionType(el: &X690Element) -> ASN1Result<()> {
+        _validate_supplierOrConsumerInformationMatch_AssertionType(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1153,6 +1539,21 @@ pub fn supplierAndConsumersMatch() -> MATCHING_RULE {
         ldapSyntax: None,
         ldapName: None,
         ldapDesc: None,
+    }
+}
+
+pub mod supplierAndConsumersMatch {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type AssertionType = Name; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_AssertionType(el: &X690Element) -> ASN1Result<AssertionType> {
+        _decode_Name(el)
+    }
+    pub fn _encode_AssertionType(value_: &AssertionType) -> ASN1Result<X690Element> {
+        _encode_Name(value_)
+    }
+    pub fn _validate_AssertionType(el: &X690Element) -> ASN1Result<()> {
+        _validate_Name(el)
     }
 }
 
@@ -1305,7 +1706,6 @@ pub fn id_kmr_supplierConsumersMatch() -> OBJECT_IDENTIFIER {
 /// supplierOrConsumerInformationMatch-AssertionType ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct supplierOrConsumerInformationMatch_AssertionType {
     pub ae_title: Name,
@@ -1319,15 +1719,9 @@ impl supplierOrConsumerInformationMatch_AssertionType {
         }
     }
 }
-impl TryFrom<X690Element> for supplierOrConsumerInformationMatch_AssertionType {
+impl TryFrom<&X690Element> for supplierOrConsumerInformationMatch_AssertionType {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_supplierOrConsumerInformationMatch_AssertionType(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for supplierOrConsumerInformationMatch_AssertionType {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_supplierOrConsumerInformationMatch_AssertionType(el)
     }
 }
@@ -1359,56 +1753,89 @@ pub const _eal_components_for_supplierOrConsumerInformationMatch_AssertionType: 
 pub fn _decode_supplierOrConsumerInformationMatch_AssertionType(
     el: &X690Element,
 ) -> ASN1Result<supplierOrConsumerInformationMatch_AssertionType> {
-    |el_: &X690Element| -> ASN1Result<supplierOrConsumerInformationMatch_AssertionType> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_supplierOrConsumerInformationMatch_AssertionType,
-            _eal_components_for_supplierOrConsumerInformationMatch_AssertionType,
-            _rctl2_components_for_supplierOrConsumerInformationMatch_AssertionType,
-            20,
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "supplierOrConsumerInformationMatch-AssertionType",
+            ))
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_supplierOrConsumerInformationMatch_AssertionType,
+        _eal_components_for_supplierOrConsumerInformationMatch_AssertionType,
+        _rctl2_components_for_supplierOrConsumerInformationMatch_AssertionType,
+        20,
+    )?;
+    let ae_title_ = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
+        _components.get("ae-title").unwrap(),
+    )?;
+    let agreement_identifier_ =
+        |el: &X690Element| -> ASN1Result<INTEGER> { Ok(BER.decode_integer(&el.inner()?)?) }(
+            _components.get("agreement-identifier").unwrap(),
         )?;
-        let ae_title = |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(
-            _components.get("ae-title").unwrap(),
-        )?;
-        let agreement_identifier =
-            |el: &X690Element| -> ASN1Result<INTEGER> { Ok(ber_decode_integer(&el.inner()?)?) }(
-                _components.get("agreement-identifier").unwrap(),
-            )?;
-        Ok(supplierOrConsumerInformationMatch_AssertionType {
-            ae_title,
-            agreement_identifier,
-        })
-    }(&el)
+    Ok(supplierOrConsumerInformationMatch_AssertionType {
+        ae_title: ae_title_,
+        agreement_identifier: agreement_identifier_,
+    })
 }
 
 pub fn _encode_supplierOrConsumerInformationMatch_AssertionType(
     value_: &supplierOrConsumerInformationMatch_AssertionType,
 ) -> ASN1Result<X690Element> {
-    |value_: &supplierOrConsumerInformationMatch_AssertionType| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
-            ))
-        }(&value_.ae_title)?);
-        components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                2,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_integer(&v_1)?))),
-            ))
-        }(&value_.agreement_identifier)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&_encode_Name(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.ae_title)?);
+    components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+        ))
+    }(&value_.agreement_identifier)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_supplierOrConsumerInformationMatch_AssertionType(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "supplierOrConsumerInformationMatch-AssertionType",
+            ))
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_supplierOrConsumerInformationMatch_AssertionType,
+        _eal_components_for_supplierOrConsumerInformationMatch_AssertionType,
+        _rctl2_components_for_supplierOrConsumerInformationMatch_AssertionType,
+        20,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ae-title"));
+        }
+        Ok(_validate_Name(&el.inner()?)?)
+    }(_components.get("ae-title").unwrap())?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "agreement-identifier")
+            );
+        }
+        Ok(BER.validate_integer(&el.inner()?)?)
+    }(_components.get("agreement-identifier").unwrap())?;
+    Ok(())
 }

@@ -19,9 +19,14 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+use crate::AVL_management::*;
+use crate::CaSubscription::*;
 use crate::PKI_Stub::*;
+use crate::TrustBroker::*;
 use crate::Wrapper::*;
 use asn1::*;
+use std::sync::Arc;
+use x690::*;
 
 /// ### ASN.1 Definition:
 ///
@@ -35,6 +40,21 @@ use asn1::*;
 pub fn avlProt() -> WRAPPED_PROT {
     TYPE_IDENTIFIER {
         id: id_avlprot(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod avlProt {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = AvlProt; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_AvlProt(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_AvlProt(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_AvlProt(el)
     }
 }
 
@@ -53,6 +73,21 @@ pub fn casubProt() -> WRAPPED_PROT {
     }
 }
 
+pub mod casubProt {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = CasubProt; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_CasubProt(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_CasubProt(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_CasubProt(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -65,6 +100,21 @@ pub fn casubProt() -> WRAPPED_PROT {
 pub fn tbprot() -> WRAPPED_PROT {
     TYPE_IDENTIFIER {
         id: id_tbprot(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod tbprot {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = TBprot; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_TBprot(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_TBprot(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_TBprot(el)
     }
 }
 

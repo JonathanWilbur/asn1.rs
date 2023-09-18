@@ -21,7 +21,6 @@
 //!
 use crate::PKI_Stub::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -118,6 +117,31 @@ pub fn dhModpGr14Hkdf256Algo() -> ALGORITHM {
     }
 }
 
+pub mod dhModpGr14Hkdf256Algo {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = Group14; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_Group14(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_Group14(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_Group14(el)
+    }
+    pub type DynParms = Payload14; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_DynParms(el: &X690Element) -> ASN1Result<DynParms> {
+        _decode_Payload14(el)
+    }
+    pub fn _encode_DynParms(value_: &DynParms) -> ASN1Result<X690Element> {
+        _encode_Payload14(value_)
+    }
+    pub fn _validate_DynParms(el: &X690Element) -> ASN1Result<()> {
+        _validate_Payload14(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -126,11 +150,15 @@ pub fn dhModpGr14Hkdf256Algo() -> ALGORITHM {
 pub type Group14 = INTEGER;
 
 pub fn _decode_Group14(el: &X690Element) -> ASN1Result<Group14> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_Group14(value_: &Group14) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_Group14(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -141,7 +169,6 @@ pub fn _encode_Group14(value_: &Group14) -> ASN1Result<X690Element> {
 ///   nonce       OCTET STRING (SIZE (32)),
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Payload14 {
@@ -162,15 +189,9 @@ impl Payload14 {
         }
     }
 }
-impl TryFrom<X690Element> for Payload14 {
+impl TryFrom<&X690Element> for Payload14 {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Payload14(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Payload14 {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Payload14(el)
     }
 }
@@ -197,41 +218,76 @@ pub const _rctl2_components_for_Payload14: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Payload14: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Payload14(el: &X690Element) -> ASN1Result<Payload14> {
-    |el_: &X690Element| -> ASN1Result<Payload14> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Payload14,
-            _eal_components_for_Payload14,
-            _rctl2_components_for_Payload14,
-        )?;
-        let dhPublicKey = ber_decode_octet_string(_components.get("dhPublicKey").unwrap())?;
-        let nonce = ber_decode_octet_string(_components.get("nonce").unwrap())?;
-        Ok(Payload14 {
-            dhPublicKey,
-            nonce,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Payload14")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Payload14,
+        _eal_components_for_Payload14,
+        _rctl2_components_for_Payload14,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut dhPublicKey_: OPTIONAL<OCTET_STRING> = None;
+    let mut nonce_: OPTIONAL<OCTET_STRING> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "dhPublicKey" => dhPublicKey_ = Some(BER.decode_octet_string(_el)?),
+            "nonce" => nonce_ = Some(BER.decode_octet_string(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(Payload14 {
+        dhPublicKey: dhPublicKey_.unwrap(),
+        nonce: nonce_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_Payload14(value_: &Payload14) -> ASN1Result<X690Element> {
-    |value_: &Payload14| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(ber_encode_octet_string(&value_.dhPublicKey)?);
-        components_.push(ber_encode_octet_string(&value_.nonce)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(BER.encode_octet_string(&value_.dhPublicKey)?);
+    components_.push(BER.encode_octet_string(&value_.nonce)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_Payload14(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Payload14")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Payload14,
+        _eal_components_for_Payload14,
+        _rctl2_components_for_Payload14,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "dhPublicKey" => BER.validate_octet_string(_el)?,
+            "nonce" => BER.validate_octet_string(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -250,6 +306,31 @@ pub fn dhModpGr23Hkdf256Algo() -> ALGORITHM {
     }
 }
 
+pub mod dhModpGr23Hkdf256Algo {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = Group23; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_Group23(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_Group23(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_Group23(el)
+    }
+    pub type DynParms = Payload23; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_DynParms(el: &X690Element) -> ASN1Result<DynParms> {
+        _decode_Payload23(el)
+    }
+    pub fn _encode_DynParms(value_: &DynParms) -> ASN1Result<X690Element> {
+        _encode_Payload23(value_)
+    }
+    pub fn _validate_DynParms(el: &X690Element) -> ASN1Result<()> {
+        _validate_Payload23(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -258,11 +339,15 @@ pub fn dhModpGr23Hkdf256Algo() -> ALGORITHM {
 pub type Group23 = INTEGER;
 
 pub fn _decode_Group23(el: &X690Element) -> ASN1Result<Group23> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_Group23(value_: &Group23) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_Group23(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -273,7 +358,6 @@ pub fn _encode_Group23(value_: &Group23) -> ASN1Result<X690Element> {
 ///   nonce       OCTET STRING (SIZE (32)),
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Payload23 {
@@ -294,15 +378,9 @@ impl Payload23 {
         }
     }
 }
-impl TryFrom<X690Element> for Payload23 {
+impl TryFrom<&X690Element> for Payload23 {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Payload23(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Payload23 {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Payload23(el)
     }
 }
@@ -329,41 +407,76 @@ pub const _rctl2_components_for_Payload23: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Payload23: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Payload23(el: &X690Element) -> ASN1Result<Payload23> {
-    |el_: &X690Element| -> ASN1Result<Payload23> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Payload23,
-            _eal_components_for_Payload23,
-            _rctl2_components_for_Payload23,
-        )?;
-        let dhPublicKey = ber_decode_octet_string(_components.get("dhPublicKey").unwrap())?;
-        let nonce = ber_decode_octet_string(_components.get("nonce").unwrap())?;
-        Ok(Payload23 {
-            dhPublicKey,
-            nonce,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Payload23")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Payload23,
+        _eal_components_for_Payload23,
+        _rctl2_components_for_Payload23,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut dhPublicKey_: OPTIONAL<OCTET_STRING> = None;
+    let mut nonce_: OPTIONAL<OCTET_STRING> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "dhPublicKey" => dhPublicKey_ = Some(BER.decode_octet_string(_el)?),
+            "nonce" => nonce_ = Some(BER.decode_octet_string(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(Payload23 {
+        dhPublicKey: dhPublicKey_.unwrap(),
+        nonce: nonce_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_Payload23(value_: &Payload23) -> ASN1Result<X690Element> {
-    |value_: &Payload23| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(ber_encode_octet_string(&value_.dhPublicKey)?);
-        components_.push(ber_encode_octet_string(&value_.nonce)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(BER.encode_octet_string(&value_.dhPublicKey)?);
+    components_.push(BER.encode_octet_string(&value_.nonce)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_Payload23(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Payload23")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Payload23,
+        _eal_components_for_Payload23,
+        _rctl2_components_for_Payload23,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "dhPublicKey" => BER.validate_octet_string(_el)?,
+            "nonce" => BER.validate_octet_string(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -382,6 +495,31 @@ pub fn dhModpGr28Hkdf256Algo() -> ALGORITHM {
     }
 }
 
+pub mod dhModpGr28Hkdf256Algo {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = Group28; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_Group28(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_Group28(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_Group28(el)
+    }
+    pub type DynParms = Payload28; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_DynParms(el: &X690Element) -> ASN1Result<DynParms> {
+        _decode_Payload28(el)
+    }
+    pub fn _encode_DynParms(value_: &DynParms) -> ASN1Result<X690Element> {
+        _encode_Payload28(value_)
+    }
+    pub fn _validate_DynParms(el: &X690Element) -> ASN1Result<()> {
+        _validate_Payload28(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -390,11 +528,15 @@ pub fn dhModpGr28Hkdf256Algo() -> ALGORITHM {
 pub type Group28 = INTEGER;
 
 pub fn _decode_Group28(el: &X690Element) -> ASN1Result<Group28> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_Group28(value_: &Group28) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_Group28(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -405,7 +547,6 @@ pub fn _encode_Group28(value_: &Group28) -> ASN1Result<X690Element> {
 ///   nonce       OCTET STRING (SIZE (32)),
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Payload28 {
@@ -426,15 +567,9 @@ impl Payload28 {
         }
     }
 }
-impl TryFrom<X690Element> for Payload28 {
+impl TryFrom<&X690Element> for Payload28 {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Payload28(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Payload28 {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Payload28(el)
     }
 }
@@ -461,41 +596,76 @@ pub const _rctl2_components_for_Payload28: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Payload28: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Payload28(el: &X690Element) -> ASN1Result<Payload28> {
-    |el_: &X690Element| -> ASN1Result<Payload28> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Payload28,
-            _eal_components_for_Payload28,
-            _rctl2_components_for_Payload28,
-        )?;
-        let dhPublicKey = ber_decode_octet_string(_components.get("dhPublicKey").unwrap())?;
-        let nonce = ber_decode_octet_string(_components.get("nonce").unwrap())?;
-        Ok(Payload28 {
-            dhPublicKey,
-            nonce,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Payload28")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Payload28,
+        _eal_components_for_Payload28,
+        _rctl2_components_for_Payload28,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut dhPublicKey_: OPTIONAL<OCTET_STRING> = None;
+    let mut nonce_: OPTIONAL<OCTET_STRING> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "dhPublicKey" => dhPublicKey_ = Some(BER.decode_octet_string(_el)?),
+            "nonce" => nonce_ = Some(BER.decode_octet_string(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(Payload28 {
+        dhPublicKey: dhPublicKey_.unwrap(),
+        nonce: nonce_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_Payload28(value_: &Payload28) -> ASN1Result<X690Element> {
-    |value_: &Payload28| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(ber_encode_octet_string(&value_.dhPublicKey)?);
-        components_.push(ber_encode_octet_string(&value_.nonce)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(BER.encode_octet_string(&value_.dhPublicKey)?);
+    components_.push(BER.encode_octet_string(&value_.nonce)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_Payload28(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Payload28")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Payload28,
+        _eal_components_for_Payload28,
+        _rctl2_components_for_Payload28,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "dhPublicKey" => BER.validate_octet_string(_el)?,
+            "nonce" => BER.validate_octet_string(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:

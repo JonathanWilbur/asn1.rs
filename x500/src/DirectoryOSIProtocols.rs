@@ -27,6 +27,7 @@ use crate::OSIProtocolSpecification::*;
 use crate::OperationalBindingManagement::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
+use std::sync::Arc;
 use x690::*;
 
 /// ### ASN.1 Definition:
@@ -44,6 +45,10 @@ pub fn _encode_DAP_OSI_PDUs(value_: &DAP_OSI_PDUs) -> ASN1Result<X690Element> {
     _encode_OSI_PDU(&value_)
 }
 
+pub fn _validate_DAP_OSI_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_OSI_PDU(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -59,6 +64,10 @@ pub fn _encode_DSP_OSI_PDUs(value_: &DSP_OSI_PDUs) -> ASN1Result<X690Element> {
     _encode_OSI_PDU(&value_)
 }
 
+pub fn _validate_DSP_OSI_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_OSI_PDU(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -72,6 +81,10 @@ pub fn _decode_DOP_OSI_PDUs(el: &X690Element) -> ASN1Result<DOP_OSI_PDUs> {
 
 pub fn _encode_DOP_OSI_PDUs(value_: &DOP_OSI_PDUs) -> ASN1Result<X690Element> {
     _encode_OSI_PDU(&value_)
+}
+
+pub fn _validate_DOP_OSI_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_OSI_PDU(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -91,6 +104,10 @@ pub fn _encode_ShadowSupplierInitiatedDISP_OSI_PDUs(
     value_: &ShadowSupplierInitiatedDISP_OSI_PDUs,
 ) -> ASN1Result<X690Element> {
     _encode_OSI_PDU(&value_)
+}
+
+pub fn _validate_ShadowSupplierInitiatedDISP_OSI_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_OSI_PDU(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -113,6 +130,12 @@ pub fn _encode_ShadowSupplierInitiatedAsynchronousDISP_OSI_PDUs(
     _encode_OSI_PDU(&value_)
 }
 
+pub fn _validate_ShadowSupplierInitiatedAsynchronousDISP_OSI_PDUs(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    _validate_OSI_PDU(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -130,6 +153,10 @@ pub fn _encode_ShadowConsumerInitiatedDISP_OSI_PDUs(
     value_: &ShadowConsumerInitiatedDISP_OSI_PDUs,
 ) -> ASN1Result<X690Element> {
     _encode_OSI_PDU(&value_)
+}
+
+pub fn _validate_ShadowConsumerInitiatedDISP_OSI_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_OSI_PDU(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -150,6 +177,12 @@ pub fn _encode_ShadowConsumerInitiatedAsynchronousDISP_OSI_PDUs(
     value_: &ShadowConsumerInitiatedAsynchronousDISP_OSI_PDUs,
 ) -> ASN1Result<X690Element> {
     _encode_OSI_PDU(&value_)
+}
+
+pub fn _validate_ShadowConsumerInitiatedAsynchronousDISP_OSI_PDUs(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    _validate_OSI_PDU(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -196,7 +229,7 @@ impl APPLICATION_CONTEXT {}
 pub fn directoryAccessAC() -> APPLICATION_CONTEXT {
     APPLICATION_CONTEXT {
         bind_operation: directoryBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([
+        Operations: Vec::from([
             read(),
             compare(),
             abandon(),
@@ -211,6 +244,11 @@ pub fn directoryAccessAC() -> APPLICATION_CONTEXT {
         ]), /* OBJECT_FIELD_SETTING */
         applicationContextName: id_ac_directoryAccessAC(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod directoryAccessAC {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -238,7 +276,7 @@ pub fn directoryAccessAC() -> APPLICATION_CONTEXT {
 pub fn directorySystemAC() -> APPLICATION_CONTEXT {
     APPLICATION_CONTEXT {
         bind_operation: dSABind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([
+        Operations: Vec::from([
             chainedRead(),
             chainedCompare(),
             chainedAbandon(),
@@ -257,6 +295,11 @@ pub fn directorySystemAC() -> APPLICATION_CONTEXT {
     }
 }
 
+pub mod directorySystemAC {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -271,9 +314,14 @@ pub fn directorySystemAC() -> APPLICATION_CONTEXT {
 pub fn shadowSupplierInitiatedAC() -> APPLICATION_CONTEXT {
     APPLICATION_CONTEXT {
         bind_operation: dSAShadowBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([updateShadow(), coordinateShadowUpdate()]), /* OBJECT_FIELD_SETTING */
+        Operations: Vec::from([updateShadow(), coordinateShadowUpdate()]), /* OBJECT_FIELD_SETTING */
         applicationContextName: id_ac_shadowSupplierInitiatedAC(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod shadowSupplierInitiatedAC {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -290,9 +338,14 @@ pub fn shadowSupplierInitiatedAC() -> APPLICATION_CONTEXT {
 pub fn shadowConsumerInitiatedAC() -> APPLICATION_CONTEXT {
     APPLICATION_CONTEXT {
         bind_operation: dSAShadowBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([requestShadowUpdate(), updateShadow()]), /* OBJECT_FIELD_SETTING */
+        Operations: Vec::from([requestShadowUpdate(), updateShadow()]), /* OBJECT_FIELD_SETTING */
         applicationContextName: id_ac_shadowConsumerInitiatedAC(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod shadowConsumerInitiatedAC {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -309,9 +362,14 @@ pub fn shadowConsumerInitiatedAC() -> APPLICATION_CONTEXT {
 pub fn shadowSupplierInitiatedAsynchronousAC() -> APPLICATION_CONTEXT {
     APPLICATION_CONTEXT {
         bind_operation: dSAShadowBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([updateShadow(), coordinateShadowUpdate()]), /* OBJECT_FIELD_SETTING */
+        Operations: Vec::from([updateShadow(), coordinateShadowUpdate()]), /* OBJECT_FIELD_SETTING */
         applicationContextName: id_ac_shadowSupplierInitiatedAsynchronousAC(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod shadowSupplierInitiatedAsynchronousAC {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -328,9 +386,14 @@ pub fn shadowSupplierInitiatedAsynchronousAC() -> APPLICATION_CONTEXT {
 pub fn shadowConsumerInitiatedAsynchronousAC() -> APPLICATION_CONTEXT {
     APPLICATION_CONTEXT {
         bind_operation: dSAShadowBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([requestShadowUpdate(), updateShadow()]), /* OBJECT_FIELD_SETTING */
+        Operations: Vec::from([requestShadowUpdate(), updateShadow()]), /* OBJECT_FIELD_SETTING */
         applicationContextName: id_ac_shadowConsumerInitiatedAsynchronousAC(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod shadowConsumerInitiatedAsynchronousAC {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -348,13 +411,18 @@ pub fn shadowConsumerInitiatedAsynchronousAC() -> APPLICATION_CONTEXT {
 pub fn directoryOperationalBindingManagementAC() -> APPLICATION_CONTEXT {
     APPLICATION_CONTEXT {
         bind_operation: dSAOperationalBindingManagementBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([
+        Operations: Vec::from([
             establishOperationalBinding(),
             modifyOperationalBinding(),
             terminateOperationalBinding(),
         ]), /* OBJECT_FIELD_SETTING */
         applicationContextName: id_ac_directoryOperationalBindingManagementAC(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod directoryOperationalBindingManagementAC {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:

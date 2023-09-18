@@ -19,6 +19,7 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1

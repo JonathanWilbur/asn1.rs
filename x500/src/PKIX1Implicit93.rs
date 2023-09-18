@@ -20,7 +20,6 @@
 //! types.
 //!
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -32,7 +31,6 @@ use x690::*;
 ///   explicitText  DisplayText OPTIONAL
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct UserNotice {
@@ -55,15 +53,9 @@ impl Default for UserNotice {
         }
     }
 }
-impl TryFrom<X690Element> for UserNotice {
+impl TryFrom<&X690Element> for UserNotice {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_UserNotice(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for UserNotice {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UserNotice(el)
     }
 }
@@ -94,48 +86,80 @@ pub const _rctl2_components_for_UserNotice: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_UserNotice: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_UserNotice(el: &X690Element) -> ASN1Result<UserNotice> {
-    |el_: &X690Element| -> ASN1Result<UserNotice> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_UserNotice,
-            _eal_components_for_UserNotice,
-            _rctl2_components_for_UserNotice,
-        )?;
-        let noticeRef: OPTIONAL<NoticeReference> = match _components.get("noticeRef") {
-            Some(c_) => Some(_decode_NoticeReference(c_)?),
-            _ => None,
-        };
-        let explicitText: OPTIONAL<DisplayText> = match _components.get("explicitText") {
-            Some(c_) => Some(_decode_DisplayText(c_)?),
-            _ => None,
-        };
-        Ok(UserNotice {
-            noticeRef,
-            explicitText,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UserNotice")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UserNotice,
+        _eal_components_for_UserNotice,
+        _rctl2_components_for_UserNotice,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut noticeRef_: OPTIONAL<NoticeReference> = None;
+    let mut explicitText_: OPTIONAL<DisplayText> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "noticeRef" => noticeRef_ = Some(_decode_NoticeReference(_el)?),
+            "explicitText" => explicitText_ = Some(_decode_DisplayText(_el)?),
+            _ => {
+                return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UserNotice"))
+            }
+        }
+    }
+    Ok(UserNotice {
+        noticeRef: noticeRef_,
+        explicitText: explicitText_,
+    })
 }
 
 pub fn _encode_UserNotice(value_: &UserNotice) -> ASN1Result<X690Element> {
-    |value_: &UserNotice| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        if let Some(v_) = &value_.noticeRef {
-            components_.push(_encode_NoticeReference(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    if let Some(v_) = &value_.noticeRef {
+        components_.push(_encode_NoticeReference(&v_)?);
+    }
+    if let Some(v_) = &value_.explicitText {
+        components_.push(_encode_DisplayText(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_UserNotice(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UserNotice")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_UserNotice,
+        _eal_components_for_UserNotice,
+        _rctl2_components_for_UserNotice,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "noticeRef" => _validate_NoticeReference(_el)?,
+            "explicitText" => _validate_DisplayText(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "UserNotice"))
+            }
         }
-        if let Some(v_) = &value_.explicitText {
-            components_.push(_encode_DisplayText(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -146,7 +170,6 @@ pub fn _encode_UserNotice(value_: &UserNotice) -> ASN1Result<X690Element> {
 ///   noticeNumbers  SEQUENCE OF INTEGER
 /// }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct NoticeReference {
@@ -161,15 +184,9 @@ impl NoticeReference {
         }
     }
 }
-impl TryFrom<X690Element> for NoticeReference {
+impl TryFrom<&X690Element> for NoticeReference {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_NoticeReference(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for NoticeReference {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_NoticeReference(el)
     }
 }
@@ -190,58 +207,122 @@ pub const _rctl2_components_for_NoticeReference: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_NoticeReference: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_NoticeReference(el: &X690Element) -> ASN1Result<NoticeReference> {
-    |el_: &X690Element| -> ASN1Result<NoticeReference> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_NoticeReference,
-            _eal_components_for_NoticeReference,
-            _rctl2_components_for_NoticeReference,
-        )?;
-        let organization = _decode_DisplayText(_components.get("organization").unwrap())?;
-        let noticeNumbers = |el: &X690Element| -> ASN1Result<SEQUENCE_OF<INTEGER>> {
-            let elements = match el.value.borrow() {
-                X690Encoding::Constructed(children) => children,
-                _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-            };
-            let mut items: SEQUENCE_OF<INTEGER> = Vec::with_capacity(elements.len());
-            for el in elements {
-                items.push(ber_decode_integer(el)?);
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "NoticeReference"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_NoticeReference,
+        _eal_components_for_NoticeReference,
+        _rctl2_components_for_NoticeReference,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut organization_: OPTIONAL<DisplayText> = None;
+    let mut noticeNumbers_: OPTIONAL<Vec<INTEGER>> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "organization" => organization_ = Some(_decode_DisplayText(_el)?),
+            "noticeNumbers" => {
+                noticeNumbers_ = Some(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<INTEGER>> {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "noticeNumbers",
+                            ))
+                        }
+                    };
+                    let mut items: SEQUENCE_OF<INTEGER> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(BER.decode_integer(el)?);
+                    }
+                    Ok(items)
+                }(_el)?)
             }
-            Ok(items)
-        }(_components.get("noticeNumbers").unwrap())?;
-        Ok(NoticeReference {
-            organization,
-            noticeNumbers,
-        })
-    }(&el)
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "NoticeReference")
+                )
+            }
+        }
+    }
+    Ok(NoticeReference {
+        organization: organization_.unwrap(),
+        noticeNumbers: noticeNumbers_.unwrap(),
+    })
 }
 
 pub fn _encode_NoticeReference(value_: &NoticeReference) -> ASN1Result<X690Element> {
-    |value_: &NoticeReference| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_DisplayText(&value_.organization)?);
-        components_.push(|value_: &SEQUENCE_OF<INTEGER>| -> ASN1Result<X690Element> {
-            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-            for v in value_ {
-                children.push(ber_encode_integer(&v)?);
-            }
-            Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                Arc::new(X690Encoding::Constructed(children)),
-            ))
-        }(&value_.noticeNumbers)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_DisplayText(&value_.organization)?);
+    components_.push(|value_: &SEQUENCE_OF<INTEGER>| -> ASN1Result<X690Element> {
+        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+        for v in value_ {
+            children.push(BER.encode_integer(&v)?);
+        }
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+            X690Value::Constructed(Arc::new(children)),
         ))
-    }(&value_)
+    }(&value_.noticeNumbers)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_NoticeReference(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "NoticeReference"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_NoticeReference,
+        _eal_components_for_NoticeReference,
+        _rctl2_components_for_NoticeReference,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "organization" => _validate_DisplayText(_el)?,
+            "noticeNumbers" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            BER.validate_integer(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "noticeNumbers")
+                    ),
+                }
+            }(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "NoticeReference")
+                )
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -260,44 +341,53 @@ pub enum DisplayText {
     utf8String(UTF8String),
 }
 
-impl TryFrom<X690Element> for DisplayText {
+impl TryFrom<&X690Element> for DisplayText {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_DisplayText(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for DisplayText {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_DisplayText(el)
     }
 }
 
 pub fn _decode_DisplayText(el: &X690Element) -> ASN1Result<DisplayText> {
-    |el: &X690Element| -> ASN1Result<DisplayText> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 26) => {
-                Ok(DisplayText::visibleString(ber_decode_visible_string(&el)?))
-            }
-            (TagClass::UNIVERSAL, 30) => Ok(DisplayText::bmpString(ber_decode_bmp_string(&el)?)),
-            (TagClass::UNIVERSAL, 12) => Ok(DisplayText::utf8String(ber_decode_utf8_string(&el)?)),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 26) => {
+            Ok(DisplayText::visibleString(BER.decode_visible_string(&el)?))
         }
-    }(&el)
+        (TagClass::UNIVERSAL, 30) => Ok(DisplayText::bmpString(BER.decode_bmp_string(&el)?)),
+        (TagClass::UNIVERSAL, 12) => Ok(DisplayText::utf8String(BER.decode_utf8_string(&el)?)),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "DisplayText",
+            ))
+        }
+    }
 }
 
 pub fn _encode_DisplayText(value_: &DisplayText) -> ASN1Result<X690Element> {
-    |value: &DisplayText| -> ASN1Result<X690Element> {
-        match value {
-            DisplayText::visibleString(v) => ber_encode_visible_string(&v),
-            DisplayText::bmpString(v) => ber_encode_bmp_string(&v),
-            DisplayText::utf8String(v) => ber_encode_utf8_string(&v),
+    match value_ {
+        DisplayText::visibleString(v) => BER.encode_visible_string(&v),
+        DisplayText::bmpString(v) => BER.encode_bmp_string(&v),
+        DisplayText::utf8String(v) => BER.encode_utf8_string(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("DisplayText".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_DisplayText(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 26) => BER.validate_visible_string(&el),
+        (TagClass::UNIVERSAL, 30) => BER.validate_bmp_string(&el),
+        (TagClass::UNIVERSAL, 12) => BER.validate_utf8_string(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "DisplayText",
+            ))
+        }
+    }
 }

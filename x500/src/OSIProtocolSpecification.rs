@@ -20,9 +20,10 @@
 //! types.
 //!
 use crate::CommonProtocolSpecification::*;
+use crate::DirectoryAbstractService::*;
+use crate::DirectoryOSIProtocols::*;
 use crate::InformationFramework::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -47,6 +48,10 @@ pub fn _encode_OSI_PDU(value_: &OSI_PDU) -> ASN1Result<X690Element> {
     x690_identity(&value_)
 }
 
+pub fn _validate_OSI_PDU(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_any(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -69,7 +74,6 @@ pub fn _encode_OSI_PDU(value_: &OSI_PDU) -> ASN1Result<X690Element> {
 ///                                              (AARQ-apdu{{Protocols}})}}}}}
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct OsiBind {
     pub mode_selector: OsiBind_mode_selector,
@@ -86,15 +90,9 @@ impl OsiBind {
         }
     }
 }
-impl TryFrom<X690Element> for OsiBind {
+impl TryFrom<&X690Element> for OsiBind {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBind(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBind {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBind(el)
     }
 }
@@ -121,54 +119,76 @@ pub const _rctl2_components_for_OsiBind: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OsiBind: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiBind(el: &X690Element) -> ASN1Result<OsiBind> {
-    |el_: &X690Element| -> ASN1Result<OsiBind> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiBind,
-            _eal_components_for_OsiBind,
-            _rctl2_components_for_OsiBind,
-            20,
-        )?;
-        let mode_selector =
-            _decode_OsiBind_mode_selector(_components.get("mode-selector").unwrap())?;
-        let normal_mode_parameters = _decode_OsiBind_normal_mode_parameters(
-            _components.get("normal-mode-parameters").unwrap(),
-        )?;
-        Ok(OsiBind {
-            mode_selector,
-            normal_mode_parameters,
-        })
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBind")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBind,
+        _eal_components_for_OsiBind,
+        _rctl2_components_for_OsiBind,
+        20,
+    )?;
+    let mode_selector_ = _decode_OsiBind_mode_selector(_components.get("mode-selector").unwrap())?;
+    let normal_mode_parameters_ =
+        _decode_OsiBind_normal_mode_parameters(_components.get("normal-mode-parameters").unwrap())?;
+    Ok(OsiBind {
+        mode_selector: mode_selector_,
+        normal_mode_parameters: normal_mode_parameters_,
+    })
 }
 
 pub fn _encode_OsiBind(value_: &OsiBind) -> ASN1Result<X690Element> {
-    |value_: &OsiBind| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(|v_1: &OsiBind_mode_selector| -> ASN1Result<X690Element> {
-            let mut el_1 = _encode_OsiBind_mode_selector(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(|v_1: &OsiBind_mode_selector| -> ASN1Result<X690Element> {
+        let mut el_1 = _encode_OsiBind_mode_selector(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.mode_selector)?);
+    components_.push(
+        |v_1: &OsiBind_normal_mode_parameters| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_OsiBind_normal_mode_parameters(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 2;
             Ok(el_1)
-        }(&value_.mode_selector)?);
-        components_.push(
-            |v_1: &OsiBind_normal_mode_parameters| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_OsiBind_normal_mode_parameters(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
-            }(&value_.normal_mode_parameters)?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+        }(&value_.normal_mode_parameters)?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBind(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBind")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBind,
+        _eal_components_for_OsiBind,
+        _rctl2_components_for_OsiBind,
+        20,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "mode-selector"));
+        }
+        Ok(_validate_OsiBind_mode_selector(&el)?)
+    }(_components.get("mode-selector").unwrap())?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "normal-mode-parameters",
+            ));
+        }
+        Ok(_validate_OsiBind_normal_mode_parameters(&el)?)
+    }(_components.get("normal-mode-parameters").unwrap())?;
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -179,11 +199,15 @@ pub fn _encode_OsiBind(value_: &OsiBind) -> ASN1Result<X690Element> {
 pub type Presentation_selector = OCTET_STRING; // OctetStringType
 
 pub fn _decode_Presentation_selector(el: &X690Element) -> ASN1Result<Presentation_selector> {
-    ber_decode_octet_string(&el)
+    BER.decode_octet_string(&el)
 }
 
 pub fn _encode_Presentation_selector(value_: &Presentation_selector) -> ASN1Result<X690Element> {
-    ber_encode_octet_string(&value_)
+    BER.encode_octet_string(&value_)
+}
+
+pub fn _validate_Presentation_selector(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_octet_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -197,31 +221,38 @@ pub fn _encode_Presentation_selector(value_: &Presentation_selector) -> ASN1Resu
 pub type Context_list = Vec<Context_list_Item>; // SequenceOfType
 
 pub fn _decode_Context_list(el: &X690Element) -> ASN1Result<Context_list> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<Context_list_Item>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<Context_list_Item> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_Context_list_Item(el)?);
-        }
-        Ok(items)
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context-list")),
+    };
+    let mut items: SEQUENCE_OF<Context_list_Item> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_Context_list_Item(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_Context_list(value_: &Context_list) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<Context_list_Item>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_Context_list_Item(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_Context_list_Item(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_Context_list(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_Context_list_Item(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context-list")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -234,13 +265,17 @@ pub type Presentation_context_identifier = INTEGER;
 pub fn _decode_Presentation_context_identifier(
     el: &X690Element,
 ) -> ASN1Result<Presentation_context_identifier> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_Presentation_context_identifier(
     value_: &Presentation_context_identifier,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_Presentation_context_identifier(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -251,11 +286,15 @@ pub fn _encode_Presentation_context_identifier(
 pub type Abstract_syntax_name = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_Abstract_syntax_name(el: &X690Element) -> ASN1Result<Abstract_syntax_name> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_Abstract_syntax_name(value_: &Abstract_syntax_name) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_Abstract_syntax_name(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -266,11 +305,15 @@ pub fn _encode_Abstract_syntax_name(value_: &Abstract_syntax_name) -> ASN1Result
 pub type Transfer_syntax_name = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_Transfer_syntax_name(el: &X690Element) -> ASN1Result<Transfer_syntax_name> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_Transfer_syntax_name(value_: &Transfer_syntax_name) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_Transfer_syntax_name(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -292,7 +335,6 @@ pub fn _encode_Transfer_syntax_name(value_: &Transfer_syntax_name) -> ASN1Result
 ///   user-information                  [30] IMPLICIT
 ///                                            Association-informationBind{{Protocols}}}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct AARQ_apdu {
@@ -343,15 +385,9 @@ impl AARQ_apdu {
         BIT_STRING::with_bits_set(&[AARQ_apdu_protocol_version_version1])
     }
 }
-impl TryFrom<X690Element> for AARQ_apdu {
+impl TryFrom<&X690Element> for AARQ_apdu {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_AARQ_apdu(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for AARQ_apdu {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AARQ_apdu(el)
     }
 }
@@ -448,105 +484,120 @@ pub const _rctl2_components_for_AARQ_apdu: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_AARQ_apdu: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_AARQ_apdu(el: &X690Element) -> ASN1Result<AARQ_apdu> {
-    |el_: &X690Element| -> ASN1Result<AARQ_apdu> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<AARQ_apdu> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARQ-apdu")),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_AARQ_apdu,
             _eal_components_for_AARQ_apdu,
             _rctl2_components_for_AARQ_apdu,
-        )?;
-        let protocol_version: OPTIONAL<AARQ_apdu_protocol_version> =
-            match _components.get("protocol-version") {
-                Some(c_) => Some(_decode_AARQ_apdu_protocol_version(c_)?),
-                _ => None,
-            };
-        let application_context_name =
-            |el: &X690Element| -> ASN1Result<Application_context_name> {
-                Ok(_decode_Application_context_name(&el.inner()?)?)
-            }(_components.get("application-context-name").unwrap())?;
-        let called_AP_title: OPTIONAL<Name> = match _components.get("called-AP-title") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Name> {
-                Ok(_decode_Name(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let called_AE_qualifier: OPTIONAL<RelativeDistinguishedName> =
-            match _components.get("called-AE-qualifier") {
-                Some(c_) => Some(
-                    |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
-                        Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        let called_AP_invocation_identifier: OPTIONAL<AP_invocation_identifier> =
-            match _components.get("called-AP-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
-                    Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let called_AE_invocation_identifier: OPTIONAL<AE_invocation_identifier> =
-            match _components.get("called-AE-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
-                    Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let calling_AP_title: OPTIONAL<Name> = match _components.get("calling-AP-title") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Name> {
-                Ok(_decode_Name(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let calling_AE_qualifier: OPTIONAL<RelativeDistinguishedName> =
-            match _components.get("calling-AE-qualifier") {
-                Some(c_) => Some(
-                    |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
-                        Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        let calling_AP_invocation_identifier: OPTIONAL<AP_invocation_identifier> =
-            match _components.get("calling-AP-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
-                    Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let calling_AE_invocation_identifier: OPTIONAL<AE_invocation_identifier> =
-            match _components.get("calling-AE-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
-                    Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let implementation_information: OPTIONAL<Implementation_data> =
-            match _components.get("implementation-information") {
-                Some(c_) => Some(_decode_Implementation_data(c_)?),
-                _ => None,
-            };
-        let user_information =
-            _decode_Association_informationBind(_components.get("user-information").unwrap())?;
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut protocol_version_: OPTIONAL<AARQ_apdu_protocol_version> = None;
+        let mut application_context_name_: OPTIONAL<Application_context_name> = None;
+        let mut called_AP_title_: OPTIONAL<Name> = None;
+        let mut called_AE_qualifier_: OPTIONAL<RelativeDistinguishedName> = None;
+        let mut called_AP_invocation_identifier_: OPTIONAL<AP_invocation_identifier> = None;
+        let mut called_AE_invocation_identifier_: OPTIONAL<AE_invocation_identifier> = None;
+        let mut calling_AP_title_: OPTIONAL<Name> = None;
+        let mut calling_AE_qualifier_: OPTIONAL<RelativeDistinguishedName> = None;
+        let mut calling_AP_invocation_identifier_: OPTIONAL<AP_invocation_identifier> = None;
+        let mut calling_AE_invocation_identifier_: OPTIONAL<AE_invocation_identifier> = None;
+        let mut implementation_information_: OPTIONAL<Implementation_data> = None;
+        let mut user_information_: OPTIONAL<Association_informationBind> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "protocol-version" => {
+                    protocol_version_ = Some(_decode_AARQ_apdu_protocol_version(_el)?)
+                }
+                "application-context-name" => {
+                    application_context_name_ =
+                        Some(|el: &X690Element| -> ASN1Result<Application_context_name> {
+                            Ok(_decode_Application_context_name(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "called-AP-title" => {
+                    called_AP_title_ = Some(|el: &X690Element| -> ASN1Result<Name> {
+                        Ok(_decode_Name(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "called-AE-qualifier" => {
+                    called_AE_qualifier_ = Some(
+                        |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
+                            Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
+                        }(_el)?,
+                    )
+                }
+                "called-AP-invocation-identifier" => {
+                    called_AP_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
+                            Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "called-AE-invocation-identifier" => {
+                    called_AE_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
+                            Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "calling-AP-title" => {
+                    calling_AP_title_ = Some(|el: &X690Element| -> ASN1Result<Name> {
+                        Ok(_decode_Name(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "calling-AE-qualifier" => {
+                    calling_AE_qualifier_ = Some(
+                        |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
+                            Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
+                        }(_el)?,
+                    )
+                }
+                "calling-AP-invocation-identifier" => {
+                    calling_AP_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
+                            Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "calling-AE-invocation-identifier" => {
+                    calling_AE_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
+                            Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "implementation-information" => {
+                    implementation_information_ = Some(_decode_Implementation_data(_el)?)
+                }
+                "user-information" => {
+                    user_information_ = Some(_decode_Association_informationBind(_el)?)
+                }
+                _ => {
+                    return Err(
+                        _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARQ-apdu")
+                    )
+                }
+            }
+        }
         Ok(AARQ_apdu {
-            protocol_version,
-            application_context_name,
-            called_AP_title,
-            called_AE_qualifier,
-            called_AP_invocation_identifier,
-            called_AE_invocation_identifier,
-            calling_AP_title,
-            calling_AE_qualifier,
-            calling_AP_invocation_identifier,
-            calling_AE_invocation_identifier,
-            implementation_information,
-            user_information,
+            protocol_version: protocol_version_,
+            application_context_name: application_context_name_.unwrap(),
+            called_AP_title: called_AP_title_,
+            called_AE_qualifier: called_AE_qualifier_,
+            called_AP_invocation_identifier: called_AP_invocation_identifier_,
+            called_AE_invocation_identifier: called_AE_invocation_identifier_,
+            calling_AP_title: calling_AP_title_,
+            calling_AE_qualifier: calling_AE_qualifier_,
+            calling_AP_invocation_identifier: calling_AP_invocation_identifier_,
+            calling_AE_invocation_identifier: calling_AE_invocation_identifier_,
+            implementation_information: implementation_information_,
+            user_information: user_information_.unwrap(),
         })
     }(&el)
 }
@@ -560,8 +611,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                     components_.push(
                         |v_1: &AARQ_apdu_protocol_version| -> ASN1Result<X690Element> {
                             let mut el_1 = _encode_AARQ_apdu_protocol_version(&v_1)?;
-                            el_1.tag_class = TagClass::CONTEXT;
-                            el_1.tag_number = 0;
+                            el_1.tag.tag_class = TagClass::CONTEXT;
+                            el_1.tag.tag_number = 0;
                             Ok(el_1)
                         }(&v_)?,
                     );
@@ -570,20 +621,16 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
             components_.push(
                 |v_1: &Application_context_name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        1,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_Application_context_name(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 1),
+                        X690Value::from_explicit(&_encode_Application_context_name(&v_1)?),
                     ))
                 }(&value_.application_context_name)?,
             );
             if let Some(v_) = &value_.called_AP_title {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        2,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
+                        Tag::new(TagClass::CONTEXT, 2),
+                        X690Value::from_explicit(&_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -591,11 +638,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            3,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_RelativeDistinguishedName(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 3),
+                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -604,11 +648,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            4,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AP_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 4),
+                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -617,11 +658,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            5,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AE_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 5),
+                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -629,9 +667,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
             if let Some(v_) = &value_.calling_AP_title {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        6,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
+                        Tag::new(TagClass::CONTEXT, 6),
+                        X690Value::from_explicit(&_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -639,11 +676,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            7,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_RelativeDistinguishedName(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 7),
+                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -652,11 +686,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            8,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AP_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 8),
+                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -665,11 +696,8 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            9,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AE_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 9),
+                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -677,29 +705,176 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
             if let Some(v_) = &value_.implementation_information {
                 components_.push(|v_1: &Implementation_data| -> ASN1Result<X690Element> {
                     let mut el_1 = _encode_Implementation_data(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 29;
+                    el_1.tag.tag_class = TagClass::CONTEXT;
+                    el_1.tag.tag_number = 29;
                     Ok(el_1)
                 }(&v_)?);
             }
             components_.push(
                 |v_1: &Association_informationBind| -> ASN1Result<X690Element> {
                     let mut el_1 = _encode_Association_informationBind(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 30;
+                    el_1.tag.tag_class = TagClass::CONTEXT;
+                    el_1.tag.tag_number = 30;
                     Ok(el_1)
                 }(&value_.user_information)?,
             );
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::APPLICATION;
-        el_1.tag_number = 0;
+        el_1.tag.tag_class = TagClass::APPLICATION;
+        el_1.tag.tag_number = 0;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_AARQ_apdu(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARQ-apdu"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARQ-apdu")
+                    )
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_AARQ_apdu,
+                _eal_components_for_AARQ_apdu,
+                _rctl2_components_for_AARQ_apdu,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "protocol-version" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "protocol-version",
+                            ));
+                        }
+                        Ok(_validate_AARQ_apdu_protocol_version(&el)?)
+                    }(_el)?,
+                    "application-context-name" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "application-context-name",
+                            ));
+                        }
+                        Ok(_validate_Application_context_name(&el.inner()?)?)
+                    }(_el)?,
+                    "called-AP-title" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "called-AP-title",
+                            ));
+                        }
+                        Ok(_validate_Name(&el.inner()?)?)
+                    }(_el)?,
+                    "called-AE-qualifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "called-AE-qualifier",
+                            ));
+                        }
+                        Ok(_validate_RelativeDistinguishedName(&el.inner()?)?)
+                    }(_el)?,
+                    "called-AP-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "called-AP-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AP_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "called-AE-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "called-AE-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AE_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "calling-AP-title" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "calling-AP-title",
+                            ));
+                        }
+                        Ok(_validate_Name(&el.inner()?)?)
+                    }(_el)?,
+                    "calling-AE-qualifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "calling-AE-qualifier",
+                            ));
+                        }
+                        Ok(_validate_RelativeDistinguishedName(&el.inner()?)?)
+                    }(_el)?,
+                    "calling-AP-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 8 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "calling-AP-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AP_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "calling-AE-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 9 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "calling-AE-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AE_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "implementation-information" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "implementation-information",
+                            ));
+                        }
+                        Ok(_validate_Implementation_data(&el)?)
+                    }(_el)?,
+                    "user-information" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "user-information",
+                            ));
+                        }
+                        Ok(_validate_Association_informationBind(&el)?)
+                    }(_el)?,
+                    _ => {
+                        return Err(
+                            _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARQ-apdu")
+                        )
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -718,33 +893,48 @@ pub type Association_informationBind = Vec<EXTERNAL>; // SequenceOfType
 pub fn _decode_Association_informationBind(
     el: &X690Element,
 ) -> ASN1Result<Association_informationBind> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<EXTERNAL>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<EXTERNAL> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(ber_decode_external(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "Association-informationBind",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<EXTERNAL> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(BER.decode_external(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_Association_informationBind(
     value_: &Association_informationBind,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<EXTERNAL>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(ber_encode_external(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(BER.encode_external(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_Association_informationBind(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                BER.validate_external(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "Association-informationBind",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -755,13 +945,17 @@ pub fn _encode_Association_informationBind(
 pub type Application_context_name = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_Application_context_name(el: &X690Element) -> ASN1Result<Application_context_name> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_Application_context_name(
     value_: &Application_context_name,
 ) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_Application_context_name(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -772,13 +966,17 @@ pub fn _encode_Application_context_name(
 pub type AP_invocation_identifier = INTEGER;
 
 pub fn _decode_AP_invocation_identifier(el: &X690Element) -> ASN1Result<AP_invocation_identifier> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_AP_invocation_identifier(
     value_: &AP_invocation_identifier,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_AP_invocation_identifier(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -789,13 +987,17 @@ pub fn _encode_AP_invocation_identifier(
 pub type AE_invocation_identifier = INTEGER;
 
 pub fn _decode_AE_invocation_identifier(el: &X690Element) -> ASN1Result<AE_invocation_identifier> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_AE_invocation_identifier(
     value_: &AE_invocation_identifier,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_AE_invocation_identifier(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -806,11 +1008,15 @@ pub fn _encode_AE_invocation_identifier(
 pub type Implementation_data = GraphicString; // GraphicString
 
 pub fn _decode_Implementation_data(el: &X690Element) -> ASN1Result<Implementation_data> {
-    ber_decode_graphic_string(&el)
+    BER.decode_graphic_string(&el)
 }
 
 pub fn _encode_Implementation_data(value_: &Implementation_data) -> ASN1Result<X690Element> {
-    ber_encode_graphic_string(&value_)
+    BER.encode_graphic_string(&value_)
+}
+
+pub fn _validate_Implementation_data(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_graphic_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -822,18 +1028,25 @@ pub fn _encode_Implementation_data(value_: &Implementation_data) -> ASN1Result<X
 pub type TheOsiBind = X690Element; // ObjectClassFieldType
 
 pub fn _decode_TheOsiBind(el: &X690Element) -> ASN1Result<TheOsiBind> {
-    x690_identity(&el.inner()?)
+    |el: &X690Element| -> ASN1Result<TheOsiBind> { Ok(x690_identity(&el.inner()?)?) }(&el)
 }
 
 pub fn _encode_TheOsiBind(value_: &TheOsiBind) -> ASN1Result<X690Element> {
     |v_1: &TheOsiBind| -> ASN1Result<X690Element> {
-        let el_1 = x690_identity(&v_1)?;
         Ok(X690Element::new(
-            TagClass::CONTEXT,
-            16,
-            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            Tag::new(TagClass::CONTEXT, 16),
+            X690Value::from_explicit(&x690_identity(&v_1)?),
         ))
     }(&value_)
+}
+
+pub fn _validate_TheOsiBind(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 16 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiBind"));
+        }
+        Ok(BER.validate_any(&el.inner()?)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -858,7 +1071,6 @@ pub fn _encode_TheOsiBind(value_: &TheOsiBind) -> ASN1Result<X690Element> {
 ///   )}}}}}
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct OsiBindResult {
     pub mode_selector: OsiBindResult_mode_selector,
@@ -875,15 +1087,9 @@ impl OsiBindResult {
         }
     }
 }
-impl TryFrom<X690Element> for OsiBindResult {
+impl TryFrom<&X690Element> for OsiBindResult {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindResult(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindResult {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindResult(el)
     }
 }
@@ -910,56 +1116,80 @@ pub const _rctl2_components_for_OsiBindResult: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OsiBindResult: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiBindResult(el: &X690Element) -> ASN1Result<OsiBindResult> {
-    |el_: &X690Element| -> ASN1Result<OsiBindResult> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiBindResult,
-            _eal_components_for_OsiBindResult,
-            _rctl2_components_for_OsiBindResult,
-            20,
-        )?;
-        let mode_selector =
-            _decode_OsiBindResult_mode_selector(_components.get("mode-selector").unwrap())?;
-        let normal_mode_parameters = _decode_OsiBindResult_normal_mode_parameters(
-            _components.get("normal-mode-parameters").unwrap(),
-        )?;
-        Ok(OsiBindResult {
-            mode_selector,
-            normal_mode_parameters,
-        })
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindResult")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBindResult,
+        _eal_components_for_OsiBindResult,
+        _rctl2_components_for_OsiBindResult,
+        20,
+    )?;
+    let mode_selector_ =
+        _decode_OsiBindResult_mode_selector(_components.get("mode-selector").unwrap())?;
+    let normal_mode_parameters_ = _decode_OsiBindResult_normal_mode_parameters(
+        _components.get("normal-mode-parameters").unwrap(),
+    )?;
+    Ok(OsiBindResult {
+        mode_selector: mode_selector_,
+        normal_mode_parameters: normal_mode_parameters_,
+    })
 }
 
 pub fn _encode_OsiBindResult(value_: &OsiBindResult) -> ASN1Result<X690Element> {
-    |value_: &OsiBindResult| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(
-            |v_1: &OsiBindResult_mode_selector| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_OsiBindResult_mode_selector(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&value_.mode_selector)?,
-        );
-        components_.push(
-            |v_1: &OsiBindResult_normal_mode_parameters| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_OsiBindResult_normal_mode_parameters(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
-            }(&value_.normal_mode_parameters)?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(
+        |v_1: &OsiBindResult_mode_selector| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_OsiBindResult_mode_selector(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&value_.mode_selector)?,
+    );
+    components_.push(
+        |v_1: &OsiBindResult_normal_mode_parameters| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_OsiBindResult_normal_mode_parameters(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 2;
+            Ok(el_1)
+        }(&value_.normal_mode_parameters)?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBindResult(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindResult")),
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBindResult,
+        _eal_components_for_OsiBindResult,
+        _rctl2_components_for_OsiBindResult,
+        20,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "mode-selector"));
+        }
+        Ok(_validate_OsiBindResult_mode_selector(&el)?)
+    }(_components.get("mode-selector").unwrap())?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "normal-mode-parameters",
+            ));
+        }
+        Ok(_validate_OsiBindResult_normal_mode_parameters(&el)?)
+    }(_components.get("normal-mode-parameters").unwrap())?;
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -970,20 +1200,24 @@ pub fn _encode_OsiBindResult(value_: &OsiBindResult) -> ASN1Result<X690Element> 
 ///   user-rejection     (1),
 ///   provider-rejection (2)}
 /// ```
-pub type Result_ = INTEGER;
+pub type Result_ = i8;
 
-pub const Result__acceptance: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result__acceptance: Result_ = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result__user_rejection: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result__user_rejection: Result_ = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result__provider_rejection: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result__provider_rejection: Result_ = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Result_(el: &X690Element) -> ASN1Result<Result_> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Result_(value_: &Result_) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Result_(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -1003,7 +1237,6 @@ pub fn _encode_Result_(value_: &Result_) -> ASN1Result<X690Element> {
 ///   user-information                     [30] IMPLICIT
 ///                                         Association-informationBindRes{{Protocols}}}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct AARE_apdu {
@@ -1048,15 +1281,9 @@ impl AARE_apdu {
         BIT_STRING::with_bits_set(&[AARE_apdu_protocol_version_version1])
     }
 }
-impl TryFrom<X690Element> for AARE_apdu {
+impl TryFrom<&X690Element> for AARE_apdu {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_AARE_apdu(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for AARE_apdu {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AARE_apdu(el)
     }
 }
@@ -1139,81 +1366,104 @@ pub const _rctl2_components_for_AARE_apdu: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_AARE_apdu: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_AARE_apdu(el: &X690Element) -> ASN1Result<AARE_apdu> {
-    |el_: &X690Element| -> ASN1Result<AARE_apdu> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<AARE_apdu> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARE-apdu")),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_AARE_apdu,
             _eal_components_for_AARE_apdu,
             _rctl2_components_for_AARE_apdu,
-        )?;
-        let protocol_version: OPTIONAL<AARE_apdu_protocol_version> =
-            match _components.get("protocol-version") {
-                Some(c_) => Some(_decode_AARE_apdu_protocol_version(c_)?),
-                _ => None,
-            };
-        let application_context_name =
-            |el: &X690Element| -> ASN1Result<Application_context_name> {
-                Ok(_decode_Application_context_name(&el.inner()?)?)
-            }(_components.get("application-context-name").unwrap())?;
-        let result = |el: &X690Element| -> ASN1Result<Associate_result> {
-            Ok(_decode_Associate_result(&el.inner()?)?)
-        }(_components.get("result").unwrap())?;
-        let result_source_diagnostic =
-            |el: &X690Element| -> ASN1Result<Associate_source_diagnostic> {
-                Ok(_decode_Associate_source_diagnostic(&el.inner()?)?)
-            }(_components.get("result-source-diagnostic").unwrap())?;
-        let responding_AP_title: OPTIONAL<Name> = match _components.get("responding-AP-title") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Name> {
-                Ok(_decode_Name(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let responding_AE_qualifier: OPTIONAL<RelativeDistinguishedName> =
-            match _components.get("responding-AE-qualifier") {
-                Some(c_) => Some(
-                    |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
-                        Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        let responding_AP_invocation_identifier: OPTIONAL<AP_invocation_identifier> =
-            match _components.get("responding-AP-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
-                    Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let responding_AE_invocation_identifier: OPTIONAL<AE_invocation_identifier> =
-            match _components.get("responding-AE-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
-                    Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let implementation_information: OPTIONAL<Implementation_data> =
-            match _components.get("implementation-information") {
-                Some(c_) => Some(_decode_Implementation_data(c_)?),
-                _ => None,
-            };
-        let user_information =
-            _decode_Association_informationBindRes(_components.get("user-information").unwrap())?;
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut protocol_version_: OPTIONAL<AARE_apdu_protocol_version> = None;
+        let mut application_context_name_: OPTIONAL<Application_context_name> = None;
+        let mut result_: OPTIONAL<Associate_result> = None;
+        let mut result_source_diagnostic_: OPTIONAL<Associate_source_diagnostic> = None;
+        let mut responding_AP_title_: OPTIONAL<Name> = None;
+        let mut responding_AE_qualifier_: OPTIONAL<RelativeDistinguishedName> = None;
+        let mut responding_AP_invocation_identifier_: OPTIONAL<AP_invocation_identifier> = None;
+        let mut responding_AE_invocation_identifier_: OPTIONAL<AE_invocation_identifier> = None;
+        let mut implementation_information_: OPTIONAL<Implementation_data> = None;
+        let mut user_information_: OPTIONAL<Association_informationBindRes> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "protocol-version" => {
+                    protocol_version_ = Some(_decode_AARE_apdu_protocol_version(_el)?)
+                }
+                "application-context-name" => {
+                    application_context_name_ =
+                        Some(|el: &X690Element| -> ASN1Result<Application_context_name> {
+                            Ok(_decode_Application_context_name(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "result" => {
+                    result_ = Some(|el: &X690Element| -> ASN1Result<Associate_result> {
+                        Ok(_decode_Associate_result(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "result-source-diagnostic" => {
+                    result_source_diagnostic_ = Some(|el: &X690Element| -> ASN1Result<
+                        Associate_source_diagnostic,
+                    > {
+                        Ok(_decode_Associate_source_diagnostic(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "responding-AP-title" => {
+                    responding_AP_title_ = Some(|el: &X690Element| -> ASN1Result<Name> {
+                        Ok(_decode_Name(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "responding-AE-qualifier" => {
+                    responding_AE_qualifier_ = Some(
+                        |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
+                            Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
+                        }(_el)?,
+                    )
+                }
+                "responding-AP-invocation-identifier" => {
+                    responding_AP_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
+                            Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "responding-AE-invocation-identifier" => {
+                    responding_AE_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
+                            Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "implementation-information" => {
+                    implementation_information_ = Some(_decode_Implementation_data(_el)?)
+                }
+                "user-information" => {
+                    user_information_ = Some(_decode_Association_informationBindRes(_el)?)
+                }
+                _ => {
+                    return Err(
+                        _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARE-apdu")
+                    )
+                }
+            }
+        }
         Ok(AARE_apdu {
-            protocol_version,
-            application_context_name,
-            result,
-            result_source_diagnostic,
-            responding_AP_title,
-            responding_AE_qualifier,
-            responding_AP_invocation_identifier,
-            responding_AE_invocation_identifier,
-            implementation_information,
-            user_information,
+            protocol_version: protocol_version_,
+            application_context_name: application_context_name_.unwrap(),
+            result: result_.unwrap(),
+            result_source_diagnostic: result_source_diagnostic_.unwrap(),
+            responding_AP_title: responding_AP_title_,
+            responding_AE_qualifier: responding_AE_qualifier_,
+            responding_AP_invocation_identifier: responding_AP_invocation_identifier_,
+            responding_AE_invocation_identifier: responding_AE_invocation_identifier_,
+            implementation_information: implementation_information_,
+            user_information: user_information_.unwrap(),
         })
     }(&el)
 }
@@ -1227,8 +1477,8 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                     components_.push(
                         |v_1: &AARE_apdu_protocol_version| -> ASN1Result<X690Element> {
                             let mut el_1 = _encode_AARE_apdu_protocol_version(&v_1)?;
-                            el_1.tag_class = TagClass::CONTEXT;
-                            el_1.tag_number = 0;
+                            el_1.tag.tag_class = TagClass::CONTEXT;
+                            el_1.tag.tag_number = 0;
                             Ok(el_1)
                         }(&v_)?,
                     );
@@ -1237,40 +1487,30 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
             components_.push(
                 |v_1: &Application_context_name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        1,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_Application_context_name(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 1),
+                        X690Value::from_explicit(&_encode_Application_context_name(&v_1)?),
                     ))
                 }(&value_.application_context_name)?,
             );
             components_.push(|v_1: &Associate_result| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    2,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Associate_result(
-                        &v_1,
-                    )?))),
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(&_encode_Associate_result(&v_1)?),
                 ))
             }(&value_.result)?);
             components_.push(
                 |v_1: &Associate_source_diagnostic| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        3,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_Associate_source_diagnostic(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 3),
+                        X690Value::from_explicit(&_encode_Associate_source_diagnostic(&v_1)?),
                     ))
                 }(&value_.result_source_diagnostic)?,
             );
             if let Some(v_) = &value_.responding_AP_title {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        4,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
+                        Tag::new(TagClass::CONTEXT, 4),
+                        X690Value::from_explicit(&_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -1278,11 +1518,8 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            5,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_RelativeDistinguishedName(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 5),
+                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1291,11 +1528,8 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            6,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AP_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 6),
+                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1304,11 +1538,8 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            7,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AE_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 7),
+                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1316,29 +1547,157 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
             if let Some(v_) = &value_.implementation_information {
                 components_.push(|v_1: &Implementation_data| -> ASN1Result<X690Element> {
                     let mut el_1 = _encode_Implementation_data(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 29;
+                    el_1.tag.tag_class = TagClass::CONTEXT;
+                    el_1.tag.tag_number = 29;
                     Ok(el_1)
                 }(&v_)?);
             }
             components_.push(
                 |v_1: &Association_informationBindRes| -> ASN1Result<X690Element> {
                     let mut el_1 = _encode_Association_informationBindRes(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 30;
+                    el_1.tag.tag_class = TagClass::CONTEXT;
+                    el_1.tag.tag_number = 30;
                     Ok(el_1)
                 }(&value_.user_information)?,
             );
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::APPLICATION;
-        el_1.tag_number = 1;
+        el_1.tag.tag_class = TagClass::APPLICATION;
+        el_1.tag.tag_number = 1;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_AARE_apdu(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARE-apdu"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARE-apdu")
+                    )
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_AARE_apdu,
+                _eal_components_for_AARE_apdu,
+                _rctl2_components_for_AARE_apdu,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "protocol-version" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "protocol-version",
+                            ));
+                        }
+                        Ok(_validate_AARE_apdu_protocol_version(&el)?)
+                    }(_el)?,
+                    "application-context-name" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "application-context-name",
+                            ));
+                        }
+                        Ok(_validate_Application_context_name(&el.inner()?)?)
+                    }(_el)?,
+                    "result" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                            return Err(
+                                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "result")
+                            );
+                        }
+                        Ok(_validate_Associate_result(&el.inner()?)?)
+                    }(_el)?,
+                    "result-source-diagnostic" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "result-source-diagnostic",
+                            ));
+                        }
+                        Ok(_validate_Associate_source_diagnostic(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AP-title" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AP-title",
+                            ));
+                        }
+                        Ok(_validate_Name(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AE-qualifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AE-qualifier",
+                            ));
+                        }
+                        Ok(_validate_RelativeDistinguishedName(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AP-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AP-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AP_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AE-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AE-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AE_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "implementation-information" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "implementation-information",
+                            ));
+                        }
+                        Ok(_validate_Implementation_data(&el)?)
+                    }(_el)?,
+                    "user-information" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "user-information",
+                            ));
+                        }
+                        Ok(_validate_Association_informationBindRes(&el)?)
+                    }(_el)?,
+                    _ => {
+                        return Err(
+                            _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AARE-apdu")
+                        )
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1357,33 +1716,48 @@ pub type Association_informationBindRes = Vec<EXTERNAL>; // SequenceOfType
 pub fn _decode_Association_informationBindRes(
     el: &X690Element,
 ) -> ASN1Result<Association_informationBindRes> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<EXTERNAL>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<EXTERNAL> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(ber_decode_external(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "Association-informationBindRes",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<EXTERNAL> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(BER.decode_external(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_Association_informationBindRes(
     value_: &Association_informationBindRes,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<EXTERNAL>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(ber_encode_external(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(BER.encode_external(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_Association_informationBindRes(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                BER.validate_external(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "Association-informationBindRes",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1394,20 +1768,24 @@ pub fn _encode_Association_informationBindRes(
 ///   rejected-permanent (1),
 ///   rejected-transient (2)}(0..2, ...)
 /// ```
-pub type Associate_result = INTEGER;
+pub type Associate_result = i8;
 
-pub const Associate_result_accepted: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_result_accepted: Associate_result = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_result_rejected_permanent: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_result_rejected_permanent: Associate_result = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_result_rejected_transient: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_result_rejected_transient: Associate_result = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Associate_result(el: &X690Element) -> ASN1Result<Associate_result> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Associate_result(value_: &Associate_result) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Associate_result(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -1437,17 +1815,9 @@ pub enum Associate_source_diagnostic {
     acse_service_provider(Associate_source_diagnostic_acse_service_provider),
 }
 
-impl TryFrom<X690Element> for Associate_source_diagnostic {
+impl TryFrom<&X690Element> for Associate_source_diagnostic {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Associate_source_diagnostic(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Associate_source_diagnostic {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Associate_source_diagnostic(el)
     }
 }
@@ -1455,46 +1825,93 @@ impl<'a> TryFrom<&'a X690Element> for Associate_source_diagnostic {
 pub fn _decode_Associate_source_diagnostic(
     el: &X690Element,
 ) -> ASN1Result<Associate_source_diagnostic> {
-    |el: &X690Element| -> ASN1Result<Associate_source_diagnostic> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 1) => Ok(Associate_source_diagnostic::acse_service_user(
-                _decode_Associate_source_diagnostic_acse_service_user(&el.inner()?)?,
-            )),
-            (TagClass::CONTEXT, 2) => Ok(Associate_source_diagnostic::acse_service_provider(
-                _decode_Associate_source_diagnostic_acse_service_provider(&el.inner()?)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 1) => Ok(Associate_source_diagnostic::acse_service_user(
+            |el: &X690Element| -> ASN1Result<Associate_source_diagnostic_acse_service_user> {
+                Ok(_decode_Associate_source_diagnostic_acse_service_user(
+                    &el.inner()?,
+                )?)
+            }(&el)?,
+        )),
+        (TagClass::CONTEXT, 2) => Ok(Associate_source_diagnostic::acse_service_provider(
+            |el: &X690Element| -> ASN1Result<Associate_source_diagnostic_acse_service_provider> {
+                Ok(_decode_Associate_source_diagnostic_acse_service_provider(
+                    &el.inner()?,
+                )?)
+            }(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "Associate-source-diagnostic",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_Associate_source_diagnostic(
     value_: &Associate_source_diagnostic,
 ) -> ASN1Result<X690Element> {
-    |value: &Associate_source_diagnostic| -> ASN1Result<X690Element> {
-        match value {
-		Associate_source_diagnostic::acse_service_user(v) => |v_1: &Associate_source_diagnostic_acse_service_user| -> ASN1Result<X690Element> {
-            let el_1 = _encode_Associate_source_diagnostic_acse_service_user(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                1,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+    match value_ {
+        Associate_source_diagnostic::acse_service_user(v) => {
+            |v_1: &Associate_source_diagnostic_acse_service_user| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 1),
+                    X690Value::from_explicit(
+                        &_encode_Associate_source_diagnostic_acse_service_user(&v_1)?,
+                    ),
+                ))
+            }(&v)
+        }
+        Associate_source_diagnostic::acse_service_provider(v) => {
+            |v_1: &Associate_source_diagnostic_acse_service_provider| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(
+                        &_encode_Associate_source_diagnostic_acse_service_provider(&v_1)?,
+                    ),
+                ))
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("Associate-source-diagnostic".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_Associate_source_diagnostic(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "acse-service-user")
+                );
+            }
+            Ok(_validate_Associate_source_diagnostic_acse_service_user(
+                &el.inner()?,
+            )?)
+        }(&el),
+        (TagClass::CONTEXT, 2) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "acse-service-provider",
+                ));
+            }
+            Ok(_validate_Associate_source_diagnostic_acse_service_provider(
+                &el.inner()?,
+            )?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "Associate-source-diagnostic",
             ))
-        }(&v),
-		Associate_source_diagnostic::acse_service_provider(v) => |v_1: &Associate_source_diagnostic_acse_service_provider| -> ASN1Result<X690Element> {
-            let el_1 = _encode_Associate_source_diagnostic_acse_service_provider(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                2,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-            ))
-        }(&v),
-	}
-    }(&value_)
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1506,18 +1923,25 @@ pub fn _encode_Associate_source_diagnostic(
 pub type TheOsiBindRes = X690Element; // ObjectClassFieldType
 
 pub fn _decode_TheOsiBindRes(el: &X690Element) -> ASN1Result<TheOsiBindRes> {
-    x690_identity(&el.inner()?)
+    |el: &X690Element| -> ASN1Result<TheOsiBindRes> { Ok(x690_identity(&el.inner()?)?) }(&el)
 }
 
 pub fn _encode_TheOsiBindRes(value_: &TheOsiBindRes) -> ASN1Result<X690Element> {
     |v_1: &TheOsiBindRes| -> ASN1Result<X690Element> {
-        let el_1 = x690_identity(&v_1)?;
         Ok(X690Element::new(
-            TagClass::CONTEXT,
-            17,
-            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            Tag::new(TagClass::CONTEXT, 17),
+            X690Value::from_explicit(&x690_identity(&v_1)?),
         ))
     }(&value_)
+}
+
+pub fn _validate_TheOsiBindRes(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 17 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiBindRes"));
+        }
+        Ok(BER.validate_any(&el.inner()?)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1545,44 +1969,49 @@ pub enum OsiBindError {
     normal_mode_parameters(OsiBindError_normal_mode_parameters),
 }
 
-impl TryFrom<X690Element> for OsiBindError {
+impl TryFrom<&X690Element> for OsiBindError {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindError(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindError {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindError(el)
     }
 }
 
 pub fn _decode_OsiBindError(el: &X690Element) -> ASN1Result<OsiBindError> {
-    |el: &X690Element| -> ASN1Result<OsiBindError> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::UNIVERSAL, 16) => Ok(OsiBindError::normal_mode_parameters(
-                _decode_OsiBindError_normal_mode_parameters(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 16) => Ok(OsiBindError::normal_mode_parameters(
+            _decode_OsiBindError_normal_mode_parameters(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBindError",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiBindError(value_: &OsiBindError) -> ASN1Result<X690Element> {
-    |value: &OsiBindError| -> ASN1Result<X690Element> {
-        match value {
-            OsiBindError::normal_mode_parameters(v) => {
-                _encode_OsiBindError_normal_mode_parameters(&v)
-            }
+    match value_ {
+        OsiBindError::normal_mode_parameters(v) => _encode_OsiBindError_normal_mode_parameters(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiBindError".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_OsiBindError(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 16) => _validate_OsiBindError_normal_mode_parameters(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBindError",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1600,31 +2029,38 @@ pub fn _encode_OsiBindError(value_: &OsiBindError) -> ASN1Result<X690Element> {
 pub type Result_list = Vec<Result_list_Item>; // SequenceOfType
 
 pub fn _decode_Result_list(el: &X690Element) -> ASN1Result<Result_list> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<Result_list_Item>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<Result_list_Item> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_Result_list_Item(el)?);
-        }
-        Ok(items)
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Result-list")),
+    };
+    let mut items: SEQUENCE_OF<Result_list_Item> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_Result_list_Item(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_Result_list(value_: &Result_list) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<Result_list_Item>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_Result_list_Item(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_Result_list_Item(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_Result_list(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_Result_list_Item(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Result-list")),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -1640,30 +2076,34 @@ pub fn _encode_Result_list(value_: &Result_list) -> ASN1Result<X690Element> {
 ///   user-data-not-readable              (6),
 ///   no-PSAP-available                   (7)}
 /// ```
-pub type Provider_reason = INTEGER;
+pub type Provider_reason = i8;
 
-pub const Provider_reason_reason_not_specified: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_reason_not_specified: Provider_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_temporary_congestion: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_temporary_congestion: Provider_reason = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_local_limit_exceeded: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_local_limit_exceeded: Provider_reason = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_called_presentation_address_unknown: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_called_presentation_address_unknown: Provider_reason = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_protocol_version_not_supported: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_protocol_version_not_supported: Provider_reason = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_default_context_not_supported: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_default_context_not_supported: Provider_reason = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_user_data_not_readable: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_user_data_not_readable: Provider_reason = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Provider_reason_no_PSAP_available: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const Provider_reason_no_PSAP_available: Provider_reason = 7; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Provider_reason(el: &X690Element) -> ASN1Result<Provider_reason> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Provider_reason(value_: &Provider_reason) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Provider_reason(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -1684,7 +2124,6 @@ pub fn _encode_Provider_reason(value_: &Provider_reason) -> ASN1Result<X690Eleme
 ///   user-information                    [30] IMPLICIT
 ///                                 Association-informationBindErr{{Protocols}} OPTIONAL }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct AAREerr_apdu {
@@ -1729,15 +2168,9 @@ impl AAREerr_apdu {
         BIT_STRING::with_bits_set(&[AAREerr_apdu_protocol_version_version1])
     }
 }
-impl TryFrom<X690Element> for AAREerr_apdu {
+impl TryFrom<&X690Element> for AAREerr_apdu {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_AAREerr_apdu(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for AAREerr_apdu {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AAREerr_apdu(el)
     }
 }
@@ -1820,84 +2253,108 @@ pub const _rctl2_components_for_AAREerr_apdu: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_AAREerr_apdu: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_AAREerr_apdu(el: &X690Element) -> ASN1Result<AAREerr_apdu> {
-    |el_: &X690Element| -> ASN1Result<AAREerr_apdu> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<AAREerr_apdu> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AAREerr-apdu")
+                )
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_AAREerr_apdu,
             _eal_components_for_AAREerr_apdu,
             _rctl2_components_for_AAREerr_apdu,
-        )?;
-        let protocol_version: OPTIONAL<AAREerr_apdu_protocol_version> =
-            match _components.get("protocol-version") {
-                Some(c_) => Some(_decode_AAREerr_apdu_protocol_version(c_)?),
-                _ => None,
-            };
-        let application_context_name =
-            |el: &X690Element| -> ASN1Result<Application_context_name> {
-                Ok(_decode_Application_context_name(&el.inner()?)?)
-            }(_components.get("application-context-name").unwrap())?;
-        let result = |el: &X690Element| -> ASN1Result<Associate_result> {
-            Ok(_decode_Associate_result(&el.inner()?)?)
-        }(_components.get("result").unwrap())?;
-        let result_source_diagnostic =
-            |el: &X690Element| -> ASN1Result<Associate_source_diagnostic> {
-                Ok(_decode_Associate_source_diagnostic(&el.inner()?)?)
-            }(_components.get("result-source-diagnostic").unwrap())?;
-        let responding_AP_title: OPTIONAL<Name> = match _components.get("responding-AP-title") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<Name> {
-                Ok(_decode_Name(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let responding_AE_qualifier: OPTIONAL<RelativeDistinguishedName> =
-            match _components.get("responding-AE-qualifier") {
-                Some(c_) => Some(
-                    |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
-                        Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
-                    }(c_)?,
-                ),
-                _ => None,
-            };
-        let responding_AP_invocation_identifier: OPTIONAL<AP_invocation_identifier> =
-            match _components.get("responding-AP-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
-                    Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let responding_AE_invocation_identifier: OPTIONAL<AE_invocation_identifier> =
-            match _components.get("responding-AE-invocation-identifier") {
-                Some(c_) => Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
-                    Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
-                }(c_)?),
-                _ => None,
-            };
-        let implementation_information: OPTIONAL<Implementation_data> =
-            match _components.get("implementation-information") {
-                Some(c_) => Some(_decode_Implementation_data(c_)?),
-                _ => None,
-            };
-        let user_information: OPTIONAL<Association_informationBindErr> =
-            match _components.get("user-information") {
-                Some(c_) => Some(_decode_Association_informationBindErr(c_)?),
-                _ => None,
-            };
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut protocol_version_: OPTIONAL<AAREerr_apdu_protocol_version> = None;
+        let mut application_context_name_: OPTIONAL<Application_context_name> = None;
+        let mut result_: OPTIONAL<Associate_result> = None;
+        let mut result_source_diagnostic_: OPTIONAL<Associate_source_diagnostic> = None;
+        let mut responding_AP_title_: OPTIONAL<Name> = None;
+        let mut responding_AE_qualifier_: OPTIONAL<RelativeDistinguishedName> = None;
+        let mut responding_AP_invocation_identifier_: OPTIONAL<AP_invocation_identifier> = None;
+        let mut responding_AE_invocation_identifier_: OPTIONAL<AE_invocation_identifier> = None;
+        let mut implementation_information_: OPTIONAL<Implementation_data> = None;
+        let mut user_information_: OPTIONAL<Association_informationBindErr> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "protocol-version" => {
+                    protocol_version_ = Some(_decode_AAREerr_apdu_protocol_version(_el)?)
+                }
+                "application-context-name" => {
+                    application_context_name_ =
+                        Some(|el: &X690Element| -> ASN1Result<Application_context_name> {
+                            Ok(_decode_Application_context_name(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "result" => {
+                    result_ = Some(|el: &X690Element| -> ASN1Result<Associate_result> {
+                        Ok(_decode_Associate_result(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "result-source-diagnostic" => {
+                    result_source_diagnostic_ = Some(|el: &X690Element| -> ASN1Result<
+                        Associate_source_diagnostic,
+                    > {
+                        Ok(_decode_Associate_source_diagnostic(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "responding-AP-title" => {
+                    responding_AP_title_ = Some(|el: &X690Element| -> ASN1Result<Name> {
+                        Ok(_decode_Name(&el.inner()?)?)
+                    }(_el)?)
+                }
+                "responding-AE-qualifier" => {
+                    responding_AE_qualifier_ = Some(
+                        |el: &X690Element| -> ASN1Result<RelativeDistinguishedName> {
+                            Ok(_decode_RelativeDistinguishedName(&el.inner()?)?)
+                        }(_el)?,
+                    )
+                }
+                "responding-AP-invocation-identifier" => {
+                    responding_AP_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AP_invocation_identifier> {
+                            Ok(_decode_AP_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "responding-AE-invocation-identifier" => {
+                    responding_AE_invocation_identifier_ =
+                        Some(|el: &X690Element| -> ASN1Result<AE_invocation_identifier> {
+                            Ok(_decode_AE_invocation_identifier(&el.inner()?)?)
+                        }(_el)?)
+                }
+                "implementation-information" => {
+                    implementation_information_ = Some(_decode_Implementation_data(_el)?)
+                }
+                "user-information" => {
+                    user_information_ = Some(_decode_Association_informationBindErr(_el)?)
+                }
+                _ => {
+                    return Err(
+                        _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AAREerr-apdu")
+                    )
+                }
+            }
+        }
         Ok(AAREerr_apdu {
-            protocol_version,
-            application_context_name,
-            result,
-            result_source_diagnostic,
-            responding_AP_title,
-            responding_AE_qualifier,
-            responding_AP_invocation_identifier,
-            responding_AE_invocation_identifier,
-            implementation_information,
-            user_information,
+            protocol_version: protocol_version_,
+            application_context_name: application_context_name_.unwrap(),
+            result: result_.unwrap(),
+            result_source_diagnostic: result_source_diagnostic_.unwrap(),
+            responding_AP_title: responding_AP_title_,
+            responding_AE_qualifier: responding_AE_qualifier_,
+            responding_AP_invocation_identifier: responding_AP_invocation_identifier_,
+            responding_AE_invocation_identifier: responding_AE_invocation_identifier_,
+            implementation_information: implementation_information_,
+            user_information: user_information_,
         })
     }(&el)
 }
@@ -1911,8 +2368,8 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                     components_.push(
                         |v_1: &AAREerr_apdu_protocol_version| -> ASN1Result<X690Element> {
                             let mut el_1 = _encode_AAREerr_apdu_protocol_version(&v_1)?;
-                            el_1.tag_class = TagClass::CONTEXT;
-                            el_1.tag_number = 0;
+                            el_1.tag.tag_class = TagClass::CONTEXT;
+                            el_1.tag.tag_number = 0;
                             Ok(el_1)
                         }(&v_)?,
                     );
@@ -1921,40 +2378,30 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
             components_.push(
                 |v_1: &Application_context_name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        1,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_Application_context_name(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 1),
+                        X690Value::from_explicit(&_encode_Application_context_name(&v_1)?),
                     ))
                 }(&value_.application_context_name)?,
             );
             components_.push(|v_1: &Associate_result| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    2,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Associate_result(
-                        &v_1,
-                    )?))),
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(&_encode_Associate_result(&v_1)?),
                 ))
             }(&value_.result)?);
             components_.push(
                 |v_1: &Associate_source_diagnostic| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        3,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(
-                            _encode_Associate_source_diagnostic(&v_1)?,
-                        ))),
+                        Tag::new(TagClass::CONTEXT, 3),
+                        X690Value::from_explicit(&_encode_Associate_source_diagnostic(&v_1)?),
                     ))
                 }(&value_.result_source_diagnostic)?,
             );
             if let Some(v_) = &value_.responding_AP_title {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        4,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_Name(&v_1)?))),
+                        Tag::new(TagClass::CONTEXT, 4),
+                        X690Value::from_explicit(&_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -1962,11 +2409,8 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            5,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_RelativeDistinguishedName(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 5),
+                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1975,11 +2419,8 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            6,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AP_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 6),
+                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1988,11 +2429,8 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
-                            TagClass::CONTEXT,
-                            7,
-                            Arc::new(X690Encoding::EXPLICIT(Box::new(
-                                _encode_AE_invocation_identifier(&v_1)?,
-                            ))),
+                            Tag::new(TagClass::CONTEXT, 7),
+                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -2000,8 +2438,8 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
             if let Some(v_) = &value_.implementation_information {
                 components_.push(|v_1: &Implementation_data| -> ASN1Result<X690Element> {
                     let mut el_1 = _encode_Implementation_data(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 29;
+                    el_1.tag.tag_class = TagClass::CONTEXT;
+                    el_1.tag.tag_number = 29;
                     Ok(el_1)
                 }(&v_)?);
             }
@@ -2009,22 +2447,151 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                 components_.push(
                     |v_1: &Association_informationBindErr| -> ASN1Result<X690Element> {
                         let mut el_1 = _encode_Association_informationBindErr(&v_1)?;
-                        el_1.tag_class = TagClass::CONTEXT;
-                        el_1.tag_number = 30;
+                        el_1.tag.tag_class = TagClass::CONTEXT;
+                        el_1.tag.tag_number = 30;
                         Ok(el_1)
                     }(&v_)?,
                 );
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::APPLICATION;
-        el_1.tag_number = 1;
+        el_1.tag.tag_class = TagClass::APPLICATION;
+        el_1.tag.tag_number = 1;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_AAREerr_apdu(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AAREerr-apdu"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AAREerr-apdu")
+                    )
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_AAREerr_apdu,
+                _eal_components_for_AAREerr_apdu,
+                _rctl2_components_for_AAREerr_apdu,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "protocol-version" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "protocol-version",
+                            ));
+                        }
+                        Ok(_validate_AAREerr_apdu_protocol_version(&el)?)
+                    }(_el)?,
+                    "application-context-name" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "application-context-name",
+                            ));
+                        }
+                        Ok(_validate_Application_context_name(&el.inner()?)?)
+                    }(_el)?,
+                    "result" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                            return Err(
+                                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "result")
+                            );
+                        }
+                        Ok(_validate_Associate_result(&el.inner()?)?)
+                    }(_el)?,
+                    "result-source-diagnostic" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "result-source-diagnostic",
+                            ));
+                        }
+                        Ok(_validate_Associate_source_diagnostic(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AP-title" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AP-title",
+                            ));
+                        }
+                        Ok(_validate_Name(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AE-qualifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AE-qualifier",
+                            ));
+                        }
+                        Ok(_validate_RelativeDistinguishedName(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AP-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AP-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AP_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "responding-AE-invocation-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "responding-AE-invocation-identifier",
+                            ));
+                        }
+                        Ok(_validate_AE_invocation_identifier(&el.inner()?)?)
+                    }(_el)?,
+                    "implementation-information" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 29 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "implementation-information",
+                            ));
+                        }
+                        Ok(_validate_Implementation_data(&el)?)
+                    }(_el)?,
+                    "user-information" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 30 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "user-information",
+                            ));
+                        }
+                        Ok(_validate_Association_informationBindErr(&el)?)
+                    }(_el)?,
+                    _ => {
+                        return Err(_el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "AAREerr-apdu",
+                        ))
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2043,33 +2610,48 @@ pub type Association_informationBindErr = Vec<EXTERNAL>; // SequenceOfType
 pub fn _decode_Association_informationBindErr(
     el: &X690Element,
 ) -> ASN1Result<Association_informationBindErr> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<EXTERNAL>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<EXTERNAL> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(ber_decode_external(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "Association-informationBindErr",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<EXTERNAL> = Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(BER.decode_external(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_Association_informationBindErr(
     value_: &Association_informationBindErr,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<EXTERNAL>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(ber_encode_external(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(BER.encode_external(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_Association_informationBindErr(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                BER.validate_external(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "Association-informationBindErr",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2081,18 +2663,25 @@ pub fn _encode_Association_informationBindErr(
 pub type TheOsiBindErr = X690Element; // ObjectClassFieldType
 
 pub fn _decode_TheOsiBindErr(el: &X690Element) -> ASN1Result<TheOsiBindErr> {
-    x690_identity(&el.inner()?)
+    |el: &X690Element| -> ASN1Result<TheOsiBindErr> { Ok(x690_identity(&el.inner()?)?) }(&el)
 }
 
 pub fn _encode_TheOsiBindErr(value_: &TheOsiBindErr) -> ASN1Result<X690Element> {
     |v_1: &TheOsiBindErr| -> ASN1Result<X690Element> {
-        let el_1 = x690_identity(&v_1)?;
         Ok(X690Element::new(
-            TagClass::CONTEXT,
-            18,
-            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+            Tag::new(TagClass::CONTEXT, 18),
+            X690Value::from_explicit(&x690_identity(&v_1)?),
         ))
     }(&value_)
+}
+
+pub fn _validate_TheOsiBindErr(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 18 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiBindErr"));
+        }
+        Ok(BER.validate_any(&el.inner()?)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2110,66 +2699,97 @@ pub enum OsiUnbind {
     fully_encoded_data(Vec<OsiUnbind_fully_encoded_data_Item>),
 }
 
-impl TryFrom<X690Element> for OsiUnbind {
+impl TryFrom<&X690Element> for OsiUnbind {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiUnbind(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiUnbind {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiUnbind(el)
     }
 }
 
 pub fn _decode_OsiUnbind(el: &X690Element) -> ASN1Result<OsiUnbind> {
-    |el: &X690Element| -> ASN1Result<OsiUnbind> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::APPLICATION, 1) => Ok(OsiUnbind::fully_encoded_data(
-                |el: &X690Element| -> ASN1Result<SEQUENCE_OF<OsiUnbind_fully_encoded_data_Item>> {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<OsiUnbind_fully_encoded_data_Item> =
-                        Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_OsiUnbind_fully_encoded_data_Item(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => Ok(OsiUnbind::fully_encoded_data(
+            |el: &X690Element| -> ASN1Result<SEQUENCE_OF<OsiUnbind_fully_encoded_data_Item>> {
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "fully-encoded-data",
+                        ))
                     }
-                    Ok(items)
-                }(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+                };
+                let mut items: SEQUENCE_OF<OsiUnbind_fully_encoded_data_Item> =
+                    Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(_decode_OsiUnbind_fully_encoded_data_Item(el)?);
+                }
+                Ok(items)
+            }(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbind",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiUnbind(value_: &OsiUnbind) -> ASN1Result<X690Element> {
-    |value: &OsiUnbind| -> ASN1Result<X690Element> {
-        match value {
-            OsiUnbind::fully_encoded_data(v) => {
-                |v_1: &Vec<OsiUnbind_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
-                    let mut el_1 = |value_: &SEQUENCE_OF<OsiUnbind_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    match value_ {
+        OsiUnbind::fully_encoded_data(v) => {
+            |v_1: &Vec<OsiUnbind_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
+                let mut el_1 = |value_: &SEQUENCE_OF<OsiUnbind_fully_encoded_data_Item>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_OsiUnbind_fully_encoded_data_Item(&v)?);
 	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
 }(&v_1)?;
-                    el_1.tag_class = TagClass::APPLICATION;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
-            }
+                el_1.tag.tag_class = TagClass::APPLICATION;
+                el_1.tag.tag_number = 1;
+                Ok(el_1)
+            }(&v)
         }
-    }(&value_)
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiUnbind".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_OsiUnbind(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "fully-encoded-data")
+                );
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_OsiUnbind_fully_encoded_data_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "fully-encoded-data",
+                    )),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbind",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2178,7 +2798,6 @@ pub fn _encode_OsiUnbind(value_: &OsiUnbind) -> ASN1Result<X690Element> {
 /// TheOsiUnbind ::= [APPLICATION 2] IMPLICIT SEQUENCE {
 ///   reason  [0] IMPLICIT Release-request-reason OPTIONAL}
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TheOsiUnbind {
@@ -2194,15 +2813,9 @@ impl Default for TheOsiUnbind {
         TheOsiUnbind { reason: None }
     }
 }
-impl TryFrom<X690Element> for TheOsiUnbind {
+impl TryFrom<&X690Element> for TheOsiUnbind {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TheOsiUnbind(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TheOsiUnbind {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TheOsiUnbind(el)
     }
 }
@@ -2220,23 +2833,39 @@ pub const _rctl2_components_for_TheOsiUnbind: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_TheOsiUnbind: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_TheOsiUnbind(el: &X690Element) -> ASN1Result<TheOsiUnbind> {
-    |el_: &X690Element| -> ASN1Result<TheOsiUnbind> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<TheOsiUnbind> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbind")
+                )
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_TheOsiUnbind,
             _eal_components_for_TheOsiUnbind,
             _rctl2_components_for_TheOsiUnbind,
-        )?;
-        let reason: OPTIONAL<Release_request_reason> = match _components.get("reason") {
-            Some(c_) => Some(_decode_Release_request_reason(c_)?),
-            _ => None,
-        };
-        Ok(TheOsiUnbind { reason })
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut reason_: OPTIONAL<Release_request_reason> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "reason" => reason_ = Some(_decode_Release_request_reason(_el)?),
+                _ => {
+                    return Err(
+                        _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbind")
+                    )
+                }
+            }
+        }
+        Ok(TheOsiUnbind { reason: reason_ })
     }(&el)
 }
 
@@ -2247,21 +2876,69 @@ pub fn _encode_TheOsiUnbind(value_: &TheOsiUnbind) -> ASN1Result<X690Element> {
             if let Some(v_) = &value_.reason {
                 components_.push(|v_1: &Release_request_reason| -> ASN1Result<X690Element> {
                     let mut el_1 = _encode_Release_request_reason(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
+                    el_1.tag.tag_class = TagClass::CONTEXT;
+                    el_1.tag.tag_number = 0;
                     Ok(el_1)
                 }(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::APPLICATION;
-        el_1.tag_number = 2;
+        el_1.tag.tag_class = TagClass::APPLICATION;
+        el_1.tag.tag_number = 2;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_TheOsiUnbind(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 2 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbind"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbind")
+                    )
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_TheOsiUnbind,
+                _eal_components_for_TheOsiUnbind,
+                _rctl2_components_for_TheOsiUnbind,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "reason" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                            return Err(
+                                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "reason")
+                            );
+                        }
+                        Ok(_validate_Release_request_reason(&el)?)
+                    }(_el)?,
+                    _ => {
+                        return Err(_el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "TheOsiUnbind",
+                        ))
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2269,16 +2946,20 @@ pub fn _encode_TheOsiUnbind(value_: &TheOsiUnbind) -> ASN1Result<X690Element> {
 /// ```asn1
 /// Release-request-reason  ::=  INTEGER {normal(0)}
 /// ```
-pub type Release_request_reason = INTEGER;
+pub type Release_request_reason = i8;
 
-pub const Release_request_reason_normal: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Release_request_reason_normal: Release_request_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Release_request_reason(el: &X690Element) -> ASN1Result<Release_request_reason> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Release_request_reason(value_: &Release_request_reason) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Release_request_reason(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -2295,69 +2976,99 @@ pub enum OsiUnbindResult {
     fully_encoded_data(Vec<OsiUnbindResult_fully_encoded_data_Item>),
 }
 
-impl TryFrom<X690Element> for OsiUnbindResult {
+impl TryFrom<&X690Element> for OsiUnbindResult {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiUnbindResult(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiUnbindResult {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiUnbindResult(el)
     }
 }
 
 pub fn _decode_OsiUnbindResult(el: &X690Element) -> ASN1Result<OsiUnbindResult> {
-    |el: &X690Element| -> ASN1Result<OsiUnbindResult> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::APPLICATION, 1) => Ok(
-                OsiUnbindResult::fully_encoded_data(|el: &X690Element| -> ASN1Result<
-                    SEQUENCE_OF<OsiUnbindResult_fully_encoded_data_Item>,
-                > {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<OsiUnbindResult_fully_encoded_data_Item> =
-                        Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_OsiUnbindResult_fully_encoded_data_Item(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => Ok(
+            OsiUnbindResult::fully_encoded_data(|el: &X690Element| -> ASN1Result<
+                SEQUENCE_OF<OsiUnbindResult_fully_encoded_data_Item>,
+            > {
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "fully-encoded-data",
+                        ))
                     }
-                    Ok(items)
-                }(&el)?),
-            ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+                };
+                let mut items: SEQUENCE_OF<OsiUnbindResult_fully_encoded_data_Item> =
+                    Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(_decode_OsiUnbindResult_fully_encoded_data_Item(el)?);
+                }
+                Ok(items)
+            }(&el)?),
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbindResult",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiUnbindResult(value_: &OsiUnbindResult) -> ASN1Result<X690Element> {
-    |value: &OsiUnbindResult| -> ASN1Result<X690Element> {
-        match value {
-            OsiUnbindResult::fully_encoded_data(v) => |v_1: &Vec<
-                OsiUnbindResult_fully_encoded_data_Item,
-            >|
-             -> ASN1Result<X690Element> {
-                let mut el_1 = |value_: &SEQUENCE_OF<OsiUnbindResult_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    match value_ {
+        OsiUnbindResult::fully_encoded_data(v) => {
+            |v_1: &Vec<OsiUnbindResult_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
+                let mut el_1 = |value_: &SEQUENCE_OF<OsiUnbindResult_fully_encoded_data_Item>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_OsiUnbindResult_fully_encoded_data_Item(&v)?);
 	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
 }(&v_1)?;
-                el_1.tag_class = TagClass::APPLICATION;
-                el_1.tag_number = 1;
+                el_1.tag.tag_class = TagClass::APPLICATION;
+                el_1.tag.tag_number = 1;
                 Ok(el_1)
-            }(&v),
+            }(&v)
         }
-    }(&value_)
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiUnbindResult".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_OsiUnbindResult(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "fully-encoded-data")
+                );
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_OsiUnbindResult_fully_encoded_data_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "fully-encoded-data",
+                    )),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbindResult",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2366,7 +3077,6 @@ pub fn _encode_OsiUnbindResult(value_: &OsiUnbindResult) -> ASN1Result<X690Eleme
 /// TheOsiUnbindRes ::= [APPLICATION 3] IMPLICIT SEQUENCE {
 ///   reason  [0] IMPLICIT Release-response-reason OPTIONAL }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TheOsiUnbindRes {
@@ -2382,15 +3092,9 @@ impl Default for TheOsiUnbindRes {
         TheOsiUnbindRes { reason: None }
     }
 }
-impl TryFrom<X690Element> for TheOsiUnbindRes {
+impl TryFrom<&X690Element> for TheOsiUnbindRes {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TheOsiUnbindRes(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TheOsiUnbindRes {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TheOsiUnbindRes(el)
     }
 }
@@ -2408,23 +3112,38 @@ pub const _rctl2_components_for_TheOsiUnbindRes: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_TheOsiUnbindRes: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_TheOsiUnbindRes(el: &X690Element) -> ASN1Result<TheOsiUnbindRes> {
-    |el_: &X690Element| -> ASN1Result<TheOsiUnbindRes> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<TheOsiUnbindRes> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbindRes")
+                )
+            }
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_TheOsiUnbindRes,
             _eal_components_for_TheOsiUnbindRes,
             _rctl2_components_for_TheOsiUnbindRes,
-        )?;
-        let reason: OPTIONAL<Release_response_reason> = match _components.get("reason") {
-            Some(c_) => Some(_decode_Release_response_reason(c_)?),
-            _ => None,
-        };
-        Ok(TheOsiUnbindRes { reason })
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut reason_: OPTIONAL<Release_response_reason> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "reason" => reason_ = Some(_decode_Release_response_reason(_el)?),
+                _ => {
+                    return Err(_el
+                        .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbindRes"))
+                }
+            }
+        }
+        Ok(TheOsiUnbindRes { reason: reason_ })
     }(&el)
 }
 
@@ -2435,21 +3154,70 @@ pub fn _encode_TheOsiUnbindRes(value_: &TheOsiUnbindRes) -> ASN1Result<X690Eleme
             if let Some(v_) = &value_.reason {
                 components_.push(|v_1: &Release_response_reason| -> ASN1Result<X690Element> {
                     let mut el_1 = _encode_Release_response_reason(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
+                    el_1.tag.tag_class = TagClass::CONTEXT;
+                    el_1.tag.tag_number = 0;
                     Ok(el_1)
                 }(&v_)?);
             }
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::APPLICATION;
-        el_1.tag_number = 3;
+        el_1.tag.tag_class = TagClass::APPLICATION;
+        el_1.tag.tag_number = 3;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_TheOsiUnbindRes(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 3 {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbindRes")
+            );
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el
+                        .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TheOsiUnbindRes"))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_TheOsiUnbindRes,
+                _eal_components_for_TheOsiUnbindRes,
+                _rctl2_components_for_TheOsiUnbindRes,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "reason" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                            return Err(
+                                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "reason")
+                            );
+                        }
+                        Ok(_validate_Release_response_reason(&el)?)
+                    }(_el)?,
+                    _ => {
+                        return Err(_el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "TheOsiUnbindRes",
+                        ))
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2457,18 +3225,22 @@ pub fn _encode_TheOsiUnbindRes(value_: &TheOsiUnbindRes) -> ASN1Result<X690Eleme
 /// ```asn1
 /// Release-response-reason  ::=  INTEGER {normal(0)}
 /// ```
-pub type Release_response_reason = INTEGER;
+pub type Release_response_reason = i8;
 
-pub const Release_response_reason_normal: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Release_response_reason_normal: Release_response_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Release_response_reason(el: &X690Element) -> ASN1Result<Release_response_reason> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Release_response_reason(
     value_: &Release_response_reason,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Release_response_reason(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -2486,68 +3258,97 @@ pub enum OsiOperation {
     fully_encoded_data(Vec<OsiOperation_fully_encoded_data_Item>),
 }
 
-impl TryFrom<X690Element> for OsiOperation {
+impl TryFrom<&X690Element> for OsiOperation {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiOperation(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiOperation {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiOperation(el)
     }
 }
 
 pub fn _decode_OsiOperation(el: &X690Element) -> ASN1Result<OsiOperation> {
-    |el: &X690Element| -> ASN1Result<OsiOperation> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::APPLICATION, 1) => Ok(
-                OsiOperation::fully_encoded_data(|el: &X690Element| -> ASN1Result<
-                    SEQUENCE_OF<OsiOperation_fully_encoded_data_Item>,
-                > {
-                    let elements = match el.value.borrow() {
-                        X690Encoding::Constructed(children) => children,
-                        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                    };
-                    let mut items: SEQUENCE_OF<OsiOperation_fully_encoded_data_Item> =
-                        Vec::with_capacity(elements.len());
-                    for el in elements {
-                        items.push(_decode_OsiOperation_fully_encoded_data_Item(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => Ok(OsiOperation::fully_encoded_data(
+            |el: &X690Element| -> ASN1Result<SEQUENCE_OF<OsiOperation_fully_encoded_data_Item>> {
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "fully-encoded-data",
+                        ))
                     }
-                    Ok(items)
-                }(&el)?),
-            ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+                };
+                let mut items: SEQUENCE_OF<OsiOperation_fully_encoded_data_Item> =
+                    Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(_decode_OsiOperation_fully_encoded_data_Item(el)?);
+                }
+                Ok(items)
+            }(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiOperation",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiOperation(value_: &OsiOperation) -> ASN1Result<X690Element> {
-    |value: &OsiOperation| -> ASN1Result<X690Element> {
-        match value {
-            OsiOperation::fully_encoded_data(v) => {
-                |v_1: &Vec<OsiOperation_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
-                    let mut el_1 = |value_: &SEQUENCE_OF<OsiOperation_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    match value_ {
+        OsiOperation::fully_encoded_data(v) => {
+            |v_1: &Vec<OsiOperation_fully_encoded_data_Item>| -> ASN1Result<X690Element> {
+                let mut el_1 = |value_: &SEQUENCE_OF<OsiOperation_fully_encoded_data_Item>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_OsiOperation_fully_encoded_data_Item(&v)?);
 	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
 }(&v_1)?;
-                    el_1.tag_class = TagClass::APPLICATION;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
-            }
+                el_1.tag.tag_class = TagClass::APPLICATION;
+                el_1.tag.tag_number = 1;
+                Ok(el_1)
+            }(&v)
         }
-    }(&value_)
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiOperation".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_OsiOperation(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "fully-encoded-data")
+                );
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_OsiOperation_fully_encoded_data_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "fully-encoded-data",
+                    )),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiOperation",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2567,46 +3368,56 @@ pub enum OsiDirectoryOperation {
     reject(OsiRej),
 }
 
-impl TryFrom<X690Element> for OsiDirectoryOperation {
+impl TryFrom<&X690Element> for OsiDirectoryOperation {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiDirectoryOperation(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiDirectoryOperation {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiDirectoryOperation(el)
     }
 }
 
 pub fn _decode_OsiDirectoryOperation(el: &X690Element) -> ASN1Result<OsiDirectoryOperation> {
-    |el: &X690Element| -> ASN1Result<OsiDirectoryOperation> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 1) => Ok(OsiDirectoryOperation::request(_decode_OsiReq(&el)?)),
-            (TagClass::CONTEXT, 2) => Ok(OsiDirectoryOperation::result(_decode_OsiRes(&el)?)),
-            (TagClass::CONTEXT, 3) => Ok(OsiDirectoryOperation::error(_decode_OsiErr(&el)?)),
-            (TagClass::CONTEXT, 4) => Ok(OsiDirectoryOperation::reject(_decode_OsiRej(&el)?)),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 1) => Ok(OsiDirectoryOperation::request(_decode_OsiReq(&el)?)),
+        (TagClass::CONTEXT, 2) => Ok(OsiDirectoryOperation::result(_decode_OsiRes(&el)?)),
+        (TagClass::CONTEXT, 3) => Ok(OsiDirectoryOperation::error(_decode_OsiErr(&el)?)),
+        (TagClass::CONTEXT, 4) => Ok(OsiDirectoryOperation::reject(_decode_OsiRej(&el)?)),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiDirectoryOperation",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiDirectoryOperation(value_: &OsiDirectoryOperation) -> ASN1Result<X690Element> {
-    |value: &OsiDirectoryOperation| -> ASN1Result<X690Element> {
-        match value {
-            OsiDirectoryOperation::request(v) => _encode_OsiReq(&v),
-            OsiDirectoryOperation::result(v) => _encode_OsiRes(&v),
-            OsiDirectoryOperation::error(v) => _encode_OsiErr(&v),
-            OsiDirectoryOperation::reject(v) => _encode_OsiRej(&v),
+    match value_ {
+        OsiDirectoryOperation::request(v) => _encode_OsiReq(&v),
+        OsiDirectoryOperation::result(v) => _encode_OsiRes(&v),
+        OsiDirectoryOperation::error(v) => _encode_OsiErr(&v),
+        OsiDirectoryOperation::reject(v) => _encode_OsiRej(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiDirectoryOperation".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_OsiDirectoryOperation(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 1) => _validate_OsiReq(&el),
+        (TagClass::CONTEXT, 2) => _validate_OsiRes(&el),
+        (TagClass::CONTEXT, 3) => _validate_OsiErr(&el),
+        (TagClass::CONTEXT, 4) => _validate_OsiRej(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiDirectoryOperation",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -2617,7 +3428,6 @@ pub fn _encode_OsiDirectoryOperation(value_: &OsiDirectoryOperation) -> ASN1Resu
 ///   opcode    OPERATION.&operationCode({Operations}),
 ///   argument  OPERATION.&ArgumentType({Operations}{@opcode}) }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiReq {
@@ -2634,15 +3444,9 @@ impl OsiReq {
         }
     }
 }
-impl TryFrom<X690Element> for OsiReq {
+impl TryFrom<&X690Element> for OsiReq {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiReq(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiReq {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiReq(el)
     }
 }
@@ -2658,25 +3462,40 @@ pub const _rctl2_components_for_OsiReq: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OsiReq: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiReq(el: &X690Element) -> ASN1Result<OsiReq> {
-    |el_: &X690Element| -> ASN1Result<OsiReq> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<OsiReq> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiReq")),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_OsiReq,
             _eal_components_for_OsiReq,
             _rctl2_components_for_OsiReq,
-        )?;
-        let invokeId = _decode_InvokeId(_components.get("invokeId").unwrap())?;
-        let opcode = _decode_Code(_components.get("opcode").unwrap())?;
-        let argument = x690_identity(_components.get("argument").unwrap())?;
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut invokeId_: OPTIONAL<InvokeId> = None;
+        let mut opcode_: OPTIONAL<Code> = None;
+        let mut argument_: OPTIONAL<X690Element> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "invokeId" => invokeId_ = Some(_decode_InvokeId(_el)?),
+                "opcode" => opcode_ = Some(_decode_Code(_el)?),
+                "argument" => argument_ = Some(x690_identity(_el)?),
+                _ => {
+                    return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiReq"))
+                }
+            }
+        }
         Ok(OsiReq {
-            invokeId,
-            opcode,
-            argument,
+            invokeId: invokeId_.unwrap(),
+            opcode: opcode_.unwrap(),
+            argument: argument_.unwrap(),
         })
     }(&el)
 }
@@ -2689,15 +3508,55 @@ pub fn _encode_OsiReq(value_: &OsiReq) -> ASN1Result<X690Element> {
             components_.push(_encode_Code(&value_.opcode)?);
             components_.push(x690_identity(&value_.argument)?);
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 1;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 1;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_OsiReq(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiReq"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiReq"))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_OsiReq,
+                _eal_components_for_OsiReq,
+                _rctl2_components_for_OsiReq,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "invokeId" => _validate_InvokeId(_el)?,
+                    "opcode" => _validate_Code(_el)?,
+                    "argument" => BER.validate_any(_el)?,
+                    _ => {
+                        return Err(
+                            _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiReq")
+                        )
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2710,7 +3569,6 @@ pub fn _encode_OsiReq(value_: &OsiReq) -> ASN1Result<X690Element> {
 ///     result    OPERATION.&ResultType({Operations}{@.opcode}) }}
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct OsiRes {
     pub invokeId: InvokeId,
@@ -2721,15 +3579,9 @@ impl OsiRes {
         OsiRes { invokeId, result }
     }
 }
-impl TryFrom<X690Element> for OsiRes {
+impl TryFrom<&X690Element> for OsiRes {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiRes(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiRes {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiRes(el)
     }
 }
@@ -2750,21 +3602,38 @@ pub const _rctl2_components_for_OsiRes: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OsiRes: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiRes(el: &X690Element) -> ASN1Result<OsiRes> {
-    |el_: &X690Element| -> ASN1Result<OsiRes> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<OsiRes> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes")),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_OsiRes,
             _eal_components_for_OsiRes,
             _rctl2_components_for_OsiRes,
-        )?;
-        let invokeId = _decode_InvokeId(_components.get("invokeId").unwrap())?;
-        let result = _decode_OsiRes_result(_components.get("result").unwrap())?;
-        Ok(OsiRes { invokeId, result })
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut invokeId_: OPTIONAL<InvokeId> = None;
+        let mut result_: OPTIONAL<OsiRes_result> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "invokeId" => invokeId_ = Some(_decode_InvokeId(_el)?),
+                "result" => result_ = Some(_decode_OsiRes_result(_el)?),
+                _ => {
+                    return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes"))
+                }
+            }
+        }
+        Ok(OsiRes {
+            invokeId: invokeId_.unwrap(),
+            result: result_.unwrap(),
+        })
     }(&el)
 }
 
@@ -2775,15 +3644,54 @@ pub fn _encode_OsiRes(value_: &OsiRes) -> ASN1Result<X690Element> {
             components_.push(_encode_InvokeId(&value_.invokeId)?);
             components_.push(_encode_OsiRes_result(&value_.result)?);
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 2;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 2;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_OsiRes(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes"))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_OsiRes,
+                _eal_components_for_OsiRes,
+                _rctl2_components_for_OsiRes,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "invokeId" => _validate_InvokeId(_el)?,
+                    "result" => _validate_OsiRes_result(_el)?,
+                    _ => {
+                        return Err(
+                            _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes")
+                        )
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2794,7 +3702,6 @@ pub fn _encode_OsiRes(value_: &OsiRes) -> ASN1Result<X690Element> {
 ///   errcode   OPERATION.&Errors.&errorCode({Operations}),
 ///   error     OPERATION.&Errors.&ParameterType({Operations}{@.errcode}) }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiErr {
@@ -2811,15 +3718,9 @@ impl OsiErr {
         }
     }
 }
-impl TryFrom<X690Element> for OsiErr {
+impl TryFrom<&X690Element> for OsiErr {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiErr(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiErr {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiErr(el)
     }
 }
@@ -2835,25 +3736,40 @@ pub const _rctl2_components_for_OsiErr: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OsiErr: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiErr(el: &X690Element) -> ASN1Result<OsiErr> {
-    |el_: &X690Element| -> ASN1Result<OsiErr> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<OsiErr> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiErr")),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_OsiErr,
             _eal_components_for_OsiErr,
             _rctl2_components_for_OsiErr,
-        )?;
-        let invokeID = _decode_InvokeId(_components.get("invokeID").unwrap())?;
-        let errcode = x690_identity(_components.get("errcode").unwrap())?;
-        let error = x690_identity(_components.get("error").unwrap())?;
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut invokeID_: OPTIONAL<InvokeId> = None;
+        let mut errcode_: OPTIONAL<X690Element> = None;
+        let mut error_: OPTIONAL<X690Element> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "invokeID" => invokeID_ = Some(_decode_InvokeId(_el)?),
+                "errcode" => errcode_ = Some(x690_identity(_el)?),
+                "error" => error_ = Some(x690_identity(_el)?),
+                _ => {
+                    return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiErr"))
+                }
+            }
+        }
         Ok(OsiErr {
-            invokeID,
-            errcode,
-            error,
+            invokeID: invokeID_.unwrap(),
+            errcode: errcode_.unwrap(),
+            error: error_.unwrap(),
         })
     }(&el)
 }
@@ -2866,15 +3782,55 @@ pub fn _encode_OsiErr(value_: &OsiErr) -> ASN1Result<X690Element> {
             components_.push(x690_identity(&value_.errcode)?);
             components_.push(x690_identity(&value_.error)?);
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 3;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 3;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_OsiErr(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiErr"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiErr"))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_OsiErr,
+                _eal_components_for_OsiErr,
+                _rctl2_components_for_OsiErr,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "invokeID" => _validate_InvokeId(_el)?,
+                    "errcode" => BER.validate_any(_el)?,
+                    "error" => BER.validate_any(_el)?,
+                    _ => {
+                        return Err(
+                            _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiErr")
+                        )
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2890,7 +3846,6 @@ pub fn _encode_OsiErr(value_: &OsiErr) -> ASN1Result<X690Element> {
 ///     ... },
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiRej {
@@ -2911,15 +3866,9 @@ impl OsiRej {
         }
     }
 }
-impl TryFrom<X690Element> for OsiRej {
+impl TryFrom<&X690Element> for OsiRej {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiRej(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiRej {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiRej(el)
     }
 }
@@ -2934,23 +3883,36 @@ pub const _rctl2_components_for_OsiRej: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OsiRej: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiRej(el: &X690Element) -> ASN1Result<OsiRej> {
-    |el_: &X690Element| -> ASN1Result<OsiRej> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<OsiRej> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRej")),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_OsiRej,
             _eal_components_for_OsiRej,
             _rctl2_components_for_OsiRej,
-        )?;
-        let invokeId = _decode_InvokeId(_components.get("invokeId").unwrap())?;
-        let problem = _decode_OsiRej_problem(_components.get("problem").unwrap())?;
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut invokeId_: OPTIONAL<InvokeId> = None;
+        let mut problem_: OPTIONAL<OsiRej_problem> = None;
+        let mut _unrecognized: Vec<X690Element> = vec![];
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "invokeId" => invokeId_ = Some(_decode_InvokeId(_el)?),
+                "problem" => problem_ = Some(_decode_OsiRej_problem(_el)?),
+                _ => _unrecognized.push(_el.clone()),
+            }
+        }
         Ok(OsiRej {
-            invokeId,
-            problem,
+            invokeId: invokeId_.unwrap(),
+            problem: problem_.unwrap(),
             _unrecognized,
         })
     }(&el)
@@ -2963,17 +3925,52 @@ pub fn _encode_OsiRej(value_: &OsiRej) -> ASN1Result<X690Element> {
             components_.push(_encode_InvokeId(&value_.invokeId)?);
             components_.push(_encode_OsiRej_problem(&value_.problem)?);
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(
                     [components_, value_._unrecognized.clone()].concat(),
                 )),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::CONTEXT;
-        el_1.tag_number = 4;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 4;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_OsiRej(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRej"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRej"))
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_OsiRej,
+                _eal_components_for_OsiRej,
+                _rctl2_components_for_OsiRej,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "invokeId" => _validate_InvokeId(_el)?,
+                    "problem" => _validate_OsiRej_problem(_el)?,
+                    _ => (),
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -2984,20 +3981,24 @@ pub fn _encode_OsiRej(value_: &OsiRej) -> ASN1Result<X690Element> {
 ///   mistypedPDU              (1),
 ///   badlyStructuredPDU       (2) }
 /// ```
-pub type GeneralProblem = INTEGER;
+pub type GeneralProblem = i8;
 
-pub const GeneralProblem_unrecognizedPDU: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const GeneralProblem_unrecognizedPDU: GeneralProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const GeneralProblem_mistypedPDU: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const GeneralProblem_mistypedPDU: GeneralProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const GeneralProblem_badlyStructuredPDU: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const GeneralProblem_badlyStructuredPDU: GeneralProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_GeneralProblem(el: &X690Element) -> ASN1Result<GeneralProblem> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_GeneralProblem(value_: &GeneralProblem) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_GeneralProblem(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3010,24 +4011,28 @@ pub fn _encode_GeneralProblem(value_: &GeneralProblem) -> ASN1Result<X690Element
 ///   resourceLimitation       (3),
 ///   releaseInProgress        (4)}
 /// ```
-pub type InvokeProblem = INTEGER;
+pub type InvokeProblem = i8;
 
-pub const InvokeProblem_duplicateInvocation: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_duplicateInvocation: InvokeProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_unrecognizedOperation: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_unrecognizedOperation: InvokeProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_mistypedArgument: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_mistypedArgument: InvokeProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_resourceLimitation: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_resourceLimitation: InvokeProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const InvokeProblem_releaseInProgress: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const InvokeProblem_releaseInProgress: InvokeProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_InvokeProblem(el: &X690Element) -> ASN1Result<InvokeProblem> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_InvokeProblem(value_: &InvokeProblem) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_InvokeProblem(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3038,20 +4043,24 @@ pub fn _encode_InvokeProblem(value_: &InvokeProblem) -> ASN1Result<X690Element> 
 ///   resultResponseUnexpected (1),
 ///   mistypedResult           (2)}
 /// ```
-pub type ReturnResultProblem = INTEGER;
+pub type ReturnResultProblem = i8;
 
-pub const ReturnResultProblem_unrecognizedInvocation: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnResultProblem_unrecognizedInvocation: ReturnResultProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnResultProblem_resultResponseUnexpected: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnResultProblem_resultResponseUnexpected: ReturnResultProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnResultProblem_mistypedResult: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnResultProblem_mistypedResult: ReturnResultProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ReturnResultProblem(el: &X690Element) -> ASN1Result<ReturnResultProblem> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_ReturnResultProblem(value_: &ReturnResultProblem) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_ReturnResultProblem(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3064,24 +4073,28 @@ pub fn _encode_ReturnResultProblem(value_: &ReturnResultProblem) -> ASN1Result<X
 ///   unexpectedError          (3),
 ///   mistypedParameter        (4)}
 /// ```
-pub type ReturnErrorProblem = INTEGER;
+pub type ReturnErrorProblem = i8;
 
-pub const ReturnErrorProblem_unrecognizedInvocation: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_unrecognizedInvocation: ReturnErrorProblem = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_errorResponseUnexpected: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_errorResponseUnexpected: ReturnErrorProblem = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_unrecognizedError: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_unrecognizedError: ReturnErrorProblem = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_unexpectedError: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_unexpectedError: ReturnErrorProblem = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ReturnErrorProblem_mistypedParameter: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const ReturnErrorProblem_mistypedParameter: ReturnErrorProblem = 4; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ReturnErrorProblem(el: &X690Element) -> ASN1Result<ReturnErrorProblem> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_ReturnErrorProblem(value_: &ReturnErrorProblem) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_ReturnErrorProblem(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3097,42 +4110,50 @@ pub enum PresentationAbort {
     arp_ppdu(ARP_PPDU),
 }
 
-impl TryFrom<X690Element> for PresentationAbort {
+impl TryFrom<&X690Element> for PresentationAbort {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PresentationAbort(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PresentationAbort {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PresentationAbort(el)
     }
 }
 
 pub fn _decode_PresentationAbort(el: &X690Element) -> ASN1Result<PresentationAbort> {
-    |el: &X690Element| -> ASN1Result<PresentationAbort> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(PresentationAbort::aru_ppdu(_decode_ARU_PPDU(&el)?)),
-            (TagClass::UNIVERSAL, 16) => Ok(PresentationAbort::arp_ppdu(_decode_ARP_PPDU(&el)?)),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(PresentationAbort::aru_ppdu(_decode_ARU_PPDU(&el)?)),
+        (TagClass::UNIVERSAL, 16) => Ok(PresentationAbort::arp_ppdu(_decode_ARP_PPDU(&el)?)),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PresentationAbort",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_PresentationAbort(value_: &PresentationAbort) -> ASN1Result<X690Element> {
-    |value: &PresentationAbort| -> ASN1Result<X690Element> {
-        match value {
-            PresentationAbort::aru_ppdu(v) => _encode_ARU_PPDU(&v),
-            PresentationAbort::arp_ppdu(v) => _encode_ARP_PPDU(&v),
+    match value_ {
+        PresentationAbort::aru_ppdu(v) => _encode_ARU_PPDU(&v),
+        PresentationAbort::arp_ppdu(v) => _encode_ARP_PPDU(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("PresentationAbort".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_PresentationAbort(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => _validate_ARU_PPDU(&el),
+        (TagClass::UNIVERSAL, 16) => _validate_ARP_PPDU(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "PresentationAbort",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3153,49 +4174,64 @@ pub enum ARU_PPDU {
     normal_mode_parameters(ARU_PPDU_normal_mode_parameters),
 }
 
-impl TryFrom<X690Element> for ARU_PPDU {
+impl TryFrom<&X690Element> for ARU_PPDU {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ARU_PPDU(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ARU_PPDU {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ARU_PPDU(el)
     }
 }
 
 pub fn _decode_ARU_PPDU(el: &X690Element) -> ASN1Result<ARU_PPDU> {
-    |el: &X690Element| -> ASN1Result<ARU_PPDU> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(ARU_PPDU::normal_mode_parameters(
-                _decode_ARU_PPDU_normal_mode_parameters(&el)?,
-            )),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(ARU_PPDU::normal_mode_parameters(
+            _decode_ARU_PPDU_normal_mode_parameters(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ARU-PPDU",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_ARU_PPDU(value_: &ARU_PPDU) -> ASN1Result<X690Element> {
-    |value: &ARU_PPDU| -> ASN1Result<X690Element> {
-        match value {
-            ARU_PPDU::normal_mode_parameters(v) => {
-                |v_1: &ARU_PPDU_normal_mode_parameters| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_ARU_PPDU_normal_mode_parameters(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 0;
-                    Ok(el_1)
-                }(&v)
-            }
+    match value_ {
+        ARU_PPDU::normal_mode_parameters(v) => {
+            |v_1: &ARU_PPDU_normal_mode_parameters| -> ASN1Result<X690Element> {
+                let mut el_1 = _encode_ARU_PPDU_normal_mode_parameters(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 0;
+                Ok(el_1)
+            }(&v)
         }
-    }(&value_)
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("ARU-PPDU".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_ARU_PPDU(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "normal-mode-parameters",
+                ));
+            }
+            Ok(_validate_ARU_PPDU_normal_mode_parameters(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ARU-PPDU",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3210,34 +4246,49 @@ pub type Presentation_context_identifier_list = Vec<Presentation_context_identif
 pub fn _decode_Presentation_context_identifier_list(
     el: &X690Element,
 ) -> ASN1Result<Presentation_context_identifier_list> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<Presentation_context_identifier_list_Item>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<Presentation_context_identifier_list_Item> =
-            Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(_decode_Presentation_context_identifier_list_Item(el)?);
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "Presentation-context-identifier-list",
+            ))
         }
-        Ok(items)
-    }(&el)
+    };
+    let mut items: SEQUENCE_OF<Presentation_context_identifier_list_Item> =
+        Vec::with_capacity(elements.len());
+    for el in elements.iter() {
+        items.push(_decode_Presentation_context_identifier_list_Item(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_Presentation_context_identifier_list(
     value_: &Presentation_context_identifier_list,
 ) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<Presentation_context_identifier_list_Item>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_Presentation_context_identifier_list_Item(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(_encode_Presentation_context_identifier_list_Item(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_Presentation_context_identifier_list(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                _validate_Presentation_context_identifier_list_Item(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "Presentation-context-identifier-list",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3246,7 +4297,6 @@ pub fn _encode_Presentation_context_identifier_list(
 /// ABRT-apdu ::= [APPLICATION 4] IMPLICIT SEQUENCE {
 ///   abort-source  [0] IMPLICIT ABRT-source }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ABRT_apdu {
@@ -3257,15 +4307,9 @@ impl ABRT_apdu {
         ABRT_apdu { abort_source }
     }
 }
-impl TryFrom<X690Element> for ABRT_apdu {
+impl TryFrom<&X690Element> for ABRT_apdu {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ABRT_apdu(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ABRT_apdu {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ABRT_apdu(el)
     }
 }
@@ -3283,20 +4327,37 @@ pub const _rctl2_components_for_ABRT_apdu: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ABRT_apdu: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ABRT_apdu(el: &X690Element) -> ASN1Result<ABRT_apdu> {
-    |el_: &X690Element| -> ASN1Result<ABRT_apdu> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    |el: &X690Element| -> ASN1Result<ABRT_apdu> {
+        let _elements = match &el.value {
+            X690Value::Constructed(children) => children,
+            _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ABRT-apdu")),
         };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
+        let _seq_iter = X690StructureIterator::new(
+            _elements.as_slice(),
             _rctl1_components_for_ABRT_apdu,
             _eal_components_for_ABRT_apdu,
             _rctl2_components_for_ABRT_apdu,
-        )?;
-        let abort_source = _decode_ABRT_source(_components.get("abort-source").unwrap())?;
-        Ok(ABRT_apdu { abort_source })
+        )
+        .into_iter();
+        let mut _i: usize = 0;
+        let mut abort_source_: OPTIONAL<ABRT_source> = None;
+        for _fallible_component_name in _seq_iter {
+            let _component_name = _fallible_component_name?;
+            let _maybe_el = _elements.get(_i);
+            _i += 1;
+            let _el = _maybe_el.unwrap();
+            match _component_name {
+                "abort-source" => abort_source_ = Some(_decode_ABRT_source(_el)?),
+                _ => {
+                    return Err(
+                        _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ABRT-apdu")
+                    )
+                }
+            }
+        }
+        Ok(ABRT_apdu {
+            abort_source: abort_source_.unwrap(),
+        })
     }(&el)
 }
 
@@ -3306,20 +4367,68 @@ pub fn _encode_ABRT_apdu(value_: &ABRT_apdu) -> ASN1Result<X690Element> {
             let mut components_: Vec<X690Element> = Vec::with_capacity(6);
             components_.push(|v_1: &ABRT_source| -> ASN1Result<X690Element> {
                 let mut el_1 = _encode_ABRT_source(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 0;
                 Ok(el_1)
             }(&value_.abort_source)?);
             Ok(X690Element::new(
-                TagClass::UNIVERSAL,
-                ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-                Arc::new(X690Encoding::Constructed(components_)),
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                X690Value::Constructed(Arc::new(components_)),
             ))
         }(&v_1)?;
-        el_1.tag_class = TagClass::APPLICATION;
-        el_1.tag_number = 4;
+        el_1.tag.tag_class = TagClass::APPLICATION;
+        el_1.tag.tag_number = 4;
         Ok(el_1)
     }(&value_)
+}
+
+pub fn _validate_ABRT_apdu(el: &X690Element) -> ASN1Result<()> {
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 4 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ABRT-apdu"));
+        }
+        Ok(|el: &X690Element| -> ASN1Result<()> {
+            let _elements = match &el.value {
+                X690Value::Constructed(children) => children,
+                _ => {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ABRT-apdu")
+                    )
+                }
+            };
+            let _seq_iter = X690StructureIterator::new(
+                _elements.as_slice(),
+                _rctl1_components_for_ABRT_apdu,
+                _eal_components_for_ABRT_apdu,
+                _rctl2_components_for_ABRT_apdu,
+            )
+            .into_iter();
+            let mut _i: usize = 0;
+            for _fallible_component_name in _seq_iter {
+                let _component_name = _fallible_component_name?;
+                let _maybe_el = _elements.get(_i);
+                _i += 1;
+                let _el = _maybe_el.unwrap();
+                match _component_name {
+                    "abort-source" => |el: &X690Element| -> ASN1Result<()> {
+                        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "abort-source",
+                            ));
+                        }
+                        Ok(_validate_ABRT_source(&el)?)
+                    }(_el)?,
+                    _ => {
+                        return Err(
+                            _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ABRT-apdu")
+                        )
+                    }
+                }
+            }
+            Ok(())
+        }(&el)?)
+    }(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -3329,18 +4438,22 @@ pub fn _encode_ABRT_apdu(value_: &ABRT_apdu) -> ASN1Result<X690Element> {
 ///   acse-service-user     (0),
 ///   acse-service-provider (1) }
 /// ```
-pub type ABRT_source = INTEGER;
+pub type ABRT_source = i8;
 
-pub const ABRT_source_acse_service_user: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const ABRT_source_acse_service_user: ABRT_source = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const ABRT_source_acse_service_provider: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const ABRT_source_acse_service_provider: ABRT_source = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_ABRT_source(el: &X690Element) -> ASN1Result<ABRT_source> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_ABRT_source(value_: &ABRT_source) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_ABRT_source(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3350,7 +4463,6 @@ pub fn _encode_ABRT_source(value_: &ABRT_source) -> ASN1Result<X690Element> {
 ///   provider-reason   [0] IMPLICIT Abort-reason OPTIONAL,
 ///   event-identifier  [1] IMPLICIT Event-identifier OPTIONAL }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ARP_PPDU {
@@ -3376,15 +4488,9 @@ impl Default for ARP_PPDU {
         }
     }
 }
-impl TryFrom<X690Element> for ARP_PPDU {
+impl TryFrom<&X690Element> for ARP_PPDU {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ARP_PPDU(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ARP_PPDU {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ARP_PPDU(el)
     }
 }
@@ -3411,59 +4517,102 @@ pub const _rctl2_components_for_ARP_PPDU: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ARP_PPDU: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ARP_PPDU(el: &X690Element) -> ASN1Result<ARP_PPDU> {
-    |el_: &X690Element| -> ASN1Result<ARP_PPDU> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ARP_PPDU,
-            _eal_components_for_ARP_PPDU,
-            _rctl2_components_for_ARP_PPDU,
-        )?;
-        let provider_reason: OPTIONAL<Abort_reason> = match _components.get("provider-reason") {
-            Some(c_) => Some(_decode_Abort_reason(c_)?),
-            _ => None,
-        };
-        let event_identifier: OPTIONAL<Event_identifier> = match _components.get("event-identifier")
-        {
-            Some(c_) => Some(_decode_Event_identifier(c_)?),
-            _ => None,
-        };
-        Ok(ARP_PPDU {
-            provider_reason,
-            event_identifier,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ARP-PPDU")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ARP_PPDU,
+        _eal_components_for_ARP_PPDU,
+        _rctl2_components_for_ARP_PPDU,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut provider_reason_: OPTIONAL<Abort_reason> = None;
+    let mut event_identifier_: OPTIONAL<Event_identifier> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "provider-reason" => provider_reason_ = Some(_decode_Abort_reason(_el)?),
+            "event-identifier" => event_identifier_ = Some(_decode_Event_identifier(_el)?),
+            _ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ARP-PPDU")),
+        }
+    }
+    Ok(ARP_PPDU {
+        provider_reason: provider_reason_,
+        event_identifier: event_identifier_,
+    })
 }
 
 pub fn _encode_ARP_PPDU(value_: &ARP_PPDU) -> ASN1Result<X690Element> {
-    |value_: &ARP_PPDU| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        if let Some(v_) = &value_.provider_reason {
-            components_.push(|v_1: &Abort_reason| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Abort_reason(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    if let Some(v_) = &value_.provider_reason {
+        components_.push(|v_1: &Abort_reason| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Abort_reason(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.event_identifier {
+        components_.push(|v_1: &Event_identifier| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Event_identifier(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ARP_PPDU(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ARP-PPDU")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ARP_PPDU,
+        _eal_components_for_ARP_PPDU,
+        _rctl2_components_for_ARP_PPDU,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "provider-reason" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "provider-reason",
+                    ));
+                }
+                Ok(_validate_Abort_reason(&el)?)
+            }(_el)?,
+            "event-identifier" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "event-identifier",
+                    ));
+                }
+                Ok(_validate_Event_identifier(&el)?)
+            }(_el)?,
+            _ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ARP-PPDU")),
         }
-        if let Some(v_) = &value_.event_identifier {
-            components_.push(|v_1: &Event_identifier| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Event_identifier(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3478,28 +4627,32 @@ pub fn _encode_ARP_PPDU(value_: &ARP_PPDU) -> ASN1Result<X690Element> {
 ///   unexpected-ppdu-parameter            (5),
 ///   invalid-ppdu-parameter-value         (6)}
 /// ```
-pub type Abort_reason = INTEGER;
+pub type Abort_reason = i8;
 
-pub const Abort_reason_reason_not_specified: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_reason_not_specified: Abort_reason = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unrecognized_ppdu: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unrecognized_ppdu: Abort_reason = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unexpected_ppdu: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unexpected_ppdu: Abort_reason = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unexpected_session_service_primitive: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unexpected_session_service_primitive: Abort_reason = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unrecognized_ppdu_parameter: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unrecognized_ppdu_parameter: Abort_reason = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_unexpected_ppdu_parameter: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_unexpected_ppdu_parameter: Abort_reason = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Abort_reason_invalid_ppdu_parameter_value: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const Abort_reason_invalid_ppdu_parameter_value: Abort_reason = 6; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Abort_reason(el: &X690Element) -> ASN1Result<Abort_reason> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Abort_reason(value_: &Abort_reason) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Abort_reason(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3515,30 +4668,34 @@ pub fn _encode_Abort_reason(value_: &Abort_reason) -> ASN1Result<X690Element> {
 ///   s-release-indication (14),
 ///   s-release-confirm    (15) }
 /// ```
-pub type Event_identifier = INTEGER;
+pub type Event_identifier = i8;
 
-pub const Event_identifier_cp_PPDU: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_cp_PPDU: Event_identifier = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_cpa_PPDU: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_cpa_PPDU: Event_identifier = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_cpr_PPDU: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_cpr_PPDU: Event_identifier = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_aru_PPDU: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_aru_PPDU: Event_identifier = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_arp_PPDU: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_arp_PPDU: Event_identifier = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_td_PPDU: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_td_PPDU: Event_identifier = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_s_release_indication: i32 = 14; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_s_release_indication: Event_identifier = 14; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Event_identifier_s_release_confirm: i32 = 15; /* LONG_NAMED_INTEGER_VALUE */
+pub const Event_identifier_s_release_confirm: Event_identifier = 15; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Event_identifier(el: &X690Element) -> ASN1Result<Event_identifier> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Event_identifier(value_: &Event_identifier) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Event_identifier(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -3546,7 +4703,6 @@ pub fn _encode_Event_identifier(value_: &Event_identifier) -> ASN1Result<X690Ele
 /// ```asn1
 /// OsiBind-mode-selector ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiBind_mode_selector {
@@ -3557,15 +4713,9 @@ impl OsiBind_mode_selector {
         OsiBind_mode_selector { mode_value }
     }
 }
-impl TryFrom<X690Element> for OsiBind_mode_selector {
+impl TryFrom<&X690Element> for OsiBind_mode_selector {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBind_mode_selector(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBind_mode_selector {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBind_mode_selector(el)
     }
 }
@@ -3583,39 +4733,64 @@ pub const _rctl2_components_for_OsiBind_mode_selector: &[ComponentSpec; 0] = &[]
 pub const _eal_components_for_OsiBind_mode_selector: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiBind_mode_selector(el: &X690Element) -> ASN1Result<OsiBind_mode_selector> {
-    |el_: &X690Element| -> ASN1Result<OsiBind_mode_selector> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiBind_mode_selector,
-            _eal_components_for_OsiBind_mode_selector,
-            _rctl2_components_for_OsiBind_mode_selector,
-            10,
-        )?;
-        let mode_value = ber_decode_integer(_components.get("mode-value").unwrap())?;
-        Ok(OsiBind_mode_selector { mode_value })
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBind-mode-selector")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBind_mode_selector,
+        _eal_components_for_OsiBind_mode_selector,
+        _rctl2_components_for_OsiBind_mode_selector,
+        10,
+    )?;
+    let mode_value_ = BER.decode_integer(_components.get("mode-value").unwrap())?;
+    Ok(OsiBind_mode_selector {
+        mode_value: mode_value_,
+    })
 }
 
 pub fn _encode_OsiBind_mode_selector(value_: &OsiBind_mode_selector) -> ASN1Result<X690Element> {
-    |value_: &OsiBind_mode_selector| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(6);
-        components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-            let mut el_1 = ber_encode_integer(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
-            Ok(el_1)
-        }(&value_.mode_value)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(6);
+    components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+        let mut el_1 = BER.encode_integer(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.mode_value)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBind_mode_selector(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBind-mode-selector")
+            )
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBind_mode_selector,
+        _eal_components_for_OsiBind_mode_selector,
+        _rctl2_components_for_OsiBind_mode_selector,
+        10,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "mode-value"));
+        }
+        Ok(BER.validate_integer(&el)?)
+    }(_components.get("mode-value").unwrap())?;
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3630,13 +4805,19 @@ pub const OsiBind_normal_mode_parameters_protocol_version_version_1: BIT = 0; /*
 pub fn _decode_OsiBind_normal_mode_parameters_protocol_version(
     el: &X690Element,
 ) -> ASN1Result<OsiBind_normal_mode_parameters_protocol_version> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_OsiBind_normal_mode_parameters_protocol_version(
     value_: &OsiBind_normal_mode_parameters_protocol_version,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_OsiBind_normal_mode_parameters_protocol_version(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -3649,21 +4830,11 @@ pub enum OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presen
     single_ASN1_type(X690Element),
 }
 
-impl TryFrom<X690Element>
+impl TryFrom<&X690Element>
     for OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
 {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
-{
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(el)
     }
 }
@@ -3673,31 +4844,35 @@ pub fn _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_
 ) -> ASN1Result<
     OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 > {
-    |el: &X690Element| -> ASN1Result<
-        OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
-    > {
-        match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el)?)),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => Ok(OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(|el: &X690Element| -> ASN1Result<X690Element> {
+	Ok(x690_identity(&el.inner()?)?)
+}(&el)?)),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
 	}
-    }(&el.inner()?)
 }
 
 pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
     value_: &OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
-	match value {
-		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
-            let el_1 = x690_identity(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-            ))
-        }(&v),
+    match value_ {
+		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
-}(&value_)
+}
+
+pub fn _validate_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+		return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "single-ASN1-type"));
+	}
+	Ok(BER.validate_any(&el.inner()?)?)
+}(&el),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
+	}
 }
 
 /// ### ASN.1 Definition:
@@ -3705,7 +4880,6 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_
 /// ```asn1
 /// OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item {
@@ -3727,17 +4901,9 @@ impl OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item {
         }
     }
 }
-impl TryFrom<X690Element> for OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item {
+impl TryFrom<&X690Element> for OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item
-{
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(el)
     }
 }
@@ -3776,41 +4942,99 @@ pub const _eal_components_for_OsiBind_normal_mode_parameters_user_data_fully_enc
 pub fn _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(
     el: &X690Element,
 ) -> ASN1Result<OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-    |el_: &X690Element| -> ASN1Result<OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-	let elements = match el_.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-	};
-	let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-	let (_components, _unrecognized) = _parse_sequence(
-		el_refs_.as_slice(),
-		_rctl1_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
-		_eal_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
-		_rctl2_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
-	)?;
-	let transfer_syntax_name: OPTIONAL<Transfer_syntax_name> = match _components.get("transfer-syntax-name") { Some(c_) => Some(_decode_Transfer_syntax_name(c_)?), _ => None };
-	let presentation_context_identifier = _decode_Presentation_context_identifier(_components.get("presentation-context-identifier").unwrap())?;
-	let presentation_data_values = _decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_components.get("presentation-data-values").unwrap())?;
-	Ok(OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item{ transfer_syntax_name, presentation_context_identifier, presentation_data_values })
-}(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _eal_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _rctl2_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut transfer_syntax_name_: OPTIONAL<Transfer_syntax_name> = None;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut presentation_data_values_: OPTIONAL<
+        OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
+    > = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"transfer-syntax-name" => transfer_syntax_name_ = Some(_decode_Transfer_syntax_name(_el)?),
+			"presentation-context-identifier" => presentation_context_identifier_ = Some(_decode_Presentation_context_identifier(_el)?),
+			"presentation-data-values" => presentation_data_values_ = Some(_decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?),
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(
+        OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item {
+            transfer_syntax_name: transfer_syntax_name_,
+            presentation_context_identifier: presentation_context_identifier_.unwrap(),
+            presentation_data_values: presentation_data_values_.unwrap(),
+        },
+    )
 }
 
 pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(
     value_: &OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item| -> ASN1Result<X690Element> {
-	let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-	if let Some(v_) = &value_.transfer_syntax_name {
-		components_.push(_encode_Transfer_syntax_name(&v_)?);
-	}
-	components_.push(_encode_Presentation_context_identifier(&value_.presentation_context_identifier)?);
-	components_.push(_encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
-	Ok(X690Element::new(
-		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-		Arc::new(X690Encoding::Constructed(components_)),
-	))
-}(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    if let Some(v_) = &value_.transfer_syntax_name {
+        components_.push(_encode_Transfer_syntax_name(&v_)?);
+    }
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(_encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _eal_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _rctl2_components_for_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"transfer-syntax-name" => _validate_Transfer_syntax_name(_el)?,
+			"presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+			"presentation-data-values" => _validate_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?,
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBind-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -3823,17 +5047,9 @@ pub enum OsiBind_normal_mode_parameters_user_data {
     fully_encoded_data(Vec<OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item>),
 }
 
-impl TryFrom<X690Element> for OsiBind_normal_mode_parameters_user_data {
+impl TryFrom<&X690Element> for OsiBind_normal_mode_parameters_user_data {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBind_normal_mode_parameters_user_data(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBind_normal_mode_parameters_user_data {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBind_normal_mode_parameters_user_data(el)
     }
 }
@@ -3841,69 +5057,110 @@ impl<'a> TryFrom<&'a X690Element> for OsiBind_normal_mode_parameters_user_data {
 pub fn _decode_OsiBind_normal_mode_parameters_user_data(
     el: &X690Element,
 ) -> ASN1Result<OsiBind_normal_mode_parameters_user_data> {
-    |el: &X690Element| -> ASN1Result<OsiBind_normal_mode_parameters_user_data> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::APPLICATION, 1) => Ok(
-                OsiBind_normal_mode_parameters_user_data::fully_encoded_data(
-                    |el: &X690Element| -> ASN1Result<
-                        SEQUENCE_OF<
-                            OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        >,
-                    > {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SEQUENCE_OF<
-                            OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        > = Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => Ok(
+            OsiBind_normal_mode_parameters_user_data::fully_encoded_data(
+                |el: &X690Element| -> ASN1Result<
+                    SEQUENCE_OF<OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item>,
+                > {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "fully-encoded-data",
+                            ))
                         }
-                        Ok(items)
-                    }(&el)?,
-                ),
+                    };
+                    let mut items: SEQUENCE_OF<
+                        OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+                    > = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+                    }
+                    Ok(items)
+                }(&el)?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBind-normal-mode-parameters-user-data",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiBind_normal_mode_parameters_user_data(
     value_: &OsiBind_normal_mode_parameters_user_data,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiBind_normal_mode_parameters_user_data| -> ASN1Result<X690Element> {
-        match value {
-            OsiBind_normal_mode_parameters_user_data::fully_encoded_data(v) => |v_1: &Vec<
+    match value_ {
+        OsiBind_normal_mode_parameters_user_data::fully_encoded_data(v) => |v_1: &Vec<
+            OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        >|
+         -> ASN1Result<
+            X690Element,
+        > {
+            let mut el_1 = |value_: &SEQUENCE_OF<
                 OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
             >|
-             -> ASN1Result<
-                X690Element,
-            > {
-                let mut el_1 = |value_: &SEQUENCE_OF<
-                    OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                >|
-                 -> ASN1Result<X690Element> {
-                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                    for v in value_ {
-                        children.push(_encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(&v)?);
-                    }
-                    Ok(X690Element::new(
-                        TagClass::UNIVERSAL,
-                        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                        Arc::new(X690Encoding::Constructed(children)),
-                    ))
-                }(&v_1)?;
-                el_1.tag_class = TagClass::APPLICATION;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v),
+             -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(
+                        _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(
+                            &v,
+                        )?,
+                    );
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v_1)?;
+            el_1.tag.tag_class = TagClass::APPLICATION;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiBind-normal-mode-parameters-user-data".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_OsiBind_normal_mode_parameters_user_data(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "fully-encoded-data")
+                );
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "fully-encoded-data",
+                    )),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBind-normal-mode-parameters-user-data",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -3911,7 +5168,6 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data(
 /// ```asn1
 /// OsiBind-normal-mode-parameters ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiBind_normal_mode_parameters {
@@ -3942,15 +5198,9 @@ impl OsiBind_normal_mode_parameters {
         BIT_STRING::with_bits_set(&[OsiBind_normal_mode_parameters_protocol_version_version_1])
     }
 }
-impl TryFrom<X690Element> for OsiBind_normal_mode_parameters {
+impl TryFrom<&X690Element> for OsiBind_normal_mode_parameters {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBind_normal_mode_parameters(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBind_normal_mode_parameters {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBind_normal_mode_parameters(el)
     }
 }
@@ -3994,92 +5244,180 @@ pub const _eal_components_for_OsiBind_normal_mode_parameters: &[ComponentSpec; 0
 pub fn _decode_OsiBind_normal_mode_parameters(
     el: &X690Element,
 ) -> ASN1Result<OsiBind_normal_mode_parameters> {
-    |el_: &X690Element| -> ASN1Result<OsiBind_normal_mode_parameters> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiBind_normal_mode_parameters,
-            _eal_components_for_OsiBind_normal_mode_parameters,
-            _rctl2_components_for_OsiBind_normal_mode_parameters,
-        )?;
-        let protocol_version: OPTIONAL<OsiBind_normal_mode_parameters_protocol_version> =
-            match _components.get("protocol-version") {
-                Some(c_) => Some(_decode_OsiBind_normal_mode_parameters_protocol_version(c_)?),
-                _ => None,
-            };
-        let calling_presentation_selector: OPTIONAL<Presentation_selector> =
-            match _components.get("calling-presentation-selector") {
-                Some(c_) => Some(_decode_Presentation_selector(c_)?),
-                _ => None,
-            };
-        let called_presentation_selector: OPTIONAL<Presentation_selector> =
-            match _components.get("called-presentation-selector") {
-                Some(c_) => Some(_decode_Presentation_selector(c_)?),
-                _ => None,
-            };
-        let presentation_context_definition_list = _decode_Context_list(
-            _components
-                .get("presentation-context-definition-list")
-                .unwrap(),
-        )?;
-        let user_data = _decode_OsiBind_normal_mode_parameters_user_data(
-            _components.get("user-data").unwrap(),
-        )?;
-        Ok(OsiBind_normal_mode_parameters {
-            protocol_version,
-            calling_presentation_selector,
-            called_presentation_selector,
-            presentation_context_definition_list,
-            user_data,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBind-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBind_normal_mode_parameters,
+        _eal_components_for_OsiBind_normal_mode_parameters,
+        _rctl2_components_for_OsiBind_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut protocol_version_: OPTIONAL<OsiBind_normal_mode_parameters_protocol_version> = None;
+    let mut calling_presentation_selector_: OPTIONAL<Presentation_selector> = None;
+    let mut called_presentation_selector_: OPTIONAL<Presentation_selector> = None;
+    let mut presentation_context_definition_list_: OPTIONAL<Context_list> = None;
+    let mut user_data_: OPTIONAL<OsiBind_normal_mode_parameters_user_data> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "protocol-version" => {
+                protocol_version_ = Some(_decode_OsiBind_normal_mode_parameters_protocol_version(
+                    _el,
+                )?)
+            }
+            "calling-presentation-selector" => {
+                calling_presentation_selector_ = Some(_decode_Presentation_selector(_el)?)
+            }
+            "called-presentation-selector" => {
+                called_presentation_selector_ = Some(_decode_Presentation_selector(_el)?)
+            }
+            "presentation-context-definition-list" => {
+                presentation_context_definition_list_ = Some(_decode_Context_list(_el)?)
+            }
+            "user-data" => {
+                user_data_ = Some(_decode_OsiBind_normal_mode_parameters_user_data(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiBind-normal-mode-parameters",
+                ))
+            }
+        }
+    }
+    Ok(OsiBind_normal_mode_parameters {
+        protocol_version: protocol_version_,
+        calling_presentation_selector: calling_presentation_selector_,
+        called_presentation_selector: called_presentation_selector_,
+        presentation_context_definition_list: presentation_context_definition_list_.unwrap(),
+        user_data: user_data_.unwrap(),
+    })
 }
 
 pub fn _encode_OsiBind_normal_mode_parameters(
     value_: &OsiBind_normal_mode_parameters,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBind_normal_mode_parameters| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(10);
-        if let Some(v_) = &value_.protocol_version {
-            if *v_ != OsiBind_normal_mode_parameters::_default_value_for_protocol_version() {
-                components_.push(|v_1: &OsiBind_normal_mode_parameters_protocol_version| -> ASN1Result<X690Element> { let mut el_1 = _encode_OsiBind_normal_mode_parameters_protocol_version(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(10);
+    if let Some(v_) = &value_.protocol_version {
+        if *v_ != OsiBind_normal_mode_parameters::_default_value_for_protocol_version() {
+            components_.push(|v_1: &OsiBind_normal_mode_parameters_protocol_version| -> ASN1Result<X690Element> { let mut el_1 = _encode_OsiBind_normal_mode_parameters_protocol_version(&v_1)?; el_1.tag.tag_class = TagClass::CONTEXT; el_1.tag.tag_number = 0; Ok(el_1) }(&v_)?);
+        }
+    }
+    if let Some(v_) = &value_.calling_presentation_selector {
+        components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Presentation_selector(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.called_presentation_selector {
+        components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Presentation_selector(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 2;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    components_.push(|v_1: &Context_list| -> ASN1Result<X690Element> {
+        let mut el_1 = _encode_Context_list(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 4;
+        Ok(el_1)
+    }(&value_.presentation_context_definition_list)?);
+    components_.push(_encode_OsiBind_normal_mode_parameters_user_data(
+        &value_.user_data,
+    )?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBind_normal_mode_parameters(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBind-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBind_normal_mode_parameters,
+        _eal_components_for_OsiBind_normal_mode_parameters,
+        _rctl2_components_for_OsiBind_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "protocol-version" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "protocol-version",
+                    ));
+                }
+                Ok(_validate_OsiBind_normal_mode_parameters_protocol_version(
+                    &el,
+                )?)
+            }(_el)?,
+            "calling-presentation-selector" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "calling-presentation-selector",
+                    ));
+                }
+                Ok(_validate_Presentation_selector(&el)?)
+            }(_el)?,
+            "called-presentation-selector" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "called-presentation-selector",
+                    ));
+                }
+                Ok(_validate_Presentation_selector(&el)?)
+            }(_el)?,
+            "presentation-context-definition-list" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "presentation-context-definition-list",
+                    ));
+                }
+                Ok(_validate_Context_list(&el)?)
+            }(_el)?,
+            "user-data" => _validate_OsiBind_normal_mode_parameters_user_data(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiBind-normal-mode-parameters",
+                ))
             }
         }
-        if let Some(v_) = &value_.calling_presentation_selector {
-            components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Presentation_selector(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.called_presentation_selector {
-            components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Presentation_selector(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 2;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        components_.push(|v_1: &Context_list| -> ASN1Result<X690Element> {
-            let mut el_1 = _encode_Context_list(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 4;
-            Ok(el_1)
-        }(&value_.presentation_context_definition_list)?);
-        components_.push(_encode_OsiBind_normal_mode_parameters_user_data(
-            &value_.user_data,
-        )?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4087,7 +5425,6 @@ pub fn _encode_OsiBind_normal_mode_parameters(
 /// ```asn1
 /// Context-list-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Context_list_Item {
@@ -4108,15 +5445,9 @@ impl Context_list_Item {
         }
     }
 }
-impl TryFrom<X690Element> for Context_list_Item {
+impl TryFrom<&X690Element> for Context_list_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Context_list_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Context_list_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Context_list_Item(el)
     }
 }
@@ -4150,70 +5481,144 @@ pub const _rctl2_components_for_Context_list_Item: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Context_list_Item: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Context_list_Item(el: &X690Element) -> ASN1Result<Context_list_Item> {
-    |el_: &X690Element| -> ASN1Result<Context_list_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Context_list_Item,
-            _eal_components_for_Context_list_Item,
-            _rctl2_components_for_Context_list_Item,
-        )?;
-        let presentation_context_identifier = _decode_Presentation_context_identifier(
-            _components.get("presentation-context-identifier").unwrap(),
-        )?;
-        let abstract_syntax_name =
-            _decode_Abstract_syntax_name(_components.get("abstract-syntax-name").unwrap())?;
-        let transfer_syntax_name_list =
-            |el: &X690Element| -> ASN1Result<SEQUENCE_OF<Transfer_syntax_name>> {
-                let elements = match el.value.borrow() {
-                    X690Encoding::Constructed(children) => children,
-                    _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                };
-                let mut items: SEQUENCE_OF<Transfer_syntax_name> =
-                    Vec::with_capacity(elements.len());
-                for el in elements {
-                    items.push(_decode_Transfer_syntax_name(el)?);
-                }
-                Ok(items)
-            }(_components.get("transfer-syntax-name-list").unwrap())?;
-        Ok(Context_list_Item {
-            presentation_context_identifier,
-            abstract_syntax_name,
-            transfer_syntax_name_list,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context-list-Item")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Context_list_Item,
+        _eal_components_for_Context_list_Item,
+        _rctl2_components_for_Context_list_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut abstract_syntax_name_: OPTIONAL<Abstract_syntax_name> = None;
+    let mut transfer_syntax_name_list_: OPTIONAL<Vec<Transfer_syntax_name>> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => {
+                presentation_context_identifier_ =
+                    Some(_decode_Presentation_context_identifier(_el)?)
+            }
+            "abstract-syntax-name" => {
+                abstract_syntax_name_ = Some(_decode_Abstract_syntax_name(_el)?)
+            }
+            "transfer-syntax-name-list" => {
+                transfer_syntax_name_list_ = Some(|el: &X690Element| -> ASN1Result<
+                    SEQUENCE_OF<Transfer_syntax_name>,
+                > {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "transfer-syntax-name-list",
+                            ))
+                        }
+                    };
+                    let mut items: SEQUENCE_OF<Transfer_syntax_name> =
+                        Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_Transfer_syntax_name(el)?);
+                    }
+                    Ok(items)
+                }(_el)?)
+            }
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context-list-Item")
+                )
+            }
+        }
+    }
+    Ok(Context_list_Item {
+        presentation_context_identifier: presentation_context_identifier_.unwrap(),
+        abstract_syntax_name: abstract_syntax_name_.unwrap(),
+        transfer_syntax_name_list: transfer_syntax_name_list_.unwrap(),
+    })
 }
 
 pub fn _encode_Context_list_Item(value_: &Context_list_Item) -> ASN1Result<X690Element> {
-    |value_: &Context_list_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-        components_.push(_encode_Presentation_context_identifier(
-            &value_.presentation_context_identifier,
-        )?);
-        components_.push(_encode_Abstract_syntax_name(&value_.abstract_syntax_name)?);
-        components_.push(
-            |value_: &SEQUENCE_OF<Transfer_syntax_name>| -> ASN1Result<X690Element> {
-                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                for v in value_ {
-                    children.push(_encode_Transfer_syntax_name(&v)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(_encode_Abstract_syntax_name(&value_.abstract_syntax_name)?);
+    components_.push(
+        |value_: &SEQUENCE_OF<Transfer_syntax_name>| -> ASN1Result<X690Element> {
+            let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+            for v in value_ {
+                children.push(_encode_Transfer_syntax_name(&v)?);
+            }
+            Ok(X690Element::new(
+                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                X690Value::Constructed(Arc::new(children)),
+            ))
+        }(&value_.transfer_syntax_name_list)?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_Context_list_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context-list-Item")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Context_list_Item,
+        _eal_components_for_Context_list_Item,
+        _rctl2_components_for_Context_list_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+            "abstract-syntax-name" => _validate_Abstract_syntax_name(_el)?,
+            "transfer-syntax-name-list" => |el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_Transfer_syntax_name(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "transfer-syntax-name-list",
+                    )),
                 }
-                Ok(X690Element::new(
-                    TagClass::UNIVERSAL,
-                    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                    Arc::new(X690Encoding::Constructed(children)),
-                ))
-            }(&value_.transfer_syntax_name_list)?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+            }(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context-list-Item")
+                )
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4228,13 +5633,17 @@ pub const AARQ_apdu_protocol_version_version1: BIT = 0; /* LONG_NAMED_BIT */
 pub fn _decode_AARQ_apdu_protocol_version(
     el: &X690Element,
 ) -> ASN1Result<AARQ_apdu_protocol_version> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_AARQ_apdu_protocol_version(
     value_: &AARQ_apdu_protocol_version,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_AARQ_apdu_protocol_version(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -4242,7 +5651,6 @@ pub fn _encode_AARQ_apdu_protocol_version(
 /// ```asn1
 /// OsiBindResult-mode-selector ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiBindResult_mode_selector {
@@ -4253,15 +5661,9 @@ impl OsiBindResult_mode_selector {
         OsiBindResult_mode_selector { mode_value }
     }
 }
-impl TryFrom<X690Element> for OsiBindResult_mode_selector {
+impl TryFrom<&X690Element> for OsiBindResult_mode_selector {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindResult_mode_selector(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindResult_mode_selector {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindResult_mode_selector(el)
     }
 }
@@ -4282,41 +5684,68 @@ pub const _eal_components_for_OsiBindResult_mode_selector: &[ComponentSpec; 0] =
 pub fn _decode_OsiBindResult_mode_selector(
     el: &X690Element,
 ) -> ASN1Result<OsiBindResult_mode_selector> {
-    |el_: &X690Element| -> ASN1Result<OsiBindResult_mode_selector> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_set(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiBindResult_mode_selector,
-            _eal_components_for_OsiBindResult_mode_selector,
-            _rctl2_components_for_OsiBindResult_mode_selector,
-            10,
-        )?;
-        let mode_value = ber_decode_integer(_components.get("mode-value").unwrap())?;
-        Ok(OsiBindResult_mode_selector { mode_value })
-    }(&el)
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindResult-mode-selector",
+            ))
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBindResult_mode_selector,
+        _eal_components_for_OsiBindResult_mode_selector,
+        _rctl2_components_for_OsiBindResult_mode_selector,
+        10,
+    )?;
+    let mode_value_ = BER.decode_integer(_components.get("mode-value").unwrap())?;
+    Ok(OsiBindResult_mode_selector {
+        mode_value: mode_value_,
+    })
 }
 
 pub fn _encode_OsiBindResult_mode_selector(
     value_: &OsiBindResult_mode_selector,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBindResult_mode_selector| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(6);
-        components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-            let mut el_1 = ber_encode_integer(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
-            Ok(el_1)
-        }(&value_.mode_value)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SET,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(6);
+    components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+        let mut el_1 = BER.encode_integer(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.mode_value)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBindResult_mode_selector(el: &X690Element) -> ASN1Result<()> {
+    let elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindResult-mode-selector",
+            ))
+        }
+    };
+    let (_components, _unrecognized) = _parse_set(
+        elements.as_slice(),
+        _rctl1_components_for_OsiBindResult_mode_selector,
+        _eal_components_for_OsiBindResult_mode_selector,
+        _rctl2_components_for_OsiBindResult_mode_selector,
+        10,
+    )?;
+    |el: &X690Element| -> ASN1Result<()> {
+        if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "mode-value"));
+        }
+        Ok(BER.validate_integer(&el)?)
+    }(_components.get("mode-value").unwrap())?;
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4331,13 +5760,19 @@ pub const OsiBindResult_normal_mode_parameters_protocol_version_version_1: BIT =
 pub fn _decode_OsiBindResult_normal_mode_parameters_protocol_version(
     el: &X690Element,
 ) -> ASN1Result<OsiBindResult_normal_mode_parameters_protocol_version> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_OsiBindResult_normal_mode_parameters_protocol_version(
     value_: &OsiBindResult_normal_mode_parameters_protocol_version,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_OsiBindResult_normal_mode_parameters_protocol_version(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -4345,7 +5780,6 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_protocol_version(
 /// ```asn1
 /// OsiBindResult-normal-mode-parameters-presentation-context-definition-result-list-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item {
@@ -4360,19 +5794,11 @@ impl OsiBindResult_normal_mode_parameters_presentation_context_definition_result
         }
     }
 }
-impl TryFrom<X690Element>
+impl TryFrom<&X690Element>
     for OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item
 {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item
-{
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item(el)
     }
 }
@@ -4394,59 +5820,102 @@ pub fn _decode_OsiBindResult_normal_mode_parameters_presentation_context_definit
     el: &X690Element,
 ) -> ASN1Result<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>
 {
-    |el_: &X690Element| -> ASN1Result<
-        OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
-    > {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-		el_refs_.as_slice(),
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "OsiBindResult-normal-mode-parameters-presentation-context-definition-result-list-Item",
+        )),
+    };
+    let _seq_iter = X690StructureIterator::new(
+		_elements.as_slice(),
 		_rctl1_components_for_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
 		_eal_components_for_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
 		_rctl2_components_for_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
-	)?;
-        let result = _decode_Result_(_components.get("result").unwrap())?;
-        let transfer_syntax_name =
-            _decode_Transfer_syntax_name(_components.get("transfer-syntax-name").unwrap())?;
-        Ok(
-            OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item {
-                result,
-                transfer_syntax_name,
-            },
-        )
-    }(&el)
+	).into_iter();
+    let mut _i: usize = 0;
+    let mut result_: OPTIONAL<Result_> = None;
+    let mut transfer_syntax_name_: OPTIONAL<Transfer_syntax_name> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"result" => result_ = Some(_decode_Result_(_el)?),
+			"transfer-syntax-name" => transfer_syntax_name_ = Some(_decode_Transfer_syntax_name(_el)?),
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindResult-normal-mode-parameters-presentation-context-definition-result-list-Item")),
+		}
+    }
+    Ok(
+        OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item {
+            result: result_.unwrap(),
+            transfer_syntax_name: transfer_syntax_name_.unwrap(),
+        },
+    )
 }
 
 pub fn _encode_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item(
     value_: &OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item| -> ASN1Result<X690Element> {
-	let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-	components_.push(|v_1: &Result_| -> ASN1Result<X690Element> {
-        let el_1 = _encode_Result_(&v_1)?;
-        Ok(X690Element::new(
-            TagClass::CONTEXT,
-            0,
-            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-        ))
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(|v_1: &Result_| -> ASN1Result<X690Element> {
+        let mut el_1 = _encode_Result_(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
     }(&value_.result)?);
-	components_.push(|v_1: &Transfer_syntax_name| -> ASN1Result<X690Element> {
-        let el_1 = _encode_Transfer_syntax_name(&v_1)?;
-        Ok(X690Element::new(
-            TagClass::CONTEXT,
-            1,
-            Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-        ))
+    components_.push(|v_1: &Transfer_syntax_name| -> ASN1Result<X690Element> {
+        let mut el_1 = _encode_Transfer_syntax_name(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 1;
+        Ok(el_1)
     }(&value_.transfer_syntax_name)?);
-	Ok(X690Element::new(
-		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-		Arc::new(X690Encoding::Constructed(components_)),
-	))
-}(&value_)
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "OsiBindResult-normal-mode-parameters-presentation-context-definition-result-list-Item",
+        )),
+    };
+    let _seq_iter = X690StructureIterator::new(
+		_elements.as_slice(),
+		_rctl1_components_for_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
+		_eal_components_for_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
+		_rctl2_components_for_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item,
+	).into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"result" => |el: &X690Element| -> ASN1Result<()> {
+	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+		return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "result"));
+	}
+	Ok(_validate_Result_(&el)?)
+}(_el)?,
+			"transfer-syntax-name" => |el: &X690Element| -> ASN1Result<()> {
+	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+		return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "transfer-syntax-name"));
+	}
+	Ok(_validate_Transfer_syntax_name(&el)?)
+}(_el)?,
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindResult-normal-mode-parameters-presentation-context-definition-result-list-Item")),
+		}
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4460,27 +5929,11 @@ pub enum OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_
     single_ASN1_type(X690Element),
 }
 
-impl TryFrom<X690Element> for OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values {
-
+impl TryFrom<&X690Element> for OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values {
 	type Error = ASN1Error;
-
-	fn try_from (el: X690Element) -> Result<Self, Self::Error> {
-
-		_decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&el)
-
-	}
-
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values {
-
-	type Error = ASN1Error;
-
-	fn try_from (el: &'a X690Element) -> Result<Self, Self::Error> {
-
+	fn try_from (el: &X690Element) -> Result<Self, Self::Error> {
 		_decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(el)
-
 	}
-
 }
 
 pub fn _decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
@@ -4488,29 +5941,35 @@ pub fn _decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
 ) -> ASN1Result<
     OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 > {
-    |el: &X690Element| -> ASN1Result<OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values> {
-	match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => Ok(OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(|el: &X690Element| -> ASN1Result<X690Element> {
+	Ok(x690_identity(&el.inner()?)?)
+}(&el)?)),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
 	}
-}(&el)
 }
 
 pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
     value_: &OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
-	match value {
-		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
-            let el_1 = x690_identity(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-            ))
-        }(&v),
+    match value_ {
+		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
-}(&value_)
+}
+
+pub fn _validate_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+		return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "single-ASN1-type"));
+	}
+	Ok(BER.validate_any(&el.inner()?)?)
+}(&el),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
+	}
 }
 
 /// ### ASN.1 Definition:
@@ -4519,12 +5978,11 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
 /// OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item {
-		pub transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
-		pub presentation_context_identifier: Presentation_context_identifier,
-		pub presentation_data_values: OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
+	pub transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
+	pub presentation_context_identifier: Presentation_context_identifier,
+	pub presentation_data_values: OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
 }
 impl OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item {
     pub fn new(
@@ -4539,19 +5997,11 @@ impl OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item {
         }
     }
 }
-impl TryFrom<X690Element>
+impl TryFrom<&X690Element>
     for OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item
 {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item
-{
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(el)
     }
 }
@@ -4573,41 +6023,95 @@ pub const _eal_components_for_OsiBindResult_normal_mode_parameters_user_data_ful
 pub fn _decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(
     el: &X690Element,
 ) -> ASN1Result<OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-    |el_: &X690Element| -> ASN1Result<OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-	let elements = match el_.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-	};
-	let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-	let (_components, _unrecognized) = _parse_sequence(
-		el_refs_.as_slice(),
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+		_elements.as_slice(),
 		_rctl1_components_for_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
 		_eal_components_for_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
 		_rctl2_components_for_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
-	)?;
-	let transfer_syntax_name: OPTIONAL<Transfer_syntax_name> = match _components.get("transfer-syntax-name") { Some(c_) => Some(_decode_Transfer_syntax_name(c_)?), _ => None };
-	let presentation_context_identifier = _decode_Presentation_context_identifier(_components.get("presentation-context-identifier").unwrap())?;
-	let presentation_data_values = _decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_components.get("presentation-data-values").unwrap())?;
-	Ok(OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item{ transfer_syntax_name, presentation_context_identifier, presentation_data_values })
-}(&el)
+	).into_iter();
+    let mut _i: usize = 0;
+    let mut transfer_syntax_name_: OPTIONAL<Transfer_syntax_name> = None;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut presentation_data_values_: OPTIONAL<OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"transfer-syntax-name" => transfer_syntax_name_ = Some(_decode_Transfer_syntax_name(_el)?),
+			"presentation-context-identifier" => presentation_context_identifier_ = Some(_decode_Presentation_context_identifier(_el)?),
+			"presentation-data-values" => presentation_data_values_ = Some(_decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?),
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(
+        OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item {
+            transfer_syntax_name: transfer_syntax_name_,
+            presentation_context_identifier: presentation_context_identifier_.unwrap(),
+            presentation_data_values: presentation_data_values_.unwrap(),
+        },
+    )
 }
 
 pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(
     value_: &OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item| -> ASN1Result<X690Element> {
-	let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-	if let Some(v_) = &value_.transfer_syntax_name {
-		components_.push(_encode_Transfer_syntax_name(&v_)?);
-	}
-	components_.push(_encode_Presentation_context_identifier(&value_.presentation_context_identifier)?);
-	components_.push(_encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
-	Ok(X690Element::new(
-		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-		Arc::new(X690Encoding::Constructed(components_)),
-	))
-}(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    if let Some(v_) = &value_.transfer_syntax_name {
+        components_.push(_encode_Transfer_syntax_name(&v_)?);
+    }
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(_encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+		_elements.as_slice(),
+		_rctl1_components_for_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
+		_eal_components_for_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
+		_rctl2_components_for_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
+	).into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"transfer-syntax-name" => _validate_Transfer_syntax_name(_el)?,
+			"presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+			"presentation-data-values" => _validate_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?,
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindResult-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4620,17 +6124,9 @@ pub enum OsiBindResult_normal_mode_parameters_user_data {
     fully_encoded_data(Vec<OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item>),
 }
 
-impl TryFrom<X690Element> for OsiBindResult_normal_mode_parameters_user_data {
+impl TryFrom<&X690Element> for OsiBindResult_normal_mode_parameters_user_data {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindResult_normal_mode_parameters_user_data(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindResult_normal_mode_parameters_user_data {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindResult_normal_mode_parameters_user_data(el)
     }
 }
@@ -4638,69 +6134,110 @@ impl<'a> TryFrom<&'a X690Element> for OsiBindResult_normal_mode_parameters_user_
 pub fn _decode_OsiBindResult_normal_mode_parameters_user_data(
     el: &X690Element,
 ) -> ASN1Result<OsiBindResult_normal_mode_parameters_user_data> {
-    |el: &X690Element| -> ASN1Result<OsiBindResult_normal_mode_parameters_user_data> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::APPLICATION, 1) => Ok(
-                OsiBindResult_normal_mode_parameters_user_data::fully_encoded_data(
-                    |el: &X690Element| -> ASN1Result<
-                        SEQUENCE_OF<
-                            OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        >,
-                    > {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SEQUENCE_OF<
-                            OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        > = Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => Ok(
+            OsiBindResult_normal_mode_parameters_user_data::fully_encoded_data(
+                |el: &X690Element| -> ASN1Result<
+                    SEQUENCE_OF<
+                        OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
+                    >,
+                > {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "fully-encoded-data",
+                            ))
                         }
-                        Ok(items)
-                    }(&el)?,
-                ),
+                    };
+                    let mut items: SEQUENCE_OF<
+                        OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
+                    > = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+                    }
+                    Ok(items)
+                }(&el)?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBindResult-normal-mode-parameters-user-data",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiBindResult_normal_mode_parameters_user_data(
     value_: &OsiBindResult_normal_mode_parameters_user_data,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiBindResult_normal_mode_parameters_user_data| -> ASN1Result<X690Element> {
-        match value {
-            OsiBindResult_normal_mode_parameters_user_data::fully_encoded_data(v) => {
-                |v_1: &Vec<
-                    OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                >|
-                 -> ASN1Result<X690Element> {
-                    let mut el_1 = |value_: &SEQUENCE_OF<
-                        OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                    >|
-                     -> ASN1Result<X690Element> {
-                        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                        for v in value_ {
-                            children.push(_encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(&v)?);
-                        }
-                        Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
-                        ))
-                    }(&v_1)?;
-                    el_1.tag_class = TagClass::APPLICATION;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
-            }
+    match value_ {
+        OsiBindResult_normal_mode_parameters_user_data::fully_encoded_data(v) => |v_1: &Vec<
+            OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        >|
+         -> ASN1Result<
+            X690Element,
+        > {
+            let mut el_1 = |value_: &SEQUENCE_OF<
+                OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item,
+            >|
+             -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(_encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(&v)?);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v_1)?;
+            el_1.tag.tag_class = TagClass::APPLICATION;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiBindResult-normal-mode-parameters-user-data".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_OsiBindResult_normal_mode_parameters_user_data(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "fully-encoded-data")
+                );
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "fully-encoded-data",
+                    )),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBindResult-normal-mode-parameters-user-data",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -4708,7 +6245,6 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data(
 /// ```asn1
 /// OsiBindResult-normal-mode-parameters ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiBindResult_normal_mode_parameters {
@@ -4741,15 +6277,9 @@ impl OsiBindResult_normal_mode_parameters {
         ])
     }
 }
-impl TryFrom<X690Element> for OsiBindResult_normal_mode_parameters {
+impl TryFrom<&X690Element> for OsiBindResult_normal_mode_parameters {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindResult_normal_mode_parameters(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindResult_normal_mode_parameters {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindResult_normal_mode_parameters(el)
     }
 }
@@ -4786,87 +6316,167 @@ pub const _eal_components_for_OsiBindResult_normal_mode_parameters: &[ComponentS
 pub fn _decode_OsiBindResult_normal_mode_parameters(
     el: &X690Element,
 ) -> ASN1Result<OsiBindResult_normal_mode_parameters> {
-    |el_: &X690Element| -> ASN1Result<OsiBindResult_normal_mode_parameters> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiBindResult_normal_mode_parameters,
-            _eal_components_for_OsiBindResult_normal_mode_parameters,
-            _rctl2_components_for_OsiBindResult_normal_mode_parameters,
-        )?;
-        let protocol_version: OPTIONAL<OsiBindResult_normal_mode_parameters_protocol_version> =
-            match _components.get("protocol-version") {
-                Some(c_) => {
-                    Some(_decode_OsiBindResult_normal_mode_parameters_protocol_version(c_)?)
-                }
-                _ => None,
-            };
-        let responding_presentation_selector: OPTIONAL<Presentation_selector> =
-            match _components.get("responding-presentation-selector") {
-                Some(c_) => Some(_decode_Presentation_selector(c_)?),
-                _ => None,
-            };
-        let presentation_context_definition_result_list = |el: &X690Element| -> ASN1Result<SEQUENCE_OF<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>> {
-	let elements = match el.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindResult-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBindResult_normal_mode_parameters,
+        _eal_components_for_OsiBindResult_normal_mode_parameters,
+        _rctl2_components_for_OsiBindResult_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut protocol_version_: OPTIONAL<OsiBindResult_normal_mode_parameters_protocol_version> =
+        None;
+    let mut responding_presentation_selector_: OPTIONAL<Presentation_selector> = None;
+    let mut presentation_context_definition_result_list_: OPTIONAL<
+        Vec<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>,
+    > = None;
+    let mut user_data_: OPTIONAL<OsiBindResult_normal_mode_parameters_user_data> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"protocol-version" => protocol_version_ = Some(_decode_OsiBindResult_normal_mode_parameters_protocol_version(_el)?),
+			"responding-presentation-selector" => responding_presentation_selector_ = Some(_decode_Presentation_selector(_el)?),
+			"presentation-context-definition-result-list" => presentation_context_definition_result_list_ = Some(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>> {	let elements = match &el.value {
+		X690Value::Constructed(children) => children,
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "presentation-context-definition-result-list")),
 	};
 	let mut items: SEQUENCE_OF<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item> = Vec::with_capacity(elements.len());
-	for el in elements {
+	for el in elements.iter() {
 		items.push(_decode_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item(el)?);
 	}
 	Ok(items)
-}(_components.get("presentation-context-definition-result-list").unwrap())?;
-        let user_data = _decode_OsiBindResult_normal_mode_parameters_user_data(
-            _components.get("user-data").unwrap(),
-        )?;
-        Ok(OsiBindResult_normal_mode_parameters {
-            protocol_version,
-            responding_presentation_selector,
-            presentation_context_definition_result_list,
-            user_data,
-        })
-    }(&el)
+}(_el)?),
+			"user-data" => user_data_ = Some(_decode_OsiBindResult_normal_mode_parameters_user_data(_el)?),
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindResult-normal-mode-parameters")),
+		}
+    }
+    Ok(OsiBindResult_normal_mode_parameters {
+        protocol_version: protocol_version_,
+        responding_presentation_selector: responding_presentation_selector_,
+        presentation_context_definition_result_list: presentation_context_definition_result_list_
+            .unwrap(),
+        user_data: user_data_.unwrap(),
+    })
 }
 
 pub fn _encode_OsiBindResult_normal_mode_parameters(
     value_: &OsiBindResult_normal_mode_parameters,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBindResult_normal_mode_parameters| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(9);
-        if let Some(v_) = &value_.protocol_version {
-            if *v_ != OsiBindResult_normal_mode_parameters::_default_value_for_protocol_version() {
-                components_.push(|v_1: &OsiBindResult_normal_mode_parameters_protocol_version| -> ASN1Result<X690Element> { let mut el_1 = _encode_OsiBindResult_normal_mode_parameters_protocol_version(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v_)?);
-            }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(9);
+    if let Some(v_) = &value_.protocol_version {
+        if *v_ != OsiBindResult_normal_mode_parameters::_default_value_for_protocol_version() {
+            components_.push(|v_1: &OsiBindResult_normal_mode_parameters_protocol_version| -> ASN1Result<X690Element> { let mut el_1 = _encode_OsiBindResult_normal_mode_parameters_protocol_version(&v_1)?; el_1.tag.tag_class = TagClass::CONTEXT; el_1.tag.tag_number = 0; Ok(el_1) }(&v_)?);
         }
-        if let Some(v_) = &value_.responding_presentation_selector {
-            components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Presentation_selector(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        components_.push(|v_1: &Vec<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>| -> ASN1Result<X690Element> { let mut el_1 = |value_: &SEQUENCE_OF<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>| -> ASN1Result<X690Element> {
-	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    }
+    if let Some(v_) = &value_.responding_presentation_selector {
+        components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Presentation_selector(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    components_.push(|v_1: &Vec<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>| -> ASN1Result<X690Element> { let mut el_1 = |value_: &SEQUENCE_OF<OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item(&v)?);
 	}
-	Ok(X690Element::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, Arc::new(X690Encoding::Constructed(children))))
-}(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 5; Ok(el_1) }(&value_.presentation_context_definition_result_list)?);
-        components_.push(_encode_OsiBindResult_normal_mode_parameters_user_data(
-            &value_.user_data,
-        )?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+}(&v_1)?; el_1.tag.tag_class = TagClass::CONTEXT; el_1.tag.tag_number = 5; Ok(el_1) }(&value_.presentation_context_definition_result_list)?);
+    components_.push(_encode_OsiBindResult_normal_mode_parameters_user_data(
+        &value_.user_data,
+    )?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBindResult_normal_mode_parameters(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindResult-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBindResult_normal_mode_parameters,
+        _eal_components_for_OsiBindResult_normal_mode_parameters,
+        _rctl2_components_for_OsiBindResult_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "protocol-version" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "protocol-version",
+                    ));
+                }
+                Ok(_validate_OsiBindResult_normal_mode_parameters_protocol_version(&el)?)
+            }(_el)?,
+            "responding-presentation-selector" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "responding-presentation-selector",
+                    ));
+                }
+                Ok(_validate_Presentation_selector(&el)?)
+            }(_el)?,
+            "presentation-context-definition-result-list" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "presentation-context-definition-result-list",
+                    ));
+                }
+                Ok(|el: &X690Element| -> ASN1Result<()> {
+                    match &el.value {
+                        X690Value::Constructed(subs) => {
+                            for sub in subs.iter() {
+                                _validate_OsiBindResult_normal_mode_parameters_presentation_context_definition_result_list_Item(&sub)?;
+                            }
+                            Ok(())
+                        }
+                        _ => Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "presentation-context-definition-result-list",
+                        )),
+                    }
+                }(&el)?)
+            }(_el)?,
+            "user-data" => _validate_OsiBindResult_normal_mode_parameters_user_data(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiBindResult-normal-mode-parameters",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -4881,13 +6491,17 @@ pub const AARE_apdu_protocol_version_version1: BIT = 0; /* LONG_NAMED_BIT */
 pub fn _decode_AARE_apdu_protocol_version(
     el: &X690Element,
 ) -> ASN1Result<AARE_apdu_protocol_version> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_AARE_apdu_protocol_version(
     value_: &AARE_apdu_protocol_version,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_AARE_apdu_protocol_version(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -4895,42 +6509,51 @@ pub fn _encode_AARE_apdu_protocol_version(
 /// ```asn1
 /// Associate-source-diagnostic-acse-service-user ::= INTEGER { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-pub type Associate_source_diagnostic_acse_service_user = INTEGER;
+pub type Associate_source_diagnostic_acse_service_user = i8;
 
-pub const Associate_source_diagnostic_acse_service_user_null: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_null:
+    Associate_source_diagnostic_acse_service_user = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_no_reason_given: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_no_reason_given:
+    Associate_source_diagnostic_acse_service_user = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Associate_source_diagnostic_acse_service_user_application_context_name_not_supported:
-    i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+    Associate_source_diagnostic_acse_service_user = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AP_title_not_recognized: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AP_title_not_recognized:
+    Associate_source_diagnostic_acse_service_user = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AP_invocation_identifier_not_recognized: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AP_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AE_qualifier_not_recognized: i32 =
-    5; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AE_qualifier_not_recognized:
+    Associate_source_diagnostic_acse_service_user = 5; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_calling_AE_invocation_identifier_not_recognized: i32 = 6; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_calling_AE_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 6; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AP_title_not_recognized: i32 = 7; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AP_title_not_recognized:
+    Associate_source_diagnostic_acse_service_user = 7; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AP_invocation_identifier_not_recognized: i32 = 8; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AP_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 8; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AE_qualifier_not_recognized: i32 = 9; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AE_qualifier_not_recognized:
+    Associate_source_diagnostic_acse_service_user = 9; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_user_called_AE_invocation_identifier_not_recognized: i32 = 10; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_user_called_AE_invocation_identifier_not_recognized: Associate_source_diagnostic_acse_service_user = 10; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Associate_source_diagnostic_acse_service_user(
     el: &X690Element,
 ) -> ASN1Result<Associate_source_diagnostic_acse_service_user> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Associate_source_diagnostic_acse_service_user(
     value_: &Associate_source_diagnostic_acse_service_user,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Associate_source_diagnostic_acse_service_user(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -4938,24 +6561,33 @@ pub fn _encode_Associate_source_diagnostic_acse_service_user(
 /// ```asn1
 /// Associate-source-diagnostic-acse-service-provider ::= INTEGER { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-pub type Associate_source_diagnostic_acse_service_provider = INTEGER;
+pub type Associate_source_diagnostic_acse_service_provider = i8;
 
-pub const Associate_source_diagnostic_acse_service_provider_null: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_provider_null:
+    Associate_source_diagnostic_acse_service_provider = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_provider_no_reason_given: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_provider_no_reason_given:
+    Associate_source_diagnostic_acse_service_provider = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Associate_source_diagnostic_acse_service_provider_no_common_acse_version: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Associate_source_diagnostic_acse_service_provider_no_common_acse_version:
+    Associate_source_diagnostic_acse_service_provider = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Associate_source_diagnostic_acse_service_provider(
     el: &X690Element,
 ) -> ASN1Result<Associate_source_diagnostic_acse_service_provider> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Associate_source_diagnostic_acse_service_provider(
     value_: &Associate_source_diagnostic_acse_service_provider,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Associate_source_diagnostic_acse_service_provider(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -4970,13 +6602,19 @@ pub const OsiBindError_normal_mode_parameters_protocol_version_version_1: BIT = 
 pub fn _decode_OsiBindError_normal_mode_parameters_protocol_version(
     el: &X690Element,
 ) -> ASN1Result<OsiBindError_normal_mode_parameters_protocol_version> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_OsiBindError_normal_mode_parameters_protocol_version(
     value_: &OsiBindError_normal_mode_parameters_protocol_version,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_OsiBindError_normal_mode_parameters_protocol_version(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -4990,27 +6628,11 @@ pub enum OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_p
     single_ASN1_type(X690Element),
 }
 
-impl TryFrom<X690Element> for OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values {
-
+impl TryFrom<&X690Element> for OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values {
 	type Error = ASN1Error;
-
-	fn try_from (el: X690Element) -> Result<Self, Self::Error> {
-
-		_decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&el)
-
-	}
-
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values {
-
-	type Error = ASN1Error;
-
-	fn try_from (el: &'a X690Element) -> Result<Self, Self::Error> {
-
+	fn try_from (el: &X690Element) -> Result<Self, Self::Error> {
 		_decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(el)
-
 	}
-
 }
 
 pub fn _decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
@@ -5018,29 +6640,35 @@ pub fn _decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
 ) -> ASN1Result<
     OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 > {
-    |el: &X690Element| -> ASN1Result<OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values> {
-	match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => Ok(OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(|el: &X690Element| -> ASN1Result<X690Element> {
+	Ok(x690_identity(&el.inner()?)?)
+}(&el)?)),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
 	}
-}(&el)
 }
 
 pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
     value_: &OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
-	match value {
-		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
-            let el_1 = x690_identity(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-            ))
-        }(&v),
+    match value_ {
+		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
-}(&value_)
+}
+
+pub fn _validate_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+		return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "single-ASN1-type"));
+	}
+	Ok(BER.validate_any(&el.inner()?)?)
+}(&el),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
+	}
 }
 
 /// ### ASN.1 Definition:
@@ -5049,12 +6677,11 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
 /// OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item {
-		pub transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
-		pub presentation_context_identifier: Presentation_context_identifier,
-		pub presentation_data_values: OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
+	pub transfer_syntax_name: OPTIONAL<Transfer_syntax_name>,
+	pub presentation_context_identifier: Presentation_context_identifier,
+	pub presentation_data_values: OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
 }
 impl OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item {
     pub fn new(
@@ -5069,19 +6696,11 @@ impl OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item {
         }
     }
 }
-impl TryFrom<X690Element>
+impl TryFrom<&X690Element>
     for OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item
 {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item
-{
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(el)
     }
 }
@@ -5103,41 +6722,97 @@ pub const _eal_components_for_OsiBindError_normal_mode_parameters_user_data_full
 pub fn _decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(
     el: &X690Element,
 ) -> ASN1Result<OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-    |el_: &X690Element| -> ASN1Result<OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-	let elements = match el_.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-	};
-	let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-	let (_components, _unrecognized) = _parse_sequence(
-		el_refs_.as_slice(),
-		_rctl1_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
-		_eal_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
-		_rctl2_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
-	)?;
-	let transfer_syntax_name: OPTIONAL<Transfer_syntax_name> = match _components.get("transfer-syntax-name") { Some(c_) => Some(_decode_Transfer_syntax_name(c_)?), _ => None };
-	let presentation_context_identifier = _decode_Presentation_context_identifier(_components.get("presentation-context-identifier").unwrap())?;
-	let presentation_data_values = _decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_components.get("presentation-data-values").unwrap())?;
-	Ok(OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item{ transfer_syntax_name, presentation_context_identifier, presentation_data_values })
-}(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _eal_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _rctl2_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut transfer_syntax_name_: OPTIONAL<Transfer_syntax_name> = None;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut presentation_data_values_: OPTIONAL<OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"transfer-syntax-name" => transfer_syntax_name_ = Some(_decode_Transfer_syntax_name(_el)?),
+			"presentation-context-identifier" => presentation_context_identifier_ = Some(_decode_Presentation_context_identifier(_el)?),
+			"presentation-data-values" => presentation_data_values_ = Some(_decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?),
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(
+        OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item {
+            transfer_syntax_name: transfer_syntax_name_,
+            presentation_context_identifier: presentation_context_identifier_.unwrap(),
+            presentation_data_values: presentation_data_values_.unwrap(),
+        },
+    )
 }
 
 pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(
     value_: &OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item| -> ASN1Result<X690Element> {
-	let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-	if let Some(v_) = &value_.transfer_syntax_name {
-		components_.push(_encode_Transfer_syntax_name(&v_)?);
-	}
-	components_.push(_encode_Presentation_context_identifier(&value_.presentation_context_identifier)?);
-	components_.push(_encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
-	Ok(X690Element::new(
-		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-		Arc::new(X690Encoding::Constructed(components_)),
-	))
-}(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    if let Some(v_) = &value_.transfer_syntax_name {
+        components_.push(_encode_Transfer_syntax_name(&v_)?);
+    }
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(_encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _eal_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _rctl2_components_for_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"transfer-syntax-name" => _validate_Transfer_syntax_name(_el)?,
+			"presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+			"presentation-data-values" => _validate_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?,
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiBindError-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -5150,17 +6825,9 @@ pub enum OsiBindError_normal_mode_parameters_user_data {
     fully_encoded_data(Vec<OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item>),
 }
 
-impl TryFrom<X690Element> for OsiBindError_normal_mode_parameters_user_data {
+impl TryFrom<&X690Element> for OsiBindError_normal_mode_parameters_user_data {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindError_normal_mode_parameters_user_data(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindError_normal_mode_parameters_user_data {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindError_normal_mode_parameters_user_data(el)
     }
 }
@@ -5168,69 +6835,108 @@ impl<'a> TryFrom<&'a X690Element> for OsiBindError_normal_mode_parameters_user_d
 pub fn _decode_OsiBindError_normal_mode_parameters_user_data(
     el: &X690Element,
 ) -> ASN1Result<OsiBindError_normal_mode_parameters_user_data> {
-    |el: &X690Element| -> ASN1Result<OsiBindError_normal_mode_parameters_user_data> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::APPLICATION, 1) => Ok(
-                OsiBindError_normal_mode_parameters_user_data::fully_encoded_data(
-                    |el: &X690Element| -> ASN1Result<
-                        SEQUENCE_OF<
-                            OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        >,
-                    > {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SEQUENCE_OF<
-                            OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        > = Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => Ok(
+            OsiBindError_normal_mode_parameters_user_data::fully_encoded_data(
+                |el: &X690Element| -> ASN1Result<
+                    SEQUENCE_OF<
+                        OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+                    >,
+                > {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "fully-encoded-data",
+                            ))
                         }
-                        Ok(items)
-                    }(&el)?,
-                ),
+                    };
+                    let mut items: SEQUENCE_OF<
+                        OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+                    > = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+                    }
+                    Ok(items)
+                }(&el)?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBindError-normal-mode-parameters-user-data",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiBindError_normal_mode_parameters_user_data(
     value_: &OsiBindError_normal_mode_parameters_user_data,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiBindError_normal_mode_parameters_user_data| -> ASN1Result<X690Element> {
-        match value {
-            OsiBindError_normal_mode_parameters_user_data::fully_encoded_data(v) => {
-                |v_1: &Vec<
-                    OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                >|
-                 -> ASN1Result<X690Element> {
-                    let mut el_1 = |value_: &SEQUENCE_OF<
-                        OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                    >|
-                     -> ASN1Result<X690Element> {
-                        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                        for v in value_ {
-                            children.push(_encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(&v)?);
-                        }
-                        Ok(X690Element::new(
-                            TagClass::UNIVERSAL,
-                            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                            Arc::new(X690Encoding::Constructed(children)),
-                        ))
-                    }(&v_1)?;
-                    el_1.tag_class = TagClass::APPLICATION;
-                    el_1.tag_number = 1;
-                    Ok(el_1)
-                }(&v)
-            }
+    match value_ {
+        OsiBindError_normal_mode_parameters_user_data::fully_encoded_data(v) => |v_1: &Vec<
+            OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        >|
+         -> ASN1Result<
+            X690Element,
+        > {
+            let mut el_1 = |value_: &SEQUENCE_OF<
+                OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item,
+            >|
+             -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(_encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(&v)?);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v_1)?;
+            el_1.tag.tag_class = TagClass::APPLICATION;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("OsiBindError-normal-mode-parameters-user-data".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_OsiBindError_normal_mode_parameters_user_data(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "fully-encoded-data")
+                );
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "fully-encoded-data",
+                    )),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiBindError-normal-mode-parameters-user-data",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -5238,7 +6944,6 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data(
 /// ```asn1
 /// OsiBindError-normal-mode-parameters ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiBindError_normal_mode_parameters {
@@ -5280,15 +6985,9 @@ impl Default for OsiBindError_normal_mode_parameters {
         }
     }
 }
-impl TryFrom<X690Element> for OsiBindError_normal_mode_parameters {
+impl TryFrom<&X690Element> for OsiBindError_normal_mode_parameters {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiBindError_normal_mode_parameters(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiBindError_normal_mode_parameters {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiBindError_normal_mode_parameters(el)
     }
 }
@@ -5338,95 +7037,178 @@ pub const _eal_components_for_OsiBindError_normal_mode_parameters: &[ComponentSp
 pub fn _decode_OsiBindError_normal_mode_parameters(
     el: &X690Element,
 ) -> ASN1Result<OsiBindError_normal_mode_parameters> {
-    |el_: &X690Element| -> ASN1Result<OsiBindError_normal_mode_parameters> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiBindError_normal_mode_parameters,
-            _eal_components_for_OsiBindError_normal_mode_parameters,
-            _rctl2_components_for_OsiBindError_normal_mode_parameters,
-        )?;
-        let protocol_version: OPTIONAL<OsiBindError_normal_mode_parameters_protocol_version> =
-            match _components.get("protocol-version") {
-                Some(c_) => Some(_decode_OsiBindError_normal_mode_parameters_protocol_version(c_)?),
-                _ => None,
-            };
-        let responding_presentation_selector: OPTIONAL<Presentation_selector> =
-            match _components.get("responding-presentation-selector") {
-                Some(c_) => Some(_decode_Presentation_selector(c_)?),
-                _ => None,
-            };
-        let presentation_context_definition_result_list: OPTIONAL<Result_list> =
-            match _components.get("presentation-context-definition-result-list") {
-                Some(c_) => Some(_decode_Result_list(c_)?),
-                _ => None,
-            };
-        let provider_reason: OPTIONAL<Provider_reason> = match _components.get("provider-reason") {
-            Some(c_) => Some(_decode_Provider_reason(c_)?),
-            _ => None,
-        };
-        let user_data: OPTIONAL<OsiBindError_normal_mode_parameters_user_data> =
-            match _components.get("user-data") {
-                Some(c_) => Some(_decode_OsiBindError_normal_mode_parameters_user_data(c_)?),
-                _ => None,
-            };
-        Ok(OsiBindError_normal_mode_parameters {
-            protocol_version,
-            responding_presentation_selector,
-            presentation_context_definition_result_list,
-            provider_reason,
-            user_data,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindError-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBindError_normal_mode_parameters,
+        _eal_components_for_OsiBindError_normal_mode_parameters,
+        _rctl2_components_for_OsiBindError_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut protocol_version_: OPTIONAL<OsiBindError_normal_mode_parameters_protocol_version> =
+        None;
+    let mut responding_presentation_selector_: OPTIONAL<Presentation_selector> = None;
+    let mut presentation_context_definition_result_list_: OPTIONAL<Result_list> = None;
+    let mut provider_reason_: OPTIONAL<Provider_reason> = None;
+    let mut user_data_: OPTIONAL<OsiBindError_normal_mode_parameters_user_data> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "protocol-version" => {
+                protocol_version_ =
+                    Some(_decode_OsiBindError_normal_mode_parameters_protocol_version(_el)?)
+            }
+            "responding-presentation-selector" => {
+                responding_presentation_selector_ = Some(_decode_Presentation_selector(_el)?)
+            }
+            "presentation-context-definition-result-list" => {
+                presentation_context_definition_result_list_ = Some(_decode_Result_list(_el)?)
+            }
+            "provider-reason" => provider_reason_ = Some(_decode_Provider_reason(_el)?),
+            "user-data" => {
+                user_data_ = Some(_decode_OsiBindError_normal_mode_parameters_user_data(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiBindError-normal-mode-parameters",
+                ))
+            }
+        }
+    }
+    Ok(OsiBindError_normal_mode_parameters {
+        protocol_version: protocol_version_,
+        responding_presentation_selector: responding_presentation_selector_,
+        presentation_context_definition_result_list: presentation_context_definition_result_list_,
+        provider_reason: provider_reason_,
+        user_data: user_data_,
+    })
 }
 
 pub fn _encode_OsiBindError_normal_mode_parameters(
     value_: &OsiBindError_normal_mode_parameters,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiBindError_normal_mode_parameters| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(10);
-        if let Some(v_) = &value_.protocol_version {
-            if *v_ != OsiBindError_normal_mode_parameters::_default_value_for_protocol_version() {
-                components_.push(|v_1: &OsiBindError_normal_mode_parameters_protocol_version| -> ASN1Result<X690Element> { let mut el_1 = _encode_OsiBindError_normal_mode_parameters_protocol_version(&v_1)?; el_1.tag_class = TagClass::CONTEXT; el_1.tag_number = 0; Ok(el_1) }(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(10);
+    if let Some(v_) = &value_.protocol_version {
+        if *v_ != OsiBindError_normal_mode_parameters::_default_value_for_protocol_version() {
+            components_.push(|v_1: &OsiBindError_normal_mode_parameters_protocol_version| -> ASN1Result<X690Element> { let mut el_1 = _encode_OsiBindError_normal_mode_parameters_protocol_version(&v_1)?; el_1.tag.tag_class = TagClass::CONTEXT; el_1.tag.tag_number = 0; Ok(el_1) }(&v_)?);
+        }
+    }
+    if let Some(v_) = &value_.responding_presentation_selector {
+        components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Presentation_selector(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.presentation_context_definition_result_list {
+        components_.push(|v_1: &Result_list| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Result_list(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 5;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.provider_reason {
+        components_.push(|v_1: &Provider_reason| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Provider_reason(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 10;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.user_data {
+        components_.push(_encode_OsiBindError_normal_mode_parameters_user_data(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiBindError_normal_mode_parameters(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiBindError-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiBindError_normal_mode_parameters,
+        _eal_components_for_OsiBindError_normal_mode_parameters,
+        _rctl2_components_for_OsiBindError_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "protocol-version" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "protocol-version",
+                    ));
+                }
+                Ok(_validate_OsiBindError_normal_mode_parameters_protocol_version(&el)?)
+            }(_el)?,
+            "responding-presentation-selector" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "responding-presentation-selector",
+                    ));
+                }
+                Ok(_validate_Presentation_selector(&el)?)
+            }(_el)?,
+            "presentation-context-definition-result-list" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "presentation-context-definition-result-list",
+                    ));
+                }
+                Ok(_validate_Result_list(&el)?)
+            }(_el)?,
+            "provider-reason" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 10 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "provider-reason",
+                    ));
+                }
+                Ok(_validate_Provider_reason(&el)?)
+            }(_el)?,
+            "user-data" => _validate_OsiBindError_normal_mode_parameters_user_data(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiBindError-normal-mode-parameters",
+                ))
             }
         }
-        if let Some(v_) = &value_.responding_presentation_selector {
-            components_.push(|v_1: &Presentation_selector| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Presentation_selector(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 3;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.presentation_context_definition_result_list {
-            components_.push(|v_1: &Result_list| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Result_list(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 5;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.provider_reason {
-            components_.push(|v_1: &Provider_reason| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Provider_reason(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 10;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.user_data {
-            components_.push(_encode_OsiBindError_normal_mode_parameters_user_data(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -5434,24 +7216,31 @@ pub fn _encode_OsiBindError_normal_mode_parameters(
 /// ```asn1
 /// Result-list-Item-provider-reason ::= INTEGER { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-pub type Result_list_Item_provider_reason = INTEGER;
+pub type Result_list_Item_provider_reason = i8;
 
-pub const Result_list_Item_provider_reason_reason_not_specified: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result_list_Item_provider_reason_reason_not_specified: Result_list_Item_provider_reason =
+    0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result_list_Item_provider_reason_abstract_syntax_not_supported: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result_list_Item_provider_reason_abstract_syntax_not_supported:
+    Result_list_Item_provider_reason = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const Result_list_Item_provider_reason_proposed_transfer_syntaxes_not_supported: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const Result_list_Item_provider_reason_proposed_transfer_syntaxes_not_supported:
+    Result_list_Item_provider_reason = 2; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_Result_list_Item_provider_reason(
     el: &X690Element,
 ) -> ASN1Result<Result_list_Item_provider_reason> {
-    ber_decode_integer(&el)
+    BER.decode_i8(el)
 }
 
 pub fn _encode_Result_list_Item_provider_reason(
     value_: &Result_list_Item_provider_reason,
 ) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_i8(*value_)
+}
+
+pub fn _validate_Result_list_Item_provider_reason(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_i8(el)
 }
 
 /// ### ASN.1 Definition:
@@ -5459,7 +7248,6 @@ pub fn _encode_Result_list_Item_provider_reason(
 /// ```asn1
 /// Result-list-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Result_list_Item {
@@ -5480,15 +7268,9 @@ impl Result_list_Item {
         }
     }
 }
-impl TryFrom<X690Element> for Result_list_Item {
+impl TryFrom<&X690Element> for Result_list_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Result_list_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Result_list_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Result_list_Item(el)
     }
 }
@@ -5522,70 +7304,139 @@ pub const _rctl2_components_for_Result_list_Item: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Result_list_Item: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Result_list_Item(el: &X690Element) -> ASN1Result<Result_list_Item> {
-    |el_: &X690Element| -> ASN1Result<Result_list_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Result_list_Item,
-            _eal_components_for_Result_list_Item,
-            _rctl2_components_for_Result_list_Item,
-        )?;
-        let result = _decode_Result_(_components.get("result").unwrap())?;
-        let transfer_syntax_name: OPTIONAL<Transfer_syntax_name> =
-            match _components.get("transfer-syntax-name") {
-                Some(c_) => Some(_decode_Transfer_syntax_name(c_)?),
-                _ => None,
-            };
-        let provider_reason: OPTIONAL<Result_list_Item_provider_reason> =
-            match _components.get("provider-reason") {
-                Some(c_) => Some(_decode_Result_list_Item_provider_reason(c_)?),
-                _ => None,
-            };
-        Ok(Result_list_Item {
-            result,
-            transfer_syntax_name,
-            provider_reason,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Result-list-Item")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Result_list_Item,
+        _eal_components_for_Result_list_Item,
+        _rctl2_components_for_Result_list_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut result_: OPTIONAL<Result_> = None;
+    let mut transfer_syntax_name_: OPTIONAL<Transfer_syntax_name> = None;
+    let mut provider_reason_: OPTIONAL<Result_list_Item_provider_reason> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "result" => result_ = Some(_decode_Result_(_el)?),
+            "transfer-syntax-name" => {
+                transfer_syntax_name_ = Some(_decode_Transfer_syntax_name(_el)?)
+            }
+            "provider-reason" => {
+                provider_reason_ = Some(_decode_Result_list_Item_provider_reason(_el)?)
+            }
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Result-list-Item")
+                )
+            }
+        }
+    }
+    Ok(Result_list_Item {
+        result: result_.unwrap(),
+        transfer_syntax_name: transfer_syntax_name_,
+        provider_reason: provider_reason_,
+    })
 }
 
 pub fn _encode_Result_list_Item(value_: &Result_list_Item) -> ASN1Result<X690Element> {
-    |value_: &Result_list_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-        components_.push(|v_1: &Result_| -> ASN1Result<X690Element> {
-            let mut el_1 = _encode_Result_(&v_1)?;
-            el_1.tag_class = TagClass::CONTEXT;
-            el_1.tag_number = 0;
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    components_.push(|v_1: &Result_| -> ASN1Result<X690Element> {
+        let mut el_1 = _encode_Result_(&v_1)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        Ok(el_1)
+    }(&value_.result)?);
+    if let Some(v_) = &value_.transfer_syntax_name {
+        components_.push(|v_1: &Transfer_syntax_name| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Transfer_syntax_name(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
             Ok(el_1)
-        }(&value_.result)?);
-        if let Some(v_) = &value_.transfer_syntax_name {
-            components_.push(|v_1: &Transfer_syntax_name| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Transfer_syntax_name(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.provider_reason {
+        components_.push(
+            |v_1: &Result_list_Item_provider_reason| -> ASN1Result<X690Element> {
+                let mut el_1 = _encode_Result_list_Item_provider_reason(&v_1)?;
+                el_1.tag.tag_class = TagClass::CONTEXT;
+                el_1.tag.tag_number = 2;
                 Ok(el_1)
-            }(&v_)?);
+            }(&v_)?,
+        );
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_Result_list_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Result-list-Item")
+            )
         }
-        if let Some(v_) = &value_.provider_reason {
-            components_.push(
-                |v_1: &Result_list_Item_provider_reason| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_Result_list_Item_provider_reason(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
-                }(&v_)?,
-            );
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Result_list_Item,
+        _eal_components_for_Result_list_Item,
+        _rctl2_components_for_Result_list_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "result" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "result"));
+                }
+                Ok(_validate_Result_(&el)?)
+            }(_el)?,
+            "transfer-syntax-name" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "transfer-syntax-name",
+                    ));
+                }
+                Ok(_validate_Transfer_syntax_name(&el)?)
+            }(_el)?,
+            "provider-reason" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "provider-reason",
+                    ));
+                }
+                Ok(_validate_Result_list_Item_provider_reason(&el)?)
+            }(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Result-list-Item")
+                )
+            }
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -5600,13 +7451,17 @@ pub const AAREerr_apdu_protocol_version_version1: BIT = 0; /* LONG_NAMED_BIT */
 pub fn _decode_AAREerr_apdu_protocol_version(
     el: &X690Element,
 ) -> ASN1Result<AAREerr_apdu_protocol_version> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_AAREerr_apdu_protocol_version(
     value_: &AAREerr_apdu_protocol_version,
 ) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_AAREerr_apdu_protocol_version(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -5619,17 +7474,9 @@ pub enum OsiUnbind_fully_encoded_data_Item_presentation_data_values {
     single_ASN1_type(X690Element),
 }
 
-impl TryFrom<X690Element> for OsiUnbind_fully_encoded_data_Item_presentation_data_values {
+impl TryFrom<&X690Element> for OsiUnbind_fully_encoded_data_Item_presentation_data_values {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiUnbind_fully_encoded_data_Item_presentation_data_values {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(el)
     }
 }
@@ -5637,39 +7484,64 @@ impl<'a> TryFrom<&'a X690Element> for OsiUnbind_fully_encoded_data_Item_presenta
 pub fn _decode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
     el: &X690Element,
 ) -> ASN1Result<OsiUnbind_fully_encoded_data_Item_presentation_data_values> {
-    |el: &X690Element| -> ASN1Result<OsiUnbind_fully_encoded_data_Item_presentation_data_values> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(
-                OsiUnbind_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(
-                    x690_identity(&el.inner()?)?,
-                ),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(
+            OsiUnbind_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbind-fully-encoded-data-Item-presentation-data-values",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
     value_: &OsiUnbind_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiUnbind_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
-        match value {
-            OsiUnbind_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => {
-                |v_1: &X690Element| -> ASN1Result<X690Element> {
-                    let el_1 = x690_identity(&v_1)?;
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        0,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-                    ))
-                }(&v)
-            }
+    match value_ {
+        OsiUnbind_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 0),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
         }
-    }(&value_)
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name =
+                Some("OsiUnbind-fully-encoded-data-Item-presentation-data-values".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "single-ASN1-type")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbind-fully-encoded-data-Item-presentation-data-values",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -5677,7 +7549,6 @@ pub fn _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
 /// ```asn1
 /// OsiUnbind-fully-encoded-data-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiUnbind_fully_encoded_data_Item {
@@ -5695,15 +7566,9 @@ impl OsiUnbind_fully_encoded_data_Item {
         }
     }
 }
-impl TryFrom<X690Element> for OsiUnbind_fully_encoded_data_Item {
+impl TryFrom<&X690Element> for OsiUnbind_fully_encoded_data_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiUnbind_fully_encoded_data_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiUnbind_fully_encoded_data_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiUnbind_fully_encoded_data_Item(el)
     }
 }
@@ -5732,51 +7597,110 @@ pub const _eal_components_for_OsiUnbind_fully_encoded_data_Item: &[ComponentSpec
 pub fn _decode_OsiUnbind_fully_encoded_data_Item(
     el: &X690Element,
 ) -> ASN1Result<OsiUnbind_fully_encoded_data_Item> {
-    |el_: &X690Element| -> ASN1Result<OsiUnbind_fully_encoded_data_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiUnbind_fully_encoded_data_Item,
-            _eal_components_for_OsiUnbind_fully_encoded_data_Item,
-            _rctl2_components_for_OsiUnbind_fully_encoded_data_Item,
-        )?;
-        let presentation_context_identifier = _decode_Presentation_context_identifier(
-            _components.get("presentation-context-identifier").unwrap(),
-        )?;
-        let presentation_data_values =
-            _decode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
-                _components.get("presentation-data-values").unwrap(),
-            )?;
-        Ok(OsiUnbind_fully_encoded_data_Item {
-            presentation_context_identifier,
-            presentation_data_values,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiUnbind-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiUnbind_fully_encoded_data_Item,
+        _eal_components_for_OsiUnbind_fully_encoded_data_Item,
+        _rctl2_components_for_OsiUnbind_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut presentation_data_values_: OPTIONAL<
+        OsiUnbind_fully_encoded_data_Item_presentation_data_values,
+    > = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => {
+                presentation_context_identifier_ =
+                    Some(_decode_Presentation_context_identifier(_el)?)
+            }
+            "presentation-data-values" => {
+                presentation_data_values_ =
+                    Some(_decode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiUnbind-fully-encoded-data-Item",
+                ))
+            }
+        }
+    }
+    Ok(OsiUnbind_fully_encoded_data_Item {
+        presentation_context_identifier: presentation_context_identifier_.unwrap(),
+        presentation_data_values: presentation_data_values_.unwrap(),
+    })
 }
 
 pub fn _encode_OsiUnbind_fully_encoded_data_Item(
     value_: &OsiUnbind_fully_encoded_data_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiUnbind_fully_encoded_data_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_Presentation_context_identifier(
-            &value_.presentation_context_identifier,
-        )?);
-        components_.push(
-            _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
-                &value_.presentation_data_values,
-            )?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(
+        _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
+            &value_.presentation_data_values,
+        )?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiUnbind_fully_encoded_data_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiUnbind-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiUnbind_fully_encoded_data_Item,
+        _eal_components_for_OsiUnbind_fully_encoded_data_Item,
+        _rctl2_components_for_OsiUnbind_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+            "presentation-data-values" => {
+                _validate_OsiUnbind_fully_encoded_data_Item_presentation_data_values(_el)?
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiUnbind-fully-encoded-data-Item",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -5789,19 +7713,9 @@ pub enum OsiUnbindResult_fully_encoded_data_Item_presentation_data_values {
     single_ASN1_type(X690Element),
 }
 
-impl TryFrom<X690Element> for OsiUnbindResult_fully_encoded_data_Item_presentation_data_values {
+impl TryFrom<&X690Element> for OsiUnbindResult_fully_encoded_data_Item_presentation_data_values {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for OsiUnbindResult_fully_encoded_data_Item_presentation_data_values
-{
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(el)
     }
 }
@@ -5809,29 +7723,65 @@ impl<'a> TryFrom<&'a X690Element>
 pub fn _decode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
     el: &X690Element,
 ) -> ASN1Result<OsiUnbindResult_fully_encoded_data_Item_presentation_data_values> {
-    |el: &X690Element| -> ASN1Result<OsiUnbindResult_fully_encoded_data_Item_presentation_data_values> {
-	match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
-	}
-}(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(
+            OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
+            ),
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbindResult-fully-encoded-data-Item-presentation-data-values",
+            ))
+        }
+    }
 }
 
 pub fn _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
     value_: &OsiUnbindResult_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiUnbindResult_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
-	match value {
-		OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
-            let el_1 = x690_identity(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+    match value_ {
+        OsiUnbindResult_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 0),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some(
+                "OsiUnbindResult-fully-encoded-data-Item-presentation-data-values".to_string(),
+            );
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "single-ASN1-type")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiUnbindResult-fully-encoded-data-Item-presentation-data-values",
             ))
-        }(&v),
-	}
-}(&value_)
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -5839,7 +7789,6 @@ pub fn _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
 /// ```asn1
 /// OsiUnbindResult-fully-encoded-data-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiUnbindResult_fully_encoded_data_Item {
@@ -5857,15 +7806,9 @@ impl OsiUnbindResult_fully_encoded_data_Item {
         }
     }
 }
-impl TryFrom<X690Element> for OsiUnbindResult_fully_encoded_data_Item {
+impl TryFrom<&X690Element> for OsiUnbindResult_fully_encoded_data_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiUnbindResult_fully_encoded_data_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiUnbindResult_fully_encoded_data_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiUnbindResult_fully_encoded_data_Item(el)
     }
 }
@@ -5894,51 +7837,111 @@ pub const _eal_components_for_OsiUnbindResult_fully_encoded_data_Item: &[Compone
 pub fn _decode_OsiUnbindResult_fully_encoded_data_Item(
     el: &X690Element,
 ) -> ASN1Result<OsiUnbindResult_fully_encoded_data_Item> {
-    |el_: &X690Element| -> ASN1Result<OsiUnbindResult_fully_encoded_data_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiUnbindResult_fully_encoded_data_Item,
-            _eal_components_for_OsiUnbindResult_fully_encoded_data_Item,
-            _rctl2_components_for_OsiUnbindResult_fully_encoded_data_Item,
-        )?;
-        let presentation_context_identifier = _decode_Presentation_context_identifier(
-            _components.get("presentation-context-identifier").unwrap(),
-        )?;
-        let presentation_data_values =
-            _decode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
-                _components.get("presentation-data-values").unwrap(),
-            )?;
-        Ok(OsiUnbindResult_fully_encoded_data_Item {
-            presentation_context_identifier,
-            presentation_data_values,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiUnbindResult-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiUnbindResult_fully_encoded_data_Item,
+        _eal_components_for_OsiUnbindResult_fully_encoded_data_Item,
+        _rctl2_components_for_OsiUnbindResult_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut presentation_data_values_: OPTIONAL<
+        OsiUnbindResult_fully_encoded_data_Item_presentation_data_values,
+    > = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => {
+                presentation_context_identifier_ =
+                    Some(_decode_Presentation_context_identifier(_el)?)
+            }
+            "presentation-data-values" => {
+                presentation_data_values_ = Some(
+                    _decode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(_el)?,
+                )
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiUnbindResult-fully-encoded-data-Item",
+                ))
+            }
+        }
+    }
+    Ok(OsiUnbindResult_fully_encoded_data_Item {
+        presentation_context_identifier: presentation_context_identifier_.unwrap(),
+        presentation_data_values: presentation_data_values_.unwrap(),
+    })
 }
 
 pub fn _encode_OsiUnbindResult_fully_encoded_data_Item(
     value_: &OsiUnbindResult_fully_encoded_data_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiUnbindResult_fully_encoded_data_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_Presentation_context_identifier(
-            &value_.presentation_context_identifier,
-        )?);
-        components_.push(
-            _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
-                &value_.presentation_data_values,
-            )?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(
+        _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
+            &value_.presentation_data_values,
+        )?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiUnbindResult_fully_encoded_data_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiUnbindResult-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiUnbindResult_fully_encoded_data_Item,
+        _eal_components_for_OsiUnbindResult_fully_encoded_data_Item,
+        _rctl2_components_for_OsiUnbindResult_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+            "presentation-data-values" => {
+                _validate_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(_el)?
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiUnbindResult-fully-encoded-data-Item",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -5951,19 +7954,9 @@ pub enum OsiOperation_fully_encoded_data_Item_presentation_data_values {
     single_ASN1_type(X690Element),
 }
 
-impl TryFrom<X690Element> for OsiOperation_fully_encoded_data_Item_presentation_data_values {
+impl TryFrom<&X690Element> for OsiOperation_fully_encoded_data_Item_presentation_data_values {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiOperation_fully_encoded_data_Item_presentation_data_values(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for OsiOperation_fully_encoded_data_Item_presentation_data_values
-{
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiOperation_fully_encoded_data_Item_presentation_data_values(el)
     }
 }
@@ -5971,37 +7964,64 @@ impl<'a> TryFrom<&'a X690Element>
 pub fn _decode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
     el: &X690Element,
 ) -> ASN1Result<OsiOperation_fully_encoded_data_Item_presentation_data_values> {
-    |el: &X690Element| -> ASN1Result<OsiOperation_fully_encoded_data_Item_presentation_data_values> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(
-                OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(
-                    x690_identity(&el.inner()?)?,
-                ),
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(
+            OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(
+                |el: &X690Element| -> ASN1Result<X690Element> { Ok(x690_identity(&el.inner()?)?) }(
+                    &el,
+                )?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiOperation-fully-encoded-data-Item-presentation-data-values",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
     value_: &OsiOperation_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
-    |value: &OsiOperation_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
-	match value {
-		OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
-            let el_1 = x690_identity(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
+    match value_ {
+        OsiOperation_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => {
+            |v_1: &X690Element| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 0),
+                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                ))
+            }(&v)
+        }
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name =
+                Some("OsiOperation-fully-encoded-data-Item-presentation-data-values".to_string());
+            Err(err)
+        }
+    }
+}
+
+pub fn _validate_OsiOperation_fully_encoded_data_Item_presentation_data_values(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "single-ASN1-type")
+                );
+            }
+            Ok(BER.validate_any(&el.inner()?)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "OsiOperation-fully-encoded-data-Item-presentation-data-values",
             ))
-        }(&v),
-	}
-}(&value_)
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -6009,7 +8029,6 @@ pub fn _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
 /// ```asn1
 /// OsiOperation-fully-encoded-data-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiOperation_fully_encoded_data_Item {
@@ -6027,15 +8046,9 @@ impl OsiOperation_fully_encoded_data_Item {
         }
     }
 }
-impl TryFrom<X690Element> for OsiOperation_fully_encoded_data_Item {
+impl TryFrom<&X690Element> for OsiOperation_fully_encoded_data_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiOperation_fully_encoded_data_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiOperation_fully_encoded_data_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiOperation_fully_encoded_data_Item(el)
     }
 }
@@ -6064,51 +8077,111 @@ pub const _eal_components_for_OsiOperation_fully_encoded_data_Item: &[ComponentS
 pub fn _decode_OsiOperation_fully_encoded_data_Item(
     el: &X690Element,
 ) -> ASN1Result<OsiOperation_fully_encoded_data_Item> {
-    |el_: &X690Element| -> ASN1Result<OsiOperation_fully_encoded_data_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiOperation_fully_encoded_data_Item,
-            _eal_components_for_OsiOperation_fully_encoded_data_Item,
-            _rctl2_components_for_OsiOperation_fully_encoded_data_Item,
-        )?;
-        let presentation_context_identifier = _decode_Presentation_context_identifier(
-            _components.get("presentation-context-identifier").unwrap(),
-        )?;
-        let presentation_data_values =
-            _decode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
-                _components.get("presentation-data-values").unwrap(),
-            )?;
-        Ok(OsiOperation_fully_encoded_data_Item {
-            presentation_context_identifier,
-            presentation_data_values,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiOperation-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiOperation_fully_encoded_data_Item,
+        _eal_components_for_OsiOperation_fully_encoded_data_Item,
+        _rctl2_components_for_OsiOperation_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut presentation_data_values_: OPTIONAL<
+        OsiOperation_fully_encoded_data_Item_presentation_data_values,
+    > = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => {
+                presentation_context_identifier_ =
+                    Some(_decode_Presentation_context_identifier(_el)?)
+            }
+            "presentation-data-values" => {
+                presentation_data_values_ = Some(
+                    _decode_OsiOperation_fully_encoded_data_Item_presentation_data_values(_el)?,
+                )
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiOperation-fully-encoded-data-Item",
+                ))
+            }
+        }
+    }
+    Ok(OsiOperation_fully_encoded_data_Item {
+        presentation_context_identifier: presentation_context_identifier_.unwrap(),
+        presentation_data_values: presentation_data_values_.unwrap(),
+    })
 }
 
 pub fn _encode_OsiOperation_fully_encoded_data_Item(
     value_: &OsiOperation_fully_encoded_data_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &OsiOperation_fully_encoded_data_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_Presentation_context_identifier(
-            &value_.presentation_context_identifier,
-        )?);
-        components_.push(
-            _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
-                &value_.presentation_data_values,
-            )?,
-        );
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(
+        _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
+            &value_.presentation_data_values,
+        )?,
+    );
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiOperation_fully_encoded_data_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "OsiOperation-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiOperation_fully_encoded_data_Item,
+        _eal_components_for_OsiOperation_fully_encoded_data_Item,
+        _rctl2_components_for_OsiOperation_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+            "presentation-data-values" => {
+                _validate_OsiOperation_fully_encoded_data_Item_presentation_data_values(_el)?
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "OsiOperation-fully-encoded-data-Item",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -6116,7 +8189,6 @@ pub fn _encode_OsiOperation_fully_encoded_data_Item(
 /// ```asn1
 /// OsiRes-result ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct OsiRes_result {
@@ -6128,15 +8200,9 @@ impl OsiRes_result {
         OsiRes_result { opcode, result }
     }
 }
-impl TryFrom<X690Element> for OsiRes_result {
+impl TryFrom<&X690Element> for OsiRes_result {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiRes_result(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiRes_result {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiRes_result(el)
     }
 }
@@ -6151,35 +8217,80 @@ pub const _rctl2_components_for_OsiRes_result: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_OsiRes_result: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_OsiRes_result(el: &X690Element) -> ASN1Result<OsiRes_result> {
-    |el_: &X690Element| -> ASN1Result<OsiRes_result> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_OsiRes_result,
-            _eal_components_for_OsiRes_result,
-            _rctl2_components_for_OsiRes_result,
-        )?;
-        let opcode = _decode_Code(_components.get("opcode").unwrap())?;
-        let result = x690_identity(_components.get("result").unwrap())?;
-        Ok(OsiRes_result { opcode, result })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes-result")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiRes_result,
+        _eal_components_for_OsiRes_result,
+        _rctl2_components_for_OsiRes_result,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut opcode_: OPTIONAL<Code> = None;
+    let mut result_: OPTIONAL<X690Element> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "opcode" => opcode_ = Some(_decode_Code(_el)?),
+            "result" => result_ = Some(x690_identity(_el)?),
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes-result")
+                )
+            }
+        }
+    }
+    Ok(OsiRes_result {
+        opcode: opcode_.unwrap(),
+        result: result_.unwrap(),
+    })
 }
 
 pub fn _encode_OsiRes_result(value_: &OsiRes_result) -> ASN1Result<X690Element> {
-    |value_: &OsiRes_result| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_Code(&value_.opcode)?);
-        components_.push(x690_identity(&value_.result)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_Code(&value_.opcode)?);
+    components_.push(x690_identity(&value_.result)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_OsiRes_result(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes-result")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_OsiRes_result,
+        _eal_components_for_OsiRes_result,
+        _rctl2_components_for_OsiRes_result,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "opcode" => _validate_Code(_el)?,
+            "result" => BER.validate_any(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "OsiRes-result")
+                )
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -6196,71 +8307,89 @@ pub enum OsiRej_problem {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
-impl TryFrom<X690Element> for OsiRej_problem {
+impl TryFrom<&X690Element> for OsiRej_problem {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_OsiRej_problem(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for OsiRej_problem {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_OsiRej_problem(el)
     }
 }
 
 pub fn _decode_OsiRej_problem(el: &X690Element) -> ASN1Result<OsiRej_problem> {
-    |el: &X690Element| -> ASN1Result<OsiRej_problem> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::CONTEXT, 0) => Ok(OsiRej_problem::general(_decode_GeneralProblem(&el)?)),
-            (TagClass::CONTEXT, 1) => Ok(OsiRej_problem::invoke(_decode_InvokeProblem(&el)?)),
-            (TagClass::CONTEXT, 2) => Ok(OsiRej_problem::returnResult(
-                _decode_ReturnResultProblem(&el)?,
-            )),
-            (TagClass::CONTEXT, 3) => Ok(OsiRej_problem::returnError(_decode_ReturnErrorProblem(
-                &el,
-            )?)),
-            _ => Ok(OsiRej_problem::_unrecognized(el.clone())),
-        }
-    }(&el)
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => Ok(OsiRej_problem::general(_decode_GeneralProblem(&el)?)),
+        (TagClass::CONTEXT, 1) => Ok(OsiRej_problem::invoke(_decode_InvokeProblem(&el)?)),
+        (TagClass::CONTEXT, 2) => Ok(OsiRej_problem::returnResult(_decode_ReturnResultProblem(
+            &el,
+        )?)),
+        (TagClass::CONTEXT, 3) => Ok(OsiRej_problem::returnError(_decode_ReturnErrorProblem(
+            &el,
+        )?)),
+        _ => Ok(OsiRej_problem::_unrecognized(el.clone())),
+    }
 }
 
 pub fn _encode_OsiRej_problem(value_: &OsiRej_problem) -> ASN1Result<X690Element> {
-    |value: &OsiRej_problem| -> ASN1Result<X690Element> {
-        match value {
-            OsiRej_problem::general(v) => |v_1: &GeneralProblem| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_GeneralProblem(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&v),
-            OsiRej_problem::invoke(v) => |v_1: &InvokeProblem| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_InvokeProblem(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v),
-            OsiRej_problem::returnResult(v) => {
-                |v_1: &ReturnResultProblem| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_ReturnResultProblem(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 2;
-                    Ok(el_1)
-                }(&v)
+    match value_ {
+        OsiRej_problem::general(v) => |v_1: &GeneralProblem| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_GeneralProblem(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&v),
+        OsiRej_problem::invoke(v) => |v_1: &InvokeProblem| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_InvokeProblem(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v),
+        OsiRej_problem::returnResult(v) => |v_1: &ReturnResultProblem| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_ReturnResultProblem(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 2;
+            Ok(el_1)
+        }(&v),
+        OsiRej_problem::returnError(v) => |v_1: &ReturnErrorProblem| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_ReturnErrorProblem(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 3;
+            Ok(el_1)
+        }(&v),
+        OsiRej_problem::_unrecognized(el) => Ok(el.clone()),
+    }
+}
+
+pub fn _validate_OsiRej_problem(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "general"));
             }
-            OsiRej_problem::returnError(v) => {
-                |v_1: &ReturnErrorProblem| -> ASN1Result<X690Element> {
-                    let mut el_1 = _encode_ReturnErrorProblem(&v_1)?;
-                    el_1.tag_class = TagClass::CONTEXT;
-                    el_1.tag_number = 3;
-                    Ok(el_1)
-                }(&v)
+            Ok(_validate_GeneralProblem(&el)?)
+        }(&el),
+        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "invoke"));
             }
-            OsiRej_problem::_unrecognized(el) => Ok(el.clone()),
-        }
-    }(&value_)
+            Ok(_validate_InvokeProblem(&el)?)
+        }(&el),
+        (TagClass::CONTEXT, 2) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "returnResult")
+                );
+            }
+            Ok(_validate_ReturnResultProblem(&el)?)
+        }(&el),
+        (TagClass::CONTEXT, 3) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "returnError")
+                );
+            }
+            Ok(_validate_ReturnErrorProblem(&el)?)
+        }(&el),
+        _ => Ok(()),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -6274,21 +8403,11 @@ pub enum ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_prese
     single_ASN1_type(X690Element),
 }
 
-impl TryFrom<X690Element>
+impl TryFrom<&X690Element>
     for ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
 {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values
-{
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(el)
     }
 }
@@ -6298,31 +8417,35 @@ pub fn _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
 ) -> ASN1Result<
     ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 > {
-    |el: &X690Element| -> ASN1Result<
-        ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
-    > {
-        match (el.tag_class, el.tag_number) {
-		(TagClass::CONTEXT, 0) => Ok(ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(x690_identity(&el.inner()?)?)),
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice)),
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => Ok(ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(|el: &X690Element| -> ASN1Result<X690Element> {
+	Ok(x690_identity(&el.inner()?)?)
+}(&el)?)),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
 	}
-    }(&el)
 }
 
 pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
     value_: &ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
-    |value: &ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values| -> ASN1Result<X690Element> {
-	match value {
-		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> {
-            let el_1 = x690_identity(&v_1)?;
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(el_1))),
-            ))
-        }(&v),
+    match value_ {
+		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		_ => { let mut err = ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice); err.component_name = Some("ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values".to_string()); Err(err) },
 	}
-}(&value_)
+}
+
+pub fn _validate_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+		(TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
+	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+		return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "single-ASN1-type"));
+	}
+	Ok(BER.validate_any(&el.inner()?)?)
+}(&el),
+		_ => return Err(el.to_asn1_err_named(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice, "ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item-presentation-data-values")),
+	}
 }
 
 /// ### ASN.1 Definition:
@@ -6330,7 +8453,6 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
 /// ```asn1
 /// ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item {
@@ -6349,17 +8471,9 @@ impl ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item {
         }
     }
 }
-impl TryFrom<X690Element> for ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item {
+impl TryFrom<&X690Element> for ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element>
-    for ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
-{
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(el)
     }
 }
@@ -6379,37 +8493,92 @@ pub const _eal_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_en
 pub fn _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(
     el: &X690Element,
 ) -> ASN1Result<ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-    |el_: &X690Element| -> ASN1Result<ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item> {
-	let elements = match el_.value.borrow() {
-		X690Encoding::Constructed(children) => children,
-		_ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-	};
-	let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-	let (_components, _unrecognized) = _parse_sequence(
-		el_refs_.as_slice(),
-		_rctl1_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
-		_eal_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
-		_rctl2_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
-	)?;
-	let presentation_context_identifier = _decode_Presentation_context_identifier(_components.get("presentation-context-identifier").unwrap())?;
-	let presentation_data_values = _decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_components.get("presentation-data-values").unwrap())?;
-	Ok(ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item{ presentation_context_identifier, presentation_data_values })
-}(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _eal_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _rctl2_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut presentation_data_values_: OPTIONAL<
+        ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
+    > = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"presentation-context-identifier" => presentation_context_identifier_ = Some(_decode_Presentation_context_identifier(_el)?),
+			"presentation-data-values" => presentation_data_values_ = Some(_decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?),
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(
+        ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item {
+            presentation_context_identifier: presentation_context_identifier_.unwrap(),
+            presentation_data_values: presentation_data_values_.unwrap(),
+        },
+    )
 }
 
 pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(
     value_: &ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item| -> ASN1Result<X690Element> {
-	let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-	components_.push(_encode_Presentation_context_identifier(&value_.presentation_context_identifier)?);
-	components_.push(_encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
-	Ok(X690Element::new(
-		TagClass::UNIVERSAL,
-		ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-		Arc::new(X690Encoding::Constructed(components_)),
-	))
-}(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(_encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(&value_.presentation_data_values)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(
+    el: &X690Element,
+) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _eal_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        _rctl2_components_for_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+			"presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+			"presentation-data-values" => _validate_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values(_el)?,
+			_ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ARU-PPDU-normal-mode-parameters-user-data-fully-encoded-data-Item")),
+		}
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -6422,17 +8591,9 @@ pub enum ARU_PPDU_normal_mode_parameters_user_data {
     fully_encoded_data(Vec<ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item>),
 }
 
-impl TryFrom<X690Element> for ARU_PPDU_normal_mode_parameters_user_data {
+impl TryFrom<&X690Element> for ARU_PPDU_normal_mode_parameters_user_data {
     type Error = ASN1Error;
-
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ARU_PPDU_normal_mode_parameters_user_data(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ARU_PPDU_normal_mode_parameters_user_data {
-    type Error = ASN1Error;
-
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ARU_PPDU_normal_mode_parameters_user_data(el)
     }
 }
@@ -6440,69 +8601,110 @@ impl<'a> TryFrom<&'a X690Element> for ARU_PPDU_normal_mode_parameters_user_data 
 pub fn _decode_ARU_PPDU_normal_mode_parameters_user_data(
     el: &X690Element,
 ) -> ASN1Result<ARU_PPDU_normal_mode_parameters_user_data> {
-    |el: &X690Element| -> ASN1Result<ARU_PPDU_normal_mode_parameters_user_data> {
-        match (el.tag_class, el.tag_number) {
-            (TagClass::APPLICATION, 1) => Ok(
-                ARU_PPDU_normal_mode_parameters_user_data::fully_encoded_data(
-                    |el: &X690Element| -> ASN1Result<
-                        SEQUENCE_OF<
-                            ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        >,
-                    > {
-                        let elements = match el.value.borrow() {
-                            X690Encoding::Constructed(children) => children,
-                            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-                        };
-                        let mut items: SEQUENCE_OF<
-                            ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                        > = Vec::with_capacity(elements.len());
-                        for el in elements {
-                            items.push(_decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => Ok(
+            ARU_PPDU_normal_mode_parameters_user_data::fully_encoded_data(
+                |el: &X690Element| -> ASN1Result<
+                    SEQUENCE_OF<ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item>,
+                > {
+                    let elements = match &el.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "fully-encoded-data",
+                            ))
                         }
-                        Ok(items)
-                    }(&el)?,
-                ),
+                    };
+                    let mut items: SEQUENCE_OF<
+                        ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+                    > = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(_decode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(el)?);
+                    }
+                    Ok(items)
+                }(&el)?,
             ),
-            _ => {
-                return Err(ASN1Error::new(
-                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                ))
-            }
+        ),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ARU-PPDU-normal-mode-parameters-user-data",
+            ))
         }
-    }(&el)
+    }
 }
 
 pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data(
     value_: &ARU_PPDU_normal_mode_parameters_user_data,
 ) -> ASN1Result<X690Element> {
-    |value: &ARU_PPDU_normal_mode_parameters_user_data| -> ASN1Result<X690Element> {
-        match value {
-            ARU_PPDU_normal_mode_parameters_user_data::fully_encoded_data(v) => |v_1: &Vec<
+    match value_ {
+        ARU_PPDU_normal_mode_parameters_user_data::fully_encoded_data(v) => |v_1: &Vec<
+            ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
+        >|
+         -> ASN1Result<
+            X690Element,
+        > {
+            let mut el_1 = |value_: &SEQUENCE_OF<
                 ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
             >|
-             -> ASN1Result<
-                X690Element,
-            > {
-                let mut el_1 = |value_: &SEQUENCE_OF<
-                    ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item,
-                >|
-                 -> ASN1Result<X690Element> {
-                    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                    for v in value_ {
-                        children.push(_encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(&v)?);
-                    }
-                    Ok(X690Element::new(
-                        TagClass::UNIVERSAL,
-                        ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-                        Arc::new(X690Encoding::Constructed(children)),
-                    ))
-                }(&v_1)?;
-                el_1.tag_class = TagClass::APPLICATION;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v),
+             -> ASN1Result<X690Element> {
+                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+                for v in value_ {
+                    children.push(
+                        _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(
+                            &v,
+                        )?,
+                    );
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                    X690Value::Constructed(Arc::new(children)),
+                ))
+            }(&v_1)?;
+            el_1.tag.tag_class = TagClass::APPLICATION;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v),
+        _ => {
+            let mut err =
+                ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
+            err.component_name = Some("ARU-PPDU-normal-mode-parameters-user-data".to_string());
+            Err(err)
         }
-    }(&value_)
+    }
+}
+
+pub fn _validate_ARU_PPDU_normal_mode_parameters_user_data(el: &X690Element) -> ASN1Result<()> {
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::APPLICATION, 1) => |el: &X690Element| -> ASN1Result<()> {
+            if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+                return Err(
+                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "fully-encoded-data")
+                );
+            }
+            Ok(|el: &X690Element| -> ASN1Result<()> {
+                match &el.value {
+                    X690Value::Constructed(subs) => {
+                        for sub in subs.iter() {
+                            _validate_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item(&sub)?;
+                        }
+                        Ok(())
+                    }
+                    _ => Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "fully-encoded-data",
+                    )),
+                }
+            }(&el)?)
+        }(&el),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "ARU-PPDU-normal-mode-parameters-user-data",
+            ))
+        }
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -6510,7 +8712,6 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data(
 /// ```asn1
 /// ARU-PPDU-normal-mode-parameters ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ARU_PPDU_normal_mode_parameters {
@@ -6528,15 +8729,9 @@ impl ARU_PPDU_normal_mode_parameters {
         }
     }
 }
-impl TryFrom<X690Element> for ARU_PPDU_normal_mode_parameters {
+impl TryFrom<&X690Element> for ARU_PPDU_normal_mode_parameters {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ARU_PPDU_normal_mode_parameters(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ARU_PPDU_normal_mode_parameters {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ARU_PPDU_normal_mode_parameters(el)
     }
 }
@@ -6559,55 +8754,117 @@ pub const _eal_components_for_ARU_PPDU_normal_mode_parameters: &[ComponentSpec; 
 pub fn _decode_ARU_PPDU_normal_mode_parameters(
     el: &X690Element,
 ) -> ASN1Result<ARU_PPDU_normal_mode_parameters> {
-    |el_: &X690Element| -> ASN1Result<ARU_PPDU_normal_mode_parameters> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ARU_PPDU_normal_mode_parameters,
-            _eal_components_for_ARU_PPDU_normal_mode_parameters,
-            _rctl2_components_for_ARU_PPDU_normal_mode_parameters,
-        )?;
-        let presentation_context_identifier_list = _decode_Presentation_context_identifier_list(
-            _components
-                .get("presentation-context-identifier-list")
-                .unwrap(),
-        )?;
-        let user_data = _decode_ARU_PPDU_normal_mode_parameters_user_data(
-            _components.get("user-data").unwrap(),
-        )?;
-        Ok(ARU_PPDU_normal_mode_parameters {
-            presentation_context_identifier_list,
-            user_data,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ARU-PPDU-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ARU_PPDU_normal_mode_parameters,
+        _eal_components_for_ARU_PPDU_normal_mode_parameters,
+        _rctl2_components_for_ARU_PPDU_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut presentation_context_identifier_list_: OPTIONAL<Presentation_context_identifier_list> =
+        None;
+    let mut user_data_: OPTIONAL<ARU_PPDU_normal_mode_parameters_user_data> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier-list" => {
+                presentation_context_identifier_list_ =
+                    Some(_decode_Presentation_context_identifier_list(_el)?)
+            }
+            "user-data" => {
+                user_data_ = Some(_decode_ARU_PPDU_normal_mode_parameters_user_data(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ARU-PPDU-normal-mode-parameters",
+                ))
+            }
+        }
+    }
+    Ok(ARU_PPDU_normal_mode_parameters {
+        presentation_context_identifier_list: presentation_context_identifier_list_.unwrap(),
+        user_data: user_data_.unwrap(),
+    })
 }
 
 pub fn _encode_ARU_PPDU_normal_mode_parameters(
     value_: &ARU_PPDU_normal_mode_parameters,
 ) -> ASN1Result<X690Element> {
-    |value_: &ARU_PPDU_normal_mode_parameters| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(
-            |v_1: &Presentation_context_identifier_list| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Presentation_context_identifier_list(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&value_.presentation_context_identifier_list)?,
-        );
-        components_.push(_encode_ARU_PPDU_normal_mode_parameters_user_data(
-            &value_.user_data,
-        )?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(
+        |v_1: &Presentation_context_identifier_list| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Presentation_context_identifier_list(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&value_.presentation_context_identifier_list)?,
+    );
+    components_.push(_encode_ARU_PPDU_normal_mode_parameters_user_data(
+        &value_.user_data,
+    )?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_ARU_PPDU_normal_mode_parameters(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "ARU-PPDU-normal-mode-parameters",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ARU_PPDU_normal_mode_parameters,
+        _eal_components_for_ARU_PPDU_normal_mode_parameters,
+        _rctl2_components_for_ARU_PPDU_normal_mode_parameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier-list" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(
+                        ASN1ErrorCode::invalid_construction,
+                        "presentation-context-identifier-list",
+                    ));
+                }
+                Ok(_validate_Presentation_context_identifier_list(&el)?)
+            }(_el)?,
+            "user-data" => _validate_ARU_PPDU_normal_mode_parameters_user_data(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "ARU-PPDU-normal-mode-parameters",
+                ))
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -6615,7 +8872,6 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters(
 /// ```asn1
 /// Presentation-context-identifier-list-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Presentation_context_identifier_list_Item {
@@ -6633,15 +8889,9 @@ impl Presentation_context_identifier_list_Item {
         }
     }
 }
-impl TryFrom<X690Element> for Presentation_context_identifier_list_Item {
+impl TryFrom<&X690Element> for Presentation_context_identifier_list_Item {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Presentation_context_identifier_list_Item(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Presentation_context_identifier_list_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Presentation_context_identifier_list_Item(el)
     }
 }
@@ -6671,43 +8921,99 @@ pub const _eal_components_for_Presentation_context_identifier_list_Item: &[Compo
 pub fn _decode_Presentation_context_identifier_list_Item(
     el: &X690Element,
 ) -> ASN1Result<Presentation_context_identifier_list_Item> {
-    |el_: &X690Element| -> ASN1Result<Presentation_context_identifier_list_Item> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Presentation_context_identifier_list_Item,
-            _eal_components_for_Presentation_context_identifier_list_Item,
-            _rctl2_components_for_Presentation_context_identifier_list_Item,
-        )?;
-        let presentation_context_identifier = _decode_Presentation_context_identifier(
-            _components.get("presentation-context-identifier").unwrap(),
-        )?;
-        let transfer_syntax_name =
-            _decode_Transfer_syntax_name(_components.get("transfer-syntax-name").unwrap())?;
-        Ok(Presentation_context_identifier_list_Item {
-            presentation_context_identifier,
-            transfer_syntax_name,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "Presentation-context-identifier-list-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Presentation_context_identifier_list_Item,
+        _eal_components_for_Presentation_context_identifier_list_Item,
+        _rctl2_components_for_Presentation_context_identifier_list_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut presentation_context_identifier_: OPTIONAL<Presentation_context_identifier> = None;
+    let mut transfer_syntax_name_: OPTIONAL<Transfer_syntax_name> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => {
+                presentation_context_identifier_ =
+                    Some(_decode_Presentation_context_identifier(_el)?)
+            }
+            "transfer-syntax-name" => {
+                transfer_syntax_name_ = Some(_decode_Transfer_syntax_name(_el)?)
+            }
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "Presentation-context-identifier-list-Item",
+                ))
+            }
+        }
+    }
+    Ok(Presentation_context_identifier_list_Item {
+        presentation_context_identifier: presentation_context_identifier_.unwrap(),
+        transfer_syntax_name: transfer_syntax_name_.unwrap(),
+    })
 }
 
 pub fn _encode_Presentation_context_identifier_list_Item(
     value_: &Presentation_context_identifier_list_Item,
 ) -> ASN1Result<X690Element> {
-    |value_: &Presentation_context_identifier_list_Item| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_Presentation_context_identifier(
-            &value_.presentation_context_identifier,
-        )?);
-        components_.push(_encode_Transfer_syntax_name(&value_.transfer_syntax_name)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_Presentation_context_identifier(
+        &value_.presentation_context_identifier,
+    )?);
+    components_.push(_encode_Transfer_syntax_name(&value_.transfer_syntax_name)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_Presentation_context_identifier_list_Item(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::invalid_construction,
+                "Presentation-context-identifier-list-Item",
+            ))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Presentation_context_identifier_list_Item,
+        _eal_components_for_Presentation_context_identifier_list_Item,
+        _rctl2_components_for_Presentation_context_identifier_list_Item,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "presentation-context-identifier" => _validate_Presentation_context_identifier(_el)?,
+            "transfer-syntax-name" => _validate_Transfer_syntax_name(_el)?,
+            _ => {
+                return Err(_el.to_asn1_err_named(
+                    ASN1ErrorCode::invalid_construction,
+                    "Presentation-context-identifier-list-Item",
+                ))
+            }
+        }
+    }
+    Ok(())
 }

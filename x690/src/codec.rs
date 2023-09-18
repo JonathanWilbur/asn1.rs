@@ -23,6 +23,7 @@ use asn1::{
     ASN1Error,
     ASN1ErrorCode,
     read_i64,
+    read_i128,
     Tag,
     MAX_IA5_STRING_CHAR_CODE,
     OPTIONAL,
@@ -117,6 +118,7 @@ use asn1::types::{
 };
 use bytes::{Bytes, BytesMut, BufMut};
 use std::sync::Arc;
+use std::mem::size_of;
 
 pub fn decode_presentation_context_switching_type_id(
     codec: impl X690Codec,
@@ -1397,6 +1399,330 @@ pub trait X690Codec {
         let enc = self.encode_time(value)?;
         self.write(output, &enc)
     }
+
+    fn encode_i8 (&self, value: i8) -> ASN1Result<X690Element> {
+        let mut content = BytesMut::with_capacity(1);
+        content.put_i8(value);
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            X690Value::Primitive(content.into()),
+        ))
+    }
+
+    fn decode_i8 (&self, el: &X690Element) -> ASN1Result<i8> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_i8 (&self, el: &X690Element) -> ASN1Result<()> {
+        let content_octets = el.content_octets()?;
+        if content_octets.len() == 1 {
+            Ok(())
+        } else {
+            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        }
+    }
+
+    fn encode_u8 (&self, value: u8) -> ASN1Result<X690Element> {
+        self.encode_i16(value.into())
+    }
+
+    fn decode_u8 (&self, el: &X690Element) -> ASN1Result<u8> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_u8 (&self, el: &X690Element) -> ASN1Result<()> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        let _: u8 = i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        Ok(())
+    }
+
+    fn encode_i16 (&self, value: i16) -> ASN1Result<X690Element> {
+        let possible_i8 = value.try_into();
+        match possible_i8 {
+            Ok(pi8) => self.encode_i8(pi8),
+            Err(_) => {
+                let mut content = BytesMut::with_capacity(2);
+                content.put_i16(value);
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                    X690Value::Primitive(content.into()),
+                ))
+            },
+        }
+    }
+
+    fn decode_i16 (&self, el: &X690Element) -> ASN1Result<i16> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_i16 (&self, el: &X690Element) -> ASN1Result<()> {
+        let content_octets = el.content_octets()?;
+        if content_octets.len() > 2 {
+            Ok(())
+        } else {
+            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        }
+    }
+
+    fn encode_u16 (&self, value: u16) -> ASN1Result<X690Element> {
+        self.encode_i32(value.into())
+    }
+
+    fn decode_u16 (&self, el: &X690Element) -> ASN1Result<u16> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_u16 (&self, el: &X690Element) -> ASN1Result<()> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        let _: u16 = i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        Ok(())
+    }
+
+    fn encode_i32 (&self, value: i32) -> ASN1Result<X690Element> {
+        let possible_i16 = value.try_into();
+        match possible_i16 {
+            Ok(pi16) => self.encode_i16(pi16),
+            Err(_) => {
+                let octets = value.to_be_bytes();
+                let padded: bool = ((octets[0] == 0x00) && ((octets[1] & 0b1000_0000) == 0))
+                    || ((octets[0] == 0xFF) && ((octets[1] & 0b1000_0000) > 0));
+                if padded {
+                    let mut content = BytesMut::with_capacity(3);
+                    content.put_slice(&octets[1..]);
+                    Ok(X690Element::new(
+                        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                        X690Value::Primitive(content.into()),
+                    ))
+                } else {
+                    let mut content = BytesMut::with_capacity(4);
+                    content.put_i32(value);
+                    Ok(X690Element::new(
+                        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                        X690Value::Primitive(content.into()),
+                    ))
+                }
+            },
+        }
+    }
+
+    fn decode_i32 (&self, el: &X690Element) -> ASN1Result<i32> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_i32 (&self, el: &X690Element) -> ASN1Result<()> {
+        let content_octets = el.content_octets()?;
+        if content_octets.len() > 4 {
+            Ok(())
+        } else {
+            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        }
+    }
+
+    fn encode_u32 (&self, value: u32) -> ASN1Result<X690Element> {
+        self.encode_i64(value.into())
+    }
+
+    fn decode_u32 (&self, el: &X690Element) -> ASN1Result<u32> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_u32 (&self, el: &X690Element) -> ASN1Result<()> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        let _: u32 = i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        Ok(())
+    }
+
+    fn encode_i64 (&self, value: i64) -> ASN1Result<X690Element> {
+        let bytes: [u8; 8] = value.to_be_bytes();
+        let padding_byte: u8 = if value >= 0 { 0x00 } else { 0xFF };
+        let mut number_of_padding_bytes: usize = 0;
+        for byte in bytes {
+            if byte == padding_byte {
+                number_of_padding_bytes += 1;
+            } else {
+                break;
+            }
+        }
+        let mut content = BytesMut::with_capacity(8);
+        /* If the bytes are 0xFFFFFFFF... or 0x00000000..., encode as 0xFF or 0x00 */
+        if (number_of_padding_bytes == size_of::<i64>())
+            // Or add single pad byte if needed.
+            || (value >= 0 && ((bytes[number_of_padding_bytes] & 0b1000_0000) > 0))
+            || (value < 0 && ((bytes[number_of_padding_bytes] & 0b1000_0000) == 0)) {
+            content.put_u8(padding_byte);
+        }
+        content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i64>()]));
+        return Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            X690Value::Primitive(content.into()),
+        ));
+    }
+
+    fn decode_i64 (&self, el: &X690Element) -> ASN1Result<i64> {
+        let int_bytes = self.decode_integer(el)?;
+        read_i64(&int_bytes).map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    // TODO: This is technically incorrect. It does not check padding.
+    fn validate_i64 (&self, el: &X690Element) -> ASN1Result<()> {
+        let content_octets = el.content_octets()?;
+        if content_octets.len() > 8 {
+            Ok(())
+        } else {
+            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        }
+    }
+
+    fn encode_u64 (&self, value: u64) -> ASN1Result<X690Element> {
+        let bytes: [u8; 8] = value.to_be_bytes();
+        let padding_byte: u8 = 0x00;
+        let mut number_of_padding_bytes: usize = 0;
+        for byte in bytes {
+            if byte == padding_byte {
+                number_of_padding_bytes += 1;
+            } else {
+                break;
+            }
+        }
+        let mut content = BytesMut::with_capacity(8);
+        /* If the bytes are 0xFFFFFFFF... or 0x00000000..., encode as 0xFF or 0x00 */
+        if (number_of_padding_bytes == size_of::<i64>())
+            // Or add single pad byte if needed.
+            || ((bytes[number_of_padding_bytes] & 0b1000_0000) > 0) {
+                content.put_u8(padding_byte);
+        }
+        content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i64>()]));
+        return Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            X690Value::Primitive(content.into()),
+        ));
+    }
+
+    fn decode_u64 (&self, el: &X690Element) -> ASN1Result<u64> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_u64 (&self, el: &X690Element) -> ASN1Result<()> {
+        let int_bytes = self.decode_integer(el)?;
+        let i = read_i64(&int_bytes)
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        let _: u64 = i.try_into()
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        Ok(())
+    }
+
+    fn encode_i128 (&self, value: i128) -> ASN1Result<X690Element> {
+        let bytes: [u8; 16] = value.to_be_bytes();
+        let padding_byte: u8 = if value >= 0 { 0x00 } else { 0xFF };
+        let mut number_of_padding_bytes: usize = 0;
+        for byte in bytes {
+            if byte == padding_byte {
+                number_of_padding_bytes += 1;
+            } else {
+                break;
+            }
+        }
+        let mut content = BytesMut::with_capacity(16);
+        /* If the bytes are 0xFFFFFFFF... or 0x00000000..., encode as 0xFF or 0x00 */
+        if (number_of_padding_bytes == size_of::<i128>())
+            // Or add single pad byte if needed.
+            || (value >= 0 && ((bytes[number_of_padding_bytes] & 0b1000_0000) > 0))
+            || (value < 0 && ((bytes[number_of_padding_bytes] & 0b1000_0000) == 0)) {
+            content.put_u8(padding_byte);
+        }
+        content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i128>()]));
+        return Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            X690Value::Primitive(content.into()),
+        ));
+    }
+
+    fn decode_i128 (&self, el: &X690Element) -> ASN1Result<i128> {
+        let int_bytes = self.decode_integer(el)?; // TODO: Use content_octets instead to avoid a clone.
+        read_i128(&int_bytes).map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
+    }
+
+    fn validate_i128 (&self, el: &X690Element) -> ASN1Result<()> {
+        let content_octets = el.content_octets()?;
+        if content_octets.len() > 16 {
+            Ok(())
+        } else {
+            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        }
+    }
+
+    fn encode_u128 (&self, value: u128) -> ASN1Result<X690Element> {
+        let bytes: [u8; 16] = value.to_be_bytes();
+        let padding_byte: u8 = 0x00;
+        let mut number_of_padding_bytes: usize = 0;
+        for byte in bytes {
+            if byte == padding_byte {
+                number_of_padding_bytes += 1;
+            } else {
+                break;
+            }
+        }
+        let mut content = BytesMut::with_capacity(16);
+        /* If the bytes are 0xFFFFFFFF... or 0x00000000..., encode as 0xFF or 0x00 */
+        if (number_of_padding_bytes == size_of::<i128>())
+            // Or add single pad byte if needed.
+            || ((bytes[number_of_padding_bytes] & 0b1000_0000) > 0) {
+                content.put_u8(padding_byte);
+        }
+        content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i128>()]));
+        return Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            X690Value::Primitive(content.into()),
+        ));
+    }
+
+    // TODO:
+    // fn decode_u128 (&self, el: &X690Element) -> ASN1Result<u128> {
+
+    // }
+
+    // fn validate_u128 (&self, el: &X690Element) -> ASN1Result<()> {
+
+    // }
+
+    // TODO: Implement X690Element::from() all the integer types, string, [u8], etc.
 
 }
 

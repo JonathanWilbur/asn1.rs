@@ -30,11 +30,15 @@ use x690::*;
 pub type ID = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_ID(el: &X690Element) -> ASN1Result<ID> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_ID(value_: &ID) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_ID(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:

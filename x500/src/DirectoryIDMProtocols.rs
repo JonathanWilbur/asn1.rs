@@ -19,6 +19,7 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+use crate::CommonProtocolSpecification::*;
 use crate::DirectoryAbstractService::*;
 use crate::DirectoryShadowAbstractService::*;
 use crate::DistributedOperations::*;
@@ -26,6 +27,7 @@ use crate::IDMProtocolSpecification::*;
 use crate::OperationalBindingManagement::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
+use std::sync::Arc;
 use x690::*;
 
 /// ### ASN.1 Definition:
@@ -41,6 +43,10 @@ pub fn _decode_DAP_IDM_PDUs(el: &X690Element) -> ASN1Result<DAP_IDM_PDUs> {
 
 pub fn _encode_DAP_IDM_PDUs(value_: &DAP_IDM_PDUs) -> ASN1Result<X690Element> {
     _encode_IDM_PDU(&value_)
+}
+
+pub fn _validate_DAP_IDM_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_IDM_PDU(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -66,7 +72,7 @@ pub fn _encode_DAP_IDM_PDUs(value_: &DAP_IDM_PDUs) -> ASN1Result<X690Element> {
 pub fn dap_ip() -> IDM_PROTOCOL {
     IDM_PROTOCOL {
         bind_operation: directoryBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([
+        Operations: Vec::from([
             read(),
             compare(),
             abandon(),
@@ -83,6 +89,11 @@ pub fn dap_ip() -> IDM_PROTOCOL {
     }
 }
 
+pub mod dap_ip {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -96,6 +107,10 @@ pub fn _decode_DSP_IDM_PDUs(el: &X690Element) -> ASN1Result<DSP_IDM_PDUs> {
 
 pub fn _encode_DSP_IDM_PDUs(value_: &DSP_IDM_PDUs) -> ASN1Result<X690Element> {
     _encode_IDM_PDU(&value_)
+}
+
+pub fn _validate_DSP_IDM_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_IDM_PDU(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -123,7 +138,7 @@ pub fn _encode_DSP_IDM_PDUs(value_: &DSP_IDM_PDUs) -> ASN1Result<X690Element> {
 pub fn dsp_ip() -> IDM_PROTOCOL {
     IDM_PROTOCOL {
         bind_operation: dSABind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([
+        Operations: Vec::from([
             chainedRead(),
             chainedCompare(),
             chainedAbandon(),
@@ -142,6 +157,11 @@ pub fn dsp_ip() -> IDM_PROTOCOL {
     }
 }
 
+pub mod dsp_ip {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -155,6 +175,10 @@ pub fn _decode_DISP_IDM_PDUs(el: &X690Element) -> ASN1Result<DISP_IDM_PDUs> {
 
 pub fn _encode_DISP_IDM_PDUs(value_: &DISP_IDM_PDUs) -> ASN1Result<X690Element> {
     _encode_IDM_PDU(&value_)
+}
+
+pub fn _validate_DISP_IDM_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_IDM_PDU(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -172,13 +196,18 @@ pub fn _encode_DISP_IDM_PDUs(value_: &DISP_IDM_PDUs) -> ASN1Result<X690Element> 
 pub fn disp_ip() -> IDM_PROTOCOL {
     IDM_PROTOCOL {
         bind_operation: dSAShadowBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([
+        Operations: Vec::from([
             requestShadowUpdate(),
             updateShadow(),
             coordinateShadowUpdate(),
         ]), /* OBJECT_FIELD_SETTING */
         id: id_idm_disp(),               /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod disp_ip {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -196,6 +225,10 @@ pub fn _encode_DOP_IDM_PDUs(value_: &DOP_IDM_PDUs) -> ASN1Result<X690Element> {
     _encode_IDM_PDU(&value_)
 }
 
+pub fn _validate_DOP_IDM_PDUs(el: &X690Element) -> ASN1Result<()> {
+    _validate_IDM_PDU(&el)
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -211,13 +244,18 @@ pub fn _encode_DOP_IDM_PDUs(value_: &DOP_IDM_PDUs) -> ASN1Result<X690Element> {
 pub fn dop_ip() -> IDM_PROTOCOL {
     IDM_PROTOCOL {
         bind_operation: dSAOperationalBindingManagementBind(), /* OBJECT_FIELD_SETTING */
-        Operations: Vec::<_>::from([
+        Operations: Vec::from([
             establishOperationalBinding(),
             modifyOperationalBinding(),
             terminateOperationalBinding(),
         ]), /* OBJECT_FIELD_SETTING */
         id: id_idm_dop(),                                      /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod dop_ip {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:

@@ -22,7 +22,6 @@
 use crate::AuthenticationFramework::*;
 use crate::UsefulDefinitions::*;
 use asn1::*;
-use std::borrow::Borrow;
 use std::sync::Arc;
 use x690::*;
 
@@ -34,11 +33,15 @@ use x690::*;
 pub type ID = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_ID(el: &X690Element) -> ASN1Result<ID> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_ID(value_: &ID) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_ID(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1370,11 +1373,15 @@ pub fn brainpoolP512t1() -> ID {
 pub type X509Curves = OBJECT_IDENTIFIER; // VALUE_SET_TYPE
 
 pub fn _decode_X509Curves(el: &X690Element) -> ASN1Result<X509Curves> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(el)
 }
 
 pub fn _encode_X509Curves(value_: &X509Curves) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(value_)
+}
+
+pub fn _validate_X509Curves(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(el)
 }
 
 /// ### ASN.1 Definition:
@@ -1451,6 +1458,21 @@ pub fn mD5Algorithm() -> ALGORITHM {
     }
 }
 
+pub mod mD5Algorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1463,6 +1485,21 @@ pub fn mD5Algorithm() -> ALGORITHM {
 pub fn sha1Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: id_sha1(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod sha1Algorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -1480,6 +1517,11 @@ pub fn sha256() -> ALGORITHM {
     }
 }
 
+pub mod sha256 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1492,6 +1534,11 @@ pub fn sha384() -> ALGORITHM {
     ALGORITHM {
         id: id_sha384(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod sha384 {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1508,6 +1555,11 @@ pub fn sha512() -> ALGORITHM {
     }
 }
 
+pub mod sha512 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1520,6 +1572,11 @@ pub fn sha224() -> ALGORITHM {
     ALGORITHM {
         id: id_sha224(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod sha224 {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1536,6 +1593,11 @@ pub fn sha512_224() -> ALGORITHM {
     }
 }
 
+pub mod sha512_224 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1548,6 +1610,11 @@ pub fn sha512_256() -> ALGORITHM {
     ALGORITHM {
         id: id_sha512_256(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod sha512_256 {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1564,6 +1631,11 @@ pub fn sha3_224() -> ALGORITHM {
     }
 }
 
+pub mod sha3_224 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1576,6 +1648,11 @@ pub fn sha3_256() -> ALGORITHM {
     ALGORITHM {
         id: id_sha3_256(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod sha3_256 {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1592,6 +1669,11 @@ pub fn sha3_384() -> ALGORITHM {
     }
 }
 
+pub mod sha3_384 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1604,6 +1686,11 @@ pub fn sha3_512() -> ALGORITHM {
     ALGORITHM {
         id: id_sha3_512(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod sha3_512 {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -1620,6 +1707,11 @@ pub fn shake128() -> ALGORITHM {
     }
 }
 
+pub mod shake128 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1634,6 +1726,11 @@ pub fn shake256() -> ALGORITHM {
     }
 }
 
+pub mod shake256 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1646,6 +1743,21 @@ pub fn shake256() -> ALGORITHM {
 pub fn shake128_len() -> ALGORITHM {
     ALGORITHM {
         id: id_shake128_len(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod shake128_len {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = ShakeOutputLen; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_ShakeOutputLen(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_ShakeOutputLen(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_ShakeOutputLen(el)
     }
 }
 
@@ -1664,6 +1776,21 @@ pub fn shake256_len() -> ALGORITHM {
     }
 }
 
+pub mod shake256_len {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = ShakeOutputLen; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_ShakeOutputLen(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_ShakeOutputLen(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_ShakeOutputLen(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1672,11 +1799,15 @@ pub fn shake256_len() -> ALGORITHM {
 pub type ShakeOutputLen = INTEGER;
 
 pub fn _decode_ShakeOutputLen(el: &X690Element) -> ASN1Result<ShakeOutputLen> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_ShakeOutputLen(value_: &ShakeOutputLen) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_ShakeOutputLen(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1709,6 +1840,21 @@ pub fn aes128_CBC() -> ALGORITHM {
     }
 }
 
+pub mod aes128_CBC {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = AES_InitializationVector; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_AES_InitializationVector(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_AES_InitializationVector(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_AES_InitializationVector(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1721,6 +1867,21 @@ pub fn aes128_CBC() -> ALGORITHM {
 pub fn aes192_CBC() -> ALGORITHM {
     ALGORITHM {
         id: id_aes192_CBC(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod aes192_CBC {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = AES_InitializationVector; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_AES_InitializationVector(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_AES_InitializationVector(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_AES_InitializationVector(el)
     }
 }
 
@@ -1739,6 +1900,21 @@ pub fn aes256_CBC() -> ALGORITHM {
     }
 }
 
+pub mod aes256_CBC {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = AES_InitializationVector; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_AES_InitializationVector(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_AES_InitializationVector(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_AES_InitializationVector(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1747,13 +1923,17 @@ pub fn aes256_CBC() -> ALGORITHM {
 pub type AES_InitializationVector = OCTET_STRING; // OctetStringType
 
 pub fn _decode_AES_InitializationVector(el: &X690Element) -> ASN1Result<AES_InitializationVector> {
-    ber_decode_octet_string(&el)
+    BER.decode_octet_string(&el)
 }
 
 pub fn _encode_AES_InitializationVector(
     value_: &AES_InitializationVector,
 ) -> ASN1Result<X690Element> {
-    ber_encode_octet_string(&value_)
+    BER.encode_octet_string(&value_)
+}
+
+pub fn _validate_AES_InitializationVector(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_octet_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1768,6 +1948,21 @@ pub fn _encode_AES_InitializationVector(
 pub fn rsaEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: rsaEncryption(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod rsaEncryptionAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -1786,6 +1981,21 @@ pub fn keyExchangeAlgorithm() -> ALGORITHM {
     }
 }
 
+pub mod keyExchangeAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = KEA_Parms_Id; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_KEA_Parms_Id(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_KEA_Parms_Id(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_KEA_Parms_Id(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1794,11 +2004,15 @@ pub fn keyExchangeAlgorithm() -> ALGORITHM {
 pub type KEA_Parms_Id = OCTET_STRING; // OctetStringType
 
 pub fn _decode_KEA_Parms_Id(el: &X690Element) -> ASN1Result<KEA_Parms_Id> {
-    ber_decode_octet_string(&el)
+    BER.decode_octet_string(&el)
 }
 
 pub fn _encode_KEA_Parms_Id(value_: &KEA_Parms_Id) -> ASN1Result<X690Element> {
-    ber_encode_octet_string(&value_)
+    BER.encode_octet_string(&value_)
+}
+
+pub fn _validate_KEA_Parms_Id(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_octet_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1816,6 +2030,21 @@ pub fn dsa() -> ALGORITHM {
     }
 }
 
+pub mod dsa {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = DSS_Parms; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_DSS_Parms(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_DSS_Parms(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_DSS_Parms(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1825,7 +2054,6 @@ pub fn dsa() -> ALGORITHM {
 ///   g   INTEGER,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct DSS_Parms {
@@ -1844,15 +2072,9 @@ impl DSS_Parms {
         }
     }
 }
-impl TryFrom<X690Element> for DSS_Parms {
+impl TryFrom<&X690Element> for DSS_Parms {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_DSS_Parms(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for DSS_Parms {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_DSS_Parms(el)
     }
 }
@@ -1886,44 +2108,81 @@ pub const _rctl2_components_for_DSS_Parms: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_DSS_Parms: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_DSS_Parms(el: &X690Element) -> ASN1Result<DSS_Parms> {
-    |el_: &X690Element| -> ASN1Result<DSS_Parms> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_DSS_Parms,
-            _eal_components_for_DSS_Parms,
-            _rctl2_components_for_DSS_Parms,
-        )?;
-        let p = ber_decode_integer(_components.get("p").unwrap())?;
-        let q = ber_decode_integer(_components.get("q").unwrap())?;
-        let g = ber_decode_integer(_components.get("g").unwrap())?;
-        Ok(DSS_Parms {
-            p,
-            q,
-            g,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "DSS-Parms")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_DSS_Parms,
+        _eal_components_for_DSS_Parms,
+        _rctl2_components_for_DSS_Parms,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut p_: OPTIONAL<INTEGER> = None;
+    let mut q_: OPTIONAL<INTEGER> = None;
+    let mut g_: OPTIONAL<INTEGER> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "p" => p_ = Some(BER.decode_integer(_el)?),
+            "q" => q_ = Some(BER.decode_integer(_el)?),
+            "g" => g_ = Some(BER.decode_integer(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(DSS_Parms {
+        p: p_.unwrap(),
+        q: q_.unwrap(),
+        g: g_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_DSS_Parms(value_: &DSS_Parms) -> ASN1Result<X690Element> {
-    |value_: &DSS_Parms| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-        components_.push(ber_encode_integer(&value_.p)?);
-        components_.push(ber_encode_integer(&value_.q)?);
-        components_.push(ber_encode_integer(&value_.g)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(13);
+    components_.push(BER.encode_integer(&value_.p)?);
+    components_.push(BER.encode_integer(&value_.q)?);
+    components_.push(BER.encode_integer(&value_.g)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_DSS_Parms(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "DSS-Parms")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_DSS_Parms,
+        _eal_components_for_DSS_Parms,
+        _rctl2_components_for_DSS_Parms,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "p" => BER.validate_integer(_el)?,
+            "q" => BER.validate_integer(_el)?,
+            "g" => BER.validate_integer(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1938,6 +2197,21 @@ pub fn _encode_DSS_Parms(value_: &DSS_Parms) -> ASN1Result<X690Element> {
 pub fn ecPublicKey() -> ALGORITHM {
     ALGORITHM {
         id: id_ecPublicKey(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod ecPublicKey {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = X509Curves; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_X509Curves(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_X509Curves(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_X509Curves(el)
     }
 }
 
@@ -1956,6 +2230,21 @@ pub fn ecDH() -> ALGORITHM {
     }
 }
 
+pub mod ecDH {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = X509Curves; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_X509Curves(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_X509Curves(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_X509Curves(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1968,6 +2257,21 @@ pub fn ecDH() -> ALGORITHM {
 pub fn ecMQV() -> ALGORITHM {
     ALGORITHM {
         id: id_ecMQV(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod ecMQV {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = X509Curves; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_X509Curves(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_X509Curves(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_X509Curves(el)
     }
 }
 
@@ -1986,6 +2290,21 @@ pub fn dh_public_numberAlgorithm() -> ALGORITHM {
     }
 }
 
+pub mod dh_public_numberAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = DomainParameters; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_DomainParameters(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_DomainParameters(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_DomainParameters(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -1997,7 +2316,6 @@ pub fn dh_public_numberAlgorithm() -> ALGORITHM {
 ///   validationParms ValidationParms OPTIONAL,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct DomainParameters {
@@ -2027,15 +2345,9 @@ impl DomainParameters {
         }
     }
 }
-impl TryFrom<X690Element> for DomainParameters {
+impl TryFrom<&X690Element> for DomainParameters {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_DomainParameters(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for DomainParameters {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_DomainParameters(el)
     }
 }
@@ -2083,60 +2395,103 @@ pub const _rctl2_components_for_DomainParameters: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_DomainParameters: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_DomainParameters(el: &X690Element) -> ASN1Result<DomainParameters> {
-    |el_: &X690Element| -> ASN1Result<DomainParameters> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_DomainParameters,
-            _eal_components_for_DomainParameters,
-            _rctl2_components_for_DomainParameters,
-        )?;
-        let p = ber_decode_integer(_components.get("p").unwrap())?;
-        let g = ber_decode_integer(_components.get("g").unwrap())?;
-        let q = ber_decode_integer(_components.get("q").unwrap())?;
-        let j: OPTIONAL<INTEGER> = match _components.get("j") {
-            Some(c_) => Some(ber_decode_integer(c_)?),
-            _ => None,
-        };
-        let validationParms: OPTIONAL<ValidationParms> = match _components.get("validationParms") {
-            Some(c_) => Some(_decode_ValidationParms(c_)?),
-            _ => None,
-        };
-        Ok(DomainParameters {
-            p,
-            g,
-            q,
-            j,
-            validationParms,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "DomainParameters")
+            )
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_DomainParameters,
+        _eal_components_for_DomainParameters,
+        _rctl2_components_for_DomainParameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut p_: OPTIONAL<INTEGER> = None;
+    let mut g_: OPTIONAL<INTEGER> = None;
+    let mut q_: OPTIONAL<INTEGER> = None;
+    let mut j_: OPTIONAL<INTEGER> = None;
+    let mut validationParms_: OPTIONAL<ValidationParms> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "p" => p_ = Some(BER.decode_integer(_el)?),
+            "g" => g_ = Some(BER.decode_integer(_el)?),
+            "q" => q_ = Some(BER.decode_integer(_el)?),
+            "j" => j_ = Some(BER.decode_integer(_el)?),
+            "validationParms" => validationParms_ = Some(_decode_ValidationParms(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(DomainParameters {
+        p: p_.unwrap(),
+        g: g_.unwrap(),
+        q: q_.unwrap(),
+        j: j_,
+        validationParms: validationParms_,
+        _unrecognized,
+    })
 }
 
 pub fn _encode_DomainParameters(value_: &DomainParameters) -> ASN1Result<X690Element> {
-    |value_: &DomainParameters| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(15);
-        components_.push(ber_encode_integer(&value_.p)?);
-        components_.push(ber_encode_integer(&value_.g)?);
-        components_.push(ber_encode_integer(&value_.q)?);
-        if let Some(v_) = &value_.j {
-            components_.push(ber_encode_integer(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(15);
+    components_.push(BER.encode_integer(&value_.p)?);
+    components_.push(BER.encode_integer(&value_.g)?);
+    components_.push(BER.encode_integer(&value_.q)?);
+    if let Some(v_) = &value_.j {
+        components_.push(BER.encode_integer(&v_)?);
+    }
+    if let Some(v_) = &value_.validationParms {
+        components_.push(_encode_ValidationParms(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_DomainParameters(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "DomainParameters")
+            )
         }
-        if let Some(v_) = &value_.validationParms {
-            components_.push(_encode_ValidationParms(&v_)?);
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_DomainParameters,
+        _eal_components_for_DomainParameters,
+        _rctl2_components_for_DomainParameters,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "p" => BER.validate_integer(_el)?,
+            "g" => BER.validate_integer(_el)?,
+            "q" => BER.validate_integer(_el)?,
+            "j" => BER.validate_integer(_el)?,
+            "validationParms" => _validate_ValidationParms(_el)?,
+            _ => (),
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2147,7 +2502,6 @@ pub fn _encode_DomainParameters(value_: &DomainParameters) -> ASN1Result<X690Ele
 ///   pgenCounter  INTEGER,
 ///   ... }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct ValidationParms {
@@ -2164,15 +2518,9 @@ impl ValidationParms {
         }
     }
 }
-impl TryFrom<X690Element> for ValidationParms {
+impl TryFrom<&X690Element> for ValidationParms {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_ValidationParms(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for ValidationParms {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ValidationParms(el)
     }
 }
@@ -2199,41 +2547,80 @@ pub const _rctl2_components_for_ValidationParms: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_ValidationParms: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_ValidationParms(el: &X690Element) -> ASN1Result<ValidationParms> {
-    |el_: &X690Element| -> ASN1Result<ValidationParms> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_ValidationParms,
-            _eal_components_for_ValidationParms,
-            _rctl2_components_for_ValidationParms,
-        )?;
-        let seed = ber_decode_bit_string(_components.get("seed").unwrap())?;
-        let pgenCounter = ber_decode_integer(_components.get("pgenCounter").unwrap())?;
-        Ok(ValidationParms {
-            seed,
-            pgenCounter,
-            _unrecognized,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ValidationParms"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ValidationParms,
+        _eal_components_for_ValidationParms,
+        _rctl2_components_for_ValidationParms,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut seed_: OPTIONAL<BIT_STRING> = None;
+    let mut pgenCounter_: OPTIONAL<INTEGER> = None;
+    let mut _unrecognized: Vec<X690Element> = vec![];
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "seed" => seed_ = Some(BER.decode_bit_string(_el)?),
+            "pgenCounter" => pgenCounter_ = Some(BER.decode_integer(_el)?),
+            _ => _unrecognized.push(_el.clone()),
+        }
+    }
+    Ok(ValidationParms {
+        seed: seed_.unwrap(),
+        pgenCounter: pgenCounter_.unwrap(),
+        _unrecognized,
+    })
 }
 
 pub fn _encode_ValidationParms(value_: &ValidationParms) -> ASN1Result<X690Element> {
-    |value_: &ValidationParms| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-        components_.push(ber_encode_bit_string(&value_.seed)?);
-        components_.push(ber_encode_integer(&value_.pgenCounter)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(
-                [components_, value_._unrecognized.clone()].concat(),
-            )),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
+    components_.push(BER.encode_bit_string(&value_.seed)?);
+    components_.push(BER.encode_integer(&value_.pgenCounter)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(
+            [components_, value_._unrecognized.clone()].concat(),
+        )),
+    ))
+}
+
+pub fn _validate_ValidationParms(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ValidationParms"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_ValidationParms,
+        _eal_components_for_ValidationParms,
+        _rctl2_components_for_ValidationParms,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "seed" => BER.validate_bit_string(_el)?,
+            "pgenCounter" => BER.validate_integer(_el)?,
+            _ => (),
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2248,6 +2635,21 @@ pub fn _encode_ValidationParms(value_: &ValidationParms) -> ASN1Result<X690Eleme
 pub fn sha1WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha1WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod sha1WithRSAEncryptionAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -2266,6 +2668,21 @@ pub fn sha224WithRSAEncryptionAlgorithm() -> ALGORITHM {
     }
 }
 
+pub mod sha224WithRSAEncryptionAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2278,6 +2695,21 @@ pub fn sha224WithRSAEncryptionAlgorithm() -> ALGORITHM {
 pub fn sha256WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha256WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod sha256WithRSAEncryptionAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -2296,6 +2728,21 @@ pub fn sha384WithRSAEncryptionAlgorithm() -> ALGORITHM {
     }
 }
 
+pub mod sha384WithRSAEncryptionAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2308,6 +2755,21 @@ pub fn sha384WithRSAEncryptionAlgorithm() -> ALGORITHM {
 pub fn sha512WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha512WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod sha512WithRSAEncryptionAlgorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -2330,6 +2792,21 @@ pub fn rSASSA_PSS() -> ALGORITHM {
     }
 }
 
+pub mod rSASSA_PSS {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = rSASSA_PSS_Type; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        _decode_rSASSA_PSS_Type(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        _encode_rSASSA_PSS_Type(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        _validate_rSASSA_PSS_Type(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2342,6 +2819,11 @@ pub fn dsa_with_sha224() -> ALGORITHM {
     ALGORITHM {
         id: id_dsa_with_sha224(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod dsa_with_sha224 {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2358,6 +2840,11 @@ pub fn dsa_with_sha256() -> ALGORITHM {
     }
 }
 
+pub mod dsa_with_sha256 {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2370,6 +2857,11 @@ pub fn ecdsa_with_SHA224_Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: ecdsa_with_SHA224(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod ecdsa_with_SHA224_Algorithm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2386,6 +2878,11 @@ pub fn ecdsa_with_SHA256_Algorithm() -> ALGORITHM {
     }
 }
 
+pub mod ecdsa_with_SHA256_Algorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2398,6 +2895,11 @@ pub fn ecdsa_with_SHA384_Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: ecdsa_with_SHA384(), /* OBJECT_FIELD_SETTING */
     }
+}
+
+pub mod ecdsa_with_SHA384_Algorithm {
+    /* OBJECT_TYPES */
+    use super::*;
 }
 
 /// ### ASN.1 Definition:
@@ -2414,6 +2916,11 @@ pub fn ecdsa_with_SHA512_Algorithm() -> ALGORITHM {
     }
 }
 
+pub mod ecdsa_with_SHA512_Algorithm {
+    /* OBJECT_TYPES */
+    use super::*;
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2426,6 +2933,21 @@ pub fn ecdsa_with_SHA512_Algorithm() -> ALGORITHM {
 pub fn hmacWithSHA224() -> ALGORITHM {
     ALGORITHM {
         id: id_hmacWithSHA224(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod hmacWithSHA224 {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -2444,6 +2966,21 @@ pub fn hmacWithSHA256() -> ALGORITHM {
     }
 }
 
+pub mod hmacWithSHA256 {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2456,6 +2993,21 @@ pub fn hmacWithSHA256() -> ALGORITHM {
 pub fn hmacWithSHA384() -> ALGORITHM {
     ALGORITHM {
         id: id_hmacWithSHA384(), /* OBJECT_FIELD_SETTING */
+    }
+}
+
+pub mod hmacWithSHA384 {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
     }
 }
 
@@ -2474,12 +3026,26 @@ pub fn hmacWithSHA512() -> ALGORITHM {
     }
 }
 
+pub mod hmacWithSHA512 {
+    /* OBJECT_TYPES */
+    use super::*;
+    pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
+        BER.decode_null(el)
+    }
+    pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
+        BER.encode_null(value_)
+    }
+    pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
+        BER.validate_null(el)
+    }
+}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
 /// rSASSA-PSS-Type ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct rSASSA_PSS_Type {
@@ -2500,21 +3066,15 @@ impl rSASSA_PSS_Type {
         }
     }
     pub fn _default_value_for_saltLength() -> INTEGER {
-        vec![20]
+        Vec::from([ 20 ])
     }
     pub fn _default_value_for_trailerField() -> INTEGER {
-        vec![1]
+        Vec::from([ 1 ])
     }
 }
-impl TryFrom<X690Element> for rSASSA_PSS_Type {
+impl TryFrom<&X690Element> for rSASSA_PSS_Type {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_rSASSA_PSS_Type(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for rSASSA_PSS_Type {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_rSASSA_PSS_Type(el)
     }
 }
@@ -2548,79 +3108,143 @@ pub const _rctl2_components_for_rSASSA_PSS_Type: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_rSASSA_PSS_Type: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_rSASSA_PSS_Type(el: &X690Element) -> ASN1Result<rSASSA_PSS_Type> {
-    |el_: &X690Element| -> ASN1Result<rSASSA_PSS_Type> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_rSASSA_PSS_Type,
-            _eal_components_for_rSASSA_PSS_Type,
-            _rctl2_components_for_rSASSA_PSS_Type,
-        )?;
-        let hashAlgorithm = |el: &X690Element| -> ASN1Result<AlgorithmIdentifier> {
-            Ok(_decode_AlgorithmIdentifier(&el.inner()?)?)
-        }(_components.get("hashAlgorithm").unwrap())?;
-        let saltLength: OPTIONAL<INTEGER> = match _components.get("saltLength") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<INTEGER> {
-                Ok(ber_decode_integer(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let trailerField: OPTIONAL<INTEGER> = match _components.get("trailerField") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<INTEGER> {
-                Ok(ber_decode_integer(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        Ok(rSASSA_PSS_Type {
-            hashAlgorithm,
-            saltLength,
-            trailerField,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "rSASSA-PSS-Type"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_rSASSA_PSS_Type,
+        _eal_components_for_rSASSA_PSS_Type,
+        _rctl2_components_for_rSASSA_PSS_Type,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut hashAlgorithm_: OPTIONAL<AlgorithmIdentifier> = None;
+    let mut saltLength_: OPTIONAL<INTEGER> = None;
+    let mut trailerField_: OPTIONAL<INTEGER> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "hashAlgorithm" => {
+                hashAlgorithm_ = Some(|el: &X690Element| -> ASN1Result<AlgorithmIdentifier> {
+                    Ok(_decode_AlgorithmIdentifier(&el.inner()?)?)
+                }(_el)?)
+            }
+            "saltLength" => {
+                saltLength_ = Some(|el: &X690Element| -> ASN1Result<INTEGER> {
+                    Ok(BER.decode_integer(&el.inner()?)?)
+                }(_el)?)
+            }
+            "trailerField" => {
+                trailerField_ = Some(|el: &X690Element| -> ASN1Result<INTEGER> {
+                    Ok(BER.decode_integer(&el.inner()?)?)
+                }(_el)?)
+            }
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "rSASSA-PSS-Type")
+                )
+            }
+        }
+    }
+    Ok(rSASSA_PSS_Type {
+        hashAlgorithm: hashAlgorithm_.unwrap(),
+        saltLength: saltLength_,
+        trailerField: trailerField_,
+    })
 }
 
 pub fn _encode_rSASSA_PSS_Type(value_: &rSASSA_PSS_Type) -> ASN1Result<X690Element> {
-    |value_: &rSASSA_PSS_Type| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-        components_.push(|v_1: &AlgorithmIdentifier| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                TagClass::CONTEXT,
-                0,
-                Arc::new(X690Encoding::EXPLICIT(Box::new(
-                    _encode_AlgorithmIdentifier(&v_1)?,
-                ))),
-            ))
-        }(&value_.hashAlgorithm)?);
-        if let Some(v_) = &value_.saltLength {
-            if *v_ != rSASSA_PSS_Type::_default_value_for_saltLength() {
-                components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        2,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_integer(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
-        if let Some(v_) = &value_.trailerField {
-            if *v_ != rSASSA_PSS_Type::_default_value_for_trailerField() {
-                components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-                    Ok(X690Element::new(
-                        TagClass::CONTEXT,
-                        3,
-                        Arc::new(X690Encoding::EXPLICIT(Box::new(ber_encode_integer(&v_1)?))),
-                    ))
-                }(&v_)?);
-            }
-        }
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    components_.push(|v_1: &AlgorithmIdentifier| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(&_encode_AlgorithmIdentifier(&v_1)?),
         ))
-    }(&value_)
+    }(&value_.hashAlgorithm)?);
+    if let Some(v_) = &value_.saltLength {
+        if *v_ != rSASSA_PSS_Type::_default_value_for_saltLength() {
+            components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 2),
+                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                ))
+            }(&v_)?);
+        }
+    }
+    if let Some(v_) = &value_.trailerField {
+        if *v_ != rSASSA_PSS_Type::_default_value_for_trailerField() {
+            components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+                Ok(X690Element::new(
+                    Tag::new(TagClass::CONTEXT, 3),
+                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                ))
+            }(&v_)?);
+        }
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_rSASSA_PSS_Type(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "rSASSA-PSS-Type"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_rSASSA_PSS_Type,
+        _eal_components_for_rSASSA_PSS_Type,
+        _rctl2_components_for_rSASSA_PSS_Type,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "hashAlgorithm" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "hashAlgorithm")
+                    );
+                }
+                Ok(_validate_AlgorithmIdentifier(&el.inner()?)?)
+            }(_el)?,
+            "saltLength" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "saltLength")
+                    );
+                }
+                Ok(BER.validate_integer(&el.inner()?)?)
+            }(_el)?,
+            "trailerField" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "trailerField")
+                    );
+                }
+                Ok(BER.validate_integer(&el.inner()?)?)
+            }(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "rSASSA-PSS-Type")
+                )
+            }
+        }
+    }
+    Ok(())
 }
