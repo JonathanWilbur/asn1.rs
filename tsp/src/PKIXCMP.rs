@@ -32,29 +32,36 @@ use x690::*;
 pub type PKIFreeText = Vec<UTF8String>; // SequenceOfType
 
 pub fn _decode_PKIFreeText(el: &X690Element) -> ASN1Result<PKIFreeText> {
-    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<UTF8String>> {
-        let elements = match el.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let mut items: SEQUENCE_OF<UTF8String> = Vec::with_capacity(elements.len());
-        for el in elements {
-            items.push(ber_decode_utf8_string(el)?);
-        }
-        Ok(items)
-    }(&el)
+    let elements = match &el.value {
+        X690Encoding::Constructed(children) => children,
+        _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+    };
+    let mut items: SEQUENCE_OF<UTF8String> = Vec::with_capacity(elements.len());
+    for el in elements {
+        items.push(BER.decode_utf8_string(el)?);
+    }
+    Ok(items)
 }
 
 pub fn _encode_PKIFreeText(value_: &PKIFreeText) -> ASN1Result<X690Element> {
-    |value_: &SEQUENCE_OF<UTF8String>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(ber_encode_utf8_string(&v)?);
+    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+    for v in value_ {
+        children.push(BER.encode_utf8_string(&v)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        X690Value::Constructed(Arc::new(children)),
+    ))
+}
+
+pub fn _validate_PKIFreeText(el: &X690Element) -> ASN1Result<()> {
+    match &el.value {
+        X690Value::Constructed(subs) => {
+            for sub in subs.iter() {
+                BER.validate_utf8_string(&sub)?;
+            }
+            Ok(())
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
-            Arc::new(X690Encoding::Constructed(children)),
-        ))
-    }(&value_)
+        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PKIFreeText")),
+    }
 }

@@ -391,6 +391,9 @@ pub const KeyUsage_digitalSignature: BIT = 0; /* LONG_NAMED_BIT */
 
 pub const KeyUsage_contentCommitment: BIT = 1; /* LONG_NAMED_BIT */
 
+// This is defined in IETF RFC 5280.
+pub const KeyUsage_nonRepudiation: BIT = KeyUsage_contentCommitment; /* LONG_NAMED_BIT */
+
 pub const KeyUsage_keyEncipherment: BIT = 2; /* LONG_NAMED_BIT */
 
 pub const KeyUsage_dataEncipherment: BIT = 3; /* LONG_NAMED_BIT */

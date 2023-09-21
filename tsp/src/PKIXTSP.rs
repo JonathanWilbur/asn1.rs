@@ -60,7 +60,6 @@ pub fn id_ct_TSTInfo() -> OBJECT_IDENTIFIER {
 ///     extensions               [0] IMPLICIT Extensions    OPTIONAL  }
 /// ```
 ///
-///
 #[derive(Debug, Clone)]
 pub struct TimeStampReq {
     pub version: TimeStampReq_version,
@@ -92,15 +91,9 @@ impl TimeStampReq {
         false
     }
 }
-impl TryFrom<X690Element> for TimeStampReq {
+impl TryFrom<&X690Element> for TimeStampReq {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TimeStampReq(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TimeStampReq {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TimeStampReq(el)
     }
 }
@@ -155,77 +148,122 @@ pub const _rctl2_components_for_TimeStampReq: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_TimeStampReq: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_TimeStampReq(el: &X690Element) -> ASN1Result<TimeStampReq> {
-    |el_: &X690Element| -> ASN1Result<TimeStampReq> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TimeStampReq,
-            _eal_components_for_TimeStampReq,
-            _rctl2_components_for_TimeStampReq,
-        )?;
-        let version = _decode_TimeStampReq_version(_components.get("version").unwrap())?;
-        let messageImprint = _decode_MessageImprint(_components.get("messageImprint").unwrap())?;
-        let reqPolicy: OPTIONAL<TSAPolicyId> = match _components.get("reqPolicy") {
-            Some(c_) => Some(_decode_TSAPolicyId(c_)?),
-            _ => None,
-        };
-        let nonce: OPTIONAL<INTEGER> = match _components.get("nonce") {
-            Some(c_) => Some(ber_decode_integer(c_)?),
-            _ => None,
-        };
-        let certReq: OPTIONAL<BOOLEAN> = match _components.get("certReq") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        let extensions: OPTIONAL<Extensions> = match _components.get("extensions") {
-            Some(c_) => Some(_decode_Extensions(c_)?),
-            _ => None,
-        };
-        Ok(TimeStampReq {
-            version,
-            messageImprint,
-            reqPolicy,
-            nonce,
-            certReq,
-            extensions,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampReq")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TimeStampReq,
+        _eal_components_for_TimeStampReq,
+        _rctl2_components_for_TimeStampReq,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut version_: OPTIONAL<TimeStampReq_version> = None;
+    let mut messageImprint_: OPTIONAL<MessageImprint> = None;
+    let mut reqPolicy_: OPTIONAL<TSAPolicyId> = None;
+    let mut nonce_: OPTIONAL<INTEGER> = None;
+    let mut certReq_: OPTIONAL<BOOLEAN> = None;
+    let mut extensions_: OPTIONAL<Extensions> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "version" => version_ = Some(_decode_TimeStampReq_version(_el)?),
+            "messageImprint" => messageImprint_ = Some(_decode_MessageImprint(_el)?),
+            "reqPolicy" => reqPolicy_ = Some(_decode_TSAPolicyId(_el)?),
+            "nonce" => nonce_ = Some(BER.decode_integer(_el)?),
+            "certReq" => certReq_ = Some(BER.decode_boolean(_el)?),
+            "extensions" => extensions_ = Some(_decode_Extensions(_el)?),
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampReq")
+                )
+            }
+        }
+    }
+    Ok(TimeStampReq {
+        version: version_.unwrap(),
+        messageImprint: messageImprint_.unwrap(),
+        reqPolicy: reqPolicy_,
+        nonce: nonce_,
+        certReq: certReq_,
+        extensions: extensions_,
+    })
 }
 
 pub fn _encode_TimeStampReq(value_: &TimeStampReq) -> ASN1Result<X690Element> {
-    |value_: &TimeStampReq| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(11);
-        components_.push(_encode_TimeStampReq_version(&value_.version)?);
-        components_.push(_encode_MessageImprint(&value_.messageImprint)?);
-        if let Some(v_) = &value_.reqPolicy {
-            components_.push(_encode_TSAPolicyId(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(11);
+    components_.push(_encode_TimeStampReq_version(&value_.version)?);
+    components_.push(_encode_MessageImprint(&value_.messageImprint)?);
+    if let Some(v_) = &value_.reqPolicy {
+        components_.push(_encode_TSAPolicyId(&v_)?);
+    }
+    if let Some(v_) = &value_.nonce {
+        components_.push(BER.encode_integer(&v_)?);
+    }
+    if let Some(v_) = &value_.certReq {
+        if *v_ != TimeStampReq::_default_value_for_certReq() {
+            components_.push(BER.encode_boolean(&v_)?);
         }
-        if let Some(v_) = &value_.nonce {
-            components_.push(ber_encode_integer(&v_)?);
-        }
-        if let Some(v_) = &value_.certReq {
-            if *v_ != TimeStampReq::_default_value_for_certReq() {
-                components_.push(ber_encode_boolean(&v_)?);
+    }
+    if let Some(v_) = &value_.extensions {
+        components_.push(|v_1: &Extensions| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Extensions(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_TimeStampReq(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampReq")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TimeStampReq,
+        _eal_components_for_TimeStampReq,
+        _rctl2_components_for_TimeStampReq,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "version" => _validate_TimeStampReq_version(_el)?,
+            "messageImprint" => _validate_MessageImprint(_el)?,
+            "reqPolicy" => _validate_TSAPolicyId(_el)?,
+            "nonce" => BER.validate_integer(_el)?,
+            "certReq" => BER.validate_boolean(_el)?,
+            "extensions" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "extensions")
+                    );
+                }
+                Ok(_validate_Extensions(&el)?)
+            }(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampReq")
+                )
             }
         }
-        if let Some(v_) = &value_.extensions {
-            components_.push(|v_1: &Extensions| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Extensions(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -235,7 +273,6 @@ pub fn _encode_TimeStampReq(value_: &TimeStampReq) -> ASN1Result<X690Element> {
 ///     hashAlgorithm                AlgorithmIdentifier,
 ///     hashedMessage                OCTET STRING  }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct MessageImprint {
@@ -250,15 +287,9 @@ impl MessageImprint {
         }
     }
 }
-impl TryFrom<X690Element> for MessageImprint {
+impl TryFrom<&X690Element> for MessageImprint {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_MessageImprint(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for MessageImprint {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_MessageImprint(el)
     }
 }
@@ -285,38 +316,84 @@ pub const _rctl2_components_for_MessageImprint: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_MessageImprint: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_MessageImprint(el: &X690Element) -> ASN1Result<MessageImprint> {
-    |el_: &X690Element| -> ASN1Result<MessageImprint> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_MessageImprint,
-            _eal_components_for_MessageImprint,
-            _rctl2_components_for_MessageImprint,
-        )?;
-        let hashAlgorithm = _decode_AlgorithmIdentifier(_components.get("hashAlgorithm").unwrap())?;
-        let hashedMessage = ber_decode_octet_string(_components.get("hashedMessage").unwrap())?;
-        Ok(MessageImprint {
-            hashAlgorithm,
-            hashedMessage,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "MessageImprint"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_MessageImprint,
+        _eal_components_for_MessageImprint,
+        _rctl2_components_for_MessageImprint,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut hashAlgorithm_: OPTIONAL<AlgorithmIdentifier> = None;
+    let mut hashedMessage_: OPTIONAL<OCTET_STRING> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "hashAlgorithm" => hashAlgorithm_ = Some(_decode_AlgorithmIdentifier(_el)?),
+            "hashedMessage" => hashedMessage_ = Some(BER.decode_octet_string(_el)?),
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "MessageImprint")
+                )
+            }
+        }
+    }
+    Ok(MessageImprint {
+        hashAlgorithm: hashAlgorithm_.unwrap(),
+        hashedMessage: hashedMessage_.unwrap(),
+    })
 }
 
 pub fn _encode_MessageImprint(value_: &MessageImprint) -> ASN1Result<X690Element> {
-    |value_: &MessageImprint| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_AlgorithmIdentifier(&value_.hashAlgorithm)?);
-        components_.push(ber_encode_octet_string(&value_.hashedMessage)?);
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_AlgorithmIdentifier(&value_.hashAlgorithm)?);
+    components_.push(BER.encode_octet_string(&value_.hashedMessage)?);
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_MessageImprint(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => {
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "MessageImprint"))
+        }
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_MessageImprint,
+        _eal_components_for_MessageImprint,
+        _rctl2_components_for_MessageImprint,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "hashAlgorithm" => _validate_AlgorithmIdentifier(_el)?,
+            "hashedMessage" => BER.validate_octet_string(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "MessageImprint")
+                )
+            }
+        }
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -327,11 +404,15 @@ pub fn _encode_MessageImprint(value_: &MessageImprint) -> ASN1Result<X690Element
 pub type TSAPolicyId = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
 pub fn _decode_TSAPolicyId(el: &X690Element) -> ASN1Result<TSAPolicyId> {
-    ber_decode_object_identifier(&el)
+    BER.decode_object_identifier(&el)
 }
 
 pub fn _encode_TSAPolicyId(value_: &TSAPolicyId) -> ASN1Result<X690Element> {
-    ber_encode_object_identifier(&value_)
+    BER.encode_object_identifier(&value_)
+}
+
+pub fn _validate_TSAPolicyId(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_object_identifier(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -341,7 +422,6 @@ pub fn _encode_TSAPolicyId(value_: &TSAPolicyId) -> ASN1Result<X690Element> {
 ///     status                  PKIStatusInfo,
 ///     timeStampToken          TimeStampToken     OPTIONAL  }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TimeStampResp {
@@ -356,15 +436,9 @@ impl TimeStampResp {
         }
     }
 }
-impl TryFrom<X690Element> for TimeStampResp {
+impl TryFrom<&X690Element> for TimeStampResp {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TimeStampResp(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TimeStampResp {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TimeStampResp(el)
     }
 }
@@ -391,43 +465,82 @@ pub const _rctl2_components_for_TimeStampResp: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_TimeStampResp: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_TimeStampResp(el: &X690Element) -> ASN1Result<TimeStampResp> {
-    |el_: &X690Element| -> ASN1Result<TimeStampResp> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TimeStampResp,
-            _eal_components_for_TimeStampResp,
-            _rctl2_components_for_TimeStampResp,
-        )?;
-        let status = _decode_PKIStatusInfo(_components.get("status").unwrap())?;
-        let timeStampToken: OPTIONAL<TimeStampToken> = match _components.get("timeStampToken") {
-            Some(c_) => Some(_decode_TimeStampToken(c_)?),
-            _ => None,
-        };
-        Ok(TimeStampResp {
-            status,
-            timeStampToken,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampResp")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TimeStampResp,
+        _eal_components_for_TimeStampResp,
+        _rctl2_components_for_TimeStampResp,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut status_: OPTIONAL<PKIStatusInfo> = None;
+    let mut timeStampToken_: OPTIONAL<TimeStampToken> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "status" => status_ = Some(_decode_PKIStatusInfo(_el)?),
+            "timeStampToken" => timeStampToken_ = Some(_decode_TimeStampToken(_el)?),
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampResp")
+                )
+            }
+        }
+    }
+    Ok(TimeStampResp {
+        status: status_.unwrap(),
+        timeStampToken: timeStampToken_,
+    })
 }
 
 pub fn _encode_TimeStampResp(value_: &TimeStampResp) -> ASN1Result<X690Element> {
-    |value_: &TimeStampResp| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-        components_.push(_encode_PKIStatusInfo(&value_.status)?);
-        if let Some(v_) = &value_.timeStampToken {
-            components_.push(_encode_TimeStampToken(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
+    components_.push(_encode_PKIStatusInfo(&value_.status)?);
+    if let Some(v_) = &value_.timeStampToken {
+        components_.push(_encode_TimeStampToken(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_TimeStampResp(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampResp")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TimeStampResp,
+        _eal_components_for_TimeStampResp,
+        _rctl2_components_for_TimeStampResp,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "status" => _validate_PKIStatusInfo(_el)?,
+            "timeStampToken" => _validate_TimeStampToken(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TimeStampResp")
+                )
+            }
         }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -438,7 +551,6 @@ pub fn _encode_TimeStampResp(value_: &TimeStampResp) -> ASN1Result<X690Element> 
 ///     statusString  PKIFreeText     OPTIONAL,
 ///     failInfo      PKIFailureInfo  OPTIONAL  }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct PKIStatusInfo {
@@ -459,15 +571,9 @@ impl PKIStatusInfo {
         }
     }
 }
-impl TryFrom<X690Element> for PKIStatusInfo {
+impl TryFrom<&X690Element> for PKIStatusInfo {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_PKIStatusInfo(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for PKIStatusInfo {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PKIStatusInfo(el)
     }
 }
@@ -501,51 +607,89 @@ pub const _rctl2_components_for_PKIStatusInfo: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_PKIStatusInfo: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_PKIStatusInfo(el: &X690Element) -> ASN1Result<PKIStatusInfo> {
-    |el_: &X690Element| -> ASN1Result<PKIStatusInfo> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_PKIStatusInfo,
-            _eal_components_for_PKIStatusInfo,
-            _rctl2_components_for_PKIStatusInfo,
-        )?;
-        let status = _decode_PKIStatus(_components.get("status").unwrap())?;
-        let statusString: OPTIONAL<PKIFreeText> = match _components.get("statusString") {
-            Some(c_) => Some(_decode_PKIFreeText(c_)?),
-            _ => None,
-        };
-        let failInfo: OPTIONAL<PKIFailureInfo> = match _components.get("failInfo") {
-            Some(c_) => Some(_decode_PKIFailureInfo(c_)?),
-            _ => None,
-        };
-        Ok(PKIStatusInfo {
-            status,
-            statusString,
-            failInfo,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PKIStatusInfo")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_PKIStatusInfo,
+        _eal_components_for_PKIStatusInfo,
+        _rctl2_components_for_PKIStatusInfo,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut status_: OPTIONAL<PKIStatus> = None;
+    let mut statusString_: OPTIONAL<PKIFreeText> = None;
+    let mut failInfo_: OPTIONAL<PKIFailureInfo> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "status" => status_ = Some(_decode_PKIStatus(_el)?),
+            "statusString" => statusString_ = Some(_decode_PKIFreeText(_el)?),
+            "failInfo" => failInfo_ = Some(_decode_PKIFailureInfo(_el)?),
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PKIStatusInfo")
+                )
+            }
+        }
+    }
+    Ok(PKIStatusInfo {
+        status: status_.unwrap(),
+        statusString: statusString_,
+        failInfo: failInfo_,
+    })
 }
 
 pub fn _encode_PKIStatusInfo(value_: &PKIStatusInfo) -> ASN1Result<X690Element> {
-    |value_: &PKIStatusInfo| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-        components_.push(_encode_PKIStatus(&value_.status)?);
-        if let Some(v_) = &value_.statusString {
-            components_.push(_encode_PKIFreeText(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    components_.push(_encode_PKIStatus(&value_.status)?);
+    if let Some(v_) = &value_.statusString {
+        components_.push(_encode_PKIFreeText(&v_)?);
+    }
+    if let Some(v_) = &value_.failInfo {
+        components_.push(_encode_PKIFailureInfo(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_PKIStatusInfo(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PKIStatusInfo")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_PKIStatusInfo,
+        _eal_components_for_PKIStatusInfo,
+        _rctl2_components_for_PKIStatusInfo,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "status" => _validate_PKIStatus(_el)?,
+            "statusString" => _validate_PKIFreeText(_el)?,
+            "failInfo" => _validate_PKIFailureInfo(_el)?,
+            _ => {
+                return Err(
+                    _el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PKIStatusInfo")
+                )
+            }
         }
-        if let Some(v_) = &value_.failInfo {
-            components_.push(_encode_PKIFailureInfo(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -567,24 +711,28 @@ pub fn _encode_PKIStatusInfo(value_: &PKIStatusInfo) -> ASN1Result<X690Element> 
 /// ```
 pub type PKIStatus = INTEGER;
 
-pub const PKIStatus_granted: i32 = 0; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_granted: PKIStatus = 0; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_grantedWithMods: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_grantedWithMods: PKIStatus = 1; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_rejection: i32 = 2; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_rejection: PKIStatus = 2; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_waiting: i32 = 3; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_waiting: PKIStatus = 3; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_revocationWarning: i32 = 4; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_revocationWarning: PKIStatus = 4; /* LONG_NAMED_INTEGER_VALUE */
 
-pub const PKIStatus_revocationNotification: i32 = 5; /* LONG_NAMED_INTEGER_VALUE */
+pub const PKIStatus_revocationNotification: PKIStatus = 5; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_PKIStatus(el: &X690Element) -> ASN1Result<PKIStatus> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_PKIStatus(value_: &PKIStatus) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_PKIStatus(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -629,11 +777,15 @@ pub const PKIFailureInfo_addInfoNotAvailable: BIT = 17; /* LONG_NAMED_BIT */
 pub const PKIFailureInfo_systemFailure: BIT = 25; /* LONG_NAMED_BIT */
 
 pub fn _decode_PKIFailureInfo(el: &X690Element) -> ASN1Result<PKIFailureInfo> {
-    ber_decode_bit_string(&el)
+    BER.decode_bit_string(&el)
 }
 
 pub fn _encode_PKIFailureInfo(value_: &PKIFailureInfo) -> ASN1Result<X690Element> {
-    ber_encode_bit_string(&value_)
+    BER.encode_bit_string(&value_)
+}
+
+pub fn _validate_PKIFailureInfo(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_bit_string(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -649,6 +801,10 @@ pub fn _decode_TimeStampToken(el: &X690Element) -> ASN1Result<TimeStampToken> {
 
 pub fn _encode_TimeStampToken(value_: &TimeStampToken) -> ASN1Result<X690Element> {
     _encode_ContentInfo(&value_)
+}
+
+pub fn _validate_TimeStampToken(el: &X690Element) -> ASN1Result<()> {
+    _validate_ContentInfo(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -672,7 +828,6 @@ pub fn _encode_TimeStampToken(value_: &TimeStampToken) -> ASN1Result<X690Element
 ///     tsa                          [0] GeneralName          OPTIONAL,
 ///     extensions                   [1] IMPLICIT Extensions  OPTIONAL   }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct TSTInfo {
@@ -717,15 +872,9 @@ impl TSTInfo {
         false
     }
 }
-impl TryFrom<X690Element> for TSTInfo {
+impl TryFrom<&X690Element> for TSTInfo {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_TSTInfo(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for TSTInfo {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TSTInfo(el)
     }
 }
@@ -808,102 +957,150 @@ pub const _rctl2_components_for_TSTInfo: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_TSTInfo: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_TSTInfo(el: &X690Element) -> ASN1Result<TSTInfo> {
-    |el_: &X690Element| -> ASN1Result<TSTInfo> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_TSTInfo,
-            _eal_components_for_TSTInfo,
-            _rctl2_components_for_TSTInfo,
-        )?;
-        let version = _decode_TSTInfo_version(_components.get("version").unwrap())?;
-        let policy = _decode_TSAPolicyId(_components.get("policy").unwrap())?;
-        let messageImprint = _decode_MessageImprint(_components.get("messageImprint").unwrap())?;
-        let serialNumber = ber_decode_integer(_components.get("serialNumber").unwrap())?;
-        let genTime = ber_decode_generalized_time(_components.get("genTime").unwrap())?;
-        let accuracy: OPTIONAL<Accuracy> = match _components.get("accuracy") {
-            Some(c_) => Some(_decode_Accuracy(c_)?),
-            _ => None,
-        };
-        let ordering: OPTIONAL<BOOLEAN> = match _components.get("ordering") {
-            Some(c_) => Some(ber_decode_boolean(c_)?),
-            _ => None,
-        };
-        let nonce: OPTIONAL<INTEGER> = match _components.get("nonce") {
-            Some(c_) => Some(ber_decode_integer(c_)?),
-            _ => None,
-        };
-        let tsa: OPTIONAL<GeneralName> = match _components.get("tsa") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<GeneralName> {
-                Ok(_decode_GeneralName(&el.inner()?)?)
-            }(c_)?),
-            _ => None,
-        };
-        let extensions: OPTIONAL<Extensions> = match _components.get("extensions") {
-            Some(c_) => Some(_decode_Extensions(c_)?),
-            _ => None,
-        };
-        Ok(TSTInfo {
-            version,
-            policy,
-            messageImprint,
-            serialNumber,
-            genTime,
-            accuracy,
-            ordering,
-            nonce,
-            tsa,
-            extensions,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TSTInfo")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TSTInfo,
+        _eal_components_for_TSTInfo,
+        _rctl2_components_for_TSTInfo,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut version_: OPTIONAL<TSTInfo_version> = None;
+    let mut policy_: OPTIONAL<TSAPolicyId> = None;
+    let mut messageImprint_: OPTIONAL<MessageImprint> = None;
+    let mut serialNumber_: OPTIONAL<INTEGER> = None;
+    let mut genTime_: OPTIONAL<GeneralizedTime> = None;
+    let mut accuracy_: OPTIONAL<Accuracy> = None;
+    let mut ordering_: OPTIONAL<BOOLEAN> = None;
+    let mut nonce_: OPTIONAL<INTEGER> = None;
+    let mut tsa_: OPTIONAL<GeneralName> = None;
+    let mut extensions_: OPTIONAL<Extensions> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "version" => version_ = Some(_decode_TSTInfo_version(_el)?),
+            "policy" => policy_ = Some(_decode_TSAPolicyId(_el)?),
+            "messageImprint" => messageImprint_ = Some(_decode_MessageImprint(_el)?),
+            "serialNumber" => serialNumber_ = Some(BER.decode_integer(_el)?),
+            "genTime" => genTime_ = Some(BER.decode_generalized_time(_el)?),
+            "accuracy" => accuracy_ = Some(_decode_Accuracy(_el)?),
+            "ordering" => ordering_ = Some(BER.decode_boolean(_el)?),
+            "nonce" => nonce_ = Some(BER.decode_integer(_el)?),
+            "tsa" => {
+                tsa_ = Some(|el: &X690Element| -> ASN1Result<GeneralName> {
+                    Ok(_decode_GeneralName(&el.inner()?)?)
+                }(_el)?)
+            }
+            "extensions" => extensions_ = Some(_decode_Extensions(_el)?),
+            _ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TSTInfo")),
+        }
+    }
+    Ok(TSTInfo {
+        version: version_.unwrap(),
+        policy: policy_.unwrap(),
+        messageImprint: messageImprint_.unwrap(),
+        serialNumber: serialNumber_.unwrap(),
+        genTime: genTime_.unwrap(),
+        accuracy: accuracy_,
+        ordering: ordering_,
+        nonce: nonce_,
+        tsa: tsa_,
+        extensions: extensions_,
+    })
 }
 
 pub fn _encode_TSTInfo(value_: &TSTInfo) -> ASN1Result<X690Element> {
-    |value_: &TSTInfo| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(15);
-        components_.push(_encode_TSTInfo_version(&value_.version)?);
-        components_.push(_encode_TSAPolicyId(&value_.policy)?);
-        components_.push(_encode_MessageImprint(&value_.messageImprint)?);
-        components_.push(ber_encode_integer(&value_.serialNumber)?);
-        components_.push(ber_encode_generalized_time(&value_.genTime)?);
-        if let Some(v_) = &value_.accuracy {
-            components_.push(_encode_Accuracy(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(15);
+    components_.push(_encode_TSTInfo_version(&value_.version)?);
+    components_.push(_encode_TSAPolicyId(&value_.policy)?);
+    components_.push(_encode_MessageImprint(&value_.messageImprint)?);
+    components_.push(BER.encode_integer(&value_.serialNumber)?);
+    components_.push(BER.encode_generalized_time(&value_.genTime)?);
+    if let Some(v_) = &value_.accuracy {
+        components_.push(_encode_Accuracy(&v_)?);
+    }
+    if let Some(v_) = &value_.ordering {
+        if *v_ != TSTInfo::_default_value_for_ordering() {
+            components_.push(BER.encode_boolean(&v_)?);
         }
-        if let Some(v_) = &value_.ordering {
-            if *v_ != TSTInfo::_default_value_for_ordering() {
-                components_.push(ber_encode_boolean(&v_)?);
-            }
+    }
+    if let Some(v_) = &value_.nonce {
+        components_.push(BER.encode_integer(&v_)?);
+    }
+    if let Some(v_) = &value_.tsa {
+        components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
+            Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+            ))
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.extensions {
+        components_.push(|v_1: &Extensions| -> ASN1Result<X690Element> {
+            let mut el_1 = _encode_Extensions(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_TSTInfo(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TSTInfo")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_TSTInfo,
+        _eal_components_for_TSTInfo,
+        _rctl2_components_for_TSTInfo,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "version" => _validate_TSTInfo_version(_el)?,
+            "policy" => _validate_TSAPolicyId(_el)?,
+            "messageImprint" => _validate_MessageImprint(_el)?,
+            "serialNumber" => BER.validate_integer(_el)?,
+            "genTime" => BER.validate_generalized_time(_el)?,
+            "accuracy" => _validate_Accuracy(_el)?,
+            "ordering" => BER.validate_boolean(_el)?,
+            "nonce" => BER.validate_integer(_el)?,
+            "tsa" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "tsa"));
+                }
+                Ok(_validate_GeneralName(&el.inner()?)?)
+            }(_el)?,
+            "extensions" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(
+                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "extensions")
+                    );
+                }
+                Ok(_validate_Extensions(&el)?)
+            }(_el)?,
+            _ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TSTInfo")),
         }
-        if let Some(v_) = &value_.nonce {
-            components_.push(ber_encode_integer(&v_)?);
-        }
-        if let Some(v_) = &value_.tsa {
-            components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    TagClass::CONTEXT,
-                    0,
-                    Arc::new(X690Encoding::EXPLICIT(Box::new(_encode_GeneralName(&v_1)?))),
-                ))
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.extensions {
-            components_.push(|v_1: &Extensions| -> ASN1Result<X690Element> {
-                let mut el_1 = _encode_Extensions(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -914,7 +1111,6 @@ pub fn _encode_TSTInfo(value_: &TSTInfo) -> ASN1Result<X690Element> {
 ///     millis     [0] INTEGER  (1..999) OPTIONAL,
 ///     micros     [1] INTEGER  (1..999) OPTIONAL  }
 /// ```
-///
 ///
 #[derive(Debug, Clone)]
 pub struct Accuracy {
@@ -944,15 +1140,9 @@ impl Default for Accuracy {
         }
     }
 }
-impl TryFrom<X690Element> for Accuracy {
+impl TryFrom<&X690Element> for Accuracy {
     type Error = ASN1Error;
-    fn try_from(el: X690Element) -> Result<Self, Self::Error> {
-        _decode_Accuracy(&el)
-    }
-}
-impl<'a> TryFrom<&'a X690Element> for Accuracy {
-    type Error = ASN1Error;
-    fn try_from(el: &'a X690Element) -> Result<Self, Self::Error> {
+    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Accuracy(el)
     }
 }
@@ -986,66 +1176,103 @@ pub const _rctl2_components_for_Accuracy: &[ComponentSpec; 0] = &[];
 pub const _eal_components_for_Accuracy: &[ComponentSpec; 0] = &[];
 
 pub fn _decode_Accuracy(el: &X690Element) -> ASN1Result<Accuracy> {
-    |el_: &X690Element| -> ASN1Result<Accuracy> {
-        let elements = match el_.value.borrow() {
-            X690Encoding::Constructed(children) => children,
-            _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        };
-        let el_refs_ = elements.iter().collect::<Vec<&X690Element>>();
-        let (_components, _unrecognized) = _parse_sequence(
-            el_refs_.as_slice(),
-            _rctl1_components_for_Accuracy,
-            _eal_components_for_Accuracy,
-            _rctl2_components_for_Accuracy,
-        )?;
-        let seconds: OPTIONAL<INTEGER> = match _components.get("seconds") {
-            Some(c_) => Some(ber_decode_integer(c_)?),
-            _ => None,
-        };
-        let millis: OPTIONAL<INTEGER> = match _components.get("millis") {
-            Some(c_) => Some(ber_decode_integer(c_)?),
-            _ => None,
-        };
-        let micros: OPTIONAL<INTEGER> = match _components.get("micros") {
-            Some(c_) => Some(ber_decode_integer(c_)?),
-            _ => None,
-        };
-        Ok(Accuracy {
-            seconds,
-            millis,
-            micros,
-        })
-    }(&el)
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Accuracy")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Accuracy,
+        _eal_components_for_Accuracy,
+        _rctl2_components_for_Accuracy,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    let mut seconds_: OPTIONAL<INTEGER> = None;
+    let mut millis_: OPTIONAL<INTEGER> = None;
+    let mut micros_: OPTIONAL<INTEGER> = None;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "seconds" => seconds_ = Some(BER.decode_integer(_el)?),
+            "millis" => millis_ = Some(BER.decode_integer(_el)?),
+            "micros" => micros_ = Some(BER.decode_integer(_el)?),
+            _ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Accuracy")),
+        }
+    }
+    Ok(Accuracy {
+        seconds: seconds_,
+        millis: millis_,
+        micros: micros_,
+    })
 }
 
 pub fn _encode_Accuracy(value_: &Accuracy) -> ASN1Result<X690Element> {
-    |value_: &Accuracy| -> ASN1Result<X690Element> {
-        let mut components_: Vec<X690Element> = Vec::with_capacity(8);
-        if let Some(v_) = &value_.seconds {
-            components_.push(ber_encode_integer(&v_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(8);
+    if let Some(v_) = &value_.seconds {
+        components_.push(BER.encode_integer(&v_)?);
+    }
+    if let Some(v_) = &value_.millis {
+        components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_integer(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 0;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    if let Some(v_) = &value_.micros {
+        components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
+            let mut el_1 = BER.encode_integer(&v_1)?;
+            el_1.tag.tag_class = TagClass::CONTEXT;
+            el_1.tag.tag_number = 1;
+            Ok(el_1)
+        }(&v_)?);
+    }
+    Ok(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        X690Value::Constructed(Arc::new(components_)),
+    ))
+}
+
+pub fn _validate_Accuracy(el: &X690Element) -> ASN1Result<()> {
+    let _elements = match &el.value {
+        X690Value::Constructed(children) => children,
+        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Accuracy")),
+    };
+    let _seq_iter = X690StructureIterator::new(
+        _elements.as_slice(),
+        _rctl1_components_for_Accuracy,
+        _eal_components_for_Accuracy,
+        _rctl2_components_for_Accuracy,
+    )
+    .into_iter();
+    let mut _i: usize = 0;
+    for _fallible_component_name in _seq_iter {
+        let _component_name = _fallible_component_name?;
+        let _maybe_el = _elements.get(_i);
+        _i += 1;
+        let _el = _maybe_el.unwrap();
+        match _component_name {
+            "seconds" => BER.validate_integer(_el)?,
+            "millis" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "millis"));
+                }
+                Ok(BER.validate_integer(&el)?)
+            }(_el)?,
+            "micros" => |el: &X690Element| -> ASN1Result<()> {
+                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
+                    return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "micros"));
+                }
+                Ok(BER.validate_integer(&el)?)
+            }(_el)?,
+            _ => return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Accuracy")),
         }
-        if let Some(v_) = &value_.millis {
-            components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_integer(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 0;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        if let Some(v_) = &value_.micros {
-            components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-                let mut el_1 = ber_encode_integer(&v_1)?;
-                el_1.tag_class = TagClass::CONTEXT;
-                el_1.tag_number = 1;
-                Ok(el_1)
-            }(&v_)?);
-        }
-        Ok(X690Element::new(
-            TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-            Arc::new(X690Encoding::Constructed(components_)),
-        ))
-    }(&value_)
+    }
+    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1055,14 +1282,18 @@ pub fn _encode_Accuracy(value_: &Accuracy) -> ASN1Result<X690Element> {
 /// ```
 pub type TimeStampReq_version = INTEGER;
 
-pub const TimeStampReq_version_v1: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const TimeStampReq_version_v1: TimeStampReq_version = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_TimeStampReq_version(el: &X690Element) -> ASN1Result<TimeStampReq_version> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_TimeStampReq_version(value_: &TimeStampReq_version) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_TimeStampReq_version(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
 
 /// ### ASN.1 Definition:
@@ -1072,12 +1303,16 @@ pub fn _encode_TimeStampReq_version(value_: &TimeStampReq_version) -> ASN1Result
 /// ```
 pub type TSTInfo_version = INTEGER;
 
-pub const TSTInfo_version_v1: i32 = 1; /* LONG_NAMED_INTEGER_VALUE */
+pub const TSTInfo_version_v1: TSTInfo_version = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_TSTInfo_version(el: &X690Element) -> ASN1Result<TSTInfo_version> {
-    ber_decode_integer(&el)
+    BER.decode_integer(&el)
 }
 
 pub fn _encode_TSTInfo_version(value_: &TSTInfo_version) -> ASN1Result<X690Element> {
-    ber_encode_integer(&value_)
+    BER.encode_integer(&value_)
+}
+
+pub fn _validate_TSTInfo_version(el: &X690Element) -> ASN1Result<()> {
+    BER.validate_integer(&el)
 }
