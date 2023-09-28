@@ -396,8 +396,9 @@ where
             16777216..=4294967295 => 4,
             _ => return Err(Error::from(ErrorKind::Unsupported)),
         };
+        let length_bytes = length.to_be_bytes();
         output.write(&[0b1000_0000 | octets_needed])?;
-        output.write(length.to_be_bytes().as_slice())
+        output.write(&length_bytes[std::mem::size_of::<usize>()-octets_needed as usize..])
     }
 }
 
