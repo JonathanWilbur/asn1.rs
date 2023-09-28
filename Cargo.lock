@@ -4654,7 +4654,6 @@ dependencies = [
  "signature",
  "tokio",
  "toml",
- "tsp",
  "x500",
  "x690",
 ]
