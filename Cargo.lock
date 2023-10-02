@@ -4616,16 +4616,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tsp"
-version = "0.1.0"
-dependencies = [
- "asn1",
- "cms",
- "x500",
- "x690",
-]
-
-[[package]]
 name = "tsp-server"
 version = "0.1.0"
 dependencies = [

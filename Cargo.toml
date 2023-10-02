@@ -8,7 +8,6 @@ members = [
     "idm",
     "x500-client",
     "mock-tcpstream",
-    "tsp",
     "cms",
     "tsp-server",
     "x500dsa",
