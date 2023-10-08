@@ -81,16 +81,16 @@ pub const MAX_ISO_IEC_646_LEN_LOCAL: u8 = 19;
 pub const MAX_NATIONAL_CHAR_LEN_LOCAL: u8 = 9;
 
 // These are denominated in digits. Subtract two for the AFI to get IDI length.
-pub const MAX_IDI_LEN_X121: u8 = 14; // Up to
-pub const MAX_IDI_LEN_ISO_DCC: u8 = 3; // Exactly
-pub const MAX_IDI_LEN_F69: u8 = 8; // Up to
-pub const MAX_IDI_LEN_E163: u8 = 12; // Up to
-pub const MAX_IDI_LEN_E164: u8 = 15; // Up to
-pub const MAX_IDI_LEN_ISO_6523_ICD: u8 = 4; // Exactly
-pub const MAX_IDI_LEN_IANA_ICP: u8 = 4; // Exactly
-pub const MAX_IDI_LEN_ITU_T_IND: u8 = 6; // Exactly
-pub const MAX_IDI_LEN_LOCAL: u8 = 0; // Exactly
-pub const MAX_IDI_LEN_URL: u8 = 2; // Exactly.
+pub const MAX_IDI_LEN_X121: usize = 14; // Up to
+pub const MAX_IDI_LEN_ISO_DCC: usize = 3; // Exactly
+pub const MAX_IDI_LEN_F69: usize = 8; // Up to
+pub const MAX_IDI_LEN_E163: usize = 12; // Up to
+pub const MAX_IDI_LEN_E164: usize = 15; // Up to
+pub const MAX_IDI_LEN_ISO_6523_ICD: usize = 4; // Exactly
+pub const MAX_IDI_LEN_IANA_ICP: usize = 4; // Exactly
+pub const MAX_IDI_LEN_ITU_T_IND: usize = 6; // Exactly
+pub const MAX_IDI_LEN_LOCAL: usize = 0; // Exactly
+pub const MAX_IDI_LEN_URL: usize = 4; // Exactly.
 
 // DSP Prefixes that start with 0x54, 0x00, 0x72, 0x87, 0x22,
 pub const RFC_1277_WELL_KNOWN_NETWORK_INTL_X25: u8 = 0x01;
@@ -184,6 +184,7 @@ impl X213NetworkAddress {
             (X213NetworkAddressType::LOCAL, DomainSpecificPart::Decimal(_), _) => Some(AFI_LOCAL_DEC),
             (X213NetworkAddressType::LOCAL, DomainSpecificPart::IsoIec646(_), _) => Some(AFI_LOCAL_ISO_IEC_646),
             (X213NetworkAddressType::LOCAL, DomainSpecificPart::NationalCharacters(_), _) => Some(AFI_LOCAL_NATIONAL),
+            (X213NetworkAddressType::URL, DomainSpecificPart::Url(_), _) => Some(AFI_URL),
             _ => None,
         }
     }
@@ -260,12 +261,17 @@ impl X213NetworkAddress {
 
 }
 
-fn dissect_nsap_str (s: &str, prefix_len: usize) -> Result<(&str, &str), NAddressError> {
+fn dissect_nsap_str (s: &str, prefix_len: usize, nt: X213NetworkAddressType) -> Result<(&str, &str), NAddressError> {
     let idi_str = s[prefix_len+1..].split("+").next().ok_or(NAddressError::NoIDI)?;
     let dsp_str = &s[prefix_len+1+idi_str.len()+1..];
     let maybe_non_ascii_digit_in_idi = idi_str.as_bytes().iter().find(|b| !b.is_ascii_digit());
     if let Some(non_ascii_digit) = maybe_non_ascii_digit_in_idi {
         return Err(NAddressError::NonDigitInIDI(*non_ascii_digit));
+    }
+    if let Some(max_idi_len) = naddr_network_type_to_max_idi_length(nt) {
+        if idi_str.len() > max_idi_len {
+            return Err(NAddressError::IDITooLong);
+        }
     }
     Ok((idi_str, dsp_str))
 }
@@ -303,29 +309,19 @@ fn decode_opaque_dsp (dsp: &[u8]) -> Result<DomainSpecificPart, NAddressError> {
 impl FromStr for X213NetworkAddress {
     type Err = NAddressError;
 
-    // NS+a433bb93c1
-    // NS+aa3106
-    // X121+234219200300
-    // TELEX+00728722+X.25(80)+02+00002340555+CUDF+"892796"
-    // TELEX+00728722+RFC-1006+03+10.0.0.6
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    /// NOTE: This does NOT support the macros defined in Section 6 of IETF RFC 1278.
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let s = input;
         if s.starts_with("NS+") {
             let bytes = hex::decode(&s[3..]).map_err(|_| NAddressError::InvalidHexEncoding)?;
             return X213NetworkAddress::try_from(bytes.as_slice());
         }
-        // TODO: Support the macros defined in section 6 of IETF RFC 1278. (Might be 1277)
-        // ________________________________________________
-        // |_Macro_____________|Value______________________ |
-        // | Int-X25(80)       |TELEX+00728722+X25(80)+01+  |
-        // | Janet-X25(80)     |TELEX+00728722+X25(80)+02+  |
-        // | Internet-RFC-1006 |TELEX+00728722+RFC-1006+03+ |
-        // |_IXI_______________|TELEX+00728722+RFC-1006+06+_|
 
         // This one is intentionally checked first, since most NSAPs nowadays
         // are likely to use the Telex-Internet IDP.
         if s.starts_with(AFI_STR_TELEX) {
             let nt = X213NetworkAddressType::F69;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_TELEX.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_TELEX.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             if idi_str == IETF_RFC_1277_TELEX_NUMBER_STR {
                 if dsp_str.starts_with(IETF_RFC_1006_PREFIX_STR) {
@@ -333,7 +329,7 @@ impl FromStr for X213NetworkAddress {
                         return Err(NAddressError::TruncatedDSP);
                     }
                     let dsp_prefix_str = &dsp_str[IETF_RFC_1006_PREFIX_STR.len()..IETF_RFC_1006_PREFIX_STR.len()+2];
-                    if [ "03", "10", "11" ].contains(&dsp_prefix_str) { // See ITU-T Rec. X.519 (2019), Sections 11.3.1 - 11.3.3
+                    if [ "03", "06", "10", "11" ].contains(&dsp_prefix_str) { // See ITU-T Rec. X.519 (2019), Sections 11.3.1 - 11.3.3
                         // The remainder of the DSP should be an IP address + port + transport
                         let mut ip_port_and_tset_iter = dsp_str[IETF_RFC_1006_PREFIX_STR.len()+3..].split("+");
                         let ip_str = ip_port_and_tset_iter.next();
@@ -406,56 +402,56 @@ impl FromStr for X213NetworkAddress {
         }
         else if s.starts_with(AFI_STR_URL) {
             let nt = X213NetworkAddressType::URL;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_URL.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_URL.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = DomainSpecificPart::Url(dsp_str.to_owned());
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
         else if s.starts_with(AFI_STR_X121) {
             let nt = X213NetworkAddressType::X121;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_X121.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_X121.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
         else if s.starts_with(AFI_STR_DCC) {
             let nt = X213NetworkAddressType::ISO_DCC;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_DCC.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_DCC.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
         else if s.starts_with(AFI_STR_PSTN) {
             let nt = X213NetworkAddressType::E164;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_PSTN.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_PSTN.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
         else if s.starts_with(AFI_STR_ICD) {
             let nt = X213NetworkAddressType::ISO_6523_ICD;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_ICD.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_ICD.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
         else if s.starts_with(AFI_STR_ICP) {
             let nt = X213NetworkAddressType::IANA_ICP;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_ICP.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_ICP.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
         else if s.starts_with(AFI_STR_IND) {
             let nt = X213NetworkAddressType::ITU_T_IND;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_IND.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_IND.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
         else if s.starts_with(AFI_STR_LOCAL) {
             let nt = X213NetworkAddressType::LOCAL;
-            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_LOCAL.len())?;
+            let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_LOCAL.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
@@ -701,7 +697,7 @@ impl Display for X213NetworkAddress {
         if digits.len() < 14 { //
             return self.dsp.fmt(f);
         }
-        if ![ [0, 3], [1, 0], [1, 1] ].contains(&[ digits[0], digits[1] ]) { // See ITU-T Rec. X.519 (2019), Sections 11.3.1 - 11.3.3
+        if ![ [0, 3], [0, 6], [1, 0], [1, 1] ].contains(&[ digits[0], digits[1] ]) { // See ITU-T Rec. X.519 (2019), Sections 11.3.1 - 11.3.3
             return self.dsp.fmt(f);
         }
         let ip_digits = &digits[2..14];
@@ -792,6 +788,7 @@ pub enum NAddressError {
     InternalError, // Can happen if fields are modified to produce internal incoherence.
     InvalidHexEncoding,
     UnsupportedDSPType,
+    IDITooLong,
 }
 
 impl Display for NAddressError {
@@ -989,7 +986,7 @@ pub fn naddr_network_type_to_max_bin_length (nt: X213NetworkAddressType) -> Opti
     }
 }
 
-pub fn naddr_network_type_to_max_idi_length (nt: X213NetworkAddressType) -> Option<u8> {
+pub fn naddr_network_type_to_max_idi_length (nt: X213NetworkAddressType) -> Option<usize> {
     match nt {
         X213NetworkAddressType::X121 => Some(MAX_IDI_LEN_X121),
         X213NetworkAddressType::ISO_DCC => Some(MAX_IDI_LEN_ISO_DCC),
@@ -1176,13 +1173,12 @@ mod tests {
 
     #[test]
     fn encoding_nsap_to_str_icd() {
-        let nsap_str = "ICD+728723+x01020304";
+        let nsap_str = "ICD+8723+x01020304";
         let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
         let result_str = result.to_string();
         assert_eq!(result_str.as_str(), nsap_str);
     }
 
-    // FIXME: This should fail.
     #[test]
     #[should_panic]
     fn encoding_nsap_to_str_icd_too_many_idi_digits() {
@@ -1208,7 +1204,20 @@ mod tests {
         assert_eq!(result_str.as_str(), nsap_str);
     }
 
-    // TODO: Test URL from string
-    // TODO: IPv4 from Macro string
+    #[test]
+    fn encoding_nsap_from_str_url() {
+        let nsap_str = "URL+0001+itot://localhost:109";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        assert_eq!(result.network_type, X213NetworkAddressType::URL);
+        assert_eq!(result.afi().unwrap(), AFI_URL);
+        assert_eq!(result.idi.as_slice(), b"0001");
+        match &result.dsp {
+            DomainSpecificPart::Url(url_str) => assert_eq!(
+                url_str.as_str(),
+                &nsap_str[9..],
+            ),
+            _ => panic!(),
+        };
+    }
 
 }
