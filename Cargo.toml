@@ -20,4 +20,5 @@ members = [
     "rose",
     "rose-idm",
     "rose-stream",
+    "teletex",
 ]

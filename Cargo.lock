@@ -755,6 +755,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cow-utils"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "417bef24afe1460300965a25ff4a24b8b45ad011948302ec221e8a0a81eb2c79"
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2594,6 +2600,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nsap-address"
+version = "0.1.0"
+dependencies = [
+ "hex",
+]
+
+[[package]]
 name = "nu-ansi-term"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3201,6 +3214,12 @@ dependencies = [
  "tokio-stream",
  "wasm-bindgen-futures",
 ]
+
+[[package]]
+name = "punycode"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9e1dcb320d6839f6edb64f7a4a59d39b30480d4d1765b56873f7c858538a5fe"
 
 [[package]]
 name = "quick-xml"
@@ -4271,6 +4290,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "teletex"
+version = "0.1.0"
+
+[[package]]
 name = "tempfile"
 version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5299,8 +5322,11 @@ name = "x500"
 version = "0.1.0"
 dependencies = [
  "asn1",
+ "cow-utils",
  "hex",
  "ldap",
+ "punycode",
+ "teletex",
  "x690",
 ]
 
