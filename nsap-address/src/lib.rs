@@ -127,11 +127,13 @@ pub const INTERNET_PREFIX: [u8; 5] = [
     0x00, 0x72, 0x87, 0x22, // IDI
 ];
 
+pub const INTERNET_PREFIX_IDI_DIGITS: &[u8; 8] = b"00728722";
+
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct X213NetworkAddress {
     pub network_type: X213NetworkAddressType,
     pub group: bool,
-    pub idi: Vec<u8>, // FIXME: This is supposed to be ASCII digits, but some parts of the code below disagree!
+    pub idi: Vec<u8>,
     pub dsp: DomainSpecificPart,
 }
 
@@ -152,7 +154,7 @@ impl X213NetworkAddress {
     }
 
     pub fn afi (&self) -> Option<u8> {
-        let has_leading_zero = self.idi.get(0).is_some_and(|b| *b == 0);
+        let has_leading_zero = self.idi.get(0).is_some_and(|b| *b == 0x30);
         match (self.network_type, &self.dsp, has_leading_zero) {
             (X213NetworkAddressType::X121, DomainSpecificPart::Binary(_), true) => Some(AFI_X121_BIN_LEADING_ZERO),
             (X213NetworkAddressType::X121, DomainSpecificPart::Binary(_), false) => Some(AFI_X121_BIN_LEADING_NON_ZERO),
@@ -190,7 +192,7 @@ impl X213NetworkAddress {
     /// an I2P URL, or anything else.
     pub fn is_internet(&self) -> bool {
         self.network_type == X213NetworkAddressType::F69
-        && &self.idi == &INTERNET_PREFIX[1..]
+        && &self.idi == INTERNET_PREFIX_IDI_DIGITS
     }
 
     pub fn to_socket_addr (&self) -> Option<(Ipv4Addr, Option<u16>)> {
@@ -203,11 +205,11 @@ impl X213NetworkAddress {
 
     pub fn to_url_str (&self) -> Option<String> {
         if self.network_type == X213NetworkAddressType::URL {
-            let dsp_bytes = match &self.dsp {
-                DomainSpecificPart::Binary(x) => x,
+            let url_str = match &self.dsp {
+                DomainSpecificPart::Url(x) => x,
                 _ => return None,
             };
-            return Some(String::from_utf8(dsp_bytes.clone()).ok()?)
+            return Some(url_str.clone())
         }
         // If it is not explicitly URL, we can still convert an IP address into a URL.
         if self.network_type != X213NetworkAddressType::F69 {
@@ -221,7 +223,7 @@ impl X213NetworkAddress {
         if dsp_bytes.len() < 5 { // Ridiculously short URLs eliminated.
             return None;
         }
-        if &self.idi != &INTERNET_PREFIX[1..] {
+        if &self.idi != INTERNET_PREFIX_IDI_DIGITS {
             return None;
         }
         let (ipv4, port) = read_socket_addr_v4(&dsp_bytes)?;
@@ -352,7 +354,7 @@ impl FromStr for X213NetworkAddress {
                         if parsed_tset.is_some() {
                             let port = parsed_port.unwrap().map_err(|_| NAddressError::MalformedDSP)?;
                             let tset = parsed_tset.unwrap().map_err(|_| NAddressError::MalformedDSP)?;
-                            dsp_dec = format!("{:03}{:03}{:03}{:03}{:05}{:05}", ipb1, ipb2, ipb3, ipb4, port, tset)
+                            dsp_dec = format!("{}{:03}{:03}{:03}{:03}{:05}{:05}", dsp_prefix_str, ipb1, ipb2, ipb3, ipb4, port, tset)
                                 .as_bytes()
                                 .iter()
                                 .map(|b| b - 0x30)
@@ -360,14 +362,14 @@ impl FromStr for X213NetworkAddress {
                         }
                         else if parsed_port.is_some() {
                             let port = parsed_port.unwrap().map_err(|_| NAddressError::MalformedDSP)?;
-                            dsp_dec = format!("{:03}{:03}{:03}{:03}{:05}", ipb1, ipb2, ipb3, ipb4, port)
+                            dsp_dec = format!("{}{:03}{:03}{:03}{:03}{:05}", dsp_prefix_str, ipb1, ipb2, ipb3, ipb4, port)
                                 .as_bytes()
                                 .iter()
                                 .map(|b| b - 0x30)
                                 .collect();
                         }
                         else {
-                            dsp_dec = format!("{:03}{:03}{:03}{:03}", ipb1, ipb2, ipb3, ipb4)
+                            dsp_dec = format!("{}{:03}{:03}{:03}{:03}", dsp_prefix_str, ipb1, ipb2, ipb3, ipb4)
                                 .as_bytes()
                                 .iter()
                                 .map(|b| b - 0x30)
@@ -397,6 +399,7 @@ impl FromStr for X213NetworkAddress {
                     return Err(NAddressError::UnsupportedDSPType);
                 }
             } else {
+                // It is a TELEX+ string, but it does not start with the "magic number."
                 let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
                 return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
             }
@@ -618,7 +621,7 @@ impl TryInto<Vec<u8>> for X213NetworkAddress {
         if self.group {
             afi = individual_afi_to_group_afi(afi).unwrap_or(afi);
         }
-        let has_leading_zero = self.idi.get(0).is_some_and(|b| *b == 0);
+        let has_leading_zero = self.idi.get(0).is_some_and(|b| *b == b'0');
         let leading_0_matters = idi_leading_0_significant(self.network_type).unwrap_or(false);
         let padding_digit = if has_leading_zero && leading_0_matters { 1 } else { 0 };
         let max_idi_len = naddr_network_type_to_max_idi_length(self.network_type)
@@ -641,7 +644,7 @@ impl TryInto<Vec<u8>> for X213NetworkAddress {
         }
         let idi_digits_to_write;
         if padding_needed == 1 {
-            let byte = (padding_digit << 4) + (self.idi[0] & 0b0000_1111);
+            let byte = (padding_digit << 4) + ((self.idi[0] - 0x30) & 0b0000_1111);
             idp.push(byte);
             idi_digits_to_write = &self.idi[1..];
         } else {
@@ -655,7 +658,7 @@ impl TryInto<Vec<u8>> for X213NetworkAddress {
             }
             let digit1 = digit1.unwrap();
             let digit2 = idp.get(padding_digits_written + 1).unwrap_or(&0b0000_1111);
-            let byte = (*digit1 << 4) + (*digit2 & 0b0000_1111);
+            let byte = ((*digit1 - 0x30) << 4) + ((*digit2 - 0x30) & 0b0000_1111);
             idp.push(byte);
             padding_digits_written += 2;
         }
@@ -682,10 +685,68 @@ impl Display for X213NetworkAddress {
         self.network_type.fmt(f)?;
         f.write_char('+')?;
         for digit in &self.idi {
-            f.write_char((*digit + 0x30).into())?;
+            f.write_char((*digit).into())?;
         }
         f.write_char('+')?;
-        Ok(())
+        if
+            self.network_type != X213NetworkAddressType::F69
+            || self.idi.as_slice() != b"00728722"
+        {
+            return self.dsp.fmt(f);
+        }
+        let digits = match &self.dsp {
+            DomainSpecificPart::Decimal(digits) => digits,
+            _ => return self.dsp.fmt(f),
+        };
+        if digits.len() < 14 { //
+            return self.dsp.fmt(f);
+        }
+        if ![ [0, 3], [1, 0], [1, 1] ].contains(&[ digits[0], digits[1] ]) { // See ITU-T Rec. X.519 (2019), Sections 11.3.1 - 11.3.3
+            return self.dsp.fmt(f);
+        }
+        let ip_digits = &digits[2..14];
+        let ipv4 = Ipv4Addr::new(
+            (ip_digits[0] * 100) + (ip_digits[1]  * 10) + ip_digits[2],
+            (ip_digits[3] * 100) + (ip_digits[4]  * 10) + ip_digits[5],
+            (ip_digits[6] * 100) + (ip_digits[7]  * 10) + ip_digits[8],
+            (ip_digits[9] * 100) + (ip_digits[10] * 10) + ip_digits[11],
+        );
+        let maybe_port: Option<u16>;
+        if digits.len() >= 19 { // We have a port number.
+            maybe_port = Some(
+                digits[14] as u16 * 10000
+                + digits[15] as u16 * 1000
+                + digits[16] as u16 * 100
+                + digits[17] as u16 * 10
+                + digits[18] as u16
+            );
+        } else {
+            maybe_port = None;
+        }
+        let maybe_tset: Option<u16>;
+        if digits.len() == 24 {
+            maybe_tset = Some(
+                digits[19] as u16 * 10000
+                + digits[20] as u16 * 1000
+                + digits[21] as u16 * 100
+                + digits[22] as u16 * 10
+                + digits[23] as u16
+            );
+        } else {
+            maybe_tset = None;
+        }
+        if maybe_port.is_some() && maybe_tset.is_some() {
+            let port = maybe_port.unwrap();
+            let tset = maybe_tset.unwrap();
+            f.write_fmt(format_args!("RFC-1006+{}{}+{}+{}+{}", digits[0], digits[1], ipv4, port, tset))
+        }
+        else if maybe_port.is_some() {
+            let port = maybe_port.unwrap();
+            f.write_fmt(format_args!("RFC-1006+{}{}+{}+{}", digits[0], digits[1], ipv4, port))
+        }
+        else {
+            f.write_fmt(format_args!("RFC-1006+{}{}+{}", digits[0], digits[1], ipv4))
+        }
     }
 
 }
@@ -1016,8 +1077,6 @@ pub fn naddr_idi_has_leading_zero (afi: u8) -> bool {
     }
 }
 
-// TODO: Check Lengths of DSPs
-
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
@@ -1026,9 +1085,130 @@ pub fn add(left: usize, right: usize) -> usize {
 mod tests {
     use super::*;
 
+    // NS+a433bb93c1
+    // NS+aa3106
+    // X121+234219200300
+    // TELEX+00728722+X.25(80)+02+00002340555+CUDF+"892796"
+    // TELEX+00728722+RFC-1006+03+10.0.0.6
+    // ________________________________________________
+    // |_Macro_____________|Value______________________ |
+    // | Int-X25(80)       |TELEX+00728722+X25(80)+01+  |
+    // | Janet-X25(80)     |TELEX+00728722+X25(80)+02+  |
+    // | Internet-RFC-1006 |TELEX+00728722+RFC-1006+03+ |
+    // |_IXI_______________|TELEX+00728722+RFC-1006+06+_|
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn decoding_nsap_from_str() {
+        let nsap_str = "TELEX+00728722+RFC-1006+03+10.0.0.6";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        assert_eq!(result.network_type, X213NetworkAddressType::F69);
+        assert_eq!(result.afi().unwrap(), AFI_F69_DEC_LEADING_ZERO);
+        assert_eq!(result.idi.as_slice(), b"00728722");
+        match &result.dsp {
+            DomainSpecificPart::Decimal(digits) => assert_eq!(
+                digits.as_slice(),
+                [
+                    0, 3,
+                    0, 1, 0,
+                    0, 0, 0,
+                    0, 0, 0,
+                    0, 0, 6,
+                ],
+            ),
+            _ => panic!(),
+        };
     }
+
+    #[test]
+    fn encoding_nsap_to_str_ipv4() {
+        let nsap_str = "TELEX+00728722+RFC-1006+03+10.0.0.6";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_ipv4_with_port() {
+        let nsap_str = "TELEX+00728722+RFC-1006+03+10.0.0.6+8080";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_ipv4_with_port_and_tset() {
+        let nsap_str = "TELEX+00728722+RFC-1006+03+10.0.0.6+8080+1";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    // #[test]
+    // fn encoding_nsap_to_str_telex_unrecognized() {
+    //     let nsap_str = "TELEX+00728722+X.25(80)+02+00002340555+CUDF+892796";
+    //     let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+    //     let result_str = result.to_string();
+    //     assert_eq!(result_str.as_str(), nsap_str);
+    // }
+
+    // #[test]
+    // fn encoding_nsap_to_str_telex_unrecognized() {
+    //     let nsap_str = "TELEX+00728722+d05002428495";
+    //     let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+    //     let result_str = result.to_string();
+    //     assert_eq!(result_str.as_str(), nsap_str);
+    // }
+
+    #[test]
+    fn encoding_nsap_to_str_telex_unrecognized_idi() {
+        let nsap_str = "TELEX+00728723+d05002085";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_telex_leading_non_zero() {
+        let nsap_str = "TELEX+728723+d05002085";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_icd() {
+        let nsap_str = "ICD+728723+x01020304";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    // FIXME: This should fail.
+    #[test]
+    #[should_panic]
+    fn encoding_nsap_to_str_icd_too_many_idi_digits() {
+        let nsap_str = "ICD+72872325+x01020304";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_url() {
+        let nsap_str = "URL+0000+idms://localhost:4632";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_url_2() {
+        let nsap_str = "URL+0001+itot://localhost:109";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    // TODO: Test URL from string
+    // TODO: IPv4 from Macro string
+
 }
