@@ -14,6 +14,7 @@ members = [
     "dirstudio",
     "dirstudio/src-tauri",
     "dirstudio-api-types",
+    "nsap-address",
     "tpkt",
     "x691",
     "rose",
