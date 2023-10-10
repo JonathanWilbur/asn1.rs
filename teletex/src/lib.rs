@@ -1,5 +1,10 @@
 use std::borrow::Cow;
 
+/// Any code points that are unrecognized as Teletex will be returned unchanged
+/// to be interpreted directly as a UTF-8 code point. The rationale for this is
+/// that there is very high overlap between Teletex and ASCII and UTF-8. If
+/// there are any characters that I missed when writing this function, or if any
+/// new ones are added to Teletex, they are probably analogous.
 pub fn teletex_char_to_utf8_char (c: u8) -> char {
     match c {
         0xA4 => '$',
@@ -63,6 +68,8 @@ pub fn is_teletex_diacritic (c: u8) -> bool {
     (c > 0xC0) && (c <= 0xCF)
 }
 
+/// This function does NOT handle unrecognized Teletex codepoints. They will be
+/// unchanged and interpreted directly as UTF-8 codepoints.
 pub fn teletex_to_utf8 (bytes: &[u8]) -> Cow<str> {
     let mut start_of_non_ascii: Option<usize> = None;
     let mut translation: String = String::new();
