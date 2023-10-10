@@ -1,6 +1,30 @@
+//! This module decodes and encodes a Network Service Access Point (NSAP) to and
+//! from the "preferred binary encoding" described in Annex A, Section A.5.3 of
+//! [ITU-T Recommendation X.213 (2001)](https://www.itu.int/rec/T-REC-X.213-200110-I/en).
+//!
+//! In addition to this, it displays and decodes NSAPs to and from
+//! human-readable strings according to the procedures defined in
+//! [IETF RFC 1278](https://datatracker.ietf.org/doc/rfc1278/), drawing on
+//! additional information found in
+//! [IETF RFC 1277](https://datatracker.ietf.org/doc/html/rfc1277).
+//!
+//! There are some deviations to the above, however. Since the human-friendly
+//! string syntax was defined, new AFIs were added, including one for directly
+//! representing IP addresses and another for representing URLs. As such this
+//! library extends the specification, but should be completely backwards
+//! compatible with it.
+//!
+//! You should **not** expect an NSAP decoded from a string to encode back into
+//! the same exact string. You should **not** expect an NSAP decoded from bytes
+//! to encode back into the same exact bytes. You should **not** expect all
+//! NSAP syntaxes to be recognized everywhere; your application and dependencies
+//! should handle unrecognized NSAP syntaxes gracefully.
 #![allow(non_camel_case_types)]
 #![allow(unused_parens)]
-use std::{fmt::{Display, Write}, error::Error, result::Result, net::Ipv4Addr, str::FromStr};
+use std::{fmt::{Display, Write}, error::Error, result::Result, net::{Ipv4Addr, IpAddr, Ipv6Addr}, str::FromStr};
+
+// TODO: Support GOSIP NSAP addressing: https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b
+// TODO: Is there a separate ATN addressing? It sounds like ATN uses ISO 6523 (ICD)
 
 pub const AFI_URL: u8 = 0xFF;
 pub const AFI_X121_DEC_LEADING_NON_ZERO: u8 = 0x36;
@@ -439,6 +463,18 @@ impl FromStr for X213NetworkAddress {
             let nt = X213NetworkAddressType::IANA_ICP;
             let (idi_str, dsp_str) = dissect_nsap_str(s, AFI_STR_ICP.len(), nt)?;
             let idi = idi_str.as_bytes().to_vec();
+            if idi_str == "0000" {
+                let maybe_ip = Ipv6Addr::from_str(&dsp_str);
+                if let Ok(ip) = maybe_ip {
+                    return Ok(X213NetworkAddress::new(nt, false, idi, DomainSpecificPart::IpAddress(IpAddr::V6(ip))));
+                }
+            }
+            else if idi_str == "0001" {
+                let maybe_ip = Ipv4Addr::from_str(&dsp_str);
+                if let Ok(ip) = maybe_ip {
+                    return Ok(X213NetworkAddress::new(nt, false, idi, DomainSpecificPart::IpAddress(IpAddr::V4(ip))));
+                }
+            }
             let dsp = decode_opaque_dsp(dsp_str.as_bytes())?;
             return Ok(X213NetworkAddress::new(nt, false, idi, dsp));
         }
@@ -664,6 +700,18 @@ impl TryInto<Vec<u8>> for X213NetworkAddress {
             DomainSpecificPart::IsoIec646(x) => x,
             DomainSpecificPart::NationalCharacters(x) => x,
             DomainSpecificPart::Url(x) => x.as_bytes().to_vec(),
+            DomainSpecificPart::IpAddress(ip) => {
+                match ip {
+                    IpAddr::V4(ipv4) => [
+                        ipv4.octets().as_slice(), // The IPv4 DSP must be padded with 13 bytes of any value.
+                        &[ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]
+                    ].concat(),
+                    IpAddr::V6(ipv6) => [
+                        ipv6.octets().as_slice(),
+                        &[ 0x00 ] // The IPv6 DSP must be padded with a single byte of any value.
+                    ].concat(),
+                }
+            }
         };
         Ok([
             idp,
@@ -806,6 +854,7 @@ pub enum DomainSpecificPart {
     IsoIec646(Vec<u8>), // 7-digit characters, mostly overlapping ASCII
     NationalCharacters(Vec<u8>), // Raw bytes of the DSP.
     Url(String),
+    IpAddress(IpAddr),
 }
 
 impl Display for DomainSpecificPart {
@@ -852,7 +901,8 @@ impl Display for DomainSpecificPart {
                 }
                 Ok(())
             },
-            DomainSpecificPart::Url(url) => f.write_str(&url)
+            DomainSpecificPart::Url(url) => f.write_str(&url),
+            DomainSpecificPart::IpAddress(ip) => f.write_str(&ip.to_string()),
         }
     }
 
@@ -1218,6 +1268,31 @@ mod tests {
             ),
             _ => panic!(),
         };
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_icp_ipv4() {
+        let nsap_str = "ICP+0001+10.9.8.7";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    fn encoding_nsap_to_str_icp_ipv6() {
+        let nsap_str = "ICP+0000+::1";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
+    }
+
+    #[test]
+    #[should_panic]
+    fn encoding_nsap_to_str_icp_wrong_ip() {
+        let nsap_str = "ICP+0001+::1";
+        let result = X213NetworkAddress::from_str(&nsap_str).unwrap();
+        let result_str = result.to_string();
+        assert_eq!(result_str.as_str(), nsap_str);
     }
 
 }
