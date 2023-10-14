@@ -2520,7 +2520,7 @@ pub fn ExtensionAttributeTable() -> Vec<EXTENSION_ATTRIBUTE> {
 /// ```
 ///
 ///
-pub fn common_name() -> EXTENSION_ATTRIBUTE {
+pub const fn common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 1, /* OBJECT_FIELD_SETTING */
     }
@@ -2569,7 +2569,7 @@ pub fn _validate_CommonName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn teletex_common_name() -> EXTENSION_ATTRIBUTE {
+pub const fn teletex_common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 2, /* OBJECT_FIELD_SETTING */
     }
@@ -2618,7 +2618,7 @@ pub fn _validate_TeletexCommonName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_common_name() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 24, /* OBJECT_FIELD_SETTING */
     }
@@ -2667,7 +2667,7 @@ pub fn _validate_UniversalCommonName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn teletex_organization_name() -> EXTENSION_ATTRIBUTE {
+pub const fn teletex_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 3, /* OBJECT_FIELD_SETTING */
     }
@@ -2719,7 +2719,7 @@ pub fn _validate_TeletexOrganizationName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_organization_name() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 25, /* OBJECT_FIELD_SETTING */
     }
@@ -2772,7 +2772,7 @@ pub fn _validate_UniversalOrganizationName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn teletex_personal_name() -> EXTENSION_ATTRIBUTE {
+pub const fn teletex_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 4, /* OBJECT_FIELD_SETTING */
     }
@@ -3018,7 +3018,7 @@ pub fn _validate_TeletexPersonalName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_personal_name() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 26, /* OBJECT_FIELD_SETTING */
     }
@@ -3267,7 +3267,7 @@ pub fn _validate_UniversalPersonalName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn teletex_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
+pub const fn teletex_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 5, /* OBJECT_FIELD_SETTING */
     }
@@ -3376,7 +3376,7 @@ pub fn _validate_TeletexOrganizationalUnitName(el: &X690Element) -> ASN1Result<(
 /// ```
 ///
 ///
-pub fn universal_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 27, /* OBJECT_FIELD_SETTING */
     }
@@ -3613,7 +3613,7 @@ pub fn _validate_UniversalOrBMPString(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn pds_name() -> EXTENSION_ATTRIBUTE {
+pub const fn pds_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 7, /* OBJECT_FIELD_SETTING */
     }
@@ -3662,7 +3662,7 @@ pub fn _validate_PDSName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn physical_delivery_country_name() -> EXTENSION_ATTRIBUTE {
+pub const fn physical_delivery_country_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 8, /* OBJECT_FIELD_SETTING */
     }
@@ -3753,7 +3753,7 @@ pub fn _validate_PhysicalDeliveryCountryName(el: &X690Element) -> ASN1Result<()>
 /// ```
 ///
 ///
-pub fn postal_code() -> EXTENSION_ATTRIBUTE {
+pub const fn postal_code() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 9, /* OBJECT_FIELD_SETTING */
     }
@@ -3839,7 +3839,7 @@ pub fn _validate_PostalCode(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
+pub const fn physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 10, /* OBJECT_FIELD_SETTING */
     }
@@ -3892,7 +3892,7 @@ pub fn _validate_PhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Result<()> 
 /// ```
 ///
 ///
-pub fn universal_physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 29, /* OBJECT_FIELD_SETTING */
     }
@@ -3945,7 +3945,7 @@ pub fn _validate_UniversalPhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Re
 /// ```
 ///
 ///
-pub fn physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
+pub const fn physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 11, /* OBJECT_FIELD_SETTING */
     }
@@ -3998,7 +3998,7 @@ pub fn _validate_PhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1Result<()
 /// ```
 ///
 ///
-pub fn universal_physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 30, /* OBJECT_FIELD_SETTING */
     }
@@ -4051,7 +4051,7 @@ pub fn _validate_UniversalPhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1
 /// ```
 ///
 ///
-pub fn extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
+pub const fn extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 12, /* OBJECT_FIELD_SETTING */
     }
@@ -4104,7 +4104,7 @@ pub fn _validate_ExtensionORAddressComponents(el: &X690Element) -> ASN1Result<()
 /// ```
 ///
 ///
-pub fn universal_extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 31, /* OBJECT_FIELD_SETTING */
     }
@@ -4157,7 +4157,7 @@ pub fn _validate_UniversalExtensionORAddressComponents(el: &X690Element) -> ASN1
 /// ```
 ///
 ///
-pub fn physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
+pub const fn physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 13, /* OBJECT_FIELD_SETTING */
     }
@@ -4210,7 +4210,7 @@ pub fn _validate_PhysicalDeliveryPersonalName(el: &X690Element) -> ASN1Result<()
 /// ```
 ///
 ///
-pub fn universal_physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 32, /* OBJECT_FIELD_SETTING */
     }
@@ -4263,7 +4263,7 @@ pub fn _validate_UniversalPhysicalDeliveryPersonalName(el: &X690Element) -> ASN1
 /// ```
 ///
 ///
-pub fn physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
+pub const fn physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 14, /* OBJECT_FIELD_SETTING */
     }
@@ -4316,7 +4316,7 @@ pub fn _validate_PhysicalDeliveryOrganizationName(el: &X690Element) -> ASN1Resul
 /// ```
 ///
 ///
-pub fn universal_physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 33, /* OBJECT_FIELD_SETTING */
     }
@@ -4369,7 +4369,7 @@ pub fn _validate_UniversalPhysicalDeliveryOrganizationName(el: &X690Element) -> 
 /// ```
 ///
 ///
-pub fn extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
+pub const fn extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 15, /* OBJECT_FIELD_SETTING */
     }
@@ -4422,7 +4422,7 @@ pub fn _validate_ExtensionPhysicalDeliveryAddressComponents(el: &X690Element) ->
 /// ```
 ///
 ///
-pub fn universal_extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 34, /* OBJECT_FIELD_SETTING */
     }
@@ -4477,7 +4477,7 @@ pub fn _validate_UniversalExtensionPhysicalDeliveryAddressComponents(
 /// ```
 ///
 ///
-pub fn unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
+pub const fn unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 16, /* OBJECT_FIELD_SETTING */
     }
@@ -4685,7 +4685,7 @@ pub fn _validate_UnformattedPostalAddress(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 35, /* OBJECT_FIELD_SETTING */
     }
@@ -4739,7 +4739,7 @@ pub fn _validate_UniversalUnformattedPostalAddress(el: &X690Element) -> ASN1Resu
 /// ```
 ///
 ///
-pub fn street_address() -> EXTENSION_ATTRIBUTE {
+pub const fn street_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 17, /* OBJECT_FIELD_SETTING */
     }
@@ -4788,7 +4788,7 @@ pub fn _validate_StreetAddress(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_street_address() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_street_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 36, /* OBJECT_FIELD_SETTING */
     }
@@ -4837,7 +4837,7 @@ pub fn _validate_UniversalStreetAddress(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn post_office_box_address() -> EXTENSION_ATTRIBUTE {
+pub const fn post_office_box_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 18, /* OBJECT_FIELD_SETTING */
     }
@@ -4886,7 +4886,7 @@ pub fn _validate_PostOfficeBoxAddress(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_post_office_box_address() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_post_office_box_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 37, /* OBJECT_FIELD_SETTING */
     }
@@ -4939,7 +4939,7 @@ pub fn _validate_UniversalPostOfficeBoxAddress(el: &X690Element) -> ASN1Result<(
 /// ```
 ///
 ///
-pub fn poste_restante_address() -> EXTENSION_ATTRIBUTE {
+pub const fn poste_restante_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 19, /* OBJECT_FIELD_SETTING */
     }
@@ -4988,7 +4988,7 @@ pub fn _validate_PosteRestanteAddress(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_poste_restante_address() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_poste_restante_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 38, /* OBJECT_FIELD_SETTING */
     }
@@ -5041,7 +5041,7 @@ pub fn _validate_UniversalPosteRestanteAddress(el: &X690Element) -> ASN1Result<(
 /// ```
 ///
 ///
-pub fn unique_postal_name() -> EXTENSION_ATTRIBUTE {
+pub const fn unique_postal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 20, /* OBJECT_FIELD_SETTING */
     }
@@ -5090,7 +5090,7 @@ pub fn _validate_UniquePostalName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_unique_postal_name() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_unique_postal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 39, /* OBJECT_FIELD_SETTING */
     }
@@ -5143,7 +5143,7 @@ pub fn _validate_UniversalUniquePostalName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn local_postal_attributes() -> EXTENSION_ATTRIBUTE {
+pub const fn local_postal_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 21, /* OBJECT_FIELD_SETTING */
     }
@@ -5192,7 +5192,7 @@ pub fn _validate_LocalPostalAttributes(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn universal_local_postal_attributes() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_local_postal_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 40, /* OBJECT_FIELD_SETTING */
     }
@@ -5387,7 +5387,7 @@ pub fn _validate_UniversalPDSParameter(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn extended_network_address() -> EXTENSION_ATTRIBUTE {
+pub const fn extended_network_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 22, /* OBJECT_FIELD_SETTING */
     }
@@ -5495,7 +5495,7 @@ pub fn _validate_ExtendedNetworkAddress(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn terminal_type() -> EXTENSION_ATTRIBUTE {
+pub const fn terminal_type() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 23, /* OBJECT_FIELD_SETTING */
     }
@@ -5523,7 +5523,7 @@ pub mod terminal_type {
 ///   telex(3), teletex(4), g3-facsimile(5), g4-facsimile(6), ia5-terminal(7),
 ///   videotex(8)}(0..ub-integer-options)
 /// ```
-pub type TerminalType = i8;
+pub type TerminalType = u16;
 
 pub const TerminalType_telex: TerminalType = 3; /* LONG_NAMED_INTEGER_VALUE */
 
@@ -5538,15 +5538,15 @@ pub const TerminalType_ia5_terminal: TerminalType = 7; /* LONG_NAMED_INTEGER_VAL
 pub const TerminalType_videotex: TerminalType = 8; /* LONG_NAMED_INTEGER_VALUE */
 
 pub fn _decode_TerminalType(el: &X690Element) -> ASN1Result<TerminalType> {
-    BER.decode_i8(el)
+    BER.decode_u16(el)
 }
 
 pub fn _encode_TerminalType(value_: &TerminalType) -> ASN1Result<X690Element> {
-    BER.encode_i8(*value_)
+    BER.encode_u16(*value_)
 }
 
 pub fn _validate_TerminalType(el: &X690Element) -> ASN1Result<()> {
-    BER.validate_i8(el)
+    BER.validate_u16(el)
 }
 
 /// ### ASN.1 Definition:
@@ -5558,7 +5558,7 @@ pub fn _validate_TerminalType(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn teletex_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
+pub const fn teletex_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 6, /* OBJECT_FIELD_SETTING */
     }
@@ -5783,7 +5783,7 @@ pub fn _validate_TeletexDomainDefinedAttribute(el: &X690Element) -> ASN1Result<(
 /// ```
 ///
 ///
-pub fn universal_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
+pub const fn universal_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 28, /* OBJECT_FIELD_SETTING */
     }
@@ -6007,7 +6007,7 @@ pub fn _validate_UniversalDomainDefinedAttribute(el: &X690Element) -> ASN1Result
 /// ```
 ///
 ///
-pub const ub_integer_options: i64 = 256;
+pub const ub_integer_options: usize = 256;
 
 /// ### ASN.1 Definition:
 ///
@@ -6016,7 +6016,7 @@ pub const ub_integer_options: i64 = 256;
 /// ```
 ///
 ///
-pub const ub_e163_4_number_length: i64 = 15;
+pub const ub_e163_4_number_length: usize = 15;
 
 /// ### ASN.1 Definition:
 ///
@@ -6025,7 +6025,7 @@ pub const ub_e163_4_number_length: i64 = 15;
 /// ```
 ///
 ///
-pub const ub_e163_4_sub_address_length: i64 = 40;
+pub const ub_e163_4_sub_address_length: usize = 40;
 
 /// ### ASN.1 Definition:
 ///
@@ -6034,7 +6034,7 @@ pub const ub_e163_4_sub_address_length: i64 = 40;
 /// ```
 ///
 ///
-pub const ub_unformatted_address_length: i64 = 180;
+pub const ub_unformatted_address_length: usize = 180;
 
 /// ### ASN.1 Definition:
 ///
@@ -6043,7 +6043,7 @@ pub const ub_unformatted_address_length: i64 = 180;
 /// ```
 ///
 ///
-pub const ub_pds_parameter_length: i64 = 30;
+pub const ub_pds_parameter_length: usize = 30;
 
 /// ### ASN.1 Definition:
 ///
@@ -6052,7 +6052,7 @@ pub const ub_pds_parameter_length: i64 = 30;
 /// ```
 ///
 ///
-pub const ub_pds_physical_address_lines: i64 = 6;
+pub const ub_pds_physical_address_lines: usize = 6;
 
 /// ### ASN.1 Definition:
 ///
@@ -6061,7 +6061,7 @@ pub const ub_pds_physical_address_lines: i64 = 6;
 /// ```
 ///
 ///
-pub const ub_postal_code_length: i64 = 16;
+pub const ub_postal_code_length: usize = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -6070,7 +6070,7 @@ pub const ub_postal_code_length: i64 = 16;
 /// ```
 ///
 ///
-pub const ub_pds_name_length: i64 = 16;
+pub const ub_pds_name_length: usize = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -6079,7 +6079,7 @@ pub const ub_pds_name_length: i64 = 16;
 /// ```
 ///
 ///
-pub const ub_universal_surname_length: i64 = 64;
+pub const ub_universal_surname_length: usize = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -6088,7 +6088,7 @@ pub const ub_universal_surname_length: i64 = 64;
 /// ```
 ///
 ///
-pub const ub_universal_given_name_length: i64 = 40;
+pub const ub_universal_given_name_length: usize = 40;
 
 /// ### ASN.1 Definition:
 ///
@@ -6097,7 +6097,7 @@ pub const ub_universal_given_name_length: i64 = 40;
 /// ```
 ///
 ///
-pub const ub_universal_initials_length: i64 = 16;
+pub const ub_universal_initials_length: usize = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -6106,7 +6106,7 @@ pub const ub_universal_initials_length: i64 = 16;
 /// ```
 ///
 ///
-pub const ub_universal_generation_qualifier_length: i64 = 16;
+pub const ub_universal_generation_qualifier_length: usize = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -6115,7 +6115,7 @@ pub const ub_universal_generation_qualifier_length: i64 = 16;
 /// ```
 ///
 ///
-pub const ub_common_name_length: i64 = 64;
+pub const ub_common_name_length: usize = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -6124,7 +6124,7 @@ pub const ub_common_name_length: i64 = 64;
 /// ```
 ///
 ///
-pub const ub_extension_attributes: i64 = 256;
+pub const ub_extension_attributes: usize = 256;
 
 /// ### ASN.1 Definition:
 ///
@@ -6133,7 +6133,7 @@ pub const ub_extension_attributes: i64 = 256;
 /// ```
 ///
 ///
-pub const ub_domain_defined_attribute_type_length: i64 = 8;
+pub const ub_domain_defined_attribute_type_length: usize = 8;
 
 /// ### ASN.1 Definition:
 ///
@@ -6142,7 +6142,7 @@ pub const ub_domain_defined_attribute_type_length: i64 = 8;
 /// ```
 ///
 ///
-pub const ub_domain_defined_attribute_value_length: i64 = 128;
+pub const ub_domain_defined_attribute_value_length: usize = 128;
 
 /// ### ASN.1 Definition:
 ///
@@ -6151,7 +6151,7 @@ pub const ub_domain_defined_attribute_value_length: i64 = 128;
 /// ```
 ///
 ///
-pub const ub_domain_defined_attributes: i64 = 4;
+pub const ub_domain_defined_attributes: usize = 4;
 
 /// ### ASN.1 Definition:
 ///
@@ -6160,7 +6160,7 @@ pub const ub_domain_defined_attributes: i64 = 4;
 /// ```
 ///
 ///
-pub const ub_organizational_unit_name_length: i64 = 32;
+pub const ub_organizational_unit_name_length: usize = 32;
 
 /// ### ASN.1 Definition:
 ///
@@ -6169,7 +6169,7 @@ pub const ub_organizational_unit_name_length: i64 = 32;
 /// ```
 ///
 ///
-pub const ub_organizational_units: i64 = 4;
+pub const ub_organizational_units: usize = 4;
 
 /// ### ASN.1 Definition:
 ///
@@ -6178,7 +6178,7 @@ pub const ub_organizational_units: i64 = 4;
 /// ```
 ///
 ///
-pub const ub_generation_qualifier_length: i64 = 3;
+pub const ub_generation_qualifier_length: usize = 3;
 
 /// ### ASN.1 Definition:
 ///
@@ -6187,7 +6187,7 @@ pub const ub_generation_qualifier_length: i64 = 3;
 /// ```
 ///
 ///
-pub const ub_initials_length: i64 = 5;
+pub const ub_initials_length: usize = 5;
 
 /// ### ASN.1 Definition:
 ///
@@ -6196,7 +6196,7 @@ pub const ub_initials_length: i64 = 5;
 /// ```
 ///
 ///
-pub const ub_given_name_length: i64 = 16;
+pub const ub_given_name_length: usize = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -6205,7 +6205,7 @@ pub const ub_given_name_length: i64 = 16;
 /// ```
 ///
 ///
-pub const ub_surname_length: i64 = 40;
+pub const ub_surname_length: usize = 40;
 
 /// ### ASN.1 Definition:
 ///
@@ -6214,7 +6214,7 @@ pub const ub_surname_length: i64 = 40;
 /// ```
 ///
 ///
-pub const ub_numeric_user_id_length: i64 = 32;
+pub const ub_numeric_user_id_length: usize = 32;
 
 /// ### ASN.1 Definition:
 ///
@@ -6223,7 +6223,7 @@ pub const ub_numeric_user_id_length: i64 = 32;
 /// ```
 ///
 ///
-pub const ub_organization_name_length: i64 = 64;
+pub const ub_organization_name_length: usize = 64;
 
 /// ### ASN.1 Definition:
 ///
@@ -6232,7 +6232,7 @@ pub const ub_organization_name_length: i64 = 64;
 /// ```
 ///
 ///
-pub const ub_terminal_id_length: i64 = 24;
+pub const ub_terminal_id_length: usize = 24;
 
 /// ### ASN.1 Definition:
 ///
@@ -6241,7 +6241,7 @@ pub const ub_terminal_id_length: i64 = 24;
 /// ```
 ///
 ///
-pub const ub_x121_address_length: i64 = 16;
+pub const ub_x121_address_length: usize = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -6250,7 +6250,7 @@ pub const ub_x121_address_length: i64 = 16;
 /// ```
 ///
 ///
-pub const ub_domain_name_length: i64 = 16;
+pub const ub_domain_name_length: usize = 16;
 
 /// ### ASN.1 Definition:
 ///
@@ -6259,7 +6259,7 @@ pub const ub_domain_name_length: i64 = 16;
 /// ```
 ///
 ///
-pub const ub_country_name_alpha_length: i64 = 2;
+pub const ub_country_name_alpha_length: usize = 2;
 
 /// ### ASN.1 Definition:
 ///
@@ -6268,7 +6268,7 @@ pub const ub_country_name_alpha_length: i64 = 2;
 /// ```
 ///
 ///
-pub const ub_country_name_numeric_length: i64 = 3;
+pub const ub_country_name_numeric_length: usize = 3;
 
 /// ### ASN.1 Definition:
 ///
