@@ -51,9 +51,9 @@ impl PresentationAddress {
             .map(|naddr| (naddr.len() << 1) + 50) // +50 for good measure.
             .reduce(|acc, curr| acc + curr)
             .unwrap();
-        let psel_len = self.pSelector.map(|s| s.len()).unwrap_or(0);
-        let ssel_len = self.sSelector.map(|s| s.len()).unwrap_or(0);
-        let tsel_len = self.tSelector.map(|s| s.len()).unwrap_or(0);
+        let psel_len = self.pSelector.as_ref().map(|s| s.len()).unwrap_or(0);
+        let ssel_len = self.sSelector.as_ref().map(|s| s.len()).unwrap_or(0);
+        let tsel_len = self.tSelector.as_ref().map(|s| s.len()).unwrap_or(0);
         let mut out: String = String::with_capacity(
             naddrs_len
             + (psel_len << 1) + 4
@@ -63,7 +63,7 @@ impl PresentationAddress {
             // We're trying to make this a single allocation.
         );
         if psel_len > 0 && ssel_len > 0 && tsel_len > 0 {
-            let sel = self.pSelector.unwrap();
+            let sel = self.pSelector.as_ref().unwrap();
             if sel.iter().all(|b| b.is_ascii_alphanumeric()) {
                 out.push('"');
                 out.push_str(unsafe { std::str::from_utf8_unchecked(&sel) });
@@ -75,7 +75,7 @@ impl PresentationAddress {
             }
         }
         if ssel_len > 0 && tsel_len > 0 {
-            let sel = self.sSelector.unwrap();
+            let sel = self.sSelector.as_ref().unwrap();
             if sel.iter().all(|b| b.is_ascii_alphanumeric()) {
                 out.push('"');
                 out.push_str(unsafe { std::str::from_utf8_unchecked(&sel) });
@@ -87,7 +87,7 @@ impl PresentationAddress {
             }
         }
         if tsel_len > 0 {
-            let sel = self.tSelector.unwrap();
+            let sel = self.tSelector.as_ref().unwrap();
             if sel.iter().all(|b| b.is_ascii_alphanumeric()) {
                 out.push('"');
                 out.push_str(unsafe { std::str::from_utf8_unchecked(&sel) });
@@ -190,9 +190,9 @@ impl FromStr for PresentationAddress {
                     .map_err(|e| PresentationAddressDecodeError::NAddressDecodeError(e))?);
             }
         }
-        let mut tsel: Option<Vec<u8>> = sels.pop();
-        let mut ssel: Option<Vec<u8>> = sels.pop();
-        let mut psel: Option<Vec<u8>> = sels.pop();
+        let tsel: Option<Vec<u8>> = sels.pop();
+        let ssel: Option<Vec<u8>> = sels.pop();
+        let psel: Option<Vec<u8>> = sels.pop();
         Ok(PresentationAddress::new(psel, ssel, tsel, naddrs, vec![]))
     }
 
@@ -216,8 +216,8 @@ impl PartialEq for PresentationAddress {
         let a_sorted = self.nAddresses.clone().sort();
         let b_sorted = other.nAddresses.clone().sort();
         for i in 0..self.nAddresses.len() {
-            let naddr_a = self.nAddresses[i];
-            let naddr_b = self.nAddresses[i];
+            let naddr_a = &self.nAddresses[i];
+            let naddr_b = &other.nAddresses[i];
             if naddr_a != naddr_b {
                 return false;
             }
