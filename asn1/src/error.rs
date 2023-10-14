@@ -54,6 +54,7 @@ pub enum ASN1ErrorCode {
     invalid_utf8,
     nonsense, // An impossible error that should never happen.
     trailing_data,
+    constraint_violation,
 }
 
 #[derive(Debug)]
@@ -71,6 +72,7 @@ pub struct ASN1Error {
 
 impl std::error::Error for ASN1Error {}
 
+// TODO: Fill in more variants here.
 impl fmt::Display for ASN1ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
