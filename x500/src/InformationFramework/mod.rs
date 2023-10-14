@@ -26,6 +26,8 @@ use crate::UsefulDefinitions::*;
 use asn1::*;
 use std::sync::Arc;
 use x690::*;
+mod name;
+pub use name::*;
 
 /// ### ASN.1 Definition:
 ///
@@ -1027,53 +1029,6 @@ pub fn SupportedAttributes() -> Vec<ATTRIBUTE> {
 ///
 pub fn SupportedContexts() -> Vec<CONTEXT> {
     Vec::new()
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// Name  ::=  CHOICE { -- only one possibility for now -- rdnSequence  RDNSequence }
-/// ```
-#[derive(Debug, Clone)]
-pub enum Name {
-    rdnSequence(RDNSequence),
-}
-
-impl TryFrom<&X690Element> for Name {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_Name(el)
-    }
-}
-
-pub fn _decode_Name(el: &X690Element) -> ASN1Result<Name> {
-    match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 16) => Ok(Name::rdnSequence(_decode_RDNSequence(&el)?)),
-        _ => {
-            return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                "Name",
-            ))
-        }
-    }
-}
-
-pub fn _encode_Name(value_: &Name) -> ASN1Result<X690Element> {
-    match value_ {
-        Name::rdnSequence(v) => _encode_RDNSequence(&v),
-    }
-}
-
-pub fn _validate_Name(el: &X690Element) -> ASN1Result<()> {
-    match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 16) => _validate_RDNSequence(&el),
-        _ => {
-            return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                "Name",
-            ))
-        }
-    }
 }
 
 /// ### ASN.1 Definition:
