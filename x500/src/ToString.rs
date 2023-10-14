@@ -1,3 +1,9 @@
+// #![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+use asn1::{ASN1Value, INSTANCE_OF};
+use x690::{ber_encode, write_x690_node};
+use crate::PkiPmiExternalDataTypes::_encode_ORAddress;
 use crate::types::{
     DefaultX500ValueDisplayer,
     DisplayX500AttributeType,
@@ -256,6 +262,14 @@ impl Display for Name {
             Name::rdnSequence(rdns) => {
                 f.write_str("rdnSequence:")?;
                 f.write_str(&display_rdn_sequence(&rdns))
+            },
+            Name::dnsName(dns) => {
+                f.write_str("dnsName:")?;
+                f.write_str(&dns)
+            },
+            Name::oid(oid) => {
+                f.write_str("oid:")?;
+                f.write_str(&oid.to_string())
             }
         }
     }
@@ -289,62 +303,197 @@ impl Display for EDIPartyName {
 
 }
 
+// id-pkix  OBJECT IDENTIFIER  ::=
+// {iso(1) identified-organization(3) dod(6) internet(1) security(5)
+// mechanisms(5) pkix(7)}
+// id-on OBJECT IDENTIFIER ::= { id-pkix 8 }
+
+/// HardwareModuleName is described here: https://www.rfc-editor.org/rfc/rfc4108.html#page-56
+///
+/// ```asn1
+/// id-on-hardwareModuleName  OBJECT IDENTIFIER ::= { id-on 4 }
+/// ```
+const HardwareModuleName: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 4 ];
+
+/// XmppAddr is described here: https://datatracker.ietf.org/doc/html/rfc3920#section-5.1.1
+///
+/// ```asn1
+/// id-on-xmppAddr  OBJECT IDENTIFIER ::= { id-on 5 }
+/// ```
+const XmppAddr: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 5 ];
+
+/// SRVName is described here: https://datatracker.ietf.org/doc/html/rfc4985
+///
+/// ```asn1
+/// id-on-dnsSRV OBJECT IDENTIFIER ::= { id-on 7 }
+///
+const SRVName: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 7 ];
+
+/// The NAIRealm OtherName is described here: https://datatracker.ietf.org/doc/html/rfc7585#section-2.2
+///
+/// ```asn1
+/// id-on-naiRealm OBJECT IDENTIFIER ::= { id-on 8 }
+/// ```
+const NAIRealm: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 8 ];
+
+/// SmtpUTF8Mailbox is described here: https://datatracker.ietf.org/doc/html/rfc8398
+///
+/// ```asn1
+/// id-on-SmtpUTF8Mailbox OBJECT IDENTIFIER ::= { id-on 9 }
+/// ```
+const SmtpUTF8Mailbox: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 9 ];
+
+/// AcpNodeName is described here: https://www.rfc-editor.org/rfc/rfc8994.html
+///
+/// ```asn1
+/// id-on-AcpNodeName OBJECT IDENTIFIER ::= { id-on 10 }
+/// ```
+const AcpNodeName: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 10 ];
+
+/// BundleEID is described here: https://www.rfc-editor.org/rfc/rfc9174.html#name-asn1-module
+///
+/// ```asn1
+/// id-on-bundleEID OBJECT IDENTIFIER ::= { id-on 11 }
+/// ```
+const BundleEID: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 11 ];
+
+
+/// The UPN OtherName is described here: https://learn.microsoft.com/en-US/troubleshoot/windows-server/windows-security/enabling-smart-card-logon-third-party-certification-authorities
+///
+const UPN: [u32; 10] = [ 1, 3, 6, 1, 4, 1, 311, 20, 2, 3 ];
+
+pub fn display_other_name (n: &INSTANCE_OF, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    if &n.type_id.0 == &HardwareModuleName {
+        f.write_str("hardwareModuleName:")?;
+        // HardwareModuleName ::= SEQUENCE {
+        //     hwType OBJECT IDENTIFIER,
+        //     hwSerialNum OCTET STRING }
+        return match n.value.as_ref() {
+            ASN1Value::SequenceValue(components) => {
+                if components.len() != 2 {
+                    return Err(std::fmt::Error);
+                }
+                let hwType = match components[0] {
+                    ASN1Value::ObjectIdentifierValue(ref o) => o,
+                    _ => return Err(std::fmt::Error),
+                };
+                let hwSerialNum = match components[1] {
+                    ASN1Value::OctetStringValue(ref o) => o,
+                    _ => return Err(std::fmt::Error),
+                };
+                f.write_fmt(format_args!("{}:{}", hwType.to_string(), hex::encode(hwSerialNum)))
+            },
+            _ => Err(std::fmt::Error)
+        };
+    } else if &n.type_id.0 == &XmppAddr {
+        f.write_str("xmppAddr:")?;
+        return match n.value.as_ref() {
+            ASN1Value::UTF8String(s) => f.write_str(s),
+            _ => Err(std::fmt::Error)
+        };
+    } else if &n.type_id.0 == &SRVName {
+        f.write_str("srvName:")?;
+        return match n.value.as_ref() {
+            ASN1Value::IA5String(s) => f.write_str(s),
+            _ => Err(std::fmt::Error)
+        };
+    } else if &n.type_id.0 == &NAIRealm {
+        f.write_str("naiRealm:")?;
+        return match n.value.as_ref() {
+            ASN1Value::UTF8String(s) => f.write_str(s),
+            _ => Err(std::fmt::Error)
+        };
+    } else if &n.type_id.0 == &SmtpUTF8Mailbox {
+        f.write_str("smtpUTF8Mailbox:")?;
+        return match n.value.as_ref() {
+            ASN1Value::UTF8String(s) => f.write_str(s),
+            _ => Err(std::fmt::Error)
+        };
+    } else if &n.type_id.0 == &AcpNodeName {
+        f.write_str("acpNodeName:")?;
+        return match n.value.as_ref() {
+            ASN1Value::IA5String(s) => f.write_str(s),
+            _ => Err(std::fmt::Error)
+        };
+    } else if &n.type_id.0 == &BundleEID {
+        f.write_str("bundleEID:")?;
+        return match n.value.as_ref() {
+            ASN1Value::IA5String(s) => f.write_str(s),
+            _ => Err(std::fmt::Error)
+        };
+    } else if &n.type_id.0 == &UPN {
+        f.write_str("upn:")?;
+        return match n.value.as_ref() {
+            ASN1Value::UTF8String(s) => f.write_str(s),
+            _ => Err(std::fmt::Error)
+        };
+    } else {
+        let mut ber: Vec<u8> = vec![];
+        ber_encode(&mut ber, &n.value).map_err(|_| std::fmt::Error)?;
+        f.write_fmt(format_args!("{}:{}", n.type_id.to_string(), hex::encode(ber)))
+    }
+}
+
 impl Display for GeneralName {
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             GeneralName::otherName(n) => {
-                // TODO: SmtpUTF8Mailbox https://datatracker.ietf.org/doc/html/rfc8398
-                // TODO: XmppAddr https://datatracker.ietf.org/doc/html/rfc3920#section-5.1.1
-                // TODO: SRVName https://datatracker.ietf.org/doc/html/rfc4985
-                // Subject Alternative Name = Other Name: Principal Name= (UPN). For example:
-                // UPN = user1@name.com
-                // The UPN OtherName OID is: "1.3.6.1.4.1.311.20.2.3"
-                // The UPN OtherName value: Must be ASN1-encoded UTF8 string
-                // TODO: UPN https://learn.microsoft.com/en-US/troubleshoot/windows-server/windows-security/enabling-smart-card-logon-third-party-certification-authorities
-                // TODO: NAIRealm https://datatracker.ietf.org/doc/html/rfc7585#section-2.2
-                // TODO: Try to print the value, even if it is unrecognized.
-                f.write_str("other:?")
+                f.write_str("otherName:")?;
+                display_other_name(n, f)
             },
             GeneralName::rfc822Name(n) => {
-                f.write_str("rfc822:")?;
+                f.write_str("rfc822Name:")?;
                 f.write_str(n)
             },
             GeneralName::dNSName(n) => {
-                f.write_str("dns:")?;
+                f.write_str("dNSName:")?;
                 f.write_str(n)
             },
             GeneralName::x400Address(n) => {
-                f.write_str("x400:?")
+                // TODO: Support displaying X.400 names: https://www.rfc-editor.org/rfc/rfc1685
+                let el = _encode_ORAddress(n).map_err(|_| std::fmt::Error)?;
+                let mut output: Vec<u8> = Vec::new();
+                write_x690_node(&mut output, &el).map_err(|_| std::fmt::Error)?;
+                f.write_str("x400Address:")?;
+                f.write_str(&hex::encode(output))
             },
             GeneralName::directoryName(n) => {
-                f.write_str("dir:")?;
+                f.write_str("directoryName:")?;
                 match n {
                     Name::rdnSequence(rdns) => {
-                        f.write_fmt(format_args!("rdns:{}", &display_rdn_sequence(rdns)))
+                        f.write_str("rdnSequence:")?;
+                        f.write_str(&display_rdn_sequence(rdns))
                     },
+                    Name::dnsName(dns) => {
+                        f.write_str("dnsName:")?;
+                        f.write_str(&dns)
+                    },
+                    Name::oid(oid) => {
+                        f.write_str("oid:")?;
+                        f.write_str(&oid.to_string())
+                    }
                 }
             },
             GeneralName::ediPartyName(n) => {
-                f.write_fmt(format_args!("edi:{}", &n))
+                f.write_fmt(format_args!("ediPartyName:{}", &n))
             },
             GeneralName::uniformResourceIdentifier(n) => {
-                f.write_str("uri:")?;
+                f.write_str("uniformResourceIdentifier:")?;
                 f.write_str(n)
             },
             GeneralName::iPAddress(n) => {
+                f.write_str("iPAddress:")?;
                 if n.len() == 4 {
-                    f.write_str("ipv4:")?;
                     f.write_fmt(format_args!("{}.{}.{}.{}", n[0], n[1], n[2], n[3]))
                 } else if n.len() == 16 {
-                    f.write_str("ipv6:")?;
                     display_ipv6(n, f)
                 } else {
                     Err(Error)
                 }
             },
             GeneralName::registeredID(n) => {
-                f.write_str("oid:")?;
+                f.write_str("registeredID:")?;
                 f.write_str(&n.to_string())
             },
             GeneralName::_unrecognized(_) => f.write_str("?")
