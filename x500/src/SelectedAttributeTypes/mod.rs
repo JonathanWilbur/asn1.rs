@@ -28,86 +28,10 @@ use crate::UsefulDefinitions::*;
 use asn1::*;
 use std::sync::Arc;
 use x690::*;
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// UnboundedDirectoryString  ::=  CHOICE {
-///   teletexString    TeletexString(SIZE (1..MAX)),
-///   printableString  PrintableString(SIZE (1..MAX)),
-///   bmpString        BMPString(SIZE (1..MAX)),
-///   universalString  UniversalString(SIZE (1..MAX)),
-///   uTF8String       UTF8String(SIZE (1..MAX)) }
-/// ```
-#[derive(Debug, Clone)]
-pub enum UnboundedDirectoryString {
-    teletexString(TeletexString),
-    printableString(PrintableString),
-    bmpString(BMPString),
-    universalString(UniversalString),
-    uTF8String(UTF8String),
-}
-
-impl TryFrom<&X690Element> for UnboundedDirectoryString {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_UnboundedDirectoryString(el)
-    }
-}
-
-pub fn _decode_UnboundedDirectoryString(el: &X690Element) -> ASN1Result<UnboundedDirectoryString> {
-    match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 20) => Ok(UnboundedDirectoryString::teletexString(
-            BER.decode_t61_string(&el)?,
-        )),
-        (TagClass::UNIVERSAL, 19) => Ok(UnboundedDirectoryString::printableString(
-            BER.decode_printable_string(&el)?,
-        )),
-        (TagClass::UNIVERSAL, 30) => Ok(UnboundedDirectoryString::bmpString(
-            BER.decode_bmp_string(&el)?,
-        )),
-        (TagClass::UNIVERSAL, 28) => Ok(UnboundedDirectoryString::universalString(
-            BER.decode_universal_string(&el)?,
-        )),
-        (TagClass::UNIVERSAL, 12) => Ok(UnboundedDirectoryString::uTF8String(
-            BER.decode_utf8_string(&el)?,
-        )),
-        _ => {
-            return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                "UnboundedDirectoryString",
-            ))
-        }
-    }
-}
-
-pub fn _encode_UnboundedDirectoryString(
-    value_: &UnboundedDirectoryString,
-) -> ASN1Result<X690Element> {
-    match value_ {
-        UnboundedDirectoryString::teletexString(v) => BER.encode_t61_string(&v),
-        UnboundedDirectoryString::printableString(v) => BER.encode_printable_string(&v),
-        UnboundedDirectoryString::bmpString(v) => BER.encode_bmp_string(&v),
-        UnboundedDirectoryString::universalString(v) => BER.encode_universal_string(&v),
-        UnboundedDirectoryString::uTF8String(v) => BER.encode_utf8_string(&v),
-    }
-}
-
-pub fn _validate_UnboundedDirectoryString(el: &X690Element) -> ASN1Result<()> {
-    match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 20) => BER.validate_t61_string(&el),
-        (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
-        (TagClass::UNIVERSAL, 30) => BER.validate_bmp_string(&el),
-        (TagClass::UNIVERSAL, 28) => BER.validate_universal_string(&el),
-        (TagClass::UNIVERSAL, 12) => BER.validate_utf8_string(&el),
-        _ => {
-            return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                "UnboundedDirectoryString",
-            ))
-        }
-    }
-}
+mod paddr;
+mod uds;
+pub use paddr::*;
+pub use uds::*;
 
 /// ### ASN.1 Definition:
 ///
