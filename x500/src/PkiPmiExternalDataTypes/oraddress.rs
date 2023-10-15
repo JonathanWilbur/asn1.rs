@@ -29,7 +29,7 @@ use crate::SelectedAttributeTypes::{
     physicalDeliveryOfficeName, postOfficeBox, postalAddress, postalCode, presentationAddress,
     x121Address, PresentationAddress, UnboundedDirectoryString,
     _encode_owned_UnboundedDirectoryString, commonName, countryCode3n, generationQualifier,
-    givenName, initials, organizationName, streetAddress, surname, PostalAddress,
+    givenName, initials, organizationName, streetAddress, surname, PostalAddress, _decode_UnboundedDirectoryString,
 };
 use asn1::{
     compare_numeric_string, is_numeric_str, is_printable_str, oid, ASN1Error, ASN1ErrorCode,
@@ -612,6 +612,319 @@ impl TryFrom<&ORAddress> for RelativeDistinguishedName {
     fn try_from(value: &ORAddress) -> Result<Self, Self::Error> {
         let info: ORAddressInfo = value.try_into()?;
         info.try_into()
+    }
+
+}
+
+impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
+
+    type Error = ASN1Error;
+
+    fn try_from(value: &RelativeDistinguishedName) -> Result<Self, Self::Error> {
+        // All of these come from the built-in attributes.
+        let mut prmd: Option<String> = None; // P
+        let mut admd: Option<String> = None; // A
+
+        // Personal Name Fields
+        let mut g: Option<String> = None;
+        let mut sn: Option<String> = None;
+        let mut i: Option<String> = None;
+        let mut q: Option<String> = None;
+
+        // This should only be the ISO-3166 code.
+        let mut country: Option<Country> = None; // C
+        let mut x121_net_addr: Option<String> = None; // X.121
+        let mut num_id: Option<NumericString> = None; // N-ID
+        let mut term_id: Option<String> = None; // T-ID
+        let mut personal_name: Option<PersonalNameInfo> = None; // G, I, S, Q
+        let mut common_name: Option<String> = None; // CN
+        let mut org_name: Option<String> = None; // O
+
+         // OU2 - OU4 cannot be used, because no ordering can be inferred.
+        let mut ous: Vec<String> = vec![]; // Only for OU1
+
+        let mut pdo_name: Option<String> = None; // PD-OF
+        let mut street: Option<String> = None; // PD-S
+        let mut pd_address: Vec<String> = vec![]; // PD-A1 - PD-A6
+        let mut po_box_addr: Option<String> = None; // PD-B
+        let mut postal_code: Option<String> = None; // PD-PC
+        let mut pd_svc_name: Option<String> = None; // PD-SN
+        let pd_country_name: Option<Country> = None; // PD-C
+        let mut isdn: Option<String> = None; // ISDN (This is the E.163 or E.164 address)
+        let mut psap: Option<PresentationAddress> = None; // PSAP
+        let mut term_type: Option<TerminalType> = None; // T-TY
+        let dda: HashMap<String, String> = HashMap::new(); // DDA: Domain-Defined Attribute
+
+        for rdn in value.iter() {
+            if rdn.type_.0.len() == 5 && rdn.type_.0.starts_with(&[ 2, 6, 10, 3 ]) {
+                let last_arc = rdn.type_.0[4];
+                match last_arc {
+                    9 => { // id-at-mhs-admd-name ID ::= {id-at  9}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_printable_str(&s) || s.len() > ub_domain_name_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        admd = Some(s);
+                    },
+                    10 => { // id-at-mhs-common-name ID ::= {id-at  10}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_printable_str(&s) || s.len() > ub_common_name_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        common_name = Some(s);
+                    },
+                    11 => { // id-at-mhs-country-name ID ::= {id-at  11}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        let mut cc = s.as_str();
+                        if is_numeric_str(&s) {
+                            let dcc = u16::from_str(&s)
+                                .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
+                            let maybe_iso = x121_dcc_country_code_to_iso_3166(dcc);
+                            if maybe_iso.is_none() {
+                                return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                            }
+                            let iso = maybe_iso.unwrap();
+                            cc = iso;
+                        }
+                        else if is_printable_str(&s) {
+                            if s.len() < 2 || s.len() > 3 {
+                                return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                            }
+                        }
+                        else {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        let c = Country::from_str(&cc)
+                            .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
+                        country = Some(c);
+                    },
+                    14 => { // id-at-mhs-generation-qualifier ID ::= {id-at  14}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if s.chars().count() > ub_universal_generation_qualifier_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        q = Some(uds.to_string());
+                    },
+                    15 => { // id-at-mhs-given-name ID ::= {id-at  15}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if s.chars().count() > ub_universal_given_name_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        g = Some(uds.to_string());
+                    },
+                    16 => { // id-at-mhs-initials ID ::= {id-at  16}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if s.chars().count() > ub_universal_initials_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        i = Some(uds.to_string());
+                    },
+                    18 => { // id-at-mhs-network-address ID ::= {id-at  18}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_numeric_str(&s) {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        x121_net_addr = Some(s);
+                    },
+                    20 => { // id-at-mhs-numeric-user-identifier ID ::= {id-at  20}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_numeric_str(&s) || s.len() > ub_numeric_user_id_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        num_id = Some(s);
+                    },
+                    21 => { // id-at-mhs-organization-name ID ::= {id-at  21}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if s.chars().count() > ub_organization_name_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        org_name = Some(s);
+                    },
+                    22 => { // id-at-mhs-organizational-unit-name ID ::= {id-at  22}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if s.chars().count() > ub_organizational_unit_name_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        if ous.len() == 0 {
+                            ous.push(uds.to_string());
+                        }
+                    },
+                    23 => { // id-at-mhs-pds-name-attribute ID ::= {id-at  23}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_printable_str(&s) || s.len() > ub_pds_name_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        pd_svc_name = Some(s);
+                    },
+                    24 => { // id-at-mhs-postal-code ID ::= {id-at  24}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_printable_str(&s) || s.len() > ub_postal_code_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        postal_code = Some(s);
+                    },
+                    25 => { // id-at-mhs-prmd-name ID ::= {id-at  25}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_printable_str(&s) || s.len() > ub_domain_name_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        prmd = Some(s);
+                    },
+                    27 => { // id-at-mhs-surname ID ::= {id-at  27}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if s.chars().count() > ub_universal_surname_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        sn = Some(uds.to_string());
+                    },
+                    28 => { // id-at-mhs-terminal-identifier ID ::= {id-at  28}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        if !is_printable_str(&s) || s.len() > ub_terminal_id_length {
+                            return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
+                        }
+                        term_id = Some(s);
+                    },
+                    29 => { // id-at-mhs-terminal-type ID ::= {id-at  29}
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        let s = uds.to_string();
+                        term_type = term_type_from_str(&s);
+                    },
+                    _ => {}, // Do nothing for unrecognized attributes.
+                }
+            }
+            if rdn.type_.0.len() == 4 && rdn.type_.0.starts_with(&[ 2, 5, 4 ]) {
+                let last_arc = rdn.type_.0[3];
+                match last_arc {
+                    3 => { // commonName
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        common_name = Some(uds.to_string());
+                    },
+                    4 => { // surname
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        sn = Some(uds.to_string());
+                    },
+                    6 => { // countryName
+                        let cc = countryName::_decode_Type(&rdn.value)?;
+                        let c = Country::from_str(cc.as_str())
+                            .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
+                        country = Some(c);
+                    },
+                    9 => { // streetAddress
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        street = Some(uds.to_string());
+                    },
+                    10 => { // organizationName
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        org_name = Some(uds.to_string());
+                    },
+                    11 => { // organizationalUnitName
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        if ous.len() == 0 {
+                            ous.push(uds.to_string());
+                        } else {
+                            // TODO: What to do here?
+                        }
+                    },
+                    16 => { // postalAddress
+                        let v = postalAddress::_decode_Type(&rdn.value)?.iter()
+                            .map(|line| line.to_string())
+                            .collect();
+                        pd_address = v;
+                    },
+                    17 => { // postalCode
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        postal_code = Some(uds.to_string());
+                    },
+                    18 => { // postOfficeBox
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        po_box_addr = Some(uds.to_string());
+                    },
+                    19 => { // physicalDeliveryOfficeName
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        pdo_name = Some(uds.to_string());
+                    },
+                    24 => { // x121Address
+                        let v = x121Address::_decode_Type(&rdn.value)?;
+                        x121_net_addr = Some(v);
+                    },
+                    25 => { // internationalISDNNumber
+                        let v = internationalISDNNumber::_decode_Type(&rdn.value)?;
+                        isdn = Some(v);
+                    },
+                    29 => { // presentationAddress
+                        let v = presentationAddress::_decode_Type(&rdn.value)?;
+                        psap = Some(v);
+                    },
+                    42 => { // givenName
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        g = Some(uds.to_string());
+                    },
+                    43 => { // initials
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        i = Some(uds.to_string());
+                    },
+                    44 => { // generationQualifier
+                        let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
+                        q = Some(uds.to_string());
+                    },
+                    98 => { // countryCode3c
+                        let cc = countryCode3c::_decode_Type(&rdn.value)?;
+                        let c = Country::from_str(cc.as_str())
+                            .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
+                        country = Some(c);
+                    },
+                    99 => { // countryCode3n
+                        let cc = countryCode3n::_decode_Type(&rdn.value)?;
+                        let c = Country::from_code(cc.as_str())
+                            .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
+                        country = Some(c);
+                    },
+                    _ => {}, // Do nothing for unrecognized attributes.
+                }
+            }
+        }
+        if let Some(sn) = sn {
+            personal_name = Some(PersonalNameInfo::new(sn, g, i, q));
+        }
+        Ok(ORAddressInfo {
+            prmd,
+            admd,
+            country,
+            x121_net_addr,
+            num_id,
+            term_id,
+            personal_name,
+            common_name,
+            org_name,
+            ous,
+            pdo_name,
+            street,
+            pd_address,
+            po_box_addr,
+            postal_code,
+            pd_svc_name,
+            pd_country_name,
+            isdn,
+            psap,
+            term_type,
+            ..Default::default()
+        })
     }
 
 }
@@ -2254,7 +2567,6 @@ impl TryFrom<ORAddressInfo> for ORAddress {
     type Error = ASN1Error;
 
     fn try_from(mut value: ORAddressInfo) -> Result<Self, Self::Error> {
-        // TODO: Avoid cloning
         let org_name_is_printable = value.org_name.as_ref().is_some_and(|s| is_printable_str(s));
         let ous_are_printable = value.ous.iter().all(|ou| is_printable_str(&ou));
         let person_name_is_printable = value
