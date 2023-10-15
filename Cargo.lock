@@ -486,15 +486,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "celes"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39b9a21273925d7cc9e8a9a5f068122341336813c607014f5ef64f82b6acba58"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "cesu8"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2171,6 +2162,16 @@ dependencies = [
  "hermit-abi 0.3.2",
  "rustix",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "isocountry"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ea1dc4bf0fb4904ba83ffdb98af3d9c325274e92e6e295e4151e86c96363e04"
+dependencies = [
+ "serde",
+ "thiserror",
 ]
 
 [[package]]
@@ -5331,9 +5332,9 @@ name = "x500"
 version = "0.1.0"
 dependencies = [
  "asn1",
- "celes",
  "cow-utils",
  "hex",
+ "isocountry",
  "ldap",
  "nsap-address",
  "punycode",

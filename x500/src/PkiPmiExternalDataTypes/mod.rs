@@ -32,6 +32,7 @@ mod univ_or_bmp;
 pub use country::*;
 pub use oraddress::*;
 pub use univ_or_bmp::*;
+use std::str::FromStr;
 
 /// ### ASN.1 Definition:
 ///
@@ -1434,10 +1435,43 @@ pub fn _validate_BuiltInStandardAttributes(el: &X690Element) -> ASN1Result<()> {
 ///   x121-dcc-code         NumericString(SIZE (ub-country-name-numeric-length)),
 ///   iso-3166-alpha2-code  PrintableString(SIZE (ub-country-name-alpha-length)) }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub enum CountryName {
     x121_dcc_code(NumericString),
     iso_3166_alpha2_code(PrintableString),
+}
+
+impl PartialEq for CountryName {
+
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (CountryName::x121_dcc_code(a), CountryName::x121_dcc_code(b)) => a == b,
+            (CountryName::iso_3166_alpha2_code(a), CountryName::iso_3166_alpha2_code(b)) => a.eq_ignore_ascii_case(b),
+            (CountryName::x121_dcc_code(a), CountryName::iso_3166_alpha2_code(b)) => {
+                let dcc = match u16::from_str(a.as_str()) {
+                    Ok(d) => d,
+                    Err(_) => return false,
+                };
+                let iso_cc = match x121_dcc_country_code_to_iso_3166(dcc) {
+                    Some(d) => d,
+                    None => return false,
+                };
+                iso_cc == b.as_str()
+            },
+            (CountryName::iso_3166_alpha2_code(a), CountryName::x121_dcc_code(b)) => {
+                let dcc = match u16::from_str(b.as_str()) {
+                    Ok(d) => d,
+                    Err(_) => return false,
+                };
+                let iso_cc = match x121_dcc_country_code_to_iso_3166(dcc) {
+                    Some(d) => d,
+                    None => return false,
+                };
+                a.as_str() == iso_cc
+            },
+        }
+    }
+
 }
 
 impl TryFrom<&X690Element> for CountryName {
@@ -1509,10 +1543,32 @@ pub fn _validate_CountryName(el: &X690Element) -> ASN1Result<()> {
 ///   numeric    NumericString(SIZE (0..ub-domain-name-length)),
 ///   printable  PrintableString(SIZE (0..ub-domain-name-length)) }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub enum AdministrationDomainName {
     numeric(NumericString),
     printable(PrintableString),
+}
+
+impl AsRef<str> for AdministrationDomainName {
+
+    fn as_ref(&self) -> &str {
+        match self {
+            AdministrationDomainName::numeric(s) => s,
+            AdministrationDomainName::printable(s) => s,
+        }
+    }
+
+}
+
+impl PartialEq for AdministrationDomainName {
+
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (AdministrationDomainName::numeric(a), AdministrationDomainName::numeric(b)) => compare_numeric_string(a, b),
+            _ => self.as_ref().trim().eq_ignore_ascii_case(other.as_ref().trim()),
+        }
+    }
+
 }
 
 impl TryFrom<&X690Element> for AdministrationDomainName {
@@ -1648,10 +1704,32 @@ pub fn _validate_TerminalIdentifier(el: &X690Element) -> ASN1Result<()> {
 ///   numeric    NumericString(SIZE (1..ub-domain-name-length)),
 ///   printable  PrintableString(SIZE (1..ub-domain-name-length)) }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub enum PrivateDomainName {
     numeric(NumericString),
     printable(PrintableString),
+}
+
+impl AsRef<str> for PrivateDomainName {
+
+    fn as_ref(&self) -> &str {
+        match self {
+            PrivateDomainName::numeric(s) => s,
+            PrivateDomainName::printable(s) => s,
+        }
+    }
+
+}
+
+impl PartialEq for PrivateDomainName {
+
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (PrivateDomainName::numeric(a), PrivateDomainName::numeric(b)) => compare_numeric_string(a, b),
+            _ => self.as_ref().trim().eq_ignore_ascii_case(other.as_ref().trim()),
+        }
+    }
+
 }
 
 impl TryFrom<&X690Element> for PrivateDomainName {

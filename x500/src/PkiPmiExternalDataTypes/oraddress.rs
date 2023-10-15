@@ -35,7 +35,6 @@ use asn1::{
     compare_numeric_string, is_numeric_str, is_printable_str, oid, ASN1Error, ASN1ErrorCode,
     NumericString,
 };
-use celes::Country;
 use cow_utils::CowUtils;
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
@@ -45,6 +44,7 @@ use std::fmt::{Display, Write};
 use std::str::FromStr;
 use teletex::teletex_to_utf8;
 use x690::{X690Codec, BER};
+use isocountry::CountryCode;
 
 use super::_encode_ExtendedNetworkAddress;
 
@@ -178,8 +178,8 @@ impl PersonalNameInfo {
                     .initials
                     .as_ref()
                     .is_some_and(|n| (n.len() <= ub_initials_length) && is_printable_str(&n)))
-            && (self.given_name.is_none()
-                || self.given_name.as_ref().is_some_and(|n| {
+            && (self.generation_qualifier.is_none()
+                || self.generation_qualifier.as_ref().is_some_and(|n| {
                     (n.len() <= ub_generation_qualifier_length) && is_printable_str(&n)
                 }))
     }
@@ -234,7 +234,7 @@ pub struct ORAddressInfo {
     pub admd: Option<String>, // A
 
     /// This should only be the ISO-3166 code.
-    pub country: Option<Country>, // C
+    pub country: Option<CountryCode>, // C
     pub x121_net_addr: Option<String>, // X.121
     pub num_id: Option<NumericString>, // N-ID
     pub term_id: Option<String>,       // T-ID
@@ -257,20 +257,12 @@ pub struct ORAddressInfo {
     pub po_box_addr: Option<String>,             // PD-B
     pub postal_code: Option<String>,             // PD-PC
     pub pd_svc_name: Option<String>,             // PD-SN
-    pub pd_country_name: Option<Country>,        // PD-C
+    pub pd_country_name: Option<CountryCode>,        // PD-C
     pub isdn: Option<String>,                    // ISDN (This is the E.163 or E.164 address)
     pub psap: Option<PresentationAddress>,       // PSAP
     pub term_type: Option<TerminalType>,         // T-TY
     pub dda: HashMap<String, String>,            // DDA: Domain-Defined Attribute
 }
-
-// impl ORAddressInfo {
-
-//     pub fn to_x500_values (&self) -> Vec<AttributeTypeAndValue> {
-//         self.
-//     }
-
-// }
 
 impl Default for ORAddressInfo {
     fn default() -> Self {
@@ -338,7 +330,7 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
         if let Some(country) = value.country.take() {
             // mHSCountryName { 2 6 10 3 11 }
             {
-                let uds: UnboundedDirectoryString = country.alpha2.to_owned().into();
+                let uds: UnboundedDirectoryString = country.alpha2().to_owned().into();
                 let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
                 rdn.push(AttributeTypeAndValue::new(
                     oid!(2, 6, 10, 3, 11),
@@ -347,7 +339,7 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
                 ));
             }
             {
-                let encoded = BER.encode_printable_string(country.alpha2)?;
+                let encoded = BER.encode_printable_string(country.alpha2())?;
                 rdn.push(AttributeTypeAndValue::new(
                     countryName().id,
                     encoded,
@@ -355,7 +347,7 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
                 ));
             }
             {
-                let encoded = BER.encode_printable_string(country.alpha3)?;
+                let encoded = BER.encode_printable_string(country.alpha3())?;
                 rdn.push(AttributeTypeAndValue::new(
                     countryCode3c().id,
                     encoded,
@@ -363,7 +355,7 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
                 ));
             }
             {
-                let encoded = BER.encode_numeric_string(country.code)?;
+                let encoded = BER.encode_owned_numeric_string(format!("{:0>3}", country.numeric_id()))?;
                 rdn.push(AttributeTypeAndValue::new(
                     countryCode3n().id,
                     encoded,
@@ -371,7 +363,7 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
                 ));
             }
             {
-                let encoded = BER.encode_utf8_string(country.long_name)?;
+                let encoded = BER.encode_utf8_string(country.name())?;
                 rdn.push(AttributeTypeAndValue::new(
                     oid!(0,9,2342,19200300,100,1,43),
                     encoded,
@@ -632,7 +624,7 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
         let mut q: Option<String> = None;
 
         // This should only be the ISO-3166 code.
-        let mut country: Option<Country> = None; // C
+        let mut country: Option<CountryCode> = None; // C
         let mut x121_net_addr: Option<String> = None; // X.121
         let mut num_id: Option<NumericString> = None; // N-ID
         let mut term_id: Option<String> = None; // T-ID
@@ -649,7 +641,7 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
         let mut po_box_addr: Option<String> = None; // PD-B
         let mut postal_code: Option<String> = None; // PD-PC
         let mut pd_svc_name: Option<String> = None; // PD-SN
-        let pd_country_name: Option<Country> = None; // PD-C
+        let pd_country_name: Option<CountryCode> = None; // PD-C
         let mut isdn: Option<String> = None; // ISDN (This is the E.163 or E.164 address)
         let mut psap: Option<PresentationAddress> = None; // PSAP
         let mut term_type: Option<TerminalType> = None; // T-TY
@@ -697,7 +689,7 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
                         else {
                             return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation));
                         }
-                        let c = Country::from_str(&cc)
+                        let c = CountryCode::for_alpha2_caseless(&cc)
                             .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
                         country = Some(c);
                     },
@@ -821,7 +813,7 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
                     },
                     6 => { // countryName
                         let cc = countryName::_decode_Type(&rdn.value)?;
-                        let c = Country::from_str(cc.as_str())
+                        let c = CountryCode::for_alpha2_caseless(cc.as_str())
                             .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
                         country = Some(c);
                     },
@@ -885,13 +877,15 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
                     },
                     98 => { // countryCode3c
                         let cc = countryCode3c::_decode_Type(&rdn.value)?;
-                        let c = Country::from_str(cc.as_str())
+                        let c = CountryCode::for_alpha3_caseless(cc.as_str())
                             .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
                         country = Some(c);
                     },
                     99 => { // countryCode3n
                         let cc = countryCode3n::_decode_Type(&rdn.value)?;
-                        let c = Country::from_code(cc.as_str())
+                        let cc_int = u32::from_str(&cc)
+                            .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
+                        let c = CountryCode::for_id(cc_int)
                             .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
                         country = Some(c);
                     },
@@ -929,10 +923,16 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
 
 }
 
-// TODO: Make a From<RelativeDistinguishedName> for ORAddressInfo
-// TODO: Make a From<&RelativeDistinguishedName> for ORAddressInfo
-// TODO: Make a From<RelativeDistinguishedName> for ORAddress
-// TODO: Make a From<&RelativeDistinguishedName> for ORAddress
+impl TryFrom<&RelativeDistinguishedName> for ORAddress {
+
+    type Error = ASN1Error;
+
+    fn try_from(value: &RelativeDistinguishedName) -> Result<Self, Self::Error> {
+        let info: ORAddressInfo = value.try_into()?;
+        info.try_into()
+    }
+
+}
 
 /// This function does not consider diacritics.
 fn case_ignore_compare_str(a: &str, b: &str) -> bool {
@@ -947,7 +947,7 @@ fn case_ignore_compare_str(a: &str, b: &str) -> bool {
     let non_match = a_trim
         .chars()
         .zip(b_trim.chars())
-        .any(|(ac, bc)| ac.to_uppercase().eq(bc.to_uppercase()));
+        .any(|(ac, bc)| !ac.to_uppercase().eq(bc.to_uppercase()));
     !non_match
 }
 
@@ -1031,7 +1031,6 @@ impl PartialEq for ORAddressInfo {
         && case_ignore_compare_opt_str(&self.po_box_addr, &other.po_box_addr)
         && case_ignore_compare_opt_str(&self.postal_code, &other.postal_code)
         && case_ignore_compare_opt_str(&self.pd_svc_name, &other.pd_svc_name)
-        && case_ignore_compare_opt_str(&self.isdn, &other.isdn)
         // NOTE: This string will have a slash in it, but the compare_numeric_string function should still work.
         && compare_opt_num_str(&self.isdn, &other.isdn)
         && self.psap == other.psap
@@ -1055,7 +1054,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
             .administration_domain_name
             .as_ref()
             .map(|a| a.to_string()); // A
-        let country: Option<Country> = {
+        let country: Option<CountryCode> = {
             if let Some(c) = &value.built_in_standard_attributes.country_name {
                 match c {
                     CountryName::x121_dcc_code(dcc) => {
@@ -1063,9 +1062,9 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                             .map_err(|_| ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
                         let iso = x121_dcc_country_code_to_iso_3166(dcc_int)
                             .ok_or(ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
-                        Country::from_str(&iso).ok()
+                        CountryCode::for_alpha2(&iso).ok()
                     }
-                    CountryName::iso_3166_alpha2_code(iso) => Country::from_str(&iso).ok(),
+                    CountryName::iso_3166_alpha2_code(iso) => CountryCode::for_alpha2_caseless(&iso).ok(),
                 }
             } else {
                 None
@@ -1100,7 +1099,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
         let mut po_box_addr: Option<String> = None; // PD-B
         let mut postal_code: Option<String> = None; // PD-PC
         let mut pd_svc_name: Option<String> = None; // PD-SN
-        let mut pd_country_name: Option<Country> = None; // PD-C
+        let mut pd_country_name: Option<CountryCode> = None; // PD-C
         let mut isdn: Option<String> = None; // ISDN (This is the E.163 or E.164 address)
         let mut psap: Option<PresentationAddress> = None; // PSAP
         let mut term_type: Option<TerminalType> = None; // T-TY
@@ -1177,12 +1176,12 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                                 })?;
                                 let iso = x121_dcc_country_code_to_iso_3166(dcc_int)
                                     .ok_or(ASN1Error::new(ASN1ErrorCode::constraint_violation))?;
-                                if let Ok(c) = Country::from_str(&iso) {
+                                if let Ok(c) = CountryCode::for_alpha2(&iso) {
                                     pd_country_name = Some(c);
                                 }
                             }
                             PhysicalDeliveryCountryName::iso_3166_alpha2_code(iso) => {
-                                if let Ok(c) = Country::from_str(&iso) {
+                                if let Ok(c) = CountryCode::for_alpha2_caseless(&iso) {
                                     pd_country_name = Some(c);
                                 }
                             }
@@ -2129,7 +2128,7 @@ impl FromStr for ORAddressInfo {
         let mut pd_a6: Option<String> = None;
 
         // This should only be the ISO-3166 code.
-        let mut country: Option<Country> = None; // C
+        let mut country: Option<CountryCode> = None; // C
         let mut x121_net_addr: Option<String> = None; // X.121
         let mut num_id: Option<NumericString> = None; // N-ID
         let mut term_id: Option<String> = None; // T-ID
@@ -2152,7 +2151,7 @@ impl FromStr for ORAddressInfo {
         let mut po_box_addr: Option<String> = None; // PD-B
         let mut postal_code: Option<String> = None; // PD-PC
         let mut pd_svc_name: Option<String> = None; // PD-SN
-        let mut pd_country_name: Option<Country> = None; // PD-C
+        let mut pd_country_name: Option<CountryCode> = None; // PD-C
         let mut isdn: Option<String> = None; // ISDN (This is the E.163 or E.164 address)
         let mut psap: Option<PresentationAddress> = None; // PSAP
         let mut term_type: Option<TerminalType> = None; // T-TY
@@ -2173,7 +2172,9 @@ impl FromStr for ORAddressInfo {
             if maybe_key.is_none() {
                 return Err(ORAddressParseErr::Malformed("".into()));
             }
-            let key = maybe_key.unwrap().trim().to_uppercase();
+            let untrimmed_key = maybe_key.unwrap();
+            let untrimmed_key_len = untrimmed_key.len();
+            let key = untrimmed_key.trim().to_uppercase();
             if encountered.contains(key.as_str()) {
                 return Err(ORAddressParseErr::Duplicate(key.into()));
             }
@@ -2186,7 +2187,7 @@ impl FromStr for ORAddressInfo {
             } else {
                 encountered.insert(key.clone());
             }
-            let value = &kv[key.len() + 1..];
+            let value = &kv[untrimmed_key_len + 1..];
             if key.starts_with("DDA:") {
                 if key.len() > ub_domain_defined_attribute_type_length + 4 {
                     return Err(ORAddressParseErr::TooLong(key));
@@ -2453,7 +2454,7 @@ impl FromStr for ORAddressInfo {
                         .ok()
                         .and_then(|dcc| x121_dcc_country_code_to_iso_3166(dcc))
                         .unwrap_or(value);
-                    match Country::from_str(&cc) {
+                    match CountryCode::for_alpha2(&cc) {
                         Ok(c) => country = Some(c),
                         Err(_) => return Err(ORAddressParseErr::Malformed(key)),
                     }
@@ -2463,7 +2464,7 @@ impl FromStr for ORAddressInfo {
                         .ok()
                         .and_then(|dcc| x121_dcc_country_code_to_iso_3166(dcc))
                         .unwrap_or(value);
-                    match Country::from_str(&cc) {
+                    match CountryCode::for_alpha2(&cc) {
                         Ok(c) => pd_country_name = Some(c),
                         Err(_) => return Err(ORAddressParseErr::Malformed(key)),
                     }
@@ -2579,7 +2580,7 @@ impl TryFrom<ORAddressInfo> for ORAddress {
             value
                 .country
                 .take()
-                .map(|c| CountryName::iso_3166_alpha2_code(c.alpha2.into())),
+                .map(|c| CountryName::iso_3166_alpha2_code(c.alpha2().into())),
             value
                 .admd
                 .take()
@@ -2769,7 +2770,7 @@ impl TryFrom<ORAddressInfo> for ORAddress {
             ext_attrs.push(ext);
         }
         if let Some(pd_country_name) = value.pd_country_name {
-            let c_str = pd_country_name.alpha2.to_owned();
+            let c_str = pd_country_name.alpha2().to_owned();
             let c = PhysicalDeliveryCountryName::iso_3166_alpha2_code(c_str);
             let ext = ExtensionAttribute::new(
                 Vec::from([id_physical_delivery_country_name as u8]),
@@ -2830,4 +2831,55 @@ impl FromStr for ORAddress {
     }
 }
 
-// TODO: Unit tests
+#[cfg(test)]
+mod tests {
+    use crate::PkiPmiExternalDataTypes::{AdministrationDomainName, PrivateDomainName, CountryName};
+    use super::{ORAddressInfo, ORAddress, id_extended_network_address};
+
+    #[test]
+    fn parses_oraddress_string() {
+        let input = "A=locomoco;C=US;P=foobar;O=Wildboar Corporation;G=Jonathan;I=M.;S=Wilbur;OU1=Cybersecurity;ISDN=333444 5555";
+        let info: ORAddressInfo = input.parse().expect("Could not parse ORAddress");
+        assert!(info.personal_name.is_some());
+        let mut addr: ORAddress = info.try_into().expect("Could not convert ORAddressInfo into ORAddress");
+        // let mut std_attrs = &addr.built_in_standard_attributes;
+        let admd = addr.built_in_standard_attributes.administration_domain_name.take().unwrap();
+        let prmd = addr.built_in_standard_attributes.private_domain_name.take().unwrap();
+        let c = addr.built_in_standard_attributes.country_name.take().unwrap();
+        let pn = addr.built_in_standard_attributes.personal_name.take().unwrap();
+        let o = addr.built_in_standard_attributes.organization_name.take().unwrap();
+        let ous = addr.built_in_standard_attributes.organizational_unit_names.take().unwrap();
+        let exts = addr.extension_attributes.take().unwrap();
+        assert!(addr.built_in_standard_attributes.network_address.is_none());
+        assert_eq!(exts.len(), 1); // For ISDN
+        assert_eq!(admd, AdministrationDomainName::printable("locomoco".into()));
+        assert_eq!(prmd, PrivateDomainName::printable("foobar".into()));
+        assert_eq!(c, CountryName::iso_3166_alpha2_code("US".into()));
+        assert_eq!(o, String::from("Wildboar Corporation"));
+        assert_eq!(pn.surname, String::from("Wilbur"));
+        assert_eq!(pn.given_name, Some("Jonathan".into()));
+        assert_eq!(pn.initials, Some("M.".into()));
+        assert!(pn.generation_qualifier.is_none());
+        assert_eq!(ous.len(), 1);
+        assert_eq!(ous[0], String::from("Cybersecurity"));
+        assert_eq!(exts[0].extension_attribute_type, Vec::from([ id_extended_network_address as u8 ]));
+    }
+
+    #[test]
+    fn equates_oraddresses() {
+        let input1 = "A=locomoco;C=US;P=foobar;O=Wildboar Corporation;G=Jonathan;I=M.;S=Wilbur;OU1=Cybersecurity;ISDN=333444 5555";
+        let info1: ORAddressInfo = input1.parse().expect("Could not parse ORAddress 1");
+
+        let input2 = "A=LOCOMOCO;C=313;P=foobar; O=wildboar corporation;  G=Jonathan; I=M.;S=wilbur;OU1=Cybersecurity;ISDN=3334445555";
+        let info2: ORAddressInfo = input2.parse().expect("Could not parse ORAddress 2");
+        assert_eq!(info1, info2);
+
+        let addr1: ORAddress = info1.try_into().expect("Could not convert ORAddressInfo into ORAddress 1");
+        let addr2: ORAddress = info2.try_into().expect("Could not convert ORAddressInfo into ORAddress 2");
+        assert_eq!(addr1, addr2);
+    }
+
+}
+
+// TODO: ORAddress.is_empty()
+// TODO: ORAddress.is_wildcard_admd()
