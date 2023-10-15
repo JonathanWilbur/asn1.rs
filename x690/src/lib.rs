@@ -491,7 +491,7 @@ where
 
 pub fn x690_write_object_descriptor_value<W>(
     output: &mut W,
-    value: &ObjectDescriptor,
+    value: &str,
 ) -> Result<usize>
 where
     W: Write,
@@ -825,7 +825,7 @@ where
 
 pub fn x690_write_universal_string_value<W>(
     output: &mut W,
-    value: &UniversalString,
+    value: &str,
 ) -> Result<usize>
 where
     W: Write,
@@ -873,13 +873,13 @@ where
     Ok(bytes_written)
 }
 
-pub fn x690_write_bmp_string_value<W>(output: &mut W, value: &UniversalString) -> Result<usize>
+pub fn x690_write_bmp_string_value<W>(output: &mut W, value: &str) -> Result<usize>
 where
     W: Write,
 {
     let bytes: Vec<u8> = value
         .chars()
-        .map(|c| c as u32)
+        .map(|c| c as u16)
         .flat_map(|c| {
             [
                 // ((c & 0xFF000000) >> 24) as u8,

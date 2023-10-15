@@ -932,7 +932,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_object_descriptor(&self, value: &ObjectDescriptor) -> ASN1Result<X690Element> {
+    fn encode_object_descriptor(&self, value: &str) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_object_descriptor_value(&mut out, &value)?;
         Ok(X690Element::new(
@@ -986,7 +986,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_ia5_string(&self, value: &IA5String) -> ASN1Result<X690Element> {
+    fn encode_ia5_string(&self, value: &str) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
         Ok(X690Element::new(
@@ -1013,7 +1013,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_graphic_string(&self, value: &GraphicString) -> ASN1Result<X690Element> {
+    fn encode_graphic_string(&self, value: &str) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
         Ok(X690Element::new(
@@ -1022,7 +1022,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_visible_string(&self, value: &VisibleString) -> ASN1Result<X690Element> {
+    fn encode_visible_string(&self, value: &str) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
         Ok(X690Element::new(
@@ -1031,7 +1031,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_general_string(&self, value: &GeneralString) -> ASN1Result<X690Element> {
+    fn encode_general_string(&self, value: &str) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
         Ok(X690Element::new(
@@ -1040,7 +1040,77 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_universal_string(&self, value: &UniversalString) -> ASN1Result<X690Element> {
+    fn encode_owned_object_descriptor(&self, value: ObjectDescriptor) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_utf8_string(&self, value: UTF8String) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_numeric_string(&self, value: NumericString) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_printable_string(&self, value: PrintableString) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_t61_string(&self, value: T61String) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_videotex_string(&self, value: VideotexString) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_ia5_string(&self, value: String) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_graphic_string(&self, value: GraphicString) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_visible_string(&self, value: VisibleString) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_owned_general_string(&self, value: GeneralString) -> ASN1Result<X690Element> {
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING),
+            X690Value::Primitive(Bytes::from(value)),
+        ))
+    }
+
+    fn encode_universal_string(&self, value: &str) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len() << 2).writer(); // Four bytes for every character
         x690_write_universal_string_value(&mut out, &value)?;
         Ok(X690Element::new(
@@ -1049,7 +1119,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_bmp_string(&self, value: &BMPString) -> ASN1Result<X690Element> {
+    fn encode_bmp_string(&self, value: &str) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len() << 1).writer(); // Two bytes for every character
         x690_write_bmp_string_value(&mut out, &value)?;
         Ok(X690Element::new(

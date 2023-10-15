@@ -800,20 +800,38 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
-    fn encode_object_descriptor(&self, value: &ObjectDescriptor) -> ASN1Result<X690Element>;
+    fn encode_object_descriptor(&self, value: &str) -> ASN1Result<X690Element>;
     fn encode_utf8_string(&self, value: &str) -> ASN1Result<X690Element>;
     fn encode_numeric_string(&self, value: &str) -> ASN1Result<X690Element>;
     fn encode_printable_string(&self, value: &str) -> ASN1Result<X690Element>;
     fn encode_t61_string(&self, value: &T61String) -> ASN1Result<X690Element>;
     fn encode_videotex_string(&self, value: &VideotexString) -> ASN1Result<X690Element>;
-    fn encode_ia5_string(&self, value: &IA5String) -> ASN1Result<X690Element>;
+    fn encode_ia5_string(&self, value: &str) -> ASN1Result<X690Element>;
     fn encode_utc_time(&self, value: &UTCTime) -> ASN1Result<X690Element>;
     fn encode_generalized_time(&self, value: &GeneralizedTime) -> ASN1Result<X690Element>;
-    fn encode_graphic_string(&self, value: &GraphicString) -> ASN1Result<X690Element>;
-    fn encode_visible_string(&self, value: &VisibleString) -> ASN1Result<X690Element>;
-    fn encode_general_string(&self, value: &GeneralString) -> ASN1Result<X690Element>;
-    fn encode_universal_string(&self, value: &UniversalString) -> ASN1Result<X690Element>;
-    fn encode_bmp_string(&self, value: &BMPString) -> ASN1Result<X690Element>;
+    fn encode_graphic_string(&self, value: &str) -> ASN1Result<X690Element>;
+    fn encode_visible_string(&self, value: &str) -> ASN1Result<X690Element>;
+    fn encode_general_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// This is defined for efficiency: instead of _copying_ the the string into
+    /// the output buffer, this function exists so the underlying buffer can be
+    /// appended to (or replace entirely) the output buffer.
+    fn encode_owned_object_descriptor(&self, value: ObjectDescriptor) -> ASN1Result<X690Element>;
+    fn encode_owned_utf8_string(&self, value: UTF8String) -> ASN1Result<X690Element>;
+    fn encode_owned_numeric_string(&self, value: NumericString) -> ASN1Result<X690Element>;
+    fn encode_owned_printable_string(&self, value: PrintableString) -> ASN1Result<X690Element>;
+    fn encode_owned_t61_string(&self, value: T61String) -> ASN1Result<X690Element>;
+    fn encode_owned_videotex_string(&self, value: VideotexString) -> ASN1Result<X690Element>;
+    fn encode_owned_ia5_string(&self, value: String) -> ASN1Result<X690Element>;
+    fn encode_owned_graphic_string(&self, value: GraphicString) -> ASN1Result<X690Element>;
+    fn encode_owned_visible_string(&self, value: VisibleString) -> ASN1Result<X690Element>;
+    fn encode_owned_general_string(&self, value: GeneralString) -> ASN1Result<X690Element>;
+
+    // NOTE: There is no encode_owned_universal_string or
+    // encode_owned_bmp_string, because there is no efficiency benefit, because
+    // the underlying buffer cannot be written directly to the encoding buffer.
+    fn encode_universal_string(&self, value: &str) -> ASN1Result<X690Element>;
+    fn encode_bmp_string(&self, value: &str) -> ASN1Result<X690Element>;
     fn encode_date(&self, value: &DATE) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(10).writer(); // YYYY-MM-DD
         x690_write_date_value(&mut out, &value)?;
