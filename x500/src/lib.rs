@@ -23,7 +23,6 @@ pub mod IDMProtocolSpecification;
 pub mod InformationFramework;
 pub mod LdapSystemSchema;
 // pub mod Lightweight-Directory-Access-Protocol-V3;
-pub mod MTSAbstractService;
 pub mod OSIProtocolSpecification;
 pub mod OperationalBindingManagement;
 pub mod PKIX1Implicit93;
@@ -44,7 +43,6 @@ pub mod UpperBounds;
 pub mod UsefulDefinitions;
 pub mod Wrapper;
 
-pub mod FromString;
 pub mod ToString;
 pub mod types;
 
