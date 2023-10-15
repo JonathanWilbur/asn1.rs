@@ -20,4 +20,9 @@ categories = ["network-programming"]
 asn1 = { path = "../asn1" }
 x690 = { path = "../x690" }
 ldap = { path = "../ldap" }
+teletex = { path = "../teletex" }
+nsap-address = { path = "../nsap-address" }
 hex = "0.4.3"
+punycode = "0.4.1"
+cow-utils = "0.1.3"
+celes = "2.4.0"
