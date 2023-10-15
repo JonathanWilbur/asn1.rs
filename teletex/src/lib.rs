@@ -145,4 +145,13 @@ mod tests {
         }
     }
 
+    #[test]
+    fn it_decodes_an_empty_string() {
+        let input = "";
+        match teletex_to_utf8(input.as_bytes()) {
+            Cow::Borrowed(s) => assert_eq!(s, input),
+            _ => panic!(),
+        }
+    }
+
 }
