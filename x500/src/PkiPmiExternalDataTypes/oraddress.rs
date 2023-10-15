@@ -2,60 +2,38 @@ use crate::InformationFramework::{AttributeTypeAndValue, RelativeDistinguishedNa
 use crate::PkiPmiExternalDataTypes::{
     ub_common_name_length, ub_domain_defined_attribute_type_length,
     ub_domain_defined_attribute_value_length, ub_domain_defined_attributes, ub_domain_name_length,
-    ub_e163_4_number_length, ub_e163_4_sub_address_length, ub_extension_attributes,
-    ub_generation_qualifier_length, ub_given_name_length, ub_initials_length,
-    ub_numeric_user_id_length, ub_organization_name_length, ub_organizational_unit_name_length,
-    ub_organizational_units, ub_pds_name_length, ub_pds_parameter_length,
-    ub_pds_physical_address_lines, ub_postal_code_length, ub_surname_length, ub_terminal_id_length,
-    ub_unformatted_address_length, ub_universal_generation_qualifier_length,
-    ub_universal_given_name_length, ub_universal_initials_length, ub_universal_surname_length,
-    ub_x121_address_length, x121_dcc_country_code_to_iso_3166, AdministrationDomainName,
-    BuiltInDomainDefinedAttribute, BuiltInDomainDefinedAttributes, BuiltInStandardAttributes,
-    CountryName, ExtendedNetworkAddress, ExtendedNetworkAddress_e163_4_address, ExtensionAttribute,
-    ExtensionAttributes, ORAddress, PDSParameter, PersonalName, PhysicalDeliveryCountryName,
-    PostalCode, PrivateDomainName, TeletexDomainDefinedAttribute, TeletexPersonalName,
-    TerminalType, TerminalType_g3_facsimile, TerminalType_g4_facsimile, TerminalType_ia5_terminal,
-    TerminalType_teletex, TerminalType_telex, TerminalType_videotex, UnformattedPostalAddress,
-    UniversalDomainDefinedAttribute, UniversalOrBMPString, UniversalPersonalName,
-    _decode_ExtendedNetworkAddress, _decode_PDSParameter, _decode_PhysicalDeliveryCountryName,
-    _decode_PostalCode, _decode_TeletexDomainDefinedAttributes,
-    _decode_TeletexOrganizationalUnitNames, _decode_TeletexPersonalName,
-    _decode_UnformattedPostalAddress, _decode_UniversalDomainDefinedAttributes,
-    _decode_UniversalOrBMPString, _decode_UniversalOrganizationalUnitNames,
-    _decode_UniversalPersonalName, _encode_PhysicalDeliveryCountryName,
-    _encode_UniversalOrBMPString, _encode_UniversalOrganizationalUnitNames,
-    _encode_UniversalPersonalName,
+    ub_e163_4_number_length, ub_generation_qualifier_length, ub_given_name_length,
+    ub_initials_length, ub_numeric_user_id_length, ub_organization_name_length,
+    ub_organizational_unit_name_length, ub_pds_name_length, ub_pds_parameter_length,
+    ub_postal_code_length, ub_surname_length, ub_terminal_id_length,
+    ub_universal_generation_qualifier_length, ub_universal_given_name_length,
+    ub_universal_initials_length, ub_universal_surname_length, ub_x121_address_length,
+    x121_dcc_country_code_to_iso_3166, AdministrationDomainName, BuiltInDomainDefinedAttribute,
+    BuiltInDomainDefinedAttributes, BuiltInStandardAttributes, CountryName, ExtendedNetworkAddress,
+    ExtendedNetworkAddress_e163_4_address, ExtensionAttribute, ExtensionAttributes, ORAddress,
+    PDSParameter, PersonalName, PhysicalDeliveryCountryName, PostalCode, PrivateDomainName,
+    TeletexDomainDefinedAttribute, TeletexPersonalName, TerminalType, TerminalType_g3_facsimile,
+    TerminalType_g4_facsimile, TerminalType_ia5_terminal, TerminalType_teletex, TerminalType_telex,
+    TerminalType_videotex, UnformattedPostalAddress, UniversalDomainDefinedAttribute,
+    UniversalOrBMPString, UniversalPersonalName, _decode_ExtendedNetworkAddress,
+    _decode_PDSParameter, _decode_PhysicalDeliveryCountryName, _decode_PostalCode,
+    _decode_TeletexDomainDefinedAttributes, _decode_TeletexOrganizationalUnitNames,
+    _decode_TeletexPersonalName, _decode_UnformattedPostalAddress,
+    _decode_UniversalDomainDefinedAttributes, _decode_UniversalOrBMPString,
+    _decode_UniversalOrganizationalUnitNames, _decode_UniversalPersonalName,
+    _encode_PhysicalDeliveryCountryName, _encode_UniversalOrBMPString,
+    _encode_UniversalOrganizationalUnitNames, _encode_UniversalPersonalName,
 };
 use crate::SelectedAttributeTypes::{
-    PresentationAddress,
-    _encode_PresentationAddress,
-    UnboundedDirectoryString,
-    _encode_UnboundedDirectoryString,
-    _encode_owned_UnboundedDirectoryString,
-    surname,
-    givenName,
-    initials,
-    generationQualifier,
-    streetAddress,
-    commonName,
-    organizationName,
-    organizationalUnitName,
-    postalAddress,
-    postalCode,
-    postOfficeBox,
-    physicalDeliveryOfficeName,
-    telephoneNumber,
-    x121Address,
-    internationalISDNNumber,
-    presentationAddress,
-    countryName,
-    countryCode3c,
-    countryCode3n,
-    PostalAddress,
+    countryCode3c, countryName, internationalISDNNumber, organizationalUnitName,
+    physicalDeliveryOfficeName, postOfficeBox, postalAddress, postalCode, presentationAddress,
+    x121Address, PresentationAddress, UnboundedDirectoryString,
+    _encode_owned_UnboundedDirectoryString, commonName, countryCode3n, generationQualifier,
+    givenName, initials, organizationName, streetAddress, surname, PostalAddress,
 };
 use asn1::{
-    compare_numeric_string, is_numeric_str, is_printable_str, ASN1Error, ASN1ErrorCode,
-    NumericString, OBJECT_IDENTIFIER, oid
+    compare_numeric_string, is_numeric_str, is_printable_str, oid, ASN1Error, ASN1ErrorCode,
+    NumericString,
 };
 use celes::Country;
 use cow_utils::CowUtils;
@@ -331,7 +309,6 @@ impl Default for ORAddressInfo {
 }
 
 impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
-
     type Error = ASN1Error;
 
     fn try_from(mut value: ORAddressInfo) -> Result<Self, Self::Error> {
@@ -342,49 +319,92 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
             // mHSPRMDName { 2 6 10 3 25 }
             let uds: UnboundedDirectoryString = prmd.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 25), encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 25),
+                encoded,
+                vec![],
+            ));
         }
         if let Some(admd) = value.admd.take() {
             // mHSADMDName { 2 6 10 3 9 }
             let uds: UnboundedDirectoryString = admd.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 9), encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 9),
+                encoded,
+                vec![],
+            ));
         }
         if let Some(country) = value.country.take() {
             // mHSCountryName { 2 6 10 3 11 }
             {
                 let uds: UnboundedDirectoryString = country.alpha2.to_owned().into();
                 let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-                rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 11), encoded, vec![]));
+                rdn.push(AttributeTypeAndValue::new(
+                    oid!(2, 6, 10, 3, 11),
+                    encoded,
+                    vec![],
+                ));
             }
             {
                 let encoded = BER.encode_printable_string(country.alpha2)?;
-                rdn.push(AttributeTypeAndValue::new(countryName().id, encoded, vec![]));
+                rdn.push(AttributeTypeAndValue::new(
+                    countryName().id,
+                    encoded,
+                    vec![],
+                ));
             }
             {
                 let encoded = BER.encode_printable_string(country.alpha3)?;
-                rdn.push(AttributeTypeAndValue::new(countryCode3c().id, encoded, vec![]));
+                rdn.push(AttributeTypeAndValue::new(
+                    countryCode3c().id,
+                    encoded,
+                    vec![],
+                ));
             }
             {
                 let encoded = BER.encode_numeric_string(country.code)?;
-                rdn.push(AttributeTypeAndValue::new(countryCode3n().id, encoded, vec![]));
+                rdn.push(AttributeTypeAndValue::new(
+                    countryCode3n().id,
+                    encoded,
+                    vec![],
+                ));
             }
-            // TODO: friendlyCountryName
+            {
+                let encoded = BER.encode_utf8_string(country.long_name)?;
+                rdn.push(AttributeTypeAndValue::new(
+                    oid!(0,9,2342,19200300,100,1,43),
+                    encoded,
+                    vec![],
+                ));
+            }
         }
 
         if let Some(x121_net_addr) = value.x121_net_addr.take() {
             // mHSNetworkAddressAttribute { 2 6 10 3 18 }
             let encoded = BER.encode_numeric_string(x121_net_addr.as_str())?;
-            rdn.push(AttributeTypeAndValue::new(x121Address().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                x121Address().id,
+                encoded,
+                vec![],
+            ));
             let uds: UnboundedDirectoryString = x121_net_addr.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 18), encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 18),
+                encoded,
+                vec![],
+            ));
         }
         if let Some(num_id) = value.num_id.take() {
             // mHSNumericUserIdentifierAttribute { 2 6 10 3 20 }
             let uds: UnboundedDirectoryString = num_id.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 20), encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 20),
+                encoded,
+                vec![],
+            ));
         }
         if let Some(term_id) = value.term_id.take() {
             // mHSTerminalIdentifierAttribute { 2 6 10 3 28 }
@@ -397,116 +417,209 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
             if let Some(gn) = personal_name.given_name.take() {
                 let uds: UnboundedDirectoryString = gn.into();
                 let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-                rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 14), encoded.clone(), vec![]));
+                rdn.push(AttributeTypeAndValue::new(
+                    oid!(2, 6, 10, 3, 14),
+                    encoded.clone(),
+                    vec![],
+                ));
                 rdn.push(AttributeTypeAndValue::new(givenName().id, encoded, vec![]));
             }
             if let Some(inits) = personal_name.initials.take() {
                 let uds: UnboundedDirectoryString = inits.into();
                 let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-                rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 14), encoded.clone(), vec![]));
+                rdn.push(AttributeTypeAndValue::new(
+                    oid!(2, 6, 10, 3, 14),
+                    encoded.clone(),
+                    vec![],
+                ));
                 rdn.push(AttributeTypeAndValue::new(initials().id, encoded, vec![]));
             }
             if let Some(genq) = personal_name.generation_qualifier.take() {
                 let uds: UnboundedDirectoryString = genq.into();
                 let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-                rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 14), encoded.clone(), vec![]));
-                rdn.push(AttributeTypeAndValue::new(generationQualifier().id, encoded, vec![]));
+                rdn.push(AttributeTypeAndValue::new(
+                    oid!(2, 6, 10, 3, 14),
+                    encoded.clone(),
+                    vec![],
+                ));
+                rdn.push(AttributeTypeAndValue::new(
+                    generationQualifier().id,
+                    encoded,
+                    vec![],
+                ));
             }
             let uds: UnboundedDirectoryString = personal_name.surname.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 27), encoded.clone(), vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 27),
+                encoded.clone(),
+                vec![],
+            ));
             rdn.push(AttributeTypeAndValue::new(surname().id, encoded, vec![]));
         }
         if let Some(common_name) = value.common_name.take() {
             // mHSCommonNameAttribute { 2 6 10 3 10 }
             let uds: UnboundedDirectoryString = common_name.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 10), encoded.clone(), vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 10),
+                encoded.clone(),
+                vec![],
+            ));
             rdn.push(AttributeTypeAndValue::new(commonName().id, encoded, vec![]));
         }
         if let Some(org_name) = value.org_name.take() {
             // mHSOrganizationName { 2 6 10 3 21 }
             let uds: UnboundedDirectoryString = org_name.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 21), encoded.clone(), vec![]));
-            rdn.push(AttributeTypeAndValue::new(organizationName().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 21),
+                encoded.clone(),
+                vec![],
+            ));
+            rdn.push(AttributeTypeAndValue::new(
+                organizationName().id,
+                encoded,
+                vec![],
+            ));
         }
-        // TODO: Recommend to Rust to implement .take() for Vec
         for ou in value.ous.iter() {
             // mHSOrganizationalUnitName { 2 6 10 3 22 }
             let uds: UnboundedDirectoryString = ou.to_owned().into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 22), encoded.clone(), vec![]));
-            rdn.push(AttributeTypeAndValue::new(organizationalUnitName().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 22),
+                encoded.clone(),
+                vec![],
+            ));
+            rdn.push(AttributeTypeAndValue::new(
+                organizationalUnitName().id,
+                encoded,
+                vec![],
+            ));
         }
         if let Some(pdo_name) = value.pdo_name.take() {
             // physicalDeliveryOfficeName
             let uds: UnboundedDirectoryString = pdo_name.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(physicalDeliveryOfficeName().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                physicalDeliveryOfficeName().id,
+                encoded,
+                vec![],
+            ));
         }
         if let Some(street) = value.street.take() {
             // streetAddress
             let uds: UnboundedDirectoryString = street.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(streetAddress().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                streetAddress().id,
+                encoded,
+                vec![],
+            ));
         }
         if value.pd_address.len() > 0 {
-            let uds_lines: PostalAddress = value.pd_address
+            let uds_lines: PostalAddress = value
+                .pd_address
                 .iter()
                 .map(|line| line.to_owned().into())
                 .collect();
             let encoded = postalAddress::_encode_Type(&uds_lines)?;
-            rdn.push(AttributeTypeAndValue::new(postalAddress().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                postalAddress().id,
+                encoded,
+                vec![],
+            ));
         }
         if let Some(po_box_addr) = value.po_box_addr.take() {
             // postOfficeBox
             let uds: UnboundedDirectoryString = po_box_addr.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(postOfficeBox().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                postOfficeBox().id,
+                encoded,
+                vec![],
+            ));
         }
         if let Some(postal_code) = value.postal_code.take() {
             // mHSPostalCodeAttribute { 2 6 10 3 24 }
             let uds: UnboundedDirectoryString = postal_code.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 24), encoded.clone(), vec![]));
-            rdn.push(AttributeTypeAndValue::new(postOfficeBox().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 24),
+                encoded.clone(),
+                vec![],
+            ));
+            rdn.push(AttributeTypeAndValue::new(postalCode().id, encoded, vec![]));
         }
         if let Some(pd_svc_name) = value.pd_svc_name.take() {
             // id-at-mhs-pds-name-attribute ID ::= {id-at  23}
             let uds: UnboundedDirectoryString = pd_svc_name.into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 23), encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 23),
+                encoded,
+                vec![],
+            ));
         }
         if let Some(isdn) = value.isdn.take() {
             // mHSExtendedNetworkAddress { 2 6 10 3 13 } (Actually, not clear what the syntax should be.)
             let encoded = BER.encode_owned_numeric_string(isdn)?;
-            rdn.push(AttributeTypeAndValue::new(internationalISDNNumber().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                internationalISDNNumber().id,
+                encoded,
+                vec![],
+            ));
             // ~~telephoneNumber~~ (TelephoneNumber uses E.123 syntax.)
         }
         if let Some(psap) = value.psap.take() {
             // mHSExtendedNetworkAddress { 2 6 10 3 13 }
             let encoded = presentationAddress::_encode_Type(&psap)?;
-            rdn.push(AttributeTypeAndValue::new(presentationAddress().id, encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                presentationAddress().id,
+                encoded,
+                vec![],
+            ));
         }
         if let Some(term_type) = value.term_type.take() {
             // mHSExtendedNetworkAddress { 2 6 10 3 29 }
             // The size constraint seems to hint that this is expected to be in string form (e.g. g3fax)
             let uds: UnboundedDirectoryString = term_type_to_str(term_type).to_owned().into();
             let encoded = _encode_owned_UnboundedDirectoryString(uds)?;
-            rdn.push(AttributeTypeAndValue::new(oid!(2, 6, 10, 3, 29), encoded, vec![]));
+            rdn.push(AttributeTypeAndValue::new(
+                oid!(2, 6, 10, 3, 29),
+                encoded,
+                vec![],
+            ));
         }
         Ok(rdn)
     }
+}
+
+impl TryFrom<ORAddress> for RelativeDistinguishedName {
+    type Error = ASN1Error;
+
+    fn try_from(value: ORAddress) -> Result<Self, Self::Error> {
+        let info: ORAddressInfo = (&value).try_into()?;
+        info.try_into()
+    }
 
 }
-// TODO: Make a From<ORAddress> equivalent of the above.
-// TODO: Make a From<&ORAddress> equivalent of the above.
+
+impl TryFrom<&ORAddress> for RelativeDistinguishedName {
+    type Error = ASN1Error;
+
+    fn try_from(value: &ORAddress) -> Result<Self, Self::Error> {
+        let info: ORAddressInfo = value.try_into()?;
+        info.try_into()
+    }
+
+}
+
 // TODO: Make a From<RelativeDistinguishedName> for ORAddressInfo
 // TODO: Make a From<&RelativeDistinguishedName> for ORAddressInfo
 // TODO: Make a From<RelativeDistinguishedName> for ORAddress
 // TODO: Make a From<&RelativeDistinguishedName> for ORAddress
-// TODO: Convert into filter?
 
 /// This function does not consider diacritics.
 fn case_ignore_compare_str(a: &str, b: &str) -> bool {
@@ -1641,6 +1754,7 @@ pub enum ORAddressParseErr {
     TooLong(String),
     Unrecognized(String),
     Asn1Err(ASN1Error),
+    TooManyDomainDefinedAttributes,
 }
 
 impl Display for ORAddressParseErr {
@@ -1651,6 +1765,9 @@ impl Display for ORAddressParseErr {
             ORAddressParseErr::Duplicate(s) => f.write_fmt(format_args!("duplicate={}", s)),
             ORAddressParseErr::Unrecognized(s) => f.write_fmt(format_args!("unrecognized={}", s)),
             ORAddressParseErr::Asn1Err(a) => f.write_fmt(format_args!("asn1_error={}", a)),
+            ORAddressParseErr::TooManyDomainDefinedAttributes => {
+                f.write_str("too_many_domain_defined_attrs")
+            }
         }
     }
 }
@@ -1758,6 +1875,15 @@ impl FromStr for ORAddressInfo {
             }
             let value = &kv[key.len() + 1..];
             if key.starts_with("DDA:") {
+                if key.len() > ub_domain_defined_attribute_type_length + 4 {
+                    return Err(ORAddressParseErr::TooLong(key));
+                }
+                if value.len() > ub_domain_defined_attribute_value_length {
+                    return Err(ORAddressParseErr::TooLong(key));
+                }
+                if dda.len() > ub_domain_defined_attributes {
+                    return Err(ORAddressParseErr::TooManyDomainDefinedAttributes);
+                }
                 dda.insert(key[4..].into(), value.into());
                 continue;
             }
@@ -2055,7 +2181,41 @@ impl FromStr for ORAddressInfo {
                 _ => return Err(ORAddressParseErr::Unrecognized(key)),
             };
         }
-        // FIXME: ous, address lines, dda, etc.
+        if let Some(sn) = sn {
+            personal_name = Some(PersonalNameInfo::new(sn, g, i, q));
+        }
+        if ou1.is_some() {
+            ous = Vec::with_capacity(4);
+            ous.push(ou1.unwrap());
+        }
+        if ous.len() == 1 && ou2.is_some() {
+            ous.push(ou2.unwrap());
+        }
+        if ous.len() == 2 && ou3.is_some() {
+            ous.push(ou3.unwrap());
+        }
+        if ous.len() == 3 && ou4.is_some() {
+            ous.push(ou4.unwrap());
+        }
+        if pd_a1.is_some() {
+            pd_address = Vec::with_capacity(6);
+            pd_address.push(pd_a1.unwrap());
+        }
+        if pd_address.len() == 1 && pd_a2.is_some() {
+            pd_address.push(pd_a2.unwrap());
+        }
+        if pd_address.len() == 2 && pd_a3.is_some() {
+            pd_address.push(pd_a3.unwrap());
+        }
+        if pd_address.len() == 3 && pd_a4.is_some() {
+            pd_address.push(pd_a4.unwrap());
+        }
+        if pd_address.len() == 4 && pd_a5.is_some() {
+            pd_address.push(pd_a5.unwrap());
+        }
+        if pd_address.len() == 5 && pd_a6.is_some() {
+            pd_address.push(pd_a6.unwrap());
+        }
         Ok(ORAddressInfo {
             admd,
             prmd,
@@ -2095,7 +2255,6 @@ impl TryFrom<ORAddressInfo> for ORAddress {
 
     fn try_from(mut value: ORAddressInfo) -> Result<Self, Self::Error> {
         // TODO: Avoid cloning
-        // TODO: Check lengths too.
         let org_name_is_printable = value.org_name.as_ref().is_some_and(|s| is_printable_str(s));
         let ous_are_printable = value.ous.iter().all(|ou| is_printable_str(&ou));
         let person_name_is_printable = value
@@ -2285,7 +2444,7 @@ impl TryFrom<ORAddressInfo> for ORAddress {
             let param = if is_numeric_str(&postal_code) {
                 BER.encode_numeric_string(&postal_code)?
             } else {
-                BER.encode_printable_string(&postal_code)?
+                BER.encode_owned_printable_string(postal_code)?
             };
             let ext = ExtensionAttribute::new(Vec::from([id_postal_code as u8]), param);
             ext_attrs.push(ext);
@@ -2293,7 +2452,7 @@ impl TryFrom<ORAddressInfo> for ORAddress {
         if let Some(pd_svc_name) = value.pd_svc_name {
             let ext = ExtensionAttribute::new(
                 Vec::from([id_pds_name as u8]),
-                BER.encode_printable_string(&pd_svc_name)?,
+                BER.encode_owned_printable_string(pd_svc_name)?,
             );
             ext_attrs.push(ext);
         }
@@ -2358,7 +2517,5 @@ impl FromStr for ORAddress {
         Ok(info.try_into()?)
     }
 }
-
-// TODO: To X.500 RDN
 
 // TODO: Unit tests

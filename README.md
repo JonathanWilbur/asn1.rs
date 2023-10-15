@@ -276,6 +276,7 @@ which control how these elements are encoded.
   - [ ] `.inner_data()` for `OPTIONALLY-PROTECTED` types.
   - [ ] Iterator for `ListResult` and `SearchResult`
   - [ ] Preserve bytes of `SIGNED`
+  - [ ] Validate the size and length constraints in an ORAddress
 - [ ] Some sort of `write()` and `flush()` interface for encoding indeterminate length form.
   - This needs to "trickle down" into the IDM layer.
 
