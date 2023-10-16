@@ -33,6 +33,7 @@ mod uds;
 pub use paddr::*;
 pub use uds::*;
 
+// TODO: Should DirectoryString just be an alias to UnboundedDirectoryString?
 /// ### ASN.1 Definition:
 ///
 /// ```asn1

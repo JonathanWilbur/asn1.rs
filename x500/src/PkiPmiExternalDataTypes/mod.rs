@@ -1067,6 +1067,17 @@ impl BuiltInStandardAttributes {
             organizational_unit_names,
         }
     }
+    pub fn is_empty (&self) -> bool {
+        self.country_name.is_none()
+        && self.administration_domain_name.is_none()
+        && self.network_address.is_none()
+        && self.terminal_identifier.is_none()
+        && self.private_domain_name.is_none()
+        && self.organization_name.is_none()
+        && self.numeric_user_identifier.is_none()
+        && self.personal_name.is_none()
+        && self.organizational_unit_names.is_none()
+    }
 }
 impl Default for BuiltInStandardAttributes {
     fn default() -> Self {

@@ -257,11 +257,61 @@ pub struct ORAddressInfo {
     pub po_box_addr: Option<String>,             // PD-B
     pub postal_code: Option<String>,             // PD-PC
     pub pd_svc_name: Option<String>,             // PD-SN
-    pub pd_country_name: Option<CountryCode>,        // PD-C
+    pub pd_country_name: Option<CountryCode>,    // PD-C
     pub isdn: Option<String>,                    // ISDN (This is the E.163 or E.164 address)
     pub psap: Option<PresentationAddress>,       // PSAP
     pub term_type: Option<TerminalType>,         // T-TY
     pub dda: HashMap<String, String>,            // DDA: Domain-Defined Attribute
+}
+
+impl ORAddressInfo {
+
+    /// See ITU-T Recommendation X.402 (1999), Section 18.3.1, First NOTE.
+    pub fn is_any_admd (&self) -> bool {
+        self.admd.as_ref().is_some_and(|admd| admd.as_str() == " ")
+    }
+
+    /// See ITU-T Recommendation X.402 (1999), Section 18.3.1, First NOTE.
+    pub fn is_unroutable_admd (&self) -> bool {
+        self.admd.as_ref().is_some_and(|admd| admd.as_str() == "0")
+    }
+
+    pub fn to_rfc1685_string(&self) -> Result<String, ASN1Error> {
+        Ok(self.to_string())
+    }
+
+    pub fn is_mnem_form(&self) -> bool {
+        self.admd.is_some()
+        && self.country.is_some()
+        && (
+            self.personal_name.is_some()
+            || self.org_name.is_some()
+            || self.common_name.is_some()
+        )
+    }
+
+    pub fn is_numr_form(&self) -> bool {
+        self.admd.is_some()
+        && self.country.is_some()
+        && self.num_id.is_some()
+    }
+
+    pub fn is_post_f_form(&self) -> bool {
+        self.admd.is_some()
+        && self.country.is_some()
+        && self.pd_country_name.is_some()
+        && self.postal_code.is_some()
+    }
+
+    pub fn is_post_u_form(&self) -> bool {
+        self.is_post_f_form()
+        && self.pd_address.len() > 0
+    }
+
+    pub fn is_term_form(&self) -> bool {
+        self.x121_net_addr.is_some()
+    }
+
 }
 
 impl Default for ORAddressInfo {
@@ -1012,7 +1062,11 @@ impl PartialEq for ORAddressInfo {
         self.personal_name == other.personal_name
         && self.country == other.country
         && case_ignore_compare_opt_str(&self.prmd, &other.prmd)
-        && case_ignore_compare_opt_str(&self.admd, &other.admd)
+        && ( // See ITU-T Rec. X.402 (1999), Section 18.3.1, First NOTE.
+            self.admd.as_ref().is_some_and(|admd| admd.as_str() == " ")
+            || other.admd.as_ref().is_some_and(|admd| admd.as_str() == " ")
+            || case_ignore_compare_opt_str(&self.admd, &other.admd)
+        )
         && compare_opt_num_str(&self.x121_net_addr, &other.x121_net_addr)
         && compare_opt_num_str(&self.num_id, &other.num_id)
         && case_ignore_compare_opt_str(&self.term_id, &other.term_id)
@@ -1874,6 +1928,29 @@ fn remove_oraddress_chars<'a>(s: &'a str) -> Cow<'a, str> {
 }
 
 impl ORAddress {
+
+    /// Returns true if there are no extensions, not domain-defined attributes,
+    /// and nothing in the built-in standard attributes.
+    pub fn is_empty (&self) -> bool {
+        self.extension_attributes.is_none()
+        && self.built_in_domain_defined_attributes.is_none()
+        && self.built_in_standard_attributes.is_empty()
+    }
+
+    /// See ITU-T Recommendation X.402 (1999), Section 18.3.1, First NOTE.
+    pub fn is_any_admd (&self) -> bool {
+        self.built_in_standard_attributes.administration_domain_name
+            .as_ref()
+            .is_some_and(|admd| admd.as_ref() == " ")
+    }
+
+    /// See ITU-T Recommendation X.402 (1999), Section 18.3.1, First NOTE.
+    pub fn is_unroutable_admd (&self) -> bool {
+        self.built_in_standard_attributes.administration_domain_name
+            .as_ref()
+            .is_some_and(|admd| admd.as_ref() == "0")
+    }
+
     pub fn to_rfc1685_string(&self) -> Result<String, ASN1Error> {
         let info: ORAddressInfo = self.try_into()?;
         Ok(info.to_string())
@@ -2880,6 +2957,3 @@ mod tests {
     }
 
 }
-
-// TODO: ORAddress.is_empty()
-// TODO: ORAddress.is_wildcard_admd()

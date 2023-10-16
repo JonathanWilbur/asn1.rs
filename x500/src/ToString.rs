@@ -2,8 +2,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 use asn1::{ASN1Value, INSTANCE_OF};
-use x690::{ber_encode, write_x690_node};
-use crate::PkiPmiExternalDataTypes::_encode_ORAddress;
+use x690::ber_encode;
 use crate::types::{
     DefaultX500ValueDisplayer,
     DisplayX500AttributeType,
@@ -26,6 +25,7 @@ use crate::CertificateExtensions::{
 };
 use std::fmt::{Display, Error};
 use std::collections::BTreeMap;
+use teletex::teletex_to_utf8;
 
 /// Stolen from https://github.com/snylonue/multirep
 /// Which is released under an MIT license as of May 17th, 2023.
@@ -119,8 +119,7 @@ impl Display for UnboundedDirectoryString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             UnboundedDirectoryString::teletexString(s) => {
-                // FIXME: This is close, but still not quite right. See: https://en.wikipedia.org/wiki/ITU_T.61
-                let new_s = String::from_utf8_lossy(s);
+                let new_s = teletex_to_utf8(s.as_slice());
                 f.write_str(new_s.as_ref())
             },
             UnboundedDirectoryString::printableString(s) => {
@@ -145,8 +144,7 @@ impl Display for DirectoryString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             DirectoryString::teletexString(s) => {
-                // FIXME: This is close, but still not quite right. See: https://en.wikipedia.org/wiki/ITU_T.61
-                let new_s = String::from_utf8_lossy(s);
+                let new_s = teletex_to_utf8(s.as_slice());
                 f.write_str(new_s.as_ref())
             },
             DirectoryString::printableString(s) => {
@@ -429,8 +427,10 @@ pub fn display_other_name (n: &INSTANCE_OF, f: &mut std::fmt::Formatter<'_>) -> 
         };
     } else {
         let mut ber: Vec<u8> = vec![];
-        ber_encode(&mut ber, &n.value).map_err(|_| std::fmt::Error)?;
-        f.write_fmt(format_args!("{}:{}", n.type_id.to_string(), hex::encode(ber)))
+        match ber_encode(&mut ber, &n.value) {
+            Ok(_) => f.write_fmt(format_args!("{}:{}", n.type_id.to_string(), hex::encode(ber))),
+            Err(_) => f.write_fmt(format_args!("{}:{}", n.type_id.to_string(), n.value.as_ref())),
+        }
     }
 }
 
@@ -451,12 +451,8 @@ impl Display for GeneralName {
                 f.write_str(n)
             },
             GeneralName::x400Address(n) => {
-                // TODO: Support displaying X.400 names: https://www.rfc-editor.org/rfc/rfc1685
-                let el = _encode_ORAddress(n).map_err(|_| std::fmt::Error)?;
-                let mut output: Vec<u8> = Vec::new();
-                write_x690_node(&mut output, &el).map_err(|_| std::fmt::Error)?;
                 f.write_str("x400Address:")?;
-                f.write_str(&hex::encode(output))
+                f.write_str(&n.to_rfc1685_string().unwrap_or("?".into()))
             },
             GeneralName::directoryName(n) => {
                 f.write_str("directoryName:")?;
