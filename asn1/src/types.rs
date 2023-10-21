@@ -399,6 +399,12 @@ pub trait ASN1Codec {
 
 }
 
+#[derive(Debug, Clone)]
+pub struct NamedType <'a, Type = ASN1Value> {
+    pub identifier: &'a str,
+    pub value: Type,
+}
+
 // This is really just an alias for vec![], but it is defined for future-proofing.
 #[macro_export]
 macro_rules! octs {
