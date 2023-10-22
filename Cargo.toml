@@ -21,5 +21,6 @@ members = [
     "rose-idm",
     "rose-stream",
     "teletex",
+    "gser",
     "ldap-schema-parsers",
 ]

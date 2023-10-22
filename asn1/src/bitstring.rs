@@ -164,6 +164,10 @@ impl BIT_STRING {
         bs
     }
 
+    pub fn from_bytes(bytes: Vec<u8>) -> BIT_STRING {
+        BIT_STRING { bytes, trailing_bits: 0 }
+    }
+
 }
 
 impl <T> From<T> for BIT_STRING
@@ -175,6 +179,15 @@ impl <T> From<T> for BIT_STRING
         }
     }
 }
+
+// impl From<Vec<u8>> for BIT_STRING {
+//     fn from(other: Vec<u8>) -> Self {
+//         BIT_STRING {
+//             bytes: other,
+//             trailing_bits: 0,
+//         }
+//     }
+// }
 
 impl Default for BIT_STRING {
     fn default() -> Self {
