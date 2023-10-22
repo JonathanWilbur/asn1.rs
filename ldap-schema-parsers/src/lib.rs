@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr,  ops::Deref};
+use std::{collections::HashMap, str::FromStr, ops::Deref};
 
 use cow_utils::CowUtils;
 use nom::{
@@ -153,7 +153,7 @@ fn parse_numeric_oid(s: &str) -> IResult<&str, OBJECT_IDENTIFIER> {
     for sarc in sarcs {
         arcs.push(u32::from_str(sarc).unwrap());
     }
-    Ok((s, OBJECT_IDENTIFIER::new(&arcs))) // TODO: Make the constructor take ownership.
+    Ok((s, OBJECT_IDENTIFIER::new(arcs)))
 }
 
 #[derive(Clone)]
@@ -937,12 +937,13 @@ impl FromStr for LdapNameFormDescription {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use asn1::oid;
 
     #[test]
     fn parsing_oc_works() {
         let s = "( 2.5.6.14 NAME 'device' SUP top STRUCTURAL MUST cn MAY ( serialNumber $ seeAlso ) )";
         let oc = LdapObjectClassDescription::from_str(s).unwrap();
-        assert_eq!(oc.id, OBJECT_IDENTIFIER::new(&[ 2, 5, 6, 14 ]));
+        assert_eq!(oc.id, oid!(2, 5, 6, 14));
         assert_eq!(oc.names, vec![ String::from("device") ]);
         assert_eq!(oc.sup.unwrap(), vec![ "top".into() ]);
         assert_eq!(oc.kind.unwrap(), ObjectClassKind::STRUCTURAL);
@@ -957,13 +958,13 @@ mod tests {
     fn parsing_at_works() {
         let s = "( 0.9.2342.19200300.100.1.25 NAME 'dc' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )";
         let at = LdapAttributeTypeDescription::from_str(s).unwrap();
-        assert_eq!(at.id, OBJECT_IDENTIFIER::new(&[ 0, 9, 2342, 19200300, 100, 1, 25 ]));
+        assert_eq!(at.id, oid!(0, 9, 2342, 19200300, 100, 1, 25));
         assert_eq!(at.names, vec![ String::from("dc") ]);
         assert_eq!(at.equality.unwrap().name, Some("caseIgnoreIA5Match".into()));
         assert_eq!(at.substr.unwrap().name, Some("caseIgnoreIA5SubstringsMatch".into()));
         assert_eq!(at.exts.len(), 0);
         assert!(at.ordering.is_none());
-        assert_eq!(at.syntax.as_ref().unwrap().oid, OBJECT_IDENTIFIER::new(&[ 1, 3, 6, 1, 4, 1, 1466, 115, 121, 1, 26 ]));
+        assert_eq!(at.syntax.as_ref().unwrap().oid, oid!(1, 3, 6, 1, 4, 1, 1466, 115, 121, 1, 26));
         assert!(at.syntax.unwrap().len.is_none());
         assert!(at.sup.is_none());
         assert!(at.desc.is_none());
@@ -977,9 +978,9 @@ mod tests {
     fn parsing_mr_works() {
         let s = "( 2.5.13.1 NAME 'distinguishedNameMatch' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 )";
         let mr = LdapMatchingRuleDescription::from_str(s).unwrap();
-        assert_eq!(mr.id, OBJECT_IDENTIFIER::new(&[ 2, 5, 13, 1 ]));
+        assert_eq!(mr.id, oid!(2, 5, 13, 1));
         assert_eq!(mr.names, vec![ String::from("distinguishedNameMatch") ]);
-        assert_eq!(mr.syntax, OBJECT_IDENTIFIER::new(&[ 1, 3, 6, 1, 4, 1, 1466, 115, 121, 1, 12 ]));
+        assert_eq!(mr.syntax, oid!(1, 3, 6, 1, 4, 1, 1466, 115, 121, 1, 12));
         assert_eq!(mr.exts.len(), 0);
         assert!(mr.desc.is_none());
         assert!(!mr.obsolete);
@@ -1006,7 +1007,7 @@ mod tests {
     fn parsing_nf_works() {
         let s = "( 1.3.6.1.1.10.15.1 NAME 'uddiBusinessEntityNameForm' OC uddiBusinessEntity MUST ( uddiBusinessKey ) )";
         let nf = LdapNameFormDescription::from_str(s).unwrap();
-        assert_eq!(nf.id, OBJECT_IDENTIFIER::new(&[ 1, 3, 6, 1, 1, 10, 15, 1 ]));
+        assert_eq!(nf.id, oid!(1, 3, 6, 1, 1, 10, 15, 1));
         assert_eq!(nf.names, vec![ String::from("uddiBusinessEntityNameForm") ]);
         assert!(nf.oc.oid.is_none());
         assert_eq!(nf.oc.name.as_ref().unwrap(), "uddiBusinessEntity");

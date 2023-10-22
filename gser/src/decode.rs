@@ -279,7 +279,7 @@ pub fn parse_ObjectIdentifierValue (s: &str) -> IResult<&str, GserOidValue> {
         return Ok((s, GserOidValue::Descriptor(descr)));
     }
     let (s, arcs) = separated_list1(tag("."), parse_oid_component)(s)?;
-    let oid = OBJECT_IDENTIFIER::new(&arcs);
+    let oid = OBJECT_IDENTIFIER::new(arcs);
     Ok((s, GserOidValue::Literal(oid)))
 }
 
@@ -385,7 +385,7 @@ pub fn parse_GserValue (s: &str) -> IResult<&str, GserValue> {
     }
     if let Ok((s, v)) = separated_list1(tag("."), parse_oid_component)(s) {
         if v.len() > 2 {
-            let oid = OBJECT_IDENTIFIER::new(&v);
+            let oid = OBJECT_IDENTIFIER::new(v);
             return Ok((s, GserValue::ObjectIdentifierValue(oid)));
         }
     }
@@ -466,7 +466,7 @@ mod tests {
             GserValue::ObjectIdentifierValue(oid) => oid,
             _ => panic!("Not an OID value"),
         };
-        assert!(alg == &OBJECT_IDENTIFIER::new(&[ 2, 5, 43, 19 ]));
+        assert!(alg == &OBJECT_IDENTIFIER::new(Vec::from([ 2, 5, 43, 19 ])));
         let params = match &c2.value {
             GserValue::IntegerValue(i) => i,
             _ => panic!("Not an integer value"),

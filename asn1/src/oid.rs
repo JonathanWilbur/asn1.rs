@@ -2,8 +2,8 @@ use crate::{types::OBJECT_IDENTIFIER, OID_ARC, RELATIVE_OID};
 use std::{fmt::Display, num::ParseIntError, str::FromStr};
 
 impl OBJECT_IDENTIFIER {
-    pub fn new(nodes: &[OID_ARC]) -> Self {
-        OBJECT_IDENTIFIER(Vec::from(nodes))
+    pub fn new(nodes: Vec<OID_ARC>) -> Self {
+        OBJECT_IDENTIFIER(nodes)
     }
 
     pub fn to_asn1_string(&self) -> String {
@@ -28,8 +28,8 @@ impl OBJECT_IDENTIFIER {
         )
     }
 
-    pub fn extend(&mut self, roid: &RELATIVE_OID) -> () {
-        self.0.extend(roid.0.as_slice())
+    pub fn extend(&mut self, roid: RELATIVE_OID) -> () {
+        self.0.extend(roid.0)
     }
 
     pub fn starts_with(&mut self, roid: &RELATIVE_OID) -> bool {
@@ -50,11 +50,6 @@ impl FromStr for OBJECT_IDENTIFIER {
             nodes.push(str.parse::<u32>()?);
         }
         Ok(OBJECT_IDENTIFIER(nodes))
-        // TODO: Pending try_collect() stabilization (and it benchmarking favorably.)
-        // Ok(OBJECT_IDENTIFIER(s
-        //     .split(".")
-        //     .map(|s| s.parse::<u32>())
-        //     .try_collect::<Vec<u32>>()?))
     }
 }
 
@@ -100,7 +95,7 @@ macro_rules! oid {
     ( $( $x:expr ),* ) => {
         {
             use super::OBJECT_IDENTIFIER;
-            OBJECT_IDENTIFIER::new(&[ $($x,)* ])
+            OBJECT_IDENTIFIER::new(Vec::from([ $($x,)* ]))
         }
     };
 }
