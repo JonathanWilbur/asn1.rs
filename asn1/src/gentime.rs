@@ -200,8 +200,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
                     i += 1;
                 }
                 let end = min(i, 19); // We can only tolerate four digits of precision.
-                                      // FIXME: Pad with zeroes or whatever to make units consistent.
-                ret.fraction = match u16::from_str(&s[12..end]) {
+                ret.fraction = match u16::from_str(&s[15..end]) {
                     Ok(u) => {
                         if u > 9999 {
                             return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
@@ -306,5 +305,23 @@ impl Display for GeneralizedTime {
             }
         };
         Ok(())
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::GeneralizedTime;
+
+    #[test]
+    fn gen_time_from_str_accepts_fractional_seconds() {
+        let input = b"19960415203000.0";
+        GeneralizedTime::try_from(input.as_slice()).unwrap();
+    }
+
+    #[test]
+    fn gen_time_from_str_accepts_fractional_seconds_and_timezone() {
+        let input = b"19960415203000.0Z";
+        GeneralizedTime::try_from(input.as_slice()).unwrap();
     }
 }
