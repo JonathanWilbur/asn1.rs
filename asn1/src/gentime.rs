@@ -148,6 +148,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             }
             Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_day)),
         };
+        ret.date = date;
         ret.hour = match u8::from_str(&s[8..10]) {
             Ok(u) => {
                 if u > 23 {
