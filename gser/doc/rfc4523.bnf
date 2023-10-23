@@ -1,3 +1,5 @@
+; Source: https://datatracker.ietf.org/doc/html/rfc4523
+
 ; CertificateExactAssertion
 
 CertificateExactAssertion = "{" sp cea-serialNumber "," sp cea-issuer sp "}"

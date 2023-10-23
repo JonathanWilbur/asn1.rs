@@ -1,0 +1,13 @@
+[package]
+name = "rfc4523-parsing"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+asn1 = { path = "../asn1" }
+gser = { path = "../gser" }
+hex = "0.4.3"
+cow-utils = "0.1.3"
+nom = "7.1.3"

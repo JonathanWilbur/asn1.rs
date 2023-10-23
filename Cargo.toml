@@ -23,4 +23,5 @@ members = [
     "teletex",
     "gser",
     "ldap-schema-parsers",
+    "rfc4523-parsing",
 ]

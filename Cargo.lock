@@ -3442,6 +3442,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rfc4523-parsing"
+version = "0.1.0"
+dependencies = [
+ "asn1",
+ "cow-utils",
+ "gser",
+ "hex",
+ "nom",
+]
+
+[[package]]
 name = "rfc6979"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
