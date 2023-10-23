@@ -340,7 +340,7 @@ pub fn parse_GeneralName (s: &str) -> IResult<&str, LdapGeneralName> {
         let (s, v) = parse_OctetStringValue(s)?;
         return Ok((s, LdapGeneralName::IPAddress(v)));
     }
-    if let Ok((s, _)) = tag::<&str, &str, ()>("registeredId:")(s) {
+    if let Ok((s, _)) = tag::<&str, &str, ()>("registeredID:")(s) {
         let (s, v) = parse_ObjectIdentifierValue(s)?;
         return Ok((s, LdapGeneralName::RegisteredId(v)));
     }
@@ -380,8 +380,6 @@ pub fn parse_GeneralSubtree (s: &str) -> IResult<&str, LdapGeneralSubtree> {
     let (s, _) = take_char('}')(s)?;
     let minimum = maybe_min.map(|(_, _, _, _, m)| m);
     let maximum = maybe_max.map(|(_, _, _, _, m)| m);
-    let (s, _) = space0(s)?;
-    let (s, _) = take_char('}')(s)?;
     Ok((s, LdapGeneralSubtree{ base, minimum, maximum }))
 }
 
@@ -812,24 +810,12 @@ pub fn parse_CertificateListAssertion (s: &str) -> IResult<&str, CertificateList
 #[cfg(test)]
 mod tests {
     use super::*;
+    use asn1::oid;
 
-// const TEST_CERT_ASSERTION_01: &str = "{ serialNumber 12345, issuer rdnSequence:\"c=US,st=FL,cn=Jon W\", subjectKeyIdentifier '456BC1F0'H }";
 const TEST_CERT_ASSERTION_01: &str = "{ \
 serialNumber 12345, \
 issuer rdnSequence:\"c=US,st=FL,cn=Jon W\", \
 subjectKeyIdentifier '456BC1F0'H \
-}";
-
-const TEST_CERT_ASSERTION_02: &str = "{
-authorityKeyIdentifier { \
-keyIdentifier '2034FFD1'H,\
-authorityCertIssuer { \
-dNSName:\"wildboar.software\", \
-ediPartyName:{ partyName:\"Foobar\" }, \
-registeredID:wildboar \
-}, \
-authorityCertSerialNumber 56789
-} \
 }";
 
     #[test]
@@ -842,5 +828,224 @@ authorityCertSerialNumber 56789
             _ => panic!("Not a reasonable integer value for serialNumber."),
         };
         assert_eq!(serial, 12345);
+        let issuer = match output.issuer.unwrap() {
+            LdapName::RdnSequence(rdns) => rdns,
+            _ => panic!("Not an RDN sequence"),
+        };
+        assert_eq!(issuer.as_ref(), "c=US,st=FL,cn=Jon W");
+        let skid = output.subjectKeyIdentifier.unwrap();
+        assert_eq!(skid.as_slice(), &[ 0x45, 0x6B, 0xC1, 0xF0 ]);
     }
+
+const TEST_CERT_ASSERTION_02: &str = "{ \
+authorityKeyIdentifier { \
+keyIdentifier '2034FFD1'H, \
+authorityCertIssuer { dNSName:\"wildboar.software\", ediPartyName:{ partyName \"Foobar\" }, registeredID:wildboar }, \
+authorityCertSerialNumber 56789 \
+} \
+}";
+
+    #[test]
+    fn parses_cert_assertion_02() {
+        let input = TEST_CERT_ASSERTION_02;
+        let (s, output) = parse_CertificateAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let akid =  output.authorityKeyIdentifier.unwrap();
+        let kid = akid.keyIdentifier.unwrap();
+        let ac_iss = akid.authorityCertIssuer.unwrap();
+        let ac_ser = akid.authorityCertSerialNumber.unwrap();
+        assert_eq!(kid.as_slice(), &[ 0x20, 0x34, 0xFF, 0xD1 ]);
+        assert_eq!(ac_iss.len(), 3);
+        let serial = match ac_ser {
+            GserIntegerValue::ReasonableLiteral(i) => i,
+            _ => panic!("Not a reasonable integer value for serialNumber."),
+        };
+        assert_eq!(serial, 56789);
+        let iss_name_1 = &ac_iss[0];
+        let iss_name_2 = &ac_iss[1];
+        let iss_name_3 = &ac_iss[2];
+        let dns_name = match iss_name_1 {
+            LdapGeneralName::DnsName(n) => n,
+            _ => panic!(),
+        };
+        assert_eq!(dns_name, &"wildboar.software");
+        let edi_name = match iss_name_2 {
+            LdapGeneralName::EdiPartyName(n) => n,
+            _ => panic!(),
+        };
+        assert!(edi_name.nameAssigner.is_none());
+        assert_eq!(edi_name.partyName.as_ref(), "Foobar");
+        let oid_name = match iss_name_3 {
+            LdapGeneralName::RegisteredId(n) => n,
+            _ => panic!(),
+        };
+        let oid_name_desc = match oid_name {
+            GserOidValue::Descriptor(d) => d,
+            _ => panic!(),
+        };
+        assert_eq!(oid_name_desc, &"wildboar");
+    }
+
+const TEST_CERT_ASSERTION_03: &str = "{ \
+certificateValid utcTime:\"990823052442Z\", \
+privateKeyValid \"20081213065544+0004\", \
+subjectPublicKeyAlgID rsaEncryption \
+}";
+
+    #[test]
+    fn parses_cert_assertion_03() {
+        let input = TEST_CERT_ASSERTION_03;
+        let (s, output) = parse_CertificateAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let cert_valid = output.certificateValid.unwrap();
+        let priv_key_valid = output.privateKeyValid.unwrap();
+        let subj_pk_alg_id = output.subjectPublicKeyAlgID.unwrap();
+        assert_eq!(cert_valid.date.year, 1999);
+        assert_eq!(priv_key_valid.date.year, 2008);
+        let oid_desc = match subj_pk_alg_id {
+            GserOidValue::Descriptor(d) => d,
+            _ => panic!(),
+        };
+        assert_eq!(oid_desc, "rsaEncryption");
+    }
+
+const TEST_CERT_ASSERTION_04: &str = "{ \
+keyUsage { nonRepudiation, keyEncipherment }, \
+subjectAltName builtinNameForm:x400Address, \
+policy { wildboar-policy, 1.5.4.3 } \
+}";
+
+    #[test]
+    fn parses_cert_assertion_04() {
+        let input = TEST_CERT_ASSERTION_04;
+        let (s, output) = parse_CertificateAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let key_usage = output.keyUsage.unwrap();
+        let san = output.subjectAltName.unwrap();
+        let policy = output.policy.unwrap();
+        let key_usage_bits = match key_usage {
+            GserBitStringValue::BitList(list) => list,
+            _ => panic!(),
+        };
+        assert_eq!(key_usage_bits.len(), 2);
+        assert_eq!(key_usage_bits[0], "nonRepudiation");
+        assert_eq!(key_usage_bits[1], "keyEncipherment");
+        if let LdapAltNameType::X400Address = &san {
+            // Do nothing.
+        } else {
+            panic!();
+        }
+        assert_eq!(policy.len(), 2);
+        let policy1 = &policy[0];
+        let policy2 = &policy[1];
+        let policy1_desc = match policy1 {
+            GserOidValue::Descriptor(d) => d,
+            _ => panic!(),
+        };
+        let policy2_oid = match policy2 {
+            GserOidValue::Literal(oid) => oid,
+            _ => panic!(),
+        };
+        assert_eq!(policy1_desc, &"wildboar-policy");
+        assert_eq!(policy2_oid, &oid!(1, 5, 4, 3));
+    }
+
+
+const TEST_CERT_ASSERTION_05: &str = "{ \
+keyUsage '101'B, \
+subjectAltName otherNameForm:2.5.4.3, \
+pathToName dnsName:\"wildboar.software\", \
+subject oid:1.3.4.6.1.56940 \
+}";
+
+    #[test]
+    fn parses_cert_assertion_05() {
+        let input = TEST_CERT_ASSERTION_05;
+        let (s, output) = parse_CertificateAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let key_usage = output.keyUsage.unwrap();
+        let san = output.subjectAltName.unwrap();
+        let path = output.pathToName.unwrap();
+        let subject = output.subject.unwrap();
+        let key_usage_bits = match key_usage {
+            GserBitStringValue::BitString(bs) => bs,
+            _ => panic!(),
+        };
+        assert_eq!(key_usage_bits.trailing_bits, 5);
+        if let LdapAltNameType::OtherName(on_oid) = &san {
+            let on_oid = match on_oid {
+                GserOidValue::Literal(o) => o,
+                _ => panic!(),
+            };
+            assert_eq!(on_oid, &oid!(2, 5, 4, 3));
+        } else {
+            panic!();
+        }
+        let path_dns_name = match path {
+            LdapName::DnsName(n) => n,
+            _ => panic!(),
+        };
+        assert_eq!(path_dns_name, "wildboar.software");
+        let subject_oid = match subject {
+            LdapName::Oid(o) => o,
+            _ => panic!(),
+        };
+        let subject_oid = match subject_oid {
+            GserOidValue::Literal(o) => o,
+            _ => panic!(),
+        };
+        assert_eq!(subject_oid, oid!(1,3,4,6,1,56940));
+    }
+
+const TEST_CERT_ASSERTION_06: &str = "{ \
+nameConstraints { excludedSubtrees { \
+{ base dNSName:\"careers.mcdonalds.com\", minimum 1, maximum 5 }, \
+{ base iPAddress:'08080808'H } \
+} } }";
+
+    #[test]
+    fn parses_cert_assertion_06() {
+        let input = TEST_CERT_ASSERTION_06;
+        let (s, output) = parse_CertificateAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let nc = output.nameConstraints.unwrap();
+        assert!(nc.permittedSubtrees.is_none());
+        let xs = nc.excludedSubtrees.unwrap();
+        assert_eq!(xs.len(), 2);
+        let xs1 = &xs[0];
+        let xs2 = &xs[1];
+        assert_eq!(xs1.minimum, Some(1));
+        assert_eq!(xs1.maximum, Some(5));
+        assert_eq!(xs2.minimum, None);
+        assert_eq!(xs2.maximum, None);
+    }
+
+
+const TEST_CERT_EXACT_ASSERTION_01: &str = "{ \
+serialNumber 8675309, \
+issuer rdnSequence:\"c=US,st=FL,o=Wildboar Software\" \
+}";
+
+    #[test]
+    fn parses_cert_exact_assertion_01() {
+        let input = TEST_CERT_EXACT_ASSERTION_01;
+        let (s, output) = parse_CertificateExactAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let serial = match output.serialNumber {
+            GserIntegerValue::ReasonableLiteral(i) => i,
+            _ => panic!(),
+        };
+        assert_eq!(serial, 8675309);
+        let issuer = match output.issuer {
+            LdapName::RdnSequence(rdns) => rdns,
+            _ => panic!(),
+        };
+        assert_eq!(issuer, "c=US,st=FL,o=Wildboar Software");
+    }
+
+    // TODO: parse_CertificatePairExactAssertion
+    // TODO: parse_CertificatePairAssertion
+    // TODO: parse_CertificateListExactAssertion
+    // TODO: parse_CertificateListAssertion
+
 }
