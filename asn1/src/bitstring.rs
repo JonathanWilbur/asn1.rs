@@ -77,6 +77,14 @@ impl BIT_STRING {
         }
     }
 
+    pub fn get(&mut self, index: usize) -> Option<bool> {
+        let byte_index: usize = index >> 3;
+        let bit_index: usize = index % 8;
+        let byte = self.bytes.get(byte_index)?;
+        let masked = (1 << (7 - bit_index)) & byte;
+        Some(masked > 0)
+    }
+
     pub fn set(&mut self, index: usize, value: bool) -> bool {
         let byte_index: usize = index >> 3;
         let bit_index: usize = index % 8;
@@ -103,6 +111,13 @@ impl BIT_STRING {
             self.trailing_bits = (7 - bit_index) as u8;
         }
         extended
+    }
+
+    /// The length IN BITS of the bit string.
+    pub fn len (&self) -> usize {
+        (self.bytes.len() << 3)
+            .checked_sub(self.trailing_bits as usize)
+            .unwrap_or(0)
     }
 
     pub fn with_bits_set(bits_to_set: &[usize]) -> BIT_STRING {
@@ -167,6 +182,9 @@ impl BIT_STRING {
     pub fn from_bytes(bytes: Vec<u8>) -> BIT_STRING {
         BIT_STRING { bytes, trailing_bits: 0 }
     }
+
+    // TODO: There is no way to get a bit currently.
+    // TODO: len()
 
 }
 
