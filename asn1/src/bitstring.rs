@@ -81,6 +81,10 @@ impl BIT_STRING {
         let byte_index: usize = index >> 3;
         let bit_index: usize = index % 8;
         let byte = self.bytes.get(byte_index)?;
+        let non_trailing_bits = 7 - (self.trailing_bits % 8);
+        if bit_index > non_trailing_bits as usize {
+            return None;
+        }
         let masked = (1 << (7 - bit_index)) & byte;
         Some(masked > 0)
     }
@@ -443,6 +447,49 @@ mod tests {
     fn test_bits_macro() {
         let bs1 = bits!(1,0,1,0,0,1,0,1,1,1,1);
         // let bs1 = bits!(1010010111110111);
-        assert_eq!(bs1.to_string().as_str(), "'101001 01111'B");
+        assert_eq!(bs1.to_string().as_str(), "'10100101111'B");
     }
+
+    #[test]
+    fn test_bit_string_get() {
+        let mut bs = BIT_STRING {
+            bytes: vec![0b0100_0000],
+            trailing_bits: 5,
+        };
+        assert_eq!(bs.get(0), Some(false));
+        assert_eq!(bs.get(1), Some(true));
+        assert_eq!(bs.get(4), None);
+    }
+
+    // No specific expectation for this test, other than that it does not
+    // cause a panic.
+    #[test]
+    fn test_bit_string_get_malformed_1() {
+        let mut bs = BIT_STRING {
+            bytes: vec![0b0100_0000],
+            trailing_bits: 65,
+        };
+        let bit = bs.get(1);
+        assert_eq!(bit, Some(true));
+    }
+
+    #[test]
+    fn test_bit_string_get_malformed_2() {
+        let mut bs = BIT_STRING {
+            bytes: vec![],
+            trailing_bits: 3,
+        };
+        let bit = bs.get(1);
+        assert_eq!(bit, None);
+    }
+
+    #[test]
+    fn test_bit_string_len() {
+        let bs = BIT_STRING {
+            bytes: vec![0b0101_0000],
+            trailing_bits: 3,
+        };
+        assert_eq!(bs.len(), 5);
+    }
+
 }
