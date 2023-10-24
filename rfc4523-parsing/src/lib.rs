@@ -1043,9 +1043,213 @@ issuer rdnSequence:\"c=US,st=FL,o=Wildboar Software\" \
         assert_eq!(issuer, "c=US,st=FL,o=Wildboar Software");
     }
 
-    // TODO: parse_CertificatePairExactAssertion
-    // TODO: parse_CertificatePairAssertion
-    // TODO: parse_CertificateListExactAssertion
-    // TODO: parse_CertificateListAssertion
+const TEST_CERT_PAIR_EXACT_ASSERTION_01: &str = "{ \
+issuedToThisCAAssertion { \
+serialNumber 8675309, \
+issuer rdnSequence:\"c=US,st=FL,o=Wildboar Software\" \
+}, \
+issuedByThisCAAssertion { \
+serialNumber 50059, \
+issuer rdnSequence:\"c=US,st=GA,o=Ambiguous Systems LLC\" \
+} \
+}";
+
+    #[test]
+    fn parses_cert_pair_exact_assertion_01() {
+        let input = TEST_CERT_PAIR_EXACT_ASSERTION_01;
+        let (s, output) = parse_CertificatePairExactAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let iss_to = output.issuedToThisCAAssertion.unwrap();
+        let iss_by = output.issuedByThisCAAssertion.unwrap();
+        {
+            let output = iss_to;
+            let serial = match output.serialNumber {
+                GserIntegerValue::ReasonableLiteral(i) => i,
+                _ => panic!(),
+            };
+            assert_eq!(serial, 8675309);
+            let issuer = match output.issuer {
+                LdapName::RdnSequence(rdns) => rdns,
+                _ => panic!(),
+            };
+            assert_eq!(issuer, "c=US,st=FL,o=Wildboar Software");
+        }
+        {
+            let output = iss_by;
+            let serial = match output.serialNumber {
+                GserIntegerValue::ReasonableLiteral(i) => i,
+                _ => panic!(),
+            };
+            assert_eq!(serial, 50059);
+            let issuer = match output.issuer {
+                LdapName::RdnSequence(rdns) => rdns,
+                _ => panic!(),
+            };
+            assert_eq!(issuer, "c=US,st=GA,o=Ambiguous Systems LLC");
+        }
+    }
+
+const TEST_CERT_PAIR_ASSERTION_01: &str = "{ \
+issuedToThisCAAssertion { \
+serialNumber 8675309 \
+}, \
+issuedByThisCAAssertion { \
+serialNumber 50059 \
+} \
+}";
+
+    #[test]
+    fn parses_cert_pair_assertion_01() {
+        let input = TEST_CERT_PAIR_ASSERTION_01;
+        let (s, output) = parse_CertificatePairAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let iss_to = output.issuedToThisCAAssertion.unwrap();
+        let iss_by = output.issuedByThisCAAssertion.unwrap();
+        {
+            let output = iss_to;
+            let serial = match output.serialNumber.unwrap() {
+                GserIntegerValue::ReasonableLiteral(i) => i,
+                _ => panic!(),
+            };
+            assert_eq!(serial, 8675309);
+        }
+        {
+            let output = iss_by;
+            let serial = match output.serialNumber.unwrap() {
+                GserIntegerValue::ReasonableLiteral(i) => i,
+                _ => panic!(),
+            };
+            assert_eq!(serial, 50059);
+        }
+    }
+
+const TEST_CERT_LIST_ASSERTION_01: &str = "{ \
+issuer rdnSequence:\"c=SE,o=Goobis Systems\", \
+minCRLNumber 60023950, \
+maxCRLNumber 502929983, \
+reasonFlags { keyCompromise, affiliationChanged }, \
+dateAndTime generalizedTime:\"20110912040506Z\", \
+distributionPoint nameRelativeToCRLIssuer:\"ou=Dept. of Bananas\", \
+authorityKeyIdentifier { authorityCertSerialNumber 54321 } \
+}";
+
+    #[test]
+    fn parses_cert_list_assertion_01() {
+        let input = TEST_CERT_LIST_ASSERTION_01;
+        let (s, output) = parse_CertificateListAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let issuer = output.issuer.unwrap();
+        let minCRLNumber = output.minCRLNumber.unwrap();
+        let maxCRLNumber = output.maxCRLNumber.unwrap();
+        let reasonFlags = output.reasonFlags.unwrap();
+        let dateAndTime = output.dateAndTime.unwrap();
+        let distributionPoint = output.distributionPoint.unwrap();
+        let authorityKeyIdentifier = output.authorityKeyIdentifier.unwrap();
+
+        assert_eq!(dateAndTime.date.year, 2011);
+        assert!(authorityKeyIdentifier.keyIdentifier.is_none());
+        assert!(authorityKeyIdentifier.authorityCertIssuer.is_none());
+        let akid_aci = authorityKeyIdentifier.authorityCertSerialNumber.unwrap();
+        let akid_aci = match akid_aci {
+            GserIntegerValue::ReasonableLiteral(i) => i,
+            _ => panic!(),
+        };
+        assert_eq!(akid_aci, 54321);
+        let issuer = match issuer {
+            LdapName::RdnSequence(rdns) => rdns,
+            _ => panic!(),
+        };
+        assert_eq!(issuer.as_ref(), "c=SE,o=Goobis Systems");
+        let minCRLNumber = match minCRLNumber {
+            GserIntegerValue::ReasonableLiteral(i) => i,
+            _ => panic!(),
+        };
+        assert_eq!(minCRLNumber, 60023950);
+        let maxCRLNumber = match maxCRLNumber {
+            GserIntegerValue::ReasonableLiteral(i) => i,
+            _ => panic!(),
+        };
+        assert_eq!(maxCRLNumber, 502929983);
+        let reasonFlags = match reasonFlags {
+            GserBitStringValue::BitList(list) => list,
+            _ => panic!(),
+        };
+        assert_eq!(reasonFlags.len(), 2);
+        assert_eq!(reasonFlags[0], "keyCompromise");
+        assert_eq!(reasonFlags[1], "affiliationChanged");
+        let distributionPoint = match distributionPoint {
+            DistributionPointName::RelativeName(rel) => rel,
+            _ => panic!(),
+        };
+        assert_eq!(distributionPoint.as_ref(), "ou=Dept. of Bananas");
+
+    }
+
+const TEST_CERT_LIST_ASSERTION_02: &str = "{ \
+minCRLNumber 60023950684354683438438438439599994546656565561641, \
+maxCRLNumber 60023950684354683438438438439599994546656565561642, \
+reasonFlags '00000011'B, \
+dateAndTime utcTime:\"110912040506Z\", \
+distributionPoint fullName:{ x400Address:\"C=US;A=AT&T;G=Joe;S=Schmoe;\" }, \
+authorityKeyIdentifier { keyIdentifier 'BEEF'H } \
+}";
+
+    #[test]
+    fn parses_cert_list_assertion_02() {
+        let input = TEST_CERT_LIST_ASSERTION_02;
+        let (s, output) = parse_CertificateListAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let minCRLNumber = output.minCRLNumber.unwrap();
+        let maxCRLNumber = output.maxCRLNumber.unwrap();
+        let reasonFlags = output.reasonFlags.unwrap();
+        let dateAndTime = output.dateAndTime.unwrap();
+        let distributionPoint = output.distributionPoint.unwrap();
+        let authorityKeyIdentifier = output.authorityKeyIdentifier.unwrap();
+        assert_eq!(dateAndTime.date.year, 2011);
+        assert!(authorityKeyIdentifier.authorityCertIssuer.is_none());
+        assert!(authorityKeyIdentifier.authorityCertSerialNumber.is_none());
+        let akid = authorityKeyIdentifier.keyIdentifier.unwrap();
+        assert_eq!(akid.as_slice(), &[ 0xBE, 0xEF ]);
+        let minCRLNumber = match minCRLNumber {
+            GserIntegerValue::BigLiteral(i) => i,
+            _ => panic!(),
+        };
+        assert_eq!(minCRLNumber, "60023950684354683438438438439599994546656565561641");
+        let maxCRLNumber = match maxCRLNumber {
+            GserIntegerValue::BigLiteral(i) => i,
+            _ => panic!(),
+        };
+        assert_eq!(maxCRLNumber, "60023950684354683438438438439599994546656565561642");
+        let reasonFlags = match reasonFlags {
+            GserBitStringValue::BitString(bits) => bits,
+            _ => panic!(),
+        };
+        assert_eq!(reasonFlags.trailing_bits, 0);
+        assert_eq!(reasonFlags.bytes[0], 0b0000_0011);
+        let distributionPoint = match distributionPoint {
+            DistributionPointName::FullName(rel) => rel,
+            _ => panic!(),
+        };
+        assert_eq!(distributionPoint.len(), 1);
+    }
+
+const TEST_CERT_LIST_EXACT_ASSERTION_01: &str = "{ \
+issuer rdnSequence:\"c=SE,o=Goobis Systems\", \
+thisUpdate utcTime:\"110912040506Z\" \
+}";
+
+    #[test]
+    fn parses_cert_list_exact_assertion_01() {
+        let input = TEST_CERT_LIST_EXACT_ASSERTION_01;
+        let (s, output) = parse_CertificateListExactAssertion(input).unwrap();
+        assert_eq!(s.len(), 0);
+        let issuer = match output.issuer {
+            LdapName::RdnSequence(rdns) => rdns,
+            _ => panic!(),
+        };
+        assert_eq!(issuer.as_ref(), "c=SE,o=Goobis Systems");
+        assert_eq!(output.thisUpdate.date.year, 2011);
+        assert!(output.distributionPoint.is_none());
+    }
 
 }
