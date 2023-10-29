@@ -1,52 +1,39 @@
 #![allow(non_snake_case)]
-use std::fmt::Display;
-use std::str::FromStr;
-
-use nom::IResult;
-use nom::branch::alt;
-use nom::number::complete::double;
-use nom::combinator::opt;
-use nom::character::complete::{
-    char as take_char, space0, space1,
-    u32 as take_u32, i64 as take_i64,
+use asn1::{GeneralizedTime, OCTET_STRING};
+use gser::{
+    parse_BitStringValue, parse_GeneralizedTimeValue, parse_GserValue, parse_IntegerValue,
+    parse_ObjectIdentifierValue, parse_OctetStringValue, parse_RelativeDistinguishedNameValue,
+    parse_StringValue, parse_UTCTimeValue, parse_identifier, GserBitStringValue, GserIntegerValue,
+    GserOidValue, GserValue,
 };
-use nom::bytes::complete::{tag, take_while, take_until};
-use nom::character::complete::{hex_digit0, digit1};
-use nom::multi::{separated_list0, separated_list1, many1};
-use nom::Err as NomErr;
+use nom::bytes::complete::tag;
+use nom::character::complete::{char as take_char, space0, space1, u32 as take_u32};
+use nom::combinator::opt;
 use nom::error::Error as NomError;
 use nom::error::ErrorKind as NomErrorKind;
-use asn1::{
-    BIT_STRING,
-    OCTET_STRING, BOOLEAN,
-    GeneralizedTime,
-    UTCTime,
-    OBJECT_IDENTIFIER,
-    RELATIVE_OID,
-    REAL,
-    INTEGER,
-};
-use nom::sequence::{delimited, tuple, preceded};
+use nom::multi::separated_list1;
+use nom::sequence::{preceded, tuple};
+use nom::Err as NomErr;
+use nom::IResult;
 use std::borrow::Cow;
-use gser::{GserOidValue, GserValue, parse_ObjectIdentifierValue, parse_GserValue, parse_StringValue, parse_OctetStringValue, parse_IntegerValue, GserIntegerValue, parse_UTCTimeValue, parse_GeneralizedTimeValue, parse_RelativeDistinguishedNameValue, parse_BitStringValue, parse_identifier, GserBitStringValue};
 
 // RFC 4523 only defines `rdnSequence` as a valid alternative, but this is used
 // so that we can tolerate the newly introduced name alternatives.
 #[derive(Debug)]
-pub enum LdapName <'a> {
+pub enum LdapName<'a> {
     RdnSequence(Cow<'a, str>),
     Oid(GserOidValue<'a>),
     DnsName(&'a str),
 }
 
 #[derive(Debug)]
-pub struct LdapCertificateExactAssertion <'a> {
+pub struct LdapCertificateExactAssertion<'a> {
     pub serialNumber: GserIntegerValue<'a>,
     pub issuer: LdapName<'a>,
 }
 
 #[derive(Debug)]
-pub enum LdapAltNameType <'a> {
+pub enum LdapAltNameType<'a> {
     OtherName(GserOidValue<'a>),
     Rfc822Name,
     DnsName,
@@ -59,7 +46,7 @@ pub enum LdapAltNameType <'a> {
 }
 
 #[derive(Debug)]
-pub struct LdapCertificateAssertion <'a> {
+pub struct LdapCertificateAssertion<'a> {
     pub serialNumber: Option<GserIntegerValue<'a>>,
     pub issuer: Option<LdapName<'a>>,
     pub subjectKeyIdentifier: Option<OCTET_STRING>,
@@ -75,8 +62,7 @@ pub struct LdapCertificateAssertion <'a> {
     pub nameConstraints: Option<LdapNameConstraintsSyntax<'a>>,
 }
 
-impl <'a> Default for LdapCertificateAssertion <'a> {
-
+impl<'a> Default for LdapCertificateAssertion<'a> {
     fn default() -> Self {
         LdapCertificateAssertion {
             serialNumber: None,
@@ -94,26 +80,25 @@ impl <'a> Default for LdapCertificateAssertion <'a> {
             nameConstraints: None,
         }
     }
-
 }
 
 #[derive(Debug)]
-pub struct LdapOtherName <'a> {
+pub struct LdapOtherName<'a> {
     pub type_id: GserOidValue<'a>,
     pub value: GserValue<'a>,
 }
 
 #[derive(Debug)]
-pub struct LdapEdiPartyName <'a> {
+pub struct LdapEdiPartyName<'a> {
     pub nameAssigner: Option<Cow<'a, str>>,
     pub partyName: Cow<'a, str>,
 }
 
 #[derive(Debug)]
-pub enum LdapGeneralName <'a> {
+pub enum LdapGeneralName<'a> {
     OtherName(LdapOtherName<'a>),
-    Rfc822Name(Cow<'a, str>), // This might have quotes in it.
-    DnsName(&'a str), // This WILL NOT have quotes in it.
+    Rfc822Name(Cow<'a, str>),  // This might have quotes in it.
+    DnsName(&'a str),          // This WILL NOT have quotes in it.
     X400Address(Cow<'a, str>), // This might have quotes in it.
     DirectoryName(LdapName<'a>),
     EdiPartyName(LdapEdiPartyName<'a>),
@@ -123,97 +108,89 @@ pub enum LdapGeneralName <'a> {
 }
 
 #[derive(Debug)]
-pub struct LdapAuthorityKeyIdentifier <'a> {
+pub struct LdapAuthorityKeyIdentifier<'a> {
     pub keyIdentifier: Option<OCTET_STRING>,
     pub authorityCertIssuer: Option<Vec<LdapGeneralName<'a>>>,
     pub authorityCertSerialNumber: Option<GserIntegerValue<'a>>,
 }
 
-impl <'a> Default for LdapAuthorityKeyIdentifier<'a> {
-
+impl<'a> Default for LdapAuthorityKeyIdentifier<'a> {
     fn default() -> Self {
-        LdapAuthorityKeyIdentifier{
+        LdapAuthorityKeyIdentifier {
             keyIdentifier: None,
             authorityCertIssuer: None,
             authorityCertSerialNumber: None,
         }
     }
-
 }
 
 #[derive(Debug)]
-pub struct LdapGeneralSubtree <'a> {
+pub struct LdapGeneralSubtree<'a> {
     pub base: LdapGeneralName<'a>,
     pub minimum: Option<u32>,
     pub maximum: Option<u32>,
 }
 
 #[derive(Debug)]
-pub struct LdapNameConstraintsSyntax <'a> {
+pub struct LdapNameConstraintsSyntax<'a> {
     pub permittedSubtrees: Option<Vec<LdapGeneralSubtree<'a>>>,
     pub excludedSubtrees: Option<Vec<LdapGeneralSubtree<'a>>>,
 }
 
-impl <'a> Default for LdapNameConstraintsSyntax<'a> {
-
+impl<'a> Default for LdapNameConstraintsSyntax<'a> {
     fn default() -> Self {
-        LdapNameConstraintsSyntax{
+        LdapNameConstraintsSyntax {
             permittedSubtrees: None,
             excludedSubtrees: None,
         }
     }
-
 }
 
 #[derive(Debug)]
-pub struct LdapCertificatePairExactAssertion <'a> {
+pub struct LdapCertificatePairExactAssertion<'a> {
     pub issuedToThisCAAssertion: Option<LdapCertificateExactAssertion<'a>>,
     pub issuedByThisCAAssertion: Option<LdapCertificateExactAssertion<'a>>,
 }
 
-impl <'a> Default for LdapCertificatePairExactAssertion<'a> {
-
+impl<'a> Default for LdapCertificatePairExactAssertion<'a> {
     fn default() -> Self {
-        LdapCertificatePairExactAssertion{
+        LdapCertificatePairExactAssertion {
             issuedToThisCAAssertion: None,
             issuedByThisCAAssertion: None,
         }
     }
-
 }
 
 #[derive(Debug)]
-pub struct CertificatePairAssertion <'a> {
+pub struct CertificatePairAssertion<'a> {
     pub issuedToThisCAAssertion: Option<LdapCertificateAssertion<'a>>,
     pub issuedByThisCAAssertion: Option<LdapCertificateAssertion<'a>>,
 }
 
-impl <'a> Default for CertificatePairAssertion<'a> {
-
+impl<'a> Default for CertificatePairAssertion<'a> {
     fn default() -> Self {
-        CertificatePairAssertion{
+        CertificatePairAssertion {
             issuedToThisCAAssertion: None,
             issuedByThisCAAssertion: None,
         }
     }
-
 }
 
 #[derive(Debug)]
-pub struct CertificateListExactAssertion <'a> {
+pub struct CertificateListExactAssertion<'a> {
     pub issuer: LdapName<'a>,
     pub thisUpdate: GeneralizedTime,
     pub distributionPoint: Option<DistributionPointName<'a>>,
 }
 
 #[derive(Debug)]
-pub enum DistributionPointName <'a> {
+pub enum DistributionPointName<'a> {
     FullName(Vec<LdapGeneralName<'a>>),
     RelativeName(Cow<'a, str>),
 }
 
 #[derive(Debug)]
-pub struct CertificateListAssertion <'a> {
+pub struct CertificateListAssertion<'a> {
     pub issuer: Option<LdapName<'a>>,
     pub minCRLNumber: Option<GserIntegerValue<'a>>,
     pub maxCRLNumber: Option<GserIntegerValue<'a>>,
@@ -223,10 +200,9 @@ pub struct CertificateListAssertion <'a> {
     pub authorityKeyIdentifier: Option<LdapAuthorityKeyIdentifier<'a>>,
 }
 
-impl <'a> Default for CertificateListAssertion<'a> {
-
+impl<'a> Default for CertificateListAssertion<'a> {
     fn default() -> Self {
-        CertificateListAssertion{
+        CertificateListAssertion {
             issuer: None,
             minCRLNumber: None,
             maxCRLNumber: None,
@@ -236,16 +212,15 @@ impl <'a> Default for CertificateListAssertion<'a> {
             authorityKeyIdentifier: None,
         }
     }
-
 }
 
 #[derive(Debug)]
-pub struct LdapAlgorithmIdentifier <'a> {
+pub struct LdapAlgorithmIdentifier<'a> {
     pub algorithm: GserOidValue<'a>,
     pub parameters: Option<GserValue<'a>>,
 }
 
-pub fn parse_OtherName (s: &str) -> IResult<&str, LdapOtherName> {
+pub fn parse_OtherName(s: &str) -> IResult<&str, LdapOtherName> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = tag("type-id")(s)?;
@@ -258,10 +233,16 @@ pub fn parse_OtherName (s: &str) -> IResult<&str, LdapOtherName> {
     let (s, val) = parse_GserValue(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
-    Ok((s, LdapOtherName{ type_id: id, value: val }))
+    Ok((
+        s,
+        LdapOtherName {
+            type_id: id,
+            value: val,
+        },
+    ))
 }
 
-pub fn parse_LdapName (s: &str) -> IResult<&str, LdapName> {
+pub fn parse_LdapName(s: &str) -> IResult<&str, LdapName> {
     if let Ok((s, _)) = tag::<&str, &str, ()>("rdnSequence:")(s) {
         let (s, v) = parse_StringValue(s)?;
         return Ok((s, LdapName::RdnSequence(v)));
@@ -281,7 +262,7 @@ pub fn parse_LdapName (s: &str) -> IResult<&str, LdapName> {
     Err(NomErr::Error(NomError::new(s, NomErrorKind::Alt)))
 }
 
-pub fn parse_EdiPartyName (s: &str) -> IResult<&str, LdapEdiPartyName> {
+pub fn parse_EdiPartyName(s: &str) -> IResult<&str, LdapEdiPartyName> {
     let (s, _) = take_char('{')(s)?;
     let (s, maybe_na) = opt(tuple((
         space0,
@@ -297,13 +278,25 @@ pub fn parse_EdiPartyName (s: &str) -> IResult<&str, LdapEdiPartyName> {
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
     if let Some((_, _, _, na, _)) = maybe_na {
-        Ok((s, LdapEdiPartyName{ nameAssigner: Some(na), partyName: party_name }))
+        Ok((
+            s,
+            LdapEdiPartyName {
+                nameAssigner: Some(na),
+                partyName: party_name,
+            },
+        ))
     } else {
-        Ok((s, LdapEdiPartyName{ nameAssigner: None, partyName: party_name }))
+        Ok((
+            s,
+            LdapEdiPartyName {
+                nameAssigner: None,
+                partyName: party_name,
+            },
+        ))
     }
 }
 
-pub fn parse_GeneralName (s: &str) -> IResult<&str, LdapGeneralName> {
+pub fn parse_GeneralName(s: &str) -> IResult<&str, LdapGeneralName> {
     if let Ok((s, _)) = tag::<&str, &str, ()>("otherName:")(s) {
         let (s, v) = parse_OtherName(s)?;
         return Ok((s, LdapGeneralName::OtherName(v)));
@@ -347,7 +340,7 @@ pub fn parse_GeneralName (s: &str) -> IResult<&str, LdapGeneralName> {
     Err(NomErr::Error(NomError::new(s, NomErrorKind::Alt)))
 }
 
-pub fn parse_GeneralNames (s: &str) -> IResult<&str, Vec<LdapGeneralName>> {
+pub fn parse_GeneralNames(s: &str) -> IResult<&str, Vec<LdapGeneralName>> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, names) = separated_list1(tuple((take_char(','), space0)), parse_GeneralName)(s)?;
@@ -356,7 +349,7 @@ pub fn parse_GeneralNames (s: &str) -> IResult<&str, Vec<LdapGeneralName>> {
     Ok((s, names))
 }
 
-pub fn parse_GeneralSubtree (s: &str) -> IResult<&str, LdapGeneralSubtree> {
+pub fn parse_GeneralSubtree(s: &str) -> IResult<&str, LdapGeneralSubtree> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = tag("base")(s)?;
@@ -380,10 +373,17 @@ pub fn parse_GeneralSubtree (s: &str) -> IResult<&str, LdapGeneralSubtree> {
     let (s, _) = take_char('}')(s)?;
     let minimum = maybe_min.map(|(_, _, _, _, m)| m);
     let maximum = maybe_max.map(|(_, _, _, _, m)| m);
-    Ok((s, LdapGeneralSubtree{ base, minimum, maximum }))
+    Ok((
+        s,
+        LdapGeneralSubtree {
+            base,
+            minimum,
+            maximum,
+        },
+    ))
 }
 
-pub fn parse_GeneralSubtrees (s: &str) -> IResult<&str, Vec<LdapGeneralSubtree>> {
+pub fn parse_GeneralSubtrees(s: &str) -> IResult<&str, Vec<LdapGeneralSubtree>> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, subtrees) = separated_list1(tuple((take_char(','), space0)), parse_GeneralSubtree)(s)?;
@@ -392,16 +392,17 @@ pub fn parse_GeneralSubtrees (s: &str) -> IResult<&str, Vec<LdapGeneralSubtree>>
     Ok((s, subtrees))
 }
 
-pub fn parse_CertPolicySet (s: &str) -> IResult<&str, Vec<GserOidValue>> {
+pub fn parse_CertPolicySet(s: &str) -> IResult<&str, Vec<GserOidValue>> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
-    let (s, oids) = separated_list1(tuple((take_char(','), space0)), parse_ObjectIdentifierValue)(s)?;
+    let (s, oids) =
+        separated_list1(tuple((take_char(','), space0)), parse_ObjectIdentifierValue)(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
     Ok((s, oids))
 }
 
-pub fn parse_NameConstraintsSyntax (s: &str) -> IResult<&str, LdapNameConstraintsSyntax> {
+pub fn parse_NameConstraintsSyntax(s: &str) -> IResult<&str, LdapNameConstraintsSyntax> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, maybe_permitted) = opt(tuple((
@@ -420,10 +421,16 @@ pub fn parse_NameConstraintsSyntax (s: &str) -> IResult<&str, LdapNameConstraint
     let excludedSubtrees = maybe_excluded.map(|(_, _, _, _, s)| s);
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
-    Ok((s, LdapNameConstraintsSyntax{ permittedSubtrees, excludedSubtrees }))
+    Ok((
+        s,
+        LdapNameConstraintsSyntax {
+            permittedSubtrees,
+            excludedSubtrees,
+        },
+    ))
 }
 
-pub fn parse_AuthorityKeyIdentifier (s: &str) -> IResult<&str, LdapAuthorityKeyIdentifier> {
+pub fn parse_AuthorityKeyIdentifier(s: &str) -> IResult<&str, LdapAuthorityKeyIdentifier> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, maybe_kid) = opt(tuple((
@@ -450,10 +457,17 @@ pub fn parse_AuthorityKeyIdentifier (s: &str) -> IResult<&str, LdapAuthorityKeyI
     let authorityCertSerialNumber = maybe_auth_cert_serial.map(|(_, _, _, _, s)| s);
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
-    Ok((s, LdapAuthorityKeyIdentifier{ keyIdentifier, authorityCertIssuer, authorityCertSerialNumber }))
+    Ok((
+        s,
+        LdapAuthorityKeyIdentifier {
+            keyIdentifier,
+            authorityCertIssuer,
+            authorityCertSerialNumber,
+        },
+    ))
 }
 
-pub fn parse_Time (s: &str) -> IResult<&str, GeneralizedTime> {
+pub fn parse_Time(s: &str) -> IResult<&str, GeneralizedTime> {
     if let Ok((s, _)) = tag::<&str, &str, ()>("utcTime:")(s) {
         let (s, v) = parse_UTCTimeValue(s)?;
         return Ok((s, v.into()));
@@ -465,7 +479,7 @@ pub fn parse_Time (s: &str) -> IResult<&str, GeneralizedTime> {
     Err(NomErr::Error(NomError::new(s, NomErrorKind::Alt)))
 }
 
-pub fn parse_DistributionPointName (s: &str) -> IResult<&str, DistributionPointName> {
+pub fn parse_DistributionPointName(s: &str) -> IResult<&str, DistributionPointName> {
     if let Ok((s, _)) = tag::<&str, &str, ()>("fullName:")(s) {
         let (s, v) = parse_GeneralNames(s)?;
         return Ok((s, DistributionPointName::FullName(v)));
@@ -477,7 +491,7 @@ pub fn parse_DistributionPointName (s: &str) -> IResult<&str, DistributionPointN
     Err(NomErr::Error(NomError::new(s, NomErrorKind::Alt)))
 }
 
-pub fn parse_AlgorithmIdentifier (s: &str) -> IResult<&str, LdapAlgorithmIdentifier> {
+pub fn parse_AlgorithmIdentifier(s: &str) -> IResult<&str, LdapAlgorithmIdentifier> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = tag("algorithm")(s)?;
@@ -493,10 +507,16 @@ pub fn parse_AlgorithmIdentifier (s: &str) -> IResult<&str, LdapAlgorithmIdentif
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
     let parameters = maybe_parameters.map(|(_, _, _, _, v)| v);
-    Ok((s, LdapAlgorithmIdentifier{ algorithm, parameters }))
+    Ok((
+        s,
+        LdapAlgorithmIdentifier {
+            algorithm,
+            parameters,
+        },
+    ))
 }
 
-pub fn parse_AltNameType (s: &str) -> IResult<&str, LdapAltNameType> {
+pub fn parse_AltNameType(s: &str) -> IResult<&str, LdapAltNameType> {
     if let Ok((s, _)) = tag::<&str, &str, ()>("builtinNameForm:")(s) {
         if let Ok((s, built_in_type)) = parse_identifier(s) {
             return match built_in_type {
@@ -508,7 +528,7 @@ pub fn parse_AltNameType (s: &str) -> IResult<&str, LdapAltNameType> {
                 "uniformResourceIdentifier" => Ok((s, LdapAltNameType::URI)),
                 "iPAddress" => Ok((s, LdapAltNameType::IPAddress)),
                 "registeredId" => Ok((s, LdapAltNameType::RegisteredId)),
-                _ => Err(NomErr::Error(NomError::new(s, NomErrorKind::Alt)))
+                _ => Err(NomErr::Error(NomError::new(s, NomErrorKind::Alt))),
             };
         }
     }
@@ -519,7 +539,7 @@ pub fn parse_AltNameType (s: &str) -> IResult<&str, LdapAltNameType> {
     Err(NomErr::Error(NomError::new(s, NomErrorKind::Alt)))
 }
 
-pub fn parse_CertificateExactAssertion (s: &str) -> IResult<&str, LdapCertificateExactAssertion> {
+pub fn parse_CertificateExactAssertion(s: &str) -> IResult<&str, LdapCertificateExactAssertion> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = tag("serialNumber")(s)?;
@@ -533,10 +553,16 @@ pub fn parse_CertificateExactAssertion (s: &str) -> IResult<&str, LdapCertificat
     let (s, issuer) = parse_LdapName(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
-    Ok((s, LdapCertificateExactAssertion{ issuer, serialNumber }))
+    Ok((
+        s,
+        LdapCertificateExactAssertion {
+            issuer,
+            serialNumber,
+        },
+    ))
 }
 
-pub fn parse_CertificateAssertion (s: &str) -> IResult<&str, LdapCertificateAssertion> {
+pub fn parse_CertificateAssertion(s: &str) -> IResult<&str, LdapCertificateAssertion> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, maybe_serialNumber) = opt(tuple((
@@ -645,7 +671,7 @@ pub fn parse_CertificateAssertion (s: &str) -> IResult<&str, LdapCertificateAsse
     let nameConstraints = maybe_nameConstraints.map(|(_, _, _, _, v)| v);
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
-    let ret = LdapCertificateAssertion{
+    let ret = LdapCertificateAssertion {
         serialNumber,
         issuer,
         subjectKeyIdentifier,
@@ -663,7 +689,9 @@ pub fn parse_CertificateAssertion (s: &str) -> IResult<&str, LdapCertificateAsse
     Ok((s, ret))
 }
 
-pub fn parse_CertificatePairExactAssertion (s: &str) -> IResult<&str, LdapCertificatePairExactAssertion> {
+pub fn parse_CertificatePairExactAssertion(
+    s: &str,
+) -> IResult<&str, LdapCertificatePairExactAssertion> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, maybe_iss_to) = opt(tuple((
@@ -682,14 +710,14 @@ pub fn parse_CertificatePairExactAssertion (s: &str) -> IResult<&str, LdapCertif
     let (s, _) = take_char('}')(s)?;
     let iss_to = maybe_iss_to.map(|(_, _, v)| v);
     let iss_by = maybe_iss_by.map(|(_, _, _, _, v)| v);
-    let ret = LdapCertificatePairExactAssertion{
+    let ret = LdapCertificatePairExactAssertion {
         issuedToThisCAAssertion: iss_to,
         issuedByThisCAAssertion: iss_by,
     };
     Ok((s, ret))
 }
 
-pub fn parse_CertificatePairAssertion (s: &str) -> IResult<&str, CertificatePairAssertion> {
+pub fn parse_CertificatePairAssertion(s: &str) -> IResult<&str, CertificatePairAssertion> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, maybe_iss_to) = opt(tuple((
@@ -708,14 +736,16 @@ pub fn parse_CertificatePairAssertion (s: &str) -> IResult<&str, CertificatePair
     let (s, _) = take_char('}')(s)?;
     let iss_to = maybe_iss_to.map(|(_, _, v)| v);
     let iss_by = maybe_iss_by.map(|(_, _, _, _, v)| v);
-    let ret = CertificatePairAssertion{
+    let ret = CertificatePairAssertion {
         issuedToThisCAAssertion: iss_to,
         issuedByThisCAAssertion: iss_by,
     };
     Ok((s, ret))
 }
 
-pub fn parse_CertificateListExactAssertion (s: &str) -> IResult<&str, CertificateListExactAssertion> {
+pub fn parse_CertificateListExactAssertion(
+    s: &str,
+) -> IResult<&str, CertificateListExactAssertion> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = tag("issuer")(s)?;
@@ -730,11 +760,15 @@ pub fn parse_CertificateListExactAssertion (s: &str) -> IResult<&str, Certificat
     let (s, dp) = opt(preceded(dp_prefix, parse_DistributionPointName))(s)?;
     let (s, _) = space0(s)?;
     let (s, _) = take_char('}')(s)?;
-    let ret = CertificateListExactAssertion { issuer, thisUpdate, distributionPoint: dp };
+    let ret = CertificateListExactAssertion {
+        issuer,
+        thisUpdate,
+        distributionPoint: dp,
+    };
     Ok((s, ret))
 }
 
-pub fn parse_CertificateListAssertion (s: &str) -> IResult<&str, CertificateListAssertion> {
+pub fn parse_CertificateListAssertion(s: &str) -> IResult<&str, CertificateListAssertion> {
     let (s, _) = take_char('{')(s)?;
     let (s, _) = space0(s)?;
     let (s, maybe_issuer) = opt(tuple((
@@ -795,7 +829,7 @@ pub fn parse_CertificateListAssertion (s: &str) -> IResult<&str, CertificateList
     let dateAndTime = maybe_dateAndTime.map(|(_, _, _, _, x)| x);
     let distributionPoint = maybe_distributionPoint.map(|(_, _, _, _, x)| x);
     let authorityKeyIdentifier = maybe_authorityKeyIdentifier.map(|(_, _, _, _, x)| x);
-    let ret = CertificateListAssertion{
+    let ret = CertificateListAssertion {
         issuer,
         minCRLNumber,
         maxCRLNumber,
@@ -812,7 +846,7 @@ mod tests {
     use super::*;
     use asn1::oid;
 
-const TEST_CERT_ASSERTION_01: &str = "{ \
+    const TEST_CERT_ASSERTION_01: &str = "{ \
 serialNumber 12345, \
 issuer rdnSequence:\"c=US,st=FL,cn=Jon W\", \
 subjectKeyIdentifier '456BC1F0'H \
@@ -834,10 +868,10 @@ subjectKeyIdentifier '456BC1F0'H \
         };
         assert_eq!(issuer.as_ref(), "c=US,st=FL,cn=Jon W");
         let skid = output.subjectKeyIdentifier.unwrap();
-        assert_eq!(skid.as_slice(), &[ 0x45, 0x6B, 0xC1, 0xF0 ]);
+        assert_eq!(skid.as_slice(), &[0x45, 0x6B, 0xC1, 0xF0]);
     }
 
-const TEST_CERT_ASSERTION_02: &str = "{ \
+    const TEST_CERT_ASSERTION_02: &str = "{ \
 authorityKeyIdentifier { \
 keyIdentifier '2034FFD1'H, \
 authorityCertIssuer { dNSName:\"wildboar.software\", ediPartyName:{ partyName \"Foobar\" }, registeredID:wildboar }, \
@@ -850,11 +884,11 @@ authorityCertSerialNumber 56789 \
         let input = TEST_CERT_ASSERTION_02;
         let (s, output) = parse_CertificateAssertion(input).unwrap();
         assert_eq!(s.len(), 0);
-        let akid =  output.authorityKeyIdentifier.unwrap();
+        let akid = output.authorityKeyIdentifier.unwrap();
         let kid = akid.keyIdentifier.unwrap();
         let ac_iss = akid.authorityCertIssuer.unwrap();
         let ac_ser = akid.authorityCertSerialNumber.unwrap();
-        assert_eq!(kid.as_slice(), &[ 0x20, 0x34, 0xFF, 0xD1 ]);
+        assert_eq!(kid.as_slice(), &[0x20, 0x34, 0xFF, 0xD1]);
         assert_eq!(ac_iss.len(), 3);
         let serial = match ac_ser {
             GserIntegerValue::ReasonableLiteral(i) => i,
@@ -886,7 +920,7 @@ authorityCertSerialNumber 56789 \
         assert_eq!(oid_name_desc, &"wildboar");
     }
 
-const TEST_CERT_ASSERTION_03: &str = "{ \
+    const TEST_CERT_ASSERTION_03: &str = "{ \
 certificateValid utcTime:\"990823052442Z\", \
 privateKeyValid \"20081213065544+0004\", \
 subjectPublicKeyAlgID rsaEncryption \
@@ -909,7 +943,7 @@ subjectPublicKeyAlgID rsaEncryption \
         assert_eq!(oid_desc, "rsaEncryption");
     }
 
-const TEST_CERT_ASSERTION_04: &str = "{ \
+    const TEST_CERT_ASSERTION_04: &str = "{ \
 keyUsage { nonRepudiation, keyEncipherment }, \
 subjectAltName builtinNameForm:x400Address, \
 policy { wildboar-policy, 1.5.4.3 } \
@@ -950,8 +984,7 @@ policy { wildboar-policy, 1.5.4.3 } \
         assert_eq!(policy2_oid, &oid!(1, 5, 4, 3));
     }
 
-
-const TEST_CERT_ASSERTION_05: &str = "{ \
+    const TEST_CERT_ASSERTION_05: &str = "{ \
 keyUsage '101'B, \
 subjectAltName otherNameForm:2.5.4.3, \
 pathToName dnsName:\"wildboar.software\", \
@@ -994,10 +1027,10 @@ subject oid:1.3.4.6.1.56940 \
             GserOidValue::Literal(o) => o,
             _ => panic!(),
         };
-        assert_eq!(subject_oid, oid!(1,3,4,6,1,56940));
+        assert_eq!(subject_oid, oid!(1, 3, 4, 6, 1, 56940));
     }
 
-const TEST_CERT_ASSERTION_06: &str = "{ \
+    const TEST_CERT_ASSERTION_06: &str = "{ \
 nameConstraints { excludedSubtrees { \
 { base dNSName:\"careers.mcdonalds.com\", minimum 1, maximum 5 }, \
 { base iPAddress:'08080808'H } \
@@ -1020,8 +1053,7 @@ nameConstraints { excludedSubtrees { \
         assert_eq!(xs2.maximum, None);
     }
 
-
-const TEST_CERT_EXACT_ASSERTION_01: &str = "{ \
+    const TEST_CERT_EXACT_ASSERTION_01: &str = "{ \
 serialNumber 8675309, \
 issuer rdnSequence:\"c=US,st=FL,o=Wildboar Software\" \
 }";
@@ -1043,7 +1075,7 @@ issuer rdnSequence:\"c=US,st=FL,o=Wildboar Software\" \
         assert_eq!(issuer, "c=US,st=FL,o=Wildboar Software");
     }
 
-const TEST_CERT_PAIR_EXACT_ASSERTION_01: &str = "{ \
+    const TEST_CERT_PAIR_EXACT_ASSERTION_01: &str = "{ \
 issuedToThisCAAssertion { \
 serialNumber 8675309, \
 issuer rdnSequence:\"c=US,st=FL,o=Wildboar Software\" \
@@ -1089,7 +1121,7 @@ issuer rdnSequence:\"c=US,st=GA,o=Ambiguous Systems LLC\" \
         }
     }
 
-const TEST_CERT_PAIR_ASSERTION_01: &str = "{ \
+    const TEST_CERT_PAIR_ASSERTION_01: &str = "{ \
 issuedToThisCAAssertion { \
 serialNumber 8675309 \
 }, \
@@ -1123,7 +1155,7 @@ serialNumber 50059 \
         }
     }
 
-const TEST_CERT_LIST_ASSERTION_01: &str = "{ \
+    const TEST_CERT_LIST_ASSERTION_01: &str = "{ \
 issuer rdnSequence:\"c=SE,o=Goobis Systems\", \
 minCRLNumber 60023950, \
 maxCRLNumber 502929983, \
@@ -1182,10 +1214,9 @@ authorityKeyIdentifier { authorityCertSerialNumber 54321 } \
             _ => panic!(),
         };
         assert_eq!(distributionPoint.as_ref(), "ou=Dept. of Bananas");
-
     }
 
-const TEST_CERT_LIST_ASSERTION_02: &str = "{ \
+    const TEST_CERT_LIST_ASSERTION_02: &str = "{ \
 minCRLNumber 60023950684354683438438438439599994546656565561641, \
 maxCRLNumber 60023950684354683438438438439599994546656565561642, \
 reasonFlags '00000011'B, \
@@ -1209,17 +1240,23 @@ authorityKeyIdentifier { keyIdentifier 'BEEF'H } \
         assert!(authorityKeyIdentifier.authorityCertIssuer.is_none());
         assert!(authorityKeyIdentifier.authorityCertSerialNumber.is_none());
         let akid = authorityKeyIdentifier.keyIdentifier.unwrap();
-        assert_eq!(akid.as_slice(), &[ 0xBE, 0xEF ]);
+        assert_eq!(akid.as_slice(), &[0xBE, 0xEF]);
         let minCRLNumber = match minCRLNumber {
             GserIntegerValue::BigLiteral(i) => i,
             _ => panic!(),
         };
-        assert_eq!(minCRLNumber, "60023950684354683438438438439599994546656565561641");
+        assert_eq!(
+            minCRLNumber,
+            "60023950684354683438438438439599994546656565561641"
+        );
         let maxCRLNumber = match maxCRLNumber {
             GserIntegerValue::BigLiteral(i) => i,
             _ => panic!(),
         };
-        assert_eq!(maxCRLNumber, "60023950684354683438438438439599994546656565561642");
+        assert_eq!(
+            maxCRLNumber,
+            "60023950684354683438438438439599994546656565561642"
+        );
         let reasonFlags = match reasonFlags {
             GserBitStringValue::BitString(bits) => bits,
             _ => panic!(),
@@ -1233,7 +1270,7 @@ authorityKeyIdentifier { keyIdentifier 'BEEF'H } \
         assert_eq!(distributionPoint.len(), 1);
     }
 
-const TEST_CERT_LIST_EXACT_ASSERTION_01: &str = "{ \
+    const TEST_CERT_LIST_EXACT_ASSERTION_01: &str = "{ \
 issuer rdnSequence:\"c=SE,o=Goobis Systems\", \
 thisUpdate utcTime:\"110912040506Z\" \
 }";
@@ -1251,5 +1288,4 @@ thisUpdate utcTime:\"110912040506Z\" \
         assert_eq!(output.thisUpdate.date.year, 2011);
         assert!(output.distributionPoint.is_none());
     }
-
 }
