@@ -24,4 +24,5 @@ members = [
     "gser",
     "ldap-schema-parsers",
     "rfc4523-parsing",
+    "osi-net",
 ]
