@@ -530,7 +530,6 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             let (v, param) = parse_x224_parameter(var_part)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedVariablePart)))?;
             let code = param.code;
-            println!("Received parameter with code {}", code);
             handle_param(param)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedParameter(code))))?;
             var_part = v;
@@ -824,6 +823,8 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
 
 #[cfg(test)]
 mod tests {
+    use crate::transport::{DR_REASON_CONGESTION_AT_TSAP, ER_REJECT_CAUSE_INVALID_PARAMETER_CODE};
+
     use super::*;
 
     #[test]
@@ -907,6 +908,154 @@ mod tests {
         };
     }
 
-    // DT 02f080
+    #[test]
+    fn parses_dr_tpdu_01 () {
+        let nsdu: &[u8] = &[
+            0x06, // LI = 6
+            TPDU_CODE_DR,
+            0x12, 0x34, // DST-REF
+            0x98, 0x87, // SRC-REF
+            DR_REASON_CONGESTION_AT_TSAP,
+            // No user data
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::DR(dr) => {
+                assert_eq!(dr.dst_ref, 0x1234);
+                assert_eq!(dr.src_ref, 0x9887);
+                assert_eq!(dr.reason, DR_REASON_CONGESTION_AT_TSAP);
+                assert!(dr.checksum.is_none());
+                assert!(dr.additional_info.is_none());
+                assert_eq!(dr.user_data.len(), 0);
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parses_dc_tpdu_01 () {
+        // TODO: This seems like it is looping forever.
+        let nsdu: &[u8] = &[
+            0x05, // LI = 5
+            TPDU_CODE_DC,
+            0x12, 0x34, // DST-REF
+            0x98, 0x87, // SRC-REF
+            // No variable part or user data.
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::DC(dc) => {
+                assert_eq!(dc.dst_ref, 0x1234);
+                assert_eq!(dc.src_ref, 0x9887);
+                assert!(dc.checksum.is_none());
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parses_ed_tpdu_01 () {
+        let nsdu: &[u8] = &[
+            0x04, // LI = 4
+            TPDU_CODE_ED,
+            0x12, 0x34, // DST-REF
+            0b1000_1010, // EOT=TRUE / NR=0b1010
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::ED(ed) => {
+                assert_eq!(ed.dst_ref, 0x1234);
+                assert_eq!(ed.eot, true);
+                assert_eq!(ed.nr, 0b0000_1010);
+                assert!(ed.checksum.is_none());
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parses_ak_tpdu_01 () {
+        let nsdu: &[u8] = &[
+            0x04, // LI = 4
+            0b0110_1011, // AK / CDT = 0b0000_1011
+            0x12, 0x34, // DST-REF
+            0x06, // NR = 6
+            // No variable part included.
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::AK(ak) => {
+                assert_eq!(ak.cdt, 0b0000_1011);
+                assert_eq!(ak.dst_ref, 0x1234);
+                assert_eq!(ak.nr, 6);
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parses_ea_tpdu_01 () {
+        let nsdu: &[u8] = &[
+            0x04, // LI = 4
+            TPDU_CODE_EA,
+            0x12, 0x34, // DST-REF
+            0x07, // NR = 7
+            // No variable part included.
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::EA(ea) => {
+                assert_eq!(ea.dst_ref, 0x1234);
+                assert_eq!(ea.nr, 7);
+                assert!(ea.checksum.is_none());
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parses_rj_tpdu_01 () {
+        let nsdu: &[u8] = &[
+            0x04, // LI = 4
+            0b0101_0100, // RJ / CDT = 0b0100
+            0x12, 0x34, // DST-REF
+            11, // NR=11
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::RJ(rj) => {
+                assert_eq!(rj.dst_ref, 0x1234);
+                assert_eq!(rj.cdt, 0b0100);
+                assert_eq!(rj.yr_tu_nr, 11);
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parses_er_tpdu_01 () {
+        let nsdu: &[u8] = &[
+            0x04, // LI = 4
+            TPDU_CODE_ER,
+            0x12, 0x34, // DST-REF
+            ER_REJECT_CAUSE_INVALID_PARAMETER_CODE,
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::ER(er) => {
+                assert_eq!(er.dst_ref, 0x1234);
+                assert_eq!(er.reject_cause, ER_REJECT_CAUSE_INVALID_PARAMETER_CODE);
+                assert!(er.checksum.is_none());
+            },
+            _ => panic!(),
+        };
+    }
 
 }
