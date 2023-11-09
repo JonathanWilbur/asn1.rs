@@ -574,8 +574,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             checksum,
             user_data,
         };
-        debug_assert_eq!(b.len(), 0);
-        return Ok((b, TPDU::DT(dt)));
+        return Ok((&b[b.len()..], TPDU::DT(dt)));
     }
     if is_cr {
         let (b, dst_ref) = be_u16(b)
@@ -854,6 +853,7 @@ mod tests {
                 assert_eq!(cr.class_option, 0);
                 assert_eq!(cr.calling_transport_selector.unwrap(), &[0x58, 0x34, 0x30, 0x30, 0x2d, 0x38, 0x38]);
                 assert_eq!(cr.called_or_responding_transport_selector.unwrap(), &[0x58, 0x34, 0x30, 0x30, 0x2d, 0x38, 0x38]);
+                assert_eq!(cr.user_data.len(), 0);
             },
             _ => panic!(),
         };
@@ -878,11 +878,35 @@ mod tests {
                 assert_eq!(cc.src_ref, 0x063c);
                 assert_eq!(cc.cdt, 0);
                 assert_eq!(cc.class_option, 0);
+                assert_eq!(cc.user_data.len(), 0);
             },
             _ => panic!(),
         };
     }
 
+    #[test]
+    fn parses_dt_tpdu_01 () {
+        // Source: https://wiki.wireshark.org/uploads/__moin_import__/attachments/SampleCaptures/p772-transfer-success.pcap
+        let nsdu: &[u8] = &[
+            0x02, // LI = 2
+            0xf0, // DT
+            0x80, // EOT / NR
+            b'a', b's', b'd', b'f',
+        ];
+        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        assert_eq!(b.len(), 0);
+        match tpdu {
+            TPDU::DT(dt) => {
+                assert!(dt.dst_ref.is_none());
+                assert!(dt.checksum.is_none());
+                assert_eq!(dt.eot, true);
+                assert_eq!(dt.roa, false);
+                assert_eq!(dt.user_data, b"asdf");
+            },
+            _ => panic!(),
+        };
+    }
 
+    // DT 02f080
 
 }
