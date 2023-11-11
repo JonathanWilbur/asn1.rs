@@ -1,9 +1,6 @@
-use crate::OsiSelector;
-use std::time::SystemTime;
 use crate::transport::{
     ParameterCode,
     TransportRef,
-    UserData,
 };
 use bytes::Bytes;
 use crate::transport::service::{
@@ -12,6 +9,7 @@ use crate::transport::service::{
     ResidualErrorRate,
     SelectiveAcknowledgement,
 };
+use std::borrow::Cow;
 
 // #region TPDU codes
 // pub const TPDU_CODE_CR: u8 = 7;
@@ -64,6 +62,7 @@ pub const PC_SUBSEQUENCE_NUMBER: u8 = 0b1000_1010; // Length = 2
 pub const PC_FLOW_CONTROL_CONFIRM: u8 = 0b1000_1100; // Length = 8
 pub const PC_SELECTIVE_ACK_PARAMS: u8 = 0b1000_1111;
 pub const PC_INVALID_TPDU: u8 = 0b1100_0001;
+pub const PC_ED_TPDU_NR: u8 = 0b1001_0000;
 // #endregion TPDU parameter codes
 
 // #region DR-TPDU reason codes
@@ -270,8 +269,9 @@ pub struct DT_TPDU <'a> {
     pub dst_ref: Option<TransportRef>,
     pub eot: bool,
     pub nr: u32,
-    pub user_data: &'a [u8],
+    pub user_data: Cow<'a, [u8]>,
     pub checksum: Option<u16>,
+    pub ed_tpdu_nr: Option<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

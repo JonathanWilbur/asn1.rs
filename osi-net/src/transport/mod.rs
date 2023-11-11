@@ -1,12 +1,14 @@
 pub mod pdu;
 mod checksum;
 mod decode;
+mod encode;
 mod service;
 mod layer;
 mod entity;
 mod conn;
 mod convert;
 pub use decode::*;
+pub use encode::*;
 pub use service::*;
 pub use layer::*;
 pub use entity::*;

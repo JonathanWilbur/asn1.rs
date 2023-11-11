@@ -41,6 +41,7 @@ use super::{
     PC_FLOW_CONTROL_CONFIRM,
     PC_SELECTIVE_ACK_PARAMS,
     PC_INVALID_TPDU,
+    PC_ED_TPDU_NR,
 };
 use nom::error::Error as NomError;
 use nom::error::ErrorKind as NomErrorKind;
@@ -48,19 +49,7 @@ use nom::Err as NomErr;
 use crate::OsiSelector;
 use std::error::Error;
 use std::fmt::Display;
-
-fn tpdu_size_to_code (size: usize) -> Option<u8> {
-    match size {
-        8192 => Some(0b0000_1101),
-        4096 => Some(0b0000_1100),
-        2048 => Some(0b0000_1011),
-        1024 => Some(0b0000_1010),
-        512 => Some(0b0000_1001),
-        256 => Some(0b0000_1000),
-        128 => Some(0b0000_0111),
-        _ => None,
-    }
-}
+use std::borrow::Cow;
 
 fn code_to_tpdu_size (code: u8) -> Option<usize> {
     match code {
@@ -289,6 +278,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
     let mut flow_control_confirmation: Option<FlowControlConfirmation> = None;
     let mut selective_acknowledgement_parameters: Option<Vec<SelectiveAcknowledgement>> = None;
     let mut invalid_tpdu: Option<&[u8]> = None;
+    let mut ed_tpdu_nr: Option<u32> = None;
     let mut handle_param = |p: X224Parameter<'a>| -> IResult<(), (), NomError<&'a [u8]>> {
         match p.code {
             PC_CHECKSUM => {
@@ -505,6 +495,19 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             PC_INVALID_TPDU => {
                 invalid_tpdu = Some(p.value);
             },
+            PC_ED_TPDU_NR => {
+                if p.value.len() == 2 && !ext_format {
+                    let e = u32::from_be_bytes([ 0, 0, p.value[0], p.value[1] ]);
+                    ed_tpdu_nr = Some(e);
+                }
+                else if p.value.len() == 4 && ext_format {
+                    let e = u32::from_be_bytes([ p.value[0], p.value[1], p.value[2], p.value[3] ]);
+                    ed_tpdu_nr = Some(e);
+                }
+                else {
+                    return Err(NomErr::Error(NomError::new(b, NomErrorKind::Verify)));
+                }
+            },
             _ => {
                 /* From ITU-T Recommendation X.224 (1995), Section 13.2.3:
                 "A parameter not defined in this Recommendation | International
@@ -564,7 +567,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             b1
         };
         handle_var_part(complete_nsdu.len() - b.len())?;
-        let user_data = &complete_nsdu[1+li as usize..];
+        let user_data = Cow::Borrowed(&complete_nsdu[1+li as usize..]);
         let dt = DT_TPDU {
             roa,
             eot,
@@ -572,6 +575,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             dst_ref,
             checksum,
             user_data,
+            ed_tpdu_nr,
         };
         return Ok((&b[b.len()..], TPDU::DT(dt)));
     }
@@ -902,7 +906,7 @@ mod tests {
                 assert!(dt.checksum.is_none());
                 assert_eq!(dt.eot, true);
                 assert_eq!(dt.roa, false);
-                assert_eq!(dt.user_data, b"asdf");
+                assert_eq!(dt.user_data.as_ref(), b"asdf");
             },
             _ => panic!(),
         };
