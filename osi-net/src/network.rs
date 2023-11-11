@@ -1,4 +1,4 @@
-use crate::{OsiSelector, OSIConnectionOrientedEntity, OSIConnectionOrientedLayer, OSIConnection, RemoteAndLocalSelRefs};
+use crate::{OsiSelector, OSIConnectionOrientedEntity, OSIConnectionOrientedLayer, OSIConnection, RemoteAndLocalSelRefs, transport::NSDUParts};
 use std::io::{Error, ErrorKind};
 
 /// Why an integer ID for a network connection?
@@ -434,7 +434,7 @@ pub trait OSIConnectionOrientedNetworkService {
     /// This was added to avoid unnecessary re-allocation for concatenation when
     /// the data will just be written out to a network buffer anyway, and when
     /// `.write_vectored()` may be used as a performance hack.
-    fn write_nsdu_parts (bufs: &[&[u8]]) -> Result<(), Error>;
+    fn write_nsdu_parts (&mut self, parts: NSDUParts) -> Result<(), Error>;
     fn close (&self) -> Result<(), Error>; // This might not be necessary.
     fn local_selector (&self) -> &OsiSelector;
     fn remote_selector (&self) -> &OsiSelector;

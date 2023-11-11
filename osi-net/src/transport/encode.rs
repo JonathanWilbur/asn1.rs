@@ -137,7 +137,7 @@ pub trait IntoNSDU<'a> {
     fn to_nsdu_parts (&'a self, class: u8, ext: bool, add_checksum: bool) -> NSDUParts<'a>;
 }
 
-impl<'a> IntoNSDU<'a>  for TPDU<'a> {
+impl<'a> IntoNSDU<'a> for TPDU<'a> {
 
     fn to_nsdu_parts (&'a self, class: u8, ext: bool, add_checksum: bool) -> NSDUParts<'a> {
         match self {
@@ -509,7 +509,7 @@ impl<'a> IntoNSDU<'a>  for CC_TPDU<'a> {
 
 impl<'a> IntoNSDU<'a>  for DR_TPDU<'a> {
 
-    fn to_nsdu_parts (&self, _class: u8, _ext: bool, add_checksum: bool) -> NSDUParts<'a> {
+    fn to_nsdu_parts (&'a self, _class: u8, _ext: bool, add_checksum: bool) -> NSDUParts<'a> {
         // TODO: Should the length just be added to LI when the checksum is set?
         let checksum_len: u8 = if add_checksum { 4 } else { 0 };
         let fixed_len: u8 = 7;
@@ -731,7 +731,7 @@ impl<'a> IntoNSDU<'a>  for ER_TPDU<'a> {
 
     fn to_nsdu_parts (&self, _class: u8, _ext: bool, add_checksum: bool) -> NSDUParts<'a> {
         let checksum_len: u8 = if add_checksum { 4 } else { 0 };
-        let invalid_pdu_len: u8 = self.invalid_tpdu.map(|p| p.len() as u8 + 2).unwrap_or(0);
+        let invalid_pdu_len: u8 = self.invalid_tpdu.as_ref().map(|p| p.len() as u8 + 2).unwrap_or(0);
         let fixed_len: u8 = 4;
         let li = fixed_len + checksum_len + invalid_pdu_len;
         let mut tpdu_header: SmallVec<[u8; 16]> = SmallVec::new();
@@ -741,7 +741,7 @@ impl<'a> IntoNSDU<'a>  for ER_TPDU<'a> {
         tpdu_header.push(dst_ref_bytes[0]);
         tpdu_header.push(dst_ref_bytes[1]);
         tpdu_header.push(self.reject_cause);
-        if let Some(invalid_tpdu) = self.invalid_tpdu {
+        if let Some(invalid_tpdu) = self.invalid_tpdu.as_ref() {
             tpdu_header.push(PC_INVALID_TPDU);
             tpdu_header.push(invalid_pdu_len);
             tpdu_header.extend_from_slice(invalid_tpdu);

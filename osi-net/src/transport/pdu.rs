@@ -152,7 +152,7 @@ pub struct DR_TPDU <'a> {
     pub src_ref: TransportRef,
     pub reason: u8,
     pub additional_info: Option<&'a [u8]>,
-    pub user_data: &'a [u8],
+    pub user_data: Cow<'a, [u8]>,
     pub checksum: Option<u16>,
 }
 
@@ -189,7 +189,7 @@ impl <'a> DR_TPDU<'a> {
             self.dst_ref.to_be_bytes().as_slice(),
             self.src_ref.to_be_bytes().as_slice(),
             [ self.reason ].as_slice(),
-            self.user_data,
+            self.user_data.as_ref(),
             self.checksum_param().as_slice(),
             self.addl_info_param().as_slice(),
         ].concat()
@@ -259,7 +259,7 @@ pub struct CC_TPDU <'a> {
 pub struct ER_TPDU <'a> {
     pub dst_ref: TransportRef,
     pub reject_cause: u8,
-    pub invalid_tpdu: Option<&'a [u8]>,
+    pub invalid_tpdu: Option<Cow<'a, [u8]>>,
     pub checksum: Option<u16>,
 }
 

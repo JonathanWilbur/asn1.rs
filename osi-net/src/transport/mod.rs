@@ -1,5 +1,6 @@
 pub mod pdu;
 mod checksum;
+mod classes;
 mod decode;
 mod encode;
 mod service;
@@ -7,6 +8,7 @@ mod layer;
 mod entity;
 mod conn;
 mod convert;
+mod procedures;
 pub use decode::*;
 pub use encode::*;
 pub use service::*;

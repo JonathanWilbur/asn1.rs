@@ -277,7 +277,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
     let mut subsequence_number: Option<u16> = None;
     let mut flow_control_confirmation: Option<FlowControlConfirmation> = None;
     let mut selective_acknowledgement_parameters: Option<Vec<SelectiveAcknowledgement>> = None;
-    let mut invalid_tpdu: Option<&[u8]> = None;
+    let mut invalid_tpdu: Option<Cow<'a, [u8]>> = None;
     let mut ed_tpdu_nr: Option<u32> = None;
     let mut handle_param = |p: X224Parameter<'a>| -> IResult<(), (), NomError<&'a [u8]>> {
         match p.code {
@@ -493,7 +493,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
                 }
             },
             PC_INVALID_TPDU => {
-                invalid_tpdu = Some(p.value);
+                invalid_tpdu = Some(Cow::Borrowed(p.value));
             },
             PC_ED_TPDU_NR => {
                 if p.value.len() == 2 && !ext_format {
@@ -733,7 +733,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             let (b, reason) = be_u8(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
             handle_var_part(complete_nsdu.len() - b.len())?;
-            let user_data = &complete_nsdu[1+li as usize..];
+            let user_data = Cow::Borrowed(&complete_nsdu[1+li as usize..]);
             let dr = DR_TPDU{
                 dst_ref,
                 src_ref,

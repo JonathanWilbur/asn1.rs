@@ -1,6 +1,7 @@
 use crate::OsiSelector;
 use crate::session::OSIConnectionOrientedSessionService;
 use crate::transport::pdu::TPDU;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use crate::transport::conn::X224TransportConnection;
 use crate::transport::TransportRef;
@@ -89,7 +90,7 @@ impl X224TransportEntity {
                 src_ref: dst_ref,
                 dst_ref: 0,
                 reason: DR_REASON_NOT_SPECIFIED,
-                user_data: &vec![],
+                user_data: Cow::Owned(vec![]),
             };
             n.write_nsdu(dr.to_vec())?;
             return Ok(None);
@@ -339,7 +340,7 @@ impl X224TransportEntity {
                     src_ref: dst_ref,
                     dst_ref: cc.src_ref,
                     reason: DR_REASON_NOT_SPECIFIED,
-                    user_data: &vec![],
+                    user_data: Cow::Owned(vec![]),
                 };
                 n.write_nsdu(dr.to_vec())?;
                 return Ok(None);
