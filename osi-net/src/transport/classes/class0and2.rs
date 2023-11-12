@@ -10,20 +10,6 @@ use crate::ServiceResult;
 use crate::transport::classes::{StateTablePredicate, handle_invalid_sequence};
 use crate::transport::encode::IntoNSDU;
 
-// const P: [ StateTablePredicate<OSINetworkConnection, OSIConnectionOrientedSessionService>; 11 ] = [
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-//     transport_noop,
-// ];
-
 // PREDICATES
 
 /// T-CONNECT request unacceptable
@@ -34,7 +20,7 @@ pub(crate) fn P0 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
     pdu: Option<&TPDU>,
 ) -> bool {
     // TODO:
-    todo!()
+    false
 }
 
 /// Unacceptable CR-TPDU
@@ -45,51 +31,54 @@ pub(crate) fn P1 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
     pdu: Option<&TPDU>,
 ) -> bool {
     // TODO:
-    todo!()
+    false
 }
 
 /// No network connection available
 pub(crate) fn P2 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
-    pdu: Option<&TPDU>,
+    _n: &mut N,
+    _t: &mut X224TransportConnection,
+    _s: &mut S,
+    _pdu: Option<&TPDU>,
 ) -> bool {
-    // TODO:
-    todo!()
+    // When would there not be a network connection available?
+    false
 }
 
 /// Network connection available and open
 pub(crate) fn P3 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
     n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
-    pdu: Option<&TPDU>,
+    _t: &mut X224TransportConnection,
+    _s: &mut S,
+    _pdu: Option<&TPDU>,
 ) -> bool {
-    // TODO:
-    todo!()
+    n.is_open()
 }
 
 /// Network connection available and open in progress
 pub(crate) fn P4 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
     n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
-    pdu: Option<&TPDU>,
+    _t: &mut X224TransportConnection,
+    _s: &mut S,
+    _pdu: Option<&TPDU>,
 ) -> bool {
-    // TODO:
-    todo!()
+    n.is_open_in_progress()
 }
 
 /// Class in class 0 (class selected in CC)
 pub(crate) fn P5 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
-    n: &mut N,
+    _n: &mut N,
     t: &mut X224TransportConnection,
-    s: &mut S,
+    _s: &mut S,
     pdu: Option<&TPDU>,
 ) -> bool {
-    // TODO:
-    todo!()
+    if let Some(tpdu) = pdu {
+        if let TPDU::CC(cc) = tpdu {
+            // I don't know if this is correct.
+            return (cc.class_option & 0b1111_0000) == 0;
+        }
+    }
+    t.class == 0
 }
 
 /// Unacceptable CC
@@ -100,18 +89,17 @@ pub(crate) fn P6 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
     pdu: Option<&TPDU>,
 ) -> bool {
     // TODO:
-    todo!()
+    false
 }
 
 /// Class is class 2
 pub(crate) fn P7 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
-    n: &mut N,
+    _n: &mut N,
     t: &mut X224TransportConnection,
-    s: &mut S,
-    pdu: Option<&TPDU>,
+    _s: &mut S,
+    _pdu: Option<&TPDU>,
 ) -> bool {
-    // TODO:
-    todo!()
+    t.class == 2
 }
 
 /// Acceptable CC
@@ -122,29 +110,35 @@ pub(crate) fn P8 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
     pdu: Option<&TPDU>,
 ) -> bool {
     // TODO:
-    todo!()
+    true
 }
 
 /// Class 4 CR
 pub(crate) fn P9 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+    _n: &mut N,
+    _t: &mut X224TransportConnection,
+    _s: &mut S,
     pdu: Option<&TPDU>,
 ) -> bool {
-    // TODO:
-    todo!()
+    if pdu.is_none() {
+        return false;
+    }
+    let pdu = pdu.unwrap();
+    if let TPDU::CR(cr) = pdu {
+        (cr.class_option & 0b0100_0000) == 0b0100_0000
+    } else {
+        false
+    }
 }
 
 /// Local choice
 pub(crate) fn P10 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
-    pdu: Option<&TPDU>,
+    _n: &mut N,
+    _t: &mut X224TransportConnection,
+    _s: &mut S,
+    _pdu: Option<&TPDU>,
 ) -> bool {
-    // TODO:
-    todo!()
+    true
 }
 
 // ACTIONS
@@ -153,12 +147,14 @@ pub(crate) fn P10 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServi
 /// assigned to it, it may be disconnected. (See 6.1.1.3, Note 3).
 pub(crate) fn A1 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
     n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
-    pdu: Option<&TPDU>,
+    _t: &mut X224TransportConnection,
+    _s: &mut S,
+    _pdu: Option<&TPDU>,
 ) -> ServiceResult {
-    // TODO:
-    todo!()
+    if n.has_no_tc_assigned() {
+        n.close()?;
+    }
+    Ok(None)
 }
 
 /// See 6.22 (receipt of an ER-TPDU).
@@ -168,8 +164,10 @@ pub(crate) fn A2 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
     s: &mut S,
     pdu: Option<&TPDU>,
 ) -> ServiceResult {
-    // TODO:
-    todo!()
+    if pdu.is_none() {
+        return Ok(None);
+    }
+    treatment_of_protocol_errors_over_cons(n, t, s, pdu.unwrap(), None, None)
 }
 
 /// See data transfer procedures of the class.
@@ -210,13 +208,14 @@ pub(crate) fn A5 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 /// The DC-TPDU contains a src-ref field set to zero and a dst-ref field set
 /// to the SRC-REF of the DR-TPDU received.
 pub(crate) fn A6 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
-    pdu: Option<&TPDU>,
+    _n: &mut N,
+    _t: &mut X224TransportConnection,
+    _s: &mut S,
+    _pdu: Option<&TPDU>,
 ) -> ServiceResult {
-    // TODO:
-    todo!()
+    // I think this should not have been an action at all. I think it was really
+    // just a note. I did this in the body of the state table below.
+    Ok(None)
 }
 
 // STATE TABLE
@@ -308,11 +307,11 @@ pub(crate) fn dispatch_event <N: OSINetworkConnection, S: OSIConnectionOrientedS
         },
         (TPDU::DR(tpdu), X224ConnectionState::WFTRESP) => {
             if P10(n, t, s, Some(pdu)) {
-                // DC [6] (5)
+                A6(n, t, s, Some(pdu))?;
                 let dc = DC_TPDU{
                     checksum: None,
                     dst_ref: tpdu.src_ref,
-                    src_ref: 0,
+                    src_ref: 0, // [6]
                 };
                 let nsdu_parts = dc.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
                 n.write_nsdu_parts(nsdu_parts)?;
