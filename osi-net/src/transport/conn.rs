@@ -1,14 +1,14 @@
 use std::time::{Duration, SystemTime};
 
-use crate::{OsiSelector, ServiceResult, RemoteAndLocalSels, RemoteAndLocalSelRefs};
+use crate::{OsiSelector, ServiceResult, RemoteAndLocalSels};
 use crate::transport::UserData;
 use crate::transport::service::{
     OSIConnectionOrientedTransportService,
     T_CONNECT_Request_Parameters,
     T_CONNECT_Response_Parameters,
     T_DATA_Request_Parameters,
-    T_DATA_EXPEDITED_DATA_Request_Parameters,
-    T_DATA_DISCONNECT_Request_Parameters,
+    T_EXPEDITED_DATA_Request_Parameters,
+    T_DISCONNECT_Request_Parameters,
     T_CONNECT_Confirm_Parameters,
 };
 use crate::network::{
@@ -119,6 +119,7 @@ impl X224ConnectionState {
 
 pub struct X224TransportConnection {
     pub state: X224ConnectionState,
+    pub cr: Option<CR_TPDU>, // The original CR-TPDU sent or received.
     // I think just passing in the lower layer into functions that need it will be enough.
     // This actually kind of makes sense, since an N-entity can apparently use the
     // services of one or more (N-1)-entities.
@@ -165,6 +166,7 @@ impl Default for X224TransportConnection {
     fn default() -> Self {
         X224TransportConnection {
             state: X224ConnectionState::CLOSED, // TODO: Is this the correct default state?
+            cr: None,
             buffer: vec![],
             remote_ref: 0,
             local_ref: 0,
@@ -309,12 +311,12 @@ impl <N, S> OSIConnectionOrientedTransportService <N, S> for X224TransportConnec
         todo!()
     }
 
-    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
+    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_DISCONNECT_Request_Parameters) -> ServiceResult {
+    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
@@ -334,12 +336,12 @@ impl <N, S> OSIConnectionOrientedTransportService <N, S> for X224TransportConnec
         todo!()
     }
 
-    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
+    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_DISCONNECT_Request_Parameters) -> ServiceResult {
+    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }

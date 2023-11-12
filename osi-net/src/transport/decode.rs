@@ -50,6 +50,7 @@ use crate::OsiSelector;
 use std::error::Error;
 use std::fmt::Display;
 use std::borrow::Cow;
+use std::rc::Rc;
 
 fn code_to_tpdu_size (code: u8) -> Option<usize> {
     match code {
@@ -600,11 +601,11 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             dst_ref,
             src_ref,
             class_option,
-            calling_transport_selector,
+            calling_transport_selector: calling_transport_selector.map(|cts| Rc::new(cts.to_owned())),
             tpdu_size,
             preferred_max_tpdu_size,
             version_number,
-            protection_parameters,
+            protection_parameters: protection_parameters.map(|pp| Rc::new(pp.to_owned())),
             checksum,
             additional_option_selection,
             alternative_protocol_classes,
@@ -615,8 +616,8 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             transit_delay,
             reassignment_time,
             inactivity_timer,
-            called_or_responding_transport_selector: called_transport_selector,
-            user_data,
+            called_or_responding_transport_selector: called_transport_selector.map(|cts| Rc::new(cts.to_owned())),
+            user_data: Rc::new(user_data.to_owned()),
         };
         let b = &complete_nsdu[complete_nsdu.len()..];
         debug_assert_eq!(b.len(), 0);
@@ -639,7 +640,6 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             calling_transport_selector,
             tpdu_size,
             preferred_max_tpdu_size,
-            version_number,
             protection_parameters,
             checksum,
             additional_option_selection,
@@ -649,7 +649,6 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             residual_error_rate,
             priority,
             transit_delay,
-            reassignment_time,
             inactivity_timer,
             called_or_responding_transport_selector: responding_transport_selector,
             user_data,
@@ -856,8 +855,8 @@ mod tests {
                 assert_eq!(cr.dst_ref, 0x0000);
                 assert_eq!(cr.cdt, 0);
                 assert_eq!(cr.class_option, 0);
-                assert_eq!(cr.calling_transport_selector.unwrap(), &[0x58, 0x34, 0x30, 0x30, 0x2d, 0x38, 0x38]);
-                assert_eq!(cr.called_or_responding_transport_selector.unwrap(), &[0x58, 0x34, 0x30, 0x30, 0x2d, 0x38, 0x38]);
+                assert_eq!(cr.calling_transport_selector.unwrap().as_ref(), &[0x58, 0x34, 0x30, 0x30, 0x2d, 0x38, 0x38]);
+                assert_eq!(cr.called_or_responding_transport_selector.unwrap().as_ref(), &[0x58, 0x34, 0x30, 0x30, 0x2d, 0x38, 0x38]);
                 assert_eq!(cr.user_data.len(), 0);
             },
             _ => panic!(),

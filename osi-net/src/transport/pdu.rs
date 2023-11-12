@@ -1,7 +1,7 @@
-use crate::transport::{
+use crate::{transport::{
     ParameterCode,
     TransportRef,
-};
+}, network::UserData, OsiSelector};
 use bytes::Bytes;
 use crate::transport::service::{
     MaxAndAverageThroughput,
@@ -10,6 +10,7 @@ use crate::transport::service::{
     SelectiveAcknowledgement,
 };
 use std::borrow::Cow;
+use std::rc::Rc;
 
 // #region TPDU codes
 // pub const TPDU_CODE_CR: u8 = 7;
@@ -121,17 +122,21 @@ pub struct Parameter {
     pub value: Bytes,
 }
 
+// Though it would be more efficient to parse the CR-TPDU using lifetime
+// parameters, we use reference-counted, heap-allocated byte arrays, because
+// the CR-TPDU will need to be retained for comparison to the CC-TPDU when this
+// implementation is used as a client / initiator.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CR_TPDU <'a> {
+pub struct CR_TPDU {
     pub cdt: u8,
     pub dst_ref: TransportRef,
     pub src_ref: TransportRef,
     pub class_option: u8,
-    pub calling_transport_selector: Option<&'a [u8]>,
+    pub calling_transport_selector: Option<Rc<OsiSelector>>,
     pub tpdu_size: Option<usize>,
     pub preferred_max_tpdu_size: Option<usize>,
     pub version_number: u8, // defaults to 1
-    pub protection_parameters: Option<&'a [u8]>, // The value of this field is user-defined.
+    pub protection_parameters: Option<Rc<Vec<u8>>>, // The value of this field is user-defined.
     pub checksum: Option<u16>,
     pub additional_option_selection: u8,
     pub alternative_protocol_classes: u8, // A bit mask.
@@ -142,8 +147,8 @@ pub struct CR_TPDU <'a> {
     pub transit_delay: Option<BidirectionalTransitDelay>,
     pub reassignment_time: Option<u16>, // TTR in seconds.
     pub inactivity_timer: Option<u32>, // Expressed in milliseconds.
-    pub called_or_responding_transport_selector: Option<&'a [u8]>,
-    pub user_data: &'a [u8],
+    pub called_or_responding_transport_selector: Option<Rc<OsiSelector>>,
+    pub user_data: Rc<UserData>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -239,7 +244,6 @@ pub struct CC_TPDU <'a> {
     pub calling_transport_selector: Option<&'a [u8]>,
     pub tpdu_size: Option<usize>,
     pub preferred_max_tpdu_size: Option<usize>,
-    pub version_number: u8, // Default is 1
     pub protection_parameters: Option<&'a [u8]>, // The value of this field is user-defined.
     pub checksum: Option<u16>,
     pub additional_option_selection: u8,
@@ -249,7 +253,6 @@ pub struct CC_TPDU <'a> {
     pub residual_error_rate: Option<ResidualErrorRate>,
     pub priority: Option<u16>, // 0 is the highest priority.
     pub transit_delay: Option<BidirectionalTransitDelay>,
-    pub reassignment_time: Option<u16>, // TTR in seconds.
     pub inactivity_timer: Option<u32>, // Expressed in milliseconds.
     pub called_or_responding_transport_selector: Option<&'a [u8]>,
     pub user_data: &'a [u8],
@@ -317,7 +320,7 @@ pub struct RJ_TPDU {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TPDU <'a> {
-    CR(CR_TPDU<'a>),
+    CR(CR_TPDU),
     CC(CC_TPDU<'a>),
     DR(DR_TPDU<'a>),
     DC(DC_TPDU),

@@ -1,13 +1,13 @@
-use std::io::Result;
 use crate::network::{
     OSINetworkConnection,
     N_DISCONNECT_Request_Parameters,
     N_CONNECT_Confirm_Parameters,
-    N_RESET_Confirm_Parameters,
+    N_RESET_Confirm_Parameters, N_DISCONNECT_Indication_Parameters, N_RESET_Indication_Parameters,
 };
 use crate::session::OSIConnectionOrientedSessionService;
 use crate::ServiceResult;
 use crate::transport::UserData;
+use crate::transport::pdu::TPDU;
 
 pub trait OSIConnectionOrientedTransportService <N, S>
     where N: OSINetworkConnection,
@@ -28,13 +28,13 @@ pub trait OSIConnectionOrientedTransportService <N, S>
     fn submit_T_CONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult;
     fn submit_T_CONNECT_response(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Response_Parameters) -> ServiceResult;
     fn submit_T_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult;
-    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
-    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_DISCONNECT_Request_Parameters) -> ServiceResult;
+    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
+    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult;
     fn receive_T_CONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult;
     fn receive_T_CONNECT_confirm(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Confirm_Parameters) -> ServiceResult;
     fn receive_T_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult;
-    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
-    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_DISCONNECT_Request_Parameters) -> ServiceResult;
+    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
+    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult;
     fn receive_DISCONNECT_indication(&mut self, n: &mut N, s: &mut S, params: N_DISCONNECT_Request_Parameters) -> ServiceResult;
     fn receive_N_CONNECT_confirm(&mut self, n: &mut N, s: &mut S, params: N_CONNECT_Confirm_Parameters) -> ServiceResult;
     fn receive_RESET_indication(&mut self, n: &mut N, s: &mut S, params: N_RESET_Confirm_Parameters) -> ServiceResult;
@@ -192,14 +192,26 @@ pub struct T_DATA_Request_Parameters {
 pub type T_DATA_Indication_Parameters = T_DATA_Request_Parameters;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct T_DATA_EXPEDITED_DATA_Request_Parameters {
+pub struct T_EXPEDITED_DATA_Request_Parameters {
     pub user_data: UserData,
 }
-pub type T_DATA_EXPEDITED_DATA_Indication_Parameters = T_DATA_EXPEDITED_DATA_Request_Parameters;
+pub type T_EXPEDITED_DATA_Indication_Parameters = T_EXPEDITED_DATA_Request_Parameters;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct T_DATA_DISCONNECT_Request_Parameters {
+pub struct T_DISCONNECT_Request_Parameters {
     pub reason: u8,
     pub user_data: UserData,
 }
-pub type T_DATA_DISCONNECT_Indication_Parameters = T_DATA_DISCONNECT_Request_Parameters;
+pub type T_DISCONNECT_Indication_Parameters = T_DISCONNECT_Request_Parameters;
+
+pub enum IncomingEvent <'a> {
+    TPDU(TPDU<'a>),
+    TCONreq(T_CONNECT_Request_Parameters),
+    TCONresp(T_CONNECT_Response_Parameters),
+    TDTreq(T_DATA_Request_Parameters),
+    TEXreq(T_EXPEDITED_DATA_Request_Parameters),
+    TDISreq(T_DISCONNECT_Request_Parameters),
+    NDISind(N_DISCONNECT_Indication_Parameters),
+    NCONconf(N_CONNECT_Confirm_Parameters),
+    NRSTind(N_RESET_Indication_Parameters),
+}

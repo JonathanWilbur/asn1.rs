@@ -10,8 +10,8 @@ use crate::transport::service::{
     T_CONNECT_Request_Parameters,
     T_CONNECT_Response_Parameters,
     T_DATA_Request_Parameters,
-    T_DATA_EXPEDITED_DATA_Request_Parameters,
-    T_DATA_DISCONNECT_Request_Parameters,
+    T_EXPEDITED_DATA_Request_Parameters,
+    T_DISCONNECT_Request_Parameters,
     T_CONNECT_Confirm_Parameters,
 };
 use std::io::{Error, ErrorKind};
@@ -70,8 +70,8 @@ impl X224TransportEntity {
         X224TransportConnection {
             assigned_network_conn: Some(n.id()),
             remote_ref: cr.src_ref,
-            local_t_selector: cr.called_or_responding_transport_selector.map(|x| x.to_owned()),
-            remote_t_selector: cr.calling_transport_selector.map(|x| x.to_owned()),
+            local_t_selector: cr.called_or_responding_transport_selector.as_ref().map(|x| x.as_ref().to_owned()),
+            remote_t_selector: cr.calling_transport_selector.as_ref().map(|x| x.as_ref().to_owned()),
             local_ref: next_ref,
             cr_nsaps: Some((n.remote_selector().to_owned(), n.local_selector().to_owned())),
             ..Default::default() // TODO: Can this really implement Default anymore?
@@ -392,12 +392,12 @@ impl <N, S> OSIConnectionOrientedTransportService <N, S> for X224TransportEntity
         todo!()
     }
 
-    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
+    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_DISCONNECT_Request_Parameters) -> ServiceResult {
+    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
@@ -417,12 +417,12 @@ impl <N, S> OSIConnectionOrientedTransportService <N, S> for X224TransportEntity
         todo!()
     }
 
-    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
+    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_DISCONNECT_Request_Parameters) -> ServiceResult {
+    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }

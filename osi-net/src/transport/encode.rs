@@ -216,9 +216,9 @@ impl<'a> IntoNSDU<'a>  for DT_TPDU<'a> {
 
 }
 
-impl<'a> IntoNSDU<'a>  for CR_TPDU<'a> {
+impl<'a> IntoNSDU<'a> for CR_TPDU {
 
-    fn to_nsdu_parts (&self, class: u8, _ext: bool, add_checksum: bool) -> NSDUParts<'a> {
+    fn to_nsdu_parts (&'a self, class: u8, _ext: bool, add_checksum: bool) -> NSDUParts<'a> {
         let mut tpdu_header: SmallVec<[u8; 16]> = SmallVec::with_capacity(250); // 254 = Max minus 4 for checksum.
         let checksum_len: u8 = if add_checksum { 4 } else { 0 };
         let li = 0; // This will be changed later.
@@ -228,15 +228,15 @@ impl<'a> IntoNSDU<'a>  for CR_TPDU<'a> {
         tpdu_header.push(0);
         tpdu_header.extend_from_slice(self.src_ref.to_be_bytes().as_slice());
         tpdu_header.push(self.class_option);
-        if let Some(calling_transport_selector) = self.calling_transport_selector {
+        if let Some(calling_transport_selector) = self.calling_transport_selector.as_ref() {
             tpdu_header.push(PC_CALLING_TRANSPORT_SELECTOR);
             tpdu_header.push(calling_transport_selector.len() as u8);
-            tpdu_header.extend_from_slice(calling_transport_selector);
+            tpdu_header.extend_from_slice(calling_transport_selector.as_ref());
         }
-        if let Some(called_or_responding_transport_selector) = self.called_or_responding_transport_selector {
+        if let Some(called_or_responding_transport_selector) = self.called_or_responding_transport_selector.as_ref() {
             tpdu_header.push(PC_CALLED_TRANSPORT_SELECTOR);
             tpdu_header.push(called_or_responding_transport_selector.len() as u8);
-            tpdu_header.extend_from_slice(called_or_responding_transport_selector);
+            tpdu_header.extend_from_slice(called_or_responding_transport_selector.as_ref());
         }
         if let Some(tpdu_size) = self.tpdu_size {
             tpdu_header.push(PC_TPDU_SIZE);
@@ -255,10 +255,10 @@ impl<'a> IntoNSDU<'a>  for CR_TPDU<'a> {
             tpdu_header.push(1);
             tpdu_header.push(self.version_number);
         }
-        if let Some(protection_parameters) = self.protection_parameters {
+        if let Some(protection_parameters) = self.protection_parameters.as_ref() {
             tpdu_header.push(PC_TPDU_PROTECTION_PARAMETERS);
             tpdu_header.push(protection_parameters.len() as u8);
-            tpdu_header.extend_from_slice(protection_parameters);
+            tpdu_header.extend_from_slice(protection_parameters.as_ref());
         }
         if self.additional_option_selection != 0b0000_0001 && class > 0 {
             tpdu_header.push(PC_TPDU_ADDITIONAL_OPTION_SELECTION);
@@ -351,7 +351,7 @@ impl<'a> IntoNSDU<'a>  for CR_TPDU<'a> {
             spdu_header: smallvec![],
             ppdu_tag_and_len: smallvec![],
             remaining_parts: smallvec![
-                Cow::Borrowed(self.user_data.as_ref()),
+                Cow::Borrowed(self.user_data.as_ref().as_ref()),
             ],
         };
         if add_checksum  { // TODO: Or if class 4 is the preferred class.
@@ -394,11 +394,6 @@ impl<'a> IntoNSDU<'a>  for CC_TPDU<'a> {
             tpdu_header.push(4);
             // The spec does not say that this has to be encoded on the fewest octets.
             tpdu_header.extend_from_slice(max.to_be_bytes().as_slice());
-        }
-        if self.version_number != 1 && class > 0 {
-            tpdu_header.push(PC_TPDU_VERSION_NUMBER);
-            tpdu_header.push(1);
-            tpdu_header.push(self.version_number);
         }
         if let Some(protection_parameters) = self.protection_parameters {
             tpdu_header.push(PC_TPDU_PROTECTION_PARAMETERS);
@@ -477,11 +472,6 @@ impl<'a> IntoNSDU<'a>  for CC_TPDU<'a> {
             tpdu_header.extend_from_slice(transit_delay.calling_to_called.max_acceptable.to_be_bytes().as_slice());
             tpdu_header.extend_from_slice(transit_delay.called_to_calling.target.to_be_bytes().as_slice());
             tpdu_header.extend_from_slice(transit_delay.called_to_calling.max_acceptable.to_be_bytes().as_slice());
-        }
-        if let Some(reassignment_time) = self.reassignment_time {
-            tpdu_header.push(PC_TPDU_REASSIGNMENT_TIME);
-            tpdu_header.push(2);
-            tpdu_header.extend_from_slice(reassignment_time.to_be_bytes().as_slice());
         }
         if let Some(inactivity_timer) = self.inactivity_timer {
             tpdu_header.push(PC_INACTIVITY_TIMER);
