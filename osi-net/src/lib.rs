@@ -30,7 +30,8 @@ pub trait OSIConnection {}
 pub trait OSIConnectionOrientedService : OSIService {}
 pub trait OSIConnectionOrientedLayer : OSILayer {}
 pub trait OSIConnectionOrientedEntity : OSIEntity {}
-pub trait OSIApplicationServiceElement {}
+/// ITU X.207, Section 5.4.4 An AE is itself an ASO.
+pub trait OSIApplicationServiceElement : OSIApplicationServiceObject {}
 pub trait OSIApplicationServiceObject {}
 pub trait OSIApplicationServiceObjectInvocation {}
 pub trait OSIApplicationServiceElementInvocation : OSIApplicationServiceObjectInvocation {}
