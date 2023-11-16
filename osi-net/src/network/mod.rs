@@ -1,3 +1,5 @@
+mod service;
+pub use service::*;
 use crate::{OsiSelector, OSIConnectionOrientedEntity, OSIConnectionOrientedLayer, OSIConnection, RemoteAndLocalSelRefs, transport::NSDUParts};
 use std::io::{Error, ErrorKind};
 
@@ -9,7 +11,10 @@ use std::io::{Error, ErrorKind};
 ///
 /// The network layer MUST ensure that these are unique.
 pub type NetworkConnId = u32;
-// TODO: Refactor this file to be like transport/
+
+/// This might be changed to alias bytes::Bytes instead.
+pub type UserData = Vec<u8>;
+pub type Reason = i32;
 
 /// See [ITU-T Recommendation X.213 (2001)](https://www.itu.int/rec/T-REC-X.213/en), Figure 4.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
@@ -21,22 +26,6 @@ pub enum OSINetworkConnectionState {
     NSUserInvokedResetPending,
     NSProviderInvokedResetPending,
 }
-
-// impl TryInto<ErrorKind> for OSINetworkEntityState {
-//     type Error = ();
-
-//     fn try_into(self) -> Result<ErrorKind, Self::Error> {
-//         match self {
-//             OSINetworkEntityState::Idle => Ok(ErrorKind::NotConnected),
-//             OSINetworkEntityState::OutgoingConnectionPending => Ok(ErrorKind::NotConnected),
-//             OSINetworkEntityState::IncomingConnectionPending => Ok(ErrorKind::NotConnected),
-//             OSINetworkEntityState::DataTransferReady => Err(()),
-//             OSINetworkEntityState::NSUserInvokedResetPending => Ok(ErrorKind::ConnectionReset),
-//             OSINetworkEntityState::NSProviderInvokedResetPending => Ok(ErrorKind::ConnectionReset),
-//         }
-//     }
-
-// }
 
 impl TryFrom<OSINetworkConnectionState> for ErrorKind {
     type Error = ();
@@ -107,9 +96,7 @@ pub enum OSINetworkServiceOutgoingEvent {
     DISCONNECT_indication(N_DISCONNECT_Indication_Parameters),
 }
 
-/// This might be changed to alias bytes::Bytes instead.
-pub type UserData = Vec<u8>;
-pub type Reason = i32;
+
 
 #[derive(Debug, Clone)]
 pub struct N_CONNECT_Parameters {
@@ -490,8 +477,8 @@ pub trait OSIConnectionOrientedNetworkEntity: OSIConnectionOrientedNetworkServic
 
 }
 
-pub trait OSINetworkConnection: OSIConnectionOrientedNetworkService + OSIConnection {
-    fn already_has_class_0_transport_conn (&self) -> bool;
-    fn already_has_class_1_transport_conn (&self) -> bool;
-    fn has_no_tc_assigned (&self) -> bool;
-}
+// pub trait OSINetworkConnection: OSIConnectionOrientedNetworkService + OSIConnection {
+//     fn already_has_class_0_transport_conn (&self) -> bool;
+//     fn already_has_class_1_transport_conn (&self) -> bool;
+//     fn has_no_tc_assigned (&self) -> bool;
+// }

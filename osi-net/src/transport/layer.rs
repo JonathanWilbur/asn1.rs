@@ -1,4 +1,5 @@
 use crate::transport::entity::X224TransportEntity;
+use super::COTSUser;
 
 /// For now, we just have a single-entity layer. This may change in the future,
 /// but I see no reason to. The concept of multiple N-entities per layer is

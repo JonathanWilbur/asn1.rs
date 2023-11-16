@@ -1,16 +1,39 @@
 use crate::network::{
-    OSINetworkConnection,
-    N_DISCONNECT_Request_Parameters,
     N_CONNECT_Confirm_Parameters,
-    N_RESET_Confirm_Parameters, N_DISCONNECT_Indication_Parameters, N_RESET_Indication_Parameters,
+    N_DISCONNECT_Indication_Parameters,
+    N_RESET_Indication_Parameters,
+    NSProvider,
 };
 use crate::session::OSIConnectionOrientedSessionService;
 use crate::ServiceResult;
 use crate::transport::UserData;
 use crate::transport::pdu::TPDU;
+use std::borrow::Cow;
 
-pub trait OSIConnectionOrientedTransportService <N, S>
-    where N: OSINetworkConnection,
+/// The session entity implements this.
+pub trait COTSUser <T: COTSProvider<Self>> where Self: Sized {
+    fn receive_nsdu(&mut self, t: &mut T, nsdu: Cow<'_, [u8]>) -> ServiceResult;
+    fn receive_T_CONNECT_indication(&mut self, t: &mut T, params: T_CONNECT_Request_Parameters) -> ServiceResult;
+    fn receive_T_CONNECT_confirmation(&mut self, t: &mut T, params: T_CONNECT_Request_Parameters) -> ServiceResult;
+    fn receive_T_DISCONNECT_indication(&mut self, t: &mut T, params: T_CONNECT_Request_Parameters) -> ServiceResult;
+}
+
+/// The transport entity implements this.
+pub trait COTSProvider <S: COTSUser<Self>> where Self: Sized {
+    fn submit_T_CONNECT_request(&mut self, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult;
+    fn submit_T_CONNECT_response(&mut self, s: &mut S, params: T_CONNECT_Response_Parameters) -> ServiceResult;
+    fn submit_T_DATA_request(&mut self, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult;
+    fn submit_T_EXPEDITED_DATA_request(&mut self, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
+    fn submit_T_DISCONNECT_request(&mut self, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult;
+    fn receive_T_CONNECT_request(&mut self, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult;
+    fn receive_T_CONNECT_confirm(&mut self, s: &mut S, params: T_CONNECT_Confirm_Parameters) -> ServiceResult;
+    fn receive_T_DATA_request(&mut self, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult;
+    fn receive_T_EXPEDITED_DATA_request(&mut self, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
+    fn receive_T_DISCONNECT_request(&mut self, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult;
+}
+
+pub trait OSIConnectionOrientedTransportService <N, S> : COTSProvider<Self> + COTSUser<Self>
+    where N: NSProvider,
         S: OSIConnectionOrientedSessionService { // FIXME: This needs to be a layer.
 
     fn receive_nsdu(&mut self, n: &mut N, s: &mut S, nsdu: Vec<u8>) -> ServiceResult;
@@ -25,19 +48,7 @@ pub trait OSIConnectionOrientedTransportService <N, S>
     // an invocation of an N-1 or N+1 API.
     // fn get_next_outgoing_event (&mut self) -> Option<OSIConnectionOrientedTransportOutgoingEvent>;
 
-    fn submit_T_CONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult;
-    fn submit_T_CONNECT_response(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Response_Parameters) -> ServiceResult;
-    fn submit_T_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult;
-    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
-    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult;
-    fn receive_T_CONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult;
-    fn receive_T_CONNECT_confirm(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Confirm_Parameters) -> ServiceResult;
-    fn receive_T_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult;
-    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
-    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult;
-    fn receive_DISCONNECT_indication(&mut self, n: &mut N, s: &mut S, params: N_DISCONNECT_Request_Parameters) -> ServiceResult;
-    fn receive_N_CONNECT_confirm(&mut self, n: &mut N, s: &mut S, params: N_CONNECT_Confirm_Parameters) -> ServiceResult;
-    fn receive_RESET_indication(&mut self, n: &mut N, s: &mut S, params: N_RESET_Confirm_Parameters) -> ServiceResult;
+
 }
 
 // From Table A.3 of ITU Recommendation X.224.

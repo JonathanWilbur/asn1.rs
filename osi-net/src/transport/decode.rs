@@ -1,3 +1,4 @@
+use nom::multi::many1;
 use nom::number::complete::be_u16;
 use nom::{self, IResult, number::complete::{be_u8, be_u32}, bytes::complete::take};
 use crate::transport::pdu::{
@@ -43,10 +44,9 @@ use super::{
     PC_INVALID_TPDU,
     PC_ED_TPDU_NR,
 };
-use nom::error::Error as NomError;
+use nom::error::{Error as NomError, ParseError};
 use nom::error::ErrorKind as NomErrorKind;
 use nom::Err as NomErr;
-use crate::OsiSelector;
 use std::error::Error;
 use std::fmt::Display;
 use std::borrow::Cow;
@@ -113,6 +113,7 @@ pub enum X224TpduParseErrorKind {
     WrongSizedParameter(u8), // u8 = parameter code
     MalformedParameter(u8), // u8 = parameter code
     InvalidChecksum,
+    Other, // Needed for conversion from nom ErrorKind
 }
 
 impl Display for X224TpduParseErrorKind {
@@ -132,6 +133,7 @@ impl Display for X224TpduParseErrorKind {
             X224TpduParseErrorKind::MalformedParameter(pc) => f.write_fmt(format_args!("malformed parameter {:#02x}", pc)),
             X224TpduParseErrorKind::InvalidChecksum => f.write_str("invalid checksum"),
             X224TpduParseErrorKind::TruncatedVariablePart => f.write_str("truncated variable part"),
+            X224TpduParseErrorKind::Other => f.write_str("?"),
         }
     }
 
@@ -200,6 +202,18 @@ impl Display for X224TpduParseError {
 
 impl Error for X224TpduParseError {}
 
+impl ParseError<&[u8]> for X224TpduParseError {
+
+    fn from_error_kind(input: &[u8], kind: NomErrorKind) -> Self {
+        X224TpduParseError::from(X224TpduParseErrorKind::Other)
+    }
+
+    fn append(input: &[u8], kind: NomErrorKind, other: Self) -> Self {
+        X224TpduParseError::from(X224TpduParseErrorKind::Other)
+    }
+
+}
+
 // impl <'a> From<NomError<&'a [u8]>> for X224TpduParseError {
 
 //     fn from(value: NomError<&'a [u8]>) -> Self {
@@ -213,7 +227,7 @@ impl Error for X224TpduParseError {}
 /// TODO: An entire NSDU must be parsed at a time, because there are some TPDUs
 /// that are allowed to be concatenated into an NSDU and there are some that
 /// are not allowed.
-pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: bool) -> IResult<&[u8], TPDU<'a>, X224TpduParseError> {
+pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8]) -> IResult<&[u8], TPDU<'a>, X224TpduParseError> {
     let b = complete_nsdu;
     let (b, li) = be_u8(b)
         .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::Empty)))?;
@@ -225,6 +239,8 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
     }
     let (mut b, tpdu_type) = be_u8(b)
         .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
+    let odd_length: bool = (li % 2) > 0; // Significant for detecting extended format.
+    let mut ext_format: bool = false;
     let mut is_dt: bool = false;
     let mut is_cr: bool = false;
     let mut is_cc: bool = false;
@@ -280,7 +296,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
     let mut selective_acknowledgement_parameters: Option<Vec<SelectiveAcknowledgement>> = None;
     let mut invalid_tpdu: Option<Cow<'a, [u8]>> = None;
     let mut ed_tpdu_nr: Option<u32> = None;
-    let mut handle_param = |p: X224Parameter<'a>| -> IResult<(), (), NomError<&'a [u8]>> {
+    let mut handle_param = |p: X224Parameter<'a>, ext_format: bool| -> IResult<(), (), NomError<&'a [u8]>> {
         match p.code {
             PC_CHECKSUM => {
                 if p.value.len() != 2 {
@@ -463,7 +479,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
                 });
             },
             PC_SELECTIVE_ACK_PARAMS => {
-                if ext_format {
+                if &ext_format == &true {
                     if p.value.len() % 8 > 0 {
                         return Err(NomErr::Error(NomError::new(b, NomErrorKind::Verify)));
                     }
@@ -521,7 +537,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
         };
         Ok(((), ()))
     };
-    let mut handle_var_part = |li_and_fixed_part_len: usize| -> IResult<(), (), X224TpduParseError> {
+    let mut handle_var_part = |li_and_fixed_part_len: usize, ext_format: bool| -> IResult<(), (), X224TpduParseError> {
         let var_len = li as usize - (li_and_fixed_part_len - 1);
         let end_of_var_part = li_and_fixed_part_len + var_len;
         if complete_nsdu.len() < end_of_var_part {
@@ -534,7 +550,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             let (v, param) = parse_x224_parameter(var_part)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedVariablePart)))?;
             let code = param.code;
-            handle_param(param)
+            handle_param(param, ext_format)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedParameter(code))))?;
             var_part = v;
         }
@@ -543,9 +559,10 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
     // DT TPDUs are guessed first as an optimization, since they are likely to
     // be the most frequent.
     if is_dt {
+        let is_class_0_or_1: bool = li == 2; // Class 0 or 1 TPDUs have no variable part.
         let mut dst_ref: Option<TransportRef> = None;
         let b = {
-            if class > 1 {
+            if !is_class_0_or_1 {
                 let (b1, d) = be_u16(b)
                     .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
                 dst_ref = Some(d);
@@ -554,7 +571,12 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
                 b
             }
         };
-        let b = if ext_format && class > 1 {
+        /* Both parameters allowed for a DT-TPDU are 4 bytes in length, total.
+        And since the extended and normal formats for the higher-class DT-TPDU
+        differ in length by three bytes, we can just examine whether the length
+        is odd to determine whether extended format is in use. */
+        ext_format = odd_length;
+        let b = if ext_format && !is_class_0_or_1 {
             let (b1, nr_and_eot) = be_u32(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
             eot = (nr_and_eot & 0b10000000_00000000_00000000_00000000) > 0;
@@ -567,7 +589,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             nr  = (nr_and_eot & 0b01111111).into();
             b1
         };
-        handle_var_part(complete_nsdu.len() - b.len())?;
+        handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
         let user_data = Cow::Borrowed(&complete_nsdu[1+li as usize..]);
         let dt = DT_TPDU {
             roa,
@@ -594,7 +616,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
         }
         let (b, class_option) = be_u8(b)
             .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
-        handle_var_part(complete_nsdu.len() - b.len())?;
+        handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
         let user_data = &complete_nsdu[1+li as usize..];
         let cr = CR_TPDU {
             cdt,
@@ -630,7 +652,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
         let (b, class_option) = be_u8(b)
             .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
-        handle_var_part(complete_nsdu.len() - b.len())?;
+        handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
         let user_data = &complete_nsdu[1+li as usize..];
         let cc = CC_TPDU {
             cdt,
@@ -662,23 +684,21 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
         let mut cdt: u16 = cdt as u16;
         let (b, dst_ref) = be_u16(b)
             .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
-        if [2, 3, 4].contains(&class) && ext_format {
-            if cdt != 0 {
-                return Err(NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)));
-            }
+        ext_format = cdt == 0 && odd_length; // If the four bits after the code MUST be 0000 in extended format.
+        if ext_format {
             let (b, y) = be_u32(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
             yr_tu_nr = y;
             let (b, new_cdt) = be_u16(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
             cdt = new_cdt;
-            handle_var_part(complete_nsdu.len() - b.len())?;
+            handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
         } else {
             // TODO: Check that YR does not have MSb set.
             let (b, y) = be_u8(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
             yr_tu_nr = y as u32;
-            handle_var_part(complete_nsdu.len() - b.len())?;
+            handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
         }
         let ak = AK_TPDU{
             dst_ref,
@@ -693,12 +713,12 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
         return Ok((b, TPDU::AK(ak)));
     }
     if is_rj {
-        // TODO: Check that li == RJ length
         let yr_tu_nr: u32;
         let mut cdt: u16 = cdt as u16;
         let (b, dst_ref) = be_u16(b)
             .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
-        if class == 3 && ext_format {
+        ext_format = li == 9; // There is no variable part or user data for an RJ TPDU. LI is always either 4 or 9.
+        if ext_format {
             if cdt != 0 {
                 return Err(NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)));
             }
@@ -731,7 +751,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
             let (b, reason) = be_u8(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
-            handle_var_part(complete_nsdu.len() - b.len())?;
+            handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
             let user_data = Cow::Borrowed(&complete_nsdu[1+li as usize..]);
             let dr = DR_TPDU{
                 dst_ref,
@@ -747,7 +767,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
         TPDU_CODE_DC => {
             let (b, src_ref) = be_u16(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
-            handle_var_part(complete_nsdu.len() - b.len())?;
+            handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
             let dc = DC_TPDU{
                 dst_ref,
                 src_ref,
@@ -759,7 +779,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
         TPDU_CODE_ER => {
             let (b, reject_cause) = be_u8(b)
                 .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
-            handle_var_part(complete_nsdu.len() - b.len())?;
+            handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
             let er = ER_TPDU{
                 dst_ref,
                 checksum,
@@ -770,7 +790,11 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             return Ok((b, TPDU::ER(er)));
         },
         TPDU_CODE_ED => {
-            if [2, 3, 4].contains(&class) && ext_format {
+            /* The ED TPDU only supports the checksum parameter, which is always
+            four bytes long. As such, we can discern extended format as being
+            ED TPDUs of length 7 or 11. Lengths 4 or 8 are normal. */
+            ext_format = (li == 7) || (li > 8);
+            if ext_format {
                 let (b1, nr_and_eot) = be_u32(b)
                     .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
                 b = b1;
@@ -783,7 +807,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
                 eot = (nr_and_eot & 0b10000000) > 0;
                 nr  = (nr_and_eot & 0b01111111) as u32;
             }
-            handle_var_part(complete_nsdu.len() - b.len())?;
+            handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
             let user_data = &complete_nsdu[1+li as usize..];
             let ed = ED_TPDU{
                 dst_ref,
@@ -796,7 +820,11 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
             return Ok((b, TPDU::ED(ed)));
         },
         TPDU_CODE_EA => {
-            if [2, 3, 4].contains(&class) && ext_format {
+            /* The EA TPDU only supports the checksum parameter, which is always
+            four bytes long. As such, we can discern extended format as being
+            EA TPDUs of length 7 or 11. Lengths 4 or 8 are normal. */
+            ext_format = (li == 7) || (li > 8);
+            if ext_format {
                 let (b1, ynr) = be_u32(b)
                     .map_err(|_: NomErr<NomError<&[u8]>>| NomErr::Error(X224TpduParseError::from(X224TpduParseErrorKind::MalformedFixedPart)))?;
                 b = b1;
@@ -807,7 +835,7 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
                 b = b1;
                 nr  = (ynr & 0b01111111) as u32;
             }
-            handle_var_part(complete_nsdu.len() - b.len())?;
+            handle_var_part(complete_nsdu.len() - b.len(), ext_format)?;
             let ea = EA_TPDU{
                 dst_ref,
                 checksum,
@@ -821,6 +849,33 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8], class: u8, ext_format: boo
         }
     };
     // TODO: Verify checksum. If the checksum is invalid, return None?
+}
+
+/// **NOTE: AVOID USING THIS FUNCTION.**
+///
+/// Rather than parsing all TPDUs within an NSDU all at once, and allocating a
+/// buffer on the heap to fit them, the would-be-caller should iteratively call
+/// parse_x224_tpdu() instead.
+///
+/// This is desirable because:
+///
+/// 1. A heap allocation (and potentially, quite a large one!) can be avoided.
+///    There are no limits on how many TPDUs can be concatenated within an NSDU.
+/// 2. If TPDUs A, B, C, and D are concatenated in that order, we do not want
+///    an error in parsing C to cause A and B to be discarded / ignored.
+/// 3. If there is an error, the caller can peek at the LI value and skip over
+///    the aberrant TPDU. The rules for concatenation are such that only TPDUs
+///    with no user data (hence, a length entirely described by the LI) can be
+///    concatenated, with the exception of one TPDU with user data at the end of
+///    the NSDU. This means that the LI can be used to tell us where the next
+///    TPDU begins.
+///
+pub fn parse_x224_nsdu <'a> (complete_nsdu: &'a [u8]) -> IResult<&[u8], Vec<TPDU<'a>>, X224TpduParseError> {
+    if cfg!(debug_assertions) {
+        println!("Do not call parse_x224_nsdu(). Manually iterate over TPDUs instead. This is a bug.");
+    }
+    many1(parse_x224_tpdu)(complete_nsdu)
+    // NOTE: All leading TPDUs are supposed to come from different network connections.
 }
 
 
@@ -847,7 +902,7 @@ mod tests {
                     0x58, 0x34, 0x30, 0x30, 0x2d, 0x38, 0x38, // "X400-88"
             // There is no user data.
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::CR(cr) => {
@@ -874,7 +929,7 @@ mod tests {
             0x00, // Class 0 / Options
             // There is no user data.
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::CC(cc) => {
@@ -897,7 +952,7 @@ mod tests {
             0x80, // EOT / NR
             b'a', b's', b'd', b'f',
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::DT(dt) => {
@@ -921,7 +976,7 @@ mod tests {
             DR_REASON_CONGESTION_AT_TSAP,
             // No user data
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::DR(dr) => {
@@ -946,7 +1001,7 @@ mod tests {
             0x98, 0x87, // SRC-REF
             // No variable part or user data.
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::DC(dc) => {
@@ -966,7 +1021,7 @@ mod tests {
             0x12, 0x34, // DST-REF
             0b1000_1010, // EOT=TRUE / NR=0b1010
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::ED(ed) => {
@@ -988,7 +1043,7 @@ mod tests {
             0x06, // NR = 6
             // No variable part included.
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::AK(ak) => {
@@ -1009,7 +1064,7 @@ mod tests {
             0x07, // NR = 7
             // No variable part included.
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::EA(ea) => {
@@ -1029,7 +1084,7 @@ mod tests {
             0x12, 0x34, // DST-REF
             11, // NR=11
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::RJ(rj) => {
@@ -1049,7 +1104,7 @@ mod tests {
             0x12, 0x34, // DST-REF
             ER_REJECT_CAUSE_INVALID_PARAMETER_CODE,
         ];
-        let (b, tpdu) = parse_x224_tpdu(nsdu, 0, false).unwrap();
+        let (b, tpdu) = parse_x224_tpdu(nsdu).unwrap();
         assert_eq!(b.len(), 0);
         match tpdu {
             TPDU::ER(er) => {

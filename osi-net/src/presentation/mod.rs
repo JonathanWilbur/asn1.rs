@@ -33,6 +33,7 @@ pub enum SyncPointIdentifier {
     WithActMan((SerialNumber, SerialNumber, ActivityIdentifier)),
 }
 
+#[derive(Debug, Clone)]
 pub struct ContextSets {
     // TODO:
     // proposed_for_addition_initiated_locally: Vec<Context_list_Item>,

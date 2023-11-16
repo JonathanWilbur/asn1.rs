@@ -446,146 +446,182 @@ pub const RC_DEMAND_DATA_TOKEN: u8 = 128;
 
 // #endregion reason_code
 
+#[derive(Debug, Clone)]
 pub struct CONNECT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct OVERFLOW_ACCEPT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct CONNECT_DATA_OVERFLOW_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACCEPT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct REFUSE_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct FINISH_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct DISCONNECT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct NOT_FINISHED_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ABORT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ABORT_ACCEPT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct DATA_TRANSFER_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct EXPEDITED_DATA_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct TYPED_DATA_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct CAPABILITY_DATA_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct CAPABILITY_DATA_ACK_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct GIVE_TOKENS_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct PLEASE_TOKENS_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct GIVE_TOKENS_CONFIRM_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct GIVE_TOKENS_ACK_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct MINOR_SYNC_POINT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct MINOR_SYNC_ACK_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct MAJOR_SYNC_POINT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct MAJOR_SYNC_ACK_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct RESYNCHRONIZE_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct RESYNCHRONIZE_ACK_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct PREPARE_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct EXCEPTION_REPORT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct EXCEPTION_DATA_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_START_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_RESUME_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_INTERRUPT_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_INTERRUPT_ACK_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_DISCARD_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_DISCARD_ACK_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_END_SPDU {
     // TODO:
 }
 
+#[derive(Debug, Clone)]
 pub struct ACTIVITY_END_ACK_SPDU {
 
 }
@@ -615,6 +651,7 @@ pub enum ResyncType {
     INT,
 }
 
+#[derive(Debug, Clone)]
 pub enum SPDU {
     CN(CONNECT_SPDU),
     OA(OVERFLOW_ACCEPT_SPDU),
@@ -654,6 +691,7 @@ pub enum SPDU {
     AEA(ACTIVITY_END_ACK_SPDU),
 }
 
+#[derive(Debug, Clone)]
 pub enum PartialSPDU {
     AC(ACCEPT_SPDU),
     RF(REFUSE_SPDU),
@@ -664,6 +702,7 @@ pub enum PartialSPDU {
     AB(ABORT_SPDU),
 }
 
+#[derive(Debug, Clone)]
 pub struct X225SessionEntity {
     pub local_transport_ref_to_conn: HashMap<TransportRef, X225SessionConnection>,
 }

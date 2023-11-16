@@ -43,3 +43,6 @@ Protocol-Buffers-based presentation service.
 - [ ] Connectionless-Mode Stack
 - [ ] X.224 Annex B Network Connection Management Subprotocol
 - [ ] C ABI
+- [ ] Congestion Detection
+- [ ] DoS Prevention
+- [ ] Logging

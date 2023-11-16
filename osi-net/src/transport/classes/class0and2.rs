@@ -1,19 +1,30 @@
 use std::borrow::Cow;
 
-use crate::network::OSINetworkConnection;
-use crate::session::OSIConnectionOrientedSessionService;
+use crate::network::NSProvider;
 use crate::transport::procedures::treatment_of_protocol_errors_over_cons;
-use crate::transport::{DR_TPDU, DR_REASON_CR_REFUSED, DR_REASON_NOT_SPECIFIED, DR_REASON_NEGOTIATION_FAILED, DC_TPDU, DR_REASON_NORMAL_DISCONNECT, DR_REASON_PROTOCOL_ERROR, ER_REJECT_CAUSE_INVALID_TPDU_TYPE, IncomingEvent, T_CONNECT_Request_Parameters, CR_TPDU, CC_TPDU};
+use crate::transport::{
+    DR_TPDU,
+    DR_REASON_NOT_SPECIFIED,
+    DR_REASON_NEGOTIATION_FAILED,
+    DC_TPDU, DR_REASON_NORMAL_DISCONNECT,
+    DR_REASON_PROTOCOL_ERROR,
+    ER_REJECT_CAUSE_INVALID_TPDU_TYPE,
+    IncomingEvent,
+    T_CONNECT_Request_Parameters,
+    CR_TPDU,
+    CC_TPDU,
+    COTSUser,
+};
 use crate::transport::conn::{X224TransportConnection, X224ConnectionState};
 use crate::transport::pdu::TPDU;
 use crate::ServiceResult;
-use crate::transport::classes::{StateTablePredicate, handle_invalid_sequence};
+use crate::transport::classes::handle_invalid_sequence;
 use crate::transport::encode::IntoNSDU;
 
 // PREDICATES
 
 /// T-CONNECT request unacceptable
-pub(crate) fn P0 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P0 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -24,7 +35,7 @@ pub(crate) fn P0 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Unacceptable CR-TPDU
-pub(crate) fn P1 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P1 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -42,7 +53,7 @@ pub(crate) fn P1 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// No network connection available
-pub(crate) fn P2 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P2 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     _n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -53,7 +64,7 @@ pub(crate) fn P2 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Network connection available and open
-pub(crate) fn P3 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P3 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -63,7 +74,7 @@ pub(crate) fn P3 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Network connection available and open in progress
-pub(crate) fn P4 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P4 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -73,7 +84,7 @@ pub(crate) fn P4 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Class in class 0 (class selected in CC)
-pub(crate) fn P5 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P5 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     _n: &mut N,
     t: &mut X224TransportConnection,
     _s: &mut S,
@@ -89,7 +100,7 @@ pub(crate) fn P5 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Unacceptable CC
-pub(crate) fn P6 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P6 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -110,7 +121,7 @@ pub(crate) fn P6 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Class is class 2
-pub(crate) fn P7 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P7 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     _n: &mut N,
     t: &mut X224TransportConnection,
     _s: &mut S,
@@ -120,7 +131,7 @@ pub(crate) fn P7 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Acceptable CC
-pub(crate) fn P8 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P8 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -141,7 +152,7 @@ pub(crate) fn P8 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Class 4 CR
-pub(crate) fn P9 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P9 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     _n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -159,7 +170,7 @@ pub(crate) fn P9 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// Local choice
-pub(crate) fn P10 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn P10 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     _n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -172,7 +183,7 @@ pub(crate) fn P10 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServi
 
 /// If the network connection is not used by another transport connection
 /// assigned to it, it may be disconnected. (See 6.1.1.3, Note 3).
-pub(crate) fn A1 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn A1 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -185,7 +196,7 @@ pub(crate) fn A1 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 }
 
 /// See 6.22 (receipt of an ER-TPDU).
-pub(crate) fn A2 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn A2 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -197,19 +208,58 @@ pub(crate) fn A2 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
     treatment_of_protocol_errors_over_cons(n, t, s, pdu.unwrap(), None, None)
 }
 
+/*
+Should S just be X225SessionConnection?
+It will never be anything else, except for testing purposes.
+
+Implementing the session service will still have the same problem but in
+reverse: t: &mut T will require a type parameter for the network connection.
+
+Ultimately, my objection to the hyper-parameterization approach is that it is
+terribly unwieldy, and I think it will break if I add another layer, such as an
+RTSE layer.
+
+I think the alternative solution is to define "lower" and "upper" "halves" of
+the OSI layer services.
+
+These can be called: NSProvider<T> and COTSUser<T> and so on for the other layers.
+I'm not sure how well this will pan out as you mix connection-oriented and
+connectionless modes, though. Conversion is not permitted for S, and P. Only N
+and A.
+
+This seems like the best approach, and what mimics the layered design of the
+OSI model best, but I do want to see the transport layer tested alone before
+proceeding. I wonder what I will find when implementing this at the network
+layer or at other boundary cases. Next step is to basically undo my outstanding
+changes.
+
+*/
+
 /// See data transfer procedures of the class.
-pub(crate) fn A3 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn A3 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
-    s: &mut S,
+    s: &mut S, // TODO: Should this just be X225SessionConnection?
     pdu: Option<&TPDU>,
 ) -> ServiceResult {
+    if pdu.is_none() {
+        return Ok(None);
+    }
+    let pdu = pdu.unwrap();
+    if let TPDU::DT(dt) = pdu {
+        let data = dt.user_data.as_ref().to_owned();
+        if dt.eot {
+
+        } else {
+            t.buffer.parts.push(data);
+        }
+    }
     // TODO:
     todo!()
 }
 
 /// See expedited data transfer procedure of the class.
-pub(crate) fn A4 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn A4 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -222,7 +272,7 @@ pub(crate) fn A4 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 /// An N-RESET response has to be issued once for the network
 /// connection if the network connection has not been released.
 /// In class 0, an N-DISCONNECT request has to be issued.
-pub(crate) fn A5 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn A5 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -234,7 +284,7 @@ pub(crate) fn A5 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 
 /// The DC-TPDU contains a src-ref field set to zero and a dst-ref field set
 /// to the SRC-REF of the DR-TPDU received.
-pub(crate) fn A6 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn A6 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     _n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -251,7 +301,7 @@ pub(crate) fn A6 <N: OSINetworkConnection, S: OSIConnectionOrientedSessionServic
 /// it matches none of the conditions in the state table's cell, but I think it
 /// must be done. I am defining this function specifically for this case so I
 /// can easily remove it by name later on if I turn out to be wrong.
-pub(crate) fn implied_handle_invalid <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn implied_handle_invalid <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -261,7 +311,7 @@ pub(crate) fn implied_handle_invalid <N: OSINetworkConnection, S: OSIConnectionO
     handle_invalid_sequence(n, t, s, pdu, event_came_from_ts_user)
 }
 
-pub(crate) fn dispatch_tpdu <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
@@ -502,7 +552,7 @@ pub(crate) fn dispatch_tpdu <N: OSINetworkConnection, S: OSIConnectionOrientedSe
     }
 }
 
-pub(crate) fn dispatch_event <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn dispatch_event <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,

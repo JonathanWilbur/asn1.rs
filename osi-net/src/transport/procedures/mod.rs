@@ -1,5 +1,4 @@
-use crate::network::{OSINetworkConnection, OSIConnectionOrientedNetworkService};
-use crate::session::OSIConnectionOrientedSessionService;
+use crate::network::NSProvider;
 use crate::transport::conn::X224TransportConnection;
 use crate::transport::pdu::TPDU;
 use crate::ServiceResult;
@@ -8,20 +7,19 @@ use std::ops::Add;
 use std::time::SystemTime;
 use crate::transport::encode::IntoNSDU;
 
-use super::{ER_TPDU, ER_REJECT_CAUSE_NOT_SPECIFIED};
+use super::{ER_TPDU, ER_REJECT_CAUSE_NOT_SPECIFIED, COTSUser};
 
 /// Implements the procedures described in Section 6.22 of
 /// [ITU-T Recommendation X.224 (1995)](https://www.itu.int/rec/T-REC-X.224/en)
 /// related to handling protocol errors.
-pub(crate) fn treatment_of_protocol_errors_over_cons <'a, N, S> (
+pub(crate) fn treatment_of_protocol_errors_over_cons <'a, N: NSProvider, S: COTSUser<X224TransportConnection> + Default> (
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,
     pdu: &'a TPDU,
     invalid_tpdu: Option<Cow<'a, [u8]>>,
     reject_cause: Option<u8>,
-) -> ServiceResult
-    where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+) -> ServiceResult {
 
     // FIXME: Check that the invalid_tpdu will fit in the allowed NSDU/TPDU size.
     // To avoid producing an infinite loop, we do nothing in response to an

@@ -1,12 +1,16 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use network::{NSProvider, NSUser};
+use transport::{COTSProvider, COTSUser};
+
 pub mod network;
 pub mod transport;
 pub mod session;
 pub mod presentation;
 pub mod acse;
 pub mod rtse;
+pub mod stack;
 
 pub type OsiSelector = Vec<u8>;
 
@@ -36,5 +40,29 @@ pub trait OSIApplicationServiceObject {}
 pub trait OSIApplicationServiceObjectInvocation {}
 pub trait OSIApplicationServiceElementInvocation : OSIApplicationServiceObjectInvocation {}
 
-/// NOTE: X.217 says: "A one-to-one correspondence exists between an application-association and a presentation-connection."
-pub trait OSIApplicationAssociation {}
+// NOTE: X.217 says: "A one-to-one correspondence exists between an application-association and a presentation-connection."
+// pub trait OSIApplicationAssociation {}
+
+
+// pub struct Stack <N, T, S>
+//     where
+//         N: NSProvider, // TODO: Does the network even need to be generic?
+//         T: NSUser<N> + COTSProvider<S>,
+//         S: COTSUser<T>
+//     {
+//     network: N,
+//     transport: T,
+//     session: S,
+// }
+
+// X.224 can run over ITOT, XOT, TP4 etc.
+// X.225 always runs over X.224
+// X.226 always runs over X.225
+// I am kind of thinking of using hard-coded types for all layers, except the
+// network layer, which will use dynamic dispatch.
+// Something to think about: users may want to use this library to build
+// more efficient stacks than the default ones, perhaps by using static
+// dispatch + Tokio TCP streams.
+
+
+// pub trait OSI

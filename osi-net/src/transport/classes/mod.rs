@@ -1,10 +1,11 @@
-use crate::network::OSINetworkConnection;
-use crate::session::OSIConnectionOrientedSessionService;
+use crate::network::NSProvider;
 use crate::transport::conn::X224TransportConnection;
 use crate::transport::pdu::TPDU;
 use crate::ServiceResult;
 use crate::transport::procedures::treatment_of_protocol_errors_over_cons;
-mod class0and2;
+
+use super::COTSUser;
+pub mod class0and2;
 
 pub(crate) type StateTablePredicate <N, S> = fn(
     n: &mut N,
@@ -13,7 +14,7 @@ pub(crate) type StateTablePredicate <N, S> = fn(
     pdu: Option<&TPDU>,
 ) -> bool;
 
-pub(crate) fn transport_noop <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn transport_noop <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
     _n: &mut N,
     _t: &mut X224TransportConnection,
     _s: &mut S,
@@ -39,7 +40,7 @@ pub(crate) fn transport_noop <N: OSINetworkConnection, S: OSIConnectionOrientedS
 ///    those which are impossible by the definition of the behaviour of the
 ///    transport entity or NS-provider), take no action.
 ///
-pub(crate) fn handle_invalid_sequence <N: OSINetworkConnection, S: OSIConnectionOrientedSessionService> (
+pub(crate) fn handle_invalid_sequence <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>(
     n: &mut N,
     t: &mut X224TransportConnection,
     s: &mut S,

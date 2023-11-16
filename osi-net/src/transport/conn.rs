@@ -1,9 +1,13 @@
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
 use std::time::{Duration, SystemTime};
-
+use smallvec::{SmallVec, smallvec};
 use crate::{OsiSelector, ServiceResult, RemoteAndLocalSels};
 use crate::transport::UserData;
 use crate::transport::service::{
-    OSIConnectionOrientedTransportService,
+    COTSProvider,
+    COTSUser,
     T_CONNECT_Request_Parameters,
     T_CONNECT_Response_Parameters,
     T_DATA_Request_Parameters,
@@ -12,13 +16,12 @@ use crate::transport::service::{
     T_CONNECT_Confirm_Parameters,
 };
 use crate::network::{
-    OSINetworkConnection,
     NetworkConnId,
     N_CONNECT_Confirm_Parameters,
     N_DISCONNECT_Request_Parameters,
-    N_RESET_Confirm_Parameters,
+    N_RESET_Confirm_Parameters, NSProvider,
 };
-use crate::session::OSIConnectionOrientedSessionService;
+use crate::network::NSUser;
 use crate::transport::pdu::{
     TPDU,
     CR_TPDU,
@@ -32,6 +35,8 @@ use crate::transport::pdu::{
     RJ_TPDU,
     ER_TPDU,
 };
+use super::IncomingEvent;
+use crate::transport::classes::class0and2::dispatch_event as dispatch_event_class_0_or_2;
 
 /// From Table A.2 of ITU Recommendation X.224.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -117,14 +122,45 @@ impl X224ConnectionState {
 
 }
 
+#[derive(Debug, Clone)]
+pub struct TransportedSegment {
+    pub eot: bool,
+    pub roa: bool,
+    pub data: Vec<u8>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TransportUserDataBuffer {
+    // NOTE: I don't think this needs to be a VecDeque, because the EOT always
+    // ends at the end of a particular TPDU. In other words, this buffer will
+    // always be reset to zero-length once a complete TPDU is received.
+    // pub buffer: SmallVec<[u8; 128]>, // 18 for DT-TPDU with all options, 7 for SPDU with all options, 2 for simply-encoded User-data PPDU, 2 for RTSE
+    pub last_nr: u32,
+    pub eot: bool,
+    pub roa: bool,
+    pub parts: SmallVec<[UserData; 16]>,
+    /// This is for TPDUs that are received out of order.
+    pub other_tpdus: HashMap<u32, TransportedSegment>, // key is the NR.
+}
+
+impl Default for TransportUserDataBuffer {
+    fn default() -> Self {
+        Self { last_nr: 0, eot: false, roa: false, parts: smallvec![], other_tpdus: HashMap::new() }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct X224TransportConnection {
+    // pub session: Rc<RefCell<S>>,
+    // TODO: I think I am discovering that there is no way to not have a generic parameter for each layer...
+    // There may be 0, 1, or more network connections, which may change over time.
+
     pub state: X224ConnectionState,
     pub cr: Option<CR_TPDU>, // The original CR-TPDU sent or received.
     // I think just passing in the lower layer into functions that need it will be enough.
     // This actually kind of makes sense, since an N-entity can apparently use the
     // services of one or more (N-1)-entities.
     // network: NetworkLayerService,
-    pub buffer: Vec<UserData>,
     pub remote_ref: u16,
     pub local_ref: u16,
     pub local_t_selector: Option<OsiSelector>,
@@ -160,6 +196,8 @@ pub struct X224TransportConnection {
     /// lapses, the connection shall be released normally. If a DR-TPDU is sent,
     /// this shall be unset.
     pub ts2: Option<SystemTime>,
+
+    pub buffer: TransportUserDataBuffer,
 }
 
 impl Default for X224TransportConnection {
@@ -167,7 +205,6 @@ impl Default for X224TransportConnection {
         X224TransportConnection {
             state: X224ConnectionState::CLOSED, // TODO: Is this the correct default state?
             cr: None,
-            buffer: vec![],
             remote_ref: 0,
             local_ref: 0,
             local_t_selector: None,
@@ -189,6 +226,7 @@ impl Default for X224TransportConnection {
             ts2_duration: Duration::from_secs(5),
             ts1: None,
             ts2: None,
+            buffer: TransportUserDataBuffer::default(),
         }
     }
 }
@@ -205,68 +243,68 @@ impl X224TransportConnection {
         self.class == 4 && self.use_checksum_in_class_4
     }
 
-    pub fn receive_TPDU<N, S>(&mut self, n: &mut N, s: &mut S, tpdu: &TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_TPDU<N>(&mut self, n: &mut N, tpdu: &TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_CR<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &CR_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_CR<N>(&mut self, n: &mut N, pdu: &CR_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_CC<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &CC_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_CC<N>(&mut self, n: &mut N, pdu: &CC_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_DR<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &DR_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_DR<N>(&mut self, n: &mut N, pdu: &DR_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_DC<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &DC_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_DC<N>(&mut self, n: &mut N, pdu: &DC_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_DT<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &DT_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_DT<N>(&mut self, n: &mut N, pdu: &DT_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_ED<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &ED_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_ED<N>(&mut self, n: &mut N, pdu: &ED_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_AK<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &AK_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_AK<N>(&mut self, n: &mut N, pdu: &AK_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_EA<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &EA_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_EA<N>(&mut self, n: &mut N, pdu: &EA_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_RJ<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &RJ_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_RJ<N>(&mut self, n: &mut N, pdu: &RJ_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
 
-    pub fn receive_ER<N, S>(&mut self, n: &mut N, s: &mut S, pdu: &ER_TPDU) -> ServiceResult
-        where N: OSINetworkConnection, S: OSIConnectionOrientedSessionService {
+    pub fn receive_ER<N>(&mut self, n: &mut N, pdu: &ER_TPDU) -> ServiceResult
+        where N: NSProvider {
         // TODO:
         todo!()
     }
@@ -274,89 +312,84 @@ impl X224TransportConnection {
 
 }
 
-impl <N, S> OSIConnectionOrientedTransportService <N, S> for X224TransportConnection
-    where N: OSINetworkConnection,
-    S: OSIConnectionOrientedSessionService {
+impl <S: COTSUser<Self>> COTSProvider<S> for X224TransportConnection {
 
-    fn receive_nsdu(&mut self, n: &mut N, s: &mut S, nsdu: Vec<u8>) -> ServiceResult {
+    fn submit_T_CONNECT_request(&mut self, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult {
+        if self.class == 0 || self.class == 2 {
+            let event = IncomingEvent::TCONreq(params);
+            // dispatch_event_class_0_or_2()
+            // TODO:
+            todo!()
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn submit_T_CONNECT_response(&mut self, s: &mut S, params: T_CONNECT_Response_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    /// When the runtime sees that the soonest timer has been triggered, this
-    /// function shall be called. This function shall perform every action that
-    /// is due, then reset / nullify the timers that caused them, if necessary.
-    /// This returns the time of the next timer to be invoked.
-    fn check_timers(&mut self, n: &mut N, s: &mut S) -> ServiceResult {
+    fn submit_T_DATA_request(&mut self, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    // This might be unnecessary. Every outgoing event can be translated to
-    // an invocation of an N-1 or N+1 API.
-    // fn get_next_outgoing_event (&mut self) -> Option<OSIConnectionOrientedTransportOutgoingEvent>;
-
-    fn submit_T_CONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult {
+    fn submit_T_EXPEDITED_DATA_request(&mut self, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn submit_T_CONNECT_response(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Response_Parameters) -> ServiceResult {
+    fn submit_T_DISCONNECT_request(&mut self, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn submit_T_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult {
+    fn receive_T_CONNECT_request(&mut self, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn submit_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
+    fn receive_T_CONNECT_confirm(&mut self, s: &mut S, params: T_CONNECT_Confirm_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn submit_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
+    fn receive_T_DATA_request(&mut self, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_T_CONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Request_Parameters) -> ServiceResult {
+    fn receive_T_EXPEDITED_DATA_request(&mut self, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_T_CONNECT_confirm(&mut self, n: &mut N, s: &mut S, params: T_CONNECT_Confirm_Parameters) -> ServiceResult {
+    fn receive_T_DISCONNECT_request(&mut self, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_T_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_DATA_Request_Parameters) -> ServiceResult {
+}
+
+impl <N: NSProvider> NSUser<N> for X224TransportConnection {
+
+    fn receive_nsdu(&mut self, n: &mut N, nsdu: Vec<u8>) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_T_EXPEDITED_DATA_request(&mut self, n: &mut N, s: &mut S, params: T_EXPEDITED_DATA_Request_Parameters) -> ServiceResult {
+    fn receive_N_CONNECT_confirm(&mut self, n: &mut N, params: N_CONNECT_Confirm_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_T_DISCONNECT_request(&mut self, n: &mut N, s: &mut S, params: T_DISCONNECT_Request_Parameters) -> ServiceResult {
+    fn receive_N_DISCONNECT_indication(&mut self, n: &mut N, params: N_DISCONNECT_Request_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    fn receive_DISCONNECT_indication(&mut self, n: &mut N, s: &mut S, params: N_DISCONNECT_Request_Parameters) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    fn receive_N_CONNECT_confirm(&mut self, n: &mut N, s: &mut S, params: N_CONNECT_Confirm_Parameters) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    fn receive_RESET_indication(&mut self, n: &mut N, s: &mut S, params: N_RESET_Confirm_Parameters) -> ServiceResult {
+    fn receive_N_RESET_indication(&mut self, n: &mut N, params: N_RESET_Confirm_Parameters) -> ServiceResult {
         // TODO:
         todo!()
     }
