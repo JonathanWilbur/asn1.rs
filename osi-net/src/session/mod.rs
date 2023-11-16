@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use bytes::BytesMut;
-use crate::{OsiSelector, presentation::X225PresentationConnection, transport::TransportRef};
+use crate::{OsiSelector, transport::TransportRef};
 mod layer;
+mod service;
 pub use layer::*;
+pub use service::*;
 
 /// [ITU-T Recommendation X.225 (1995)](https://www.itu.int/rec/T-REC-X.225/en),
 /// Section 8.3.1.10:
@@ -48,39 +50,104 @@ pub const SESSION_PROTOCOL_VERSION_2: u8 = 2;
 
 // Table A.2 in Annex A of ITU Rec. X.225.
 // Yes, there are some numbers missing from the sequence, such as STA07 and STA17.
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
 pub enum X225ConnectionState {
-    STA01, // Idle, no transport connection
-    STA01A, // Wait for the ABORT ACCEPT SPDU
-    STA01B, // Wait for the T-CONNECT confirm
-    STA01C, // Idle, transport connected
-    STA01D, // Wait for the CONNECT DATA OVERFLOW SPDU
-    STA02A, // Wait for the ACCEPT SPDU
-    STA02B, // Wait for the OVERFLOW ACCEPT SPDU
-    STA03, // Wait for the DISCONNECT SPDU
-    STA04A, // Wait for the MAJOR SYNC ACK SPDU or PREPARE SPDU
-    STA04B, // Wait for the ACTIVITY END ACK SPDU or PREPARE SPDU
-    STA05A, // Wait for the RESYNCHRONIZE ACK SPDU or PREPARE SPDU
-    STA05B, // Wait for the ACTIVITY INTERRUPT ACK SPDU or PREPARE SPDU
-    STA05C, // Wait for the ACTIVITY DISCARD ACK SPDU or PREPARE SPDU
-    STA06, // Wait for the RESYNCHRONIZE SPDU
-    STA08, // Wait for S-CONNECT response
-    STA09, // Wait for S-RELEASE response
-    STA10A, // Wait for S-SYNC-MAJOR response
-    STA10B, // Wait for S-ACTIVITY-END response
-    STA11A, // Wait for S-RESYNCHRONIZE response
-    STA11B, // Wait for S-ACTIVITY-INTERRUPT response
-    STA11C, // Wait for S-ACTIVITY-DISCARD response
-    STA15A, // After PREPARE, wait for MAJOR SYNC ACK SPDU or ACTIVITY END ACK SPDU
-    STA15B, // After PREPARE, wait for RESYNCHRONIZE SPDU or ACTIVITY INTERRUPT SPDU or ACTIVITY DISCARD SPDU
-    STA15C, // After PREPARE, wait for RESYNCHRONIZE ACK SPDU or ACTIVITY INTERRUPT ACK SPDU or ACTIVITY DISCARD ACK SPDU
-    STA15D, // After PREPARE, wait for the ABORT SPDU
-    STA16, // Wait for T-DISCONNECT indication
-    STA18, // Wait for the GIVE TOKENS ACK SPDU
-    STA19, // Wait for a recovery request or SPDU
-    STA20, // Wait for a recovery SPDU or request
-    STA21, // Wait for the CAPABILITY DATA ACK SPDU
-    STA22, // Wait for S-CAPABILITY-DATA response
-    STA713, // Data transfer state
+
+    /// Idle, no transport connection
+    STA01,
+
+    /// Wait for the ABORT ACCEPT SPDU
+    STA01A,
+
+    /// Wait for the T-CONNECT confirm
+    STA01B,
+
+    /// Idle, transport connected
+    STA01C,
+
+    /// Wait for the CONNECT DATA OVERFLOW SPDU
+    STA01D,
+
+    /// Wait for the ACCEPT SPDU
+    STA02A,
+
+    /// Wait for the OVERFLOW ACCEPT SPDU
+    STA02B,
+
+    /// Wait for the DISCONNECT SPDU
+    STA03,
+
+    /// Wait for the MAJOR SYNC ACK SPDU or PREPARE SPDU
+    STA04A,
+
+    /// Wait for the ACTIVITY END ACK SPDU or PREPARE SPDU
+    STA04B,
+
+    /// Wait for the RESYNCHRONIZE ACK SPDU or PREPARE SPDU
+    STA05A,
+
+    /// Wait for the ACTIVITY INTERRUPT ACK SPDU or PREPARE SPDU
+    STA05B,
+
+    /// Wait for the ACTIVITY DISCARD ACK SPDU or PREPARE SPDU
+    STA05C,
+
+    /// Wait for the RESYNCHRONIZE SPDU
+    STA06,
+
+    /// Wait for S-CONNECT response
+    STA08,
+
+    /// Wait for S-RELEASE response
+    STA09,
+
+    /// Wait for S-SYNC-MAJOR response
+    STA10A,
+
+    /// Wait for S-ACTIVITY-END response
+    STA10B,
+
+    /// Wait for S-RESYNCHRONIZE response
+    STA11A,
+
+    /// Wait for S-ACTIVITY-INTERRUPT response
+    STA11B,
+
+    /// Wait for S-ACTIVITY-DISCARD response
+    STA11C,
+
+    /// After PREPARE, wait for MAJOR SYNC ACK SPDU or ACTIVITY END ACK SPDU
+    STA15A,
+
+    /// After PREPARE, wait for RESYNCHRONIZE SPDU or ACTIVITY INTERRUPT SPDU or ACTIVITY DISCARD SPDU
+    STA15B,
+
+    /// After PREPARE, wait for RESYNCHRONIZE ACK SPDU or ACTIVITY INTERRUPT ACK SPDU or ACTIVITY DISCARD ACK SPDU
+    STA15C,
+
+    /// After PREPARE, wait for the ABORT SPDU
+    STA15D,
+
+    /// Wait for T-DISCONNECT indication
+    STA16,
+
+    /// Wait for the GIVE TOKENS ACK SPDU
+    STA18,
+
+    /// Wait for a recovery request or SPDU
+    STA19,
+
+    /// Wait for a recovery SPDU or request
+    STA20,
+
+    /// Wait for the CAPABILITY DATA ACK SPDU
+    STA21,
+
+    /// Wait for S-CAPABILITY-DATA response
+    STA22,
+
+    /// Data transfer state
+    STA713,
 }
 
 // #endregion
@@ -524,7 +591,7 @@ pub struct ACTIVITY_END_ACK_SPDU {
 }
 
 pub trait OSIConnectionOrientedSessionService {
-
+    // TODO:
 }
 
 pub trait OSIConnectionOrientedSessionEntity : OSIConnectionOrientedSessionService {
@@ -601,37 +668,47 @@ pub struct X225SessionEntity {
     pub local_transport_ref_to_conn: HashMap<TransportRef, X225SessionConnection>,
 }
 
+#[derive(Debug, Clone)]
 pub struct X225SessionConnection {
 
+    /// The state of this connection
+    pub state: X225ConnectionState,
+
     /// The version of the session protocol used.
-    version: u8,
+    pub version: u8,
 
     /// Whether this side of the connection initiated the call.
-    caller: bool,
-    state: X225ConnectionState,
-    // disconnectReason?: number;
+    pub caller: bool,
 
     /// Whether the data token is owned locally. None if unowned / both.
-    i_own_data_token: Option<bool>,
+    pub i_own_data_token: Option<bool>,
 
     /// Whether the release token is owned locally. None if unowned / both.
-    i_own_release_token: Option<bool>,
+    pub i_own_release_token: Option<bool>,
 
     /// Whether the minor synchronization token is owned locally. None if unowned / both.
-    i_own_sync_minor_token: Option<bool>,
+    pub i_own_sync_minor_token: Option<bool>,
 
     /// Whether the major activity token is owned locally. None if unowned / both.
-    i_own_major_act_token: Option<bool>,
+    pub i_own_major_act_token: Option<bool>,
 
-    inbound_max_tsdu_size: usize,
-    outbound_max_tsdu_size: usize,
+    /// The maximum size in bytes of a received TSDU.
+    pub inbound_max_tsdu_size: usize,
 
-    local_selector: Option<OsiSelector>,
-    remote_selector: Option<OsiSelector>,
+    /// The maximum size in bytes of a transmitted TSDU.
+    pub outbound_max_tsdu_size: usize,
 
-    timer_timeout_in_ms: Option<u32>,
+    /// The local S-selector
+    pub local_selector: Option<OsiSelector>,
 
-    cn: Option<CONNECT_SPDU>,
+    /// The remote S-selector
+    pub remote_selector: Option<OsiSelector>,
+
+    /// Not sure what this is, actually.
+    pub timer_timeout_in_ms: Option<u32>,
+
+    /// The sent or received CONNECT SPDU.
+    pub cn: Option<CONNECT_SPDU>,
 
     /**
      * Detailed in [ITU Recommendation X.225 (1995)](https://www.itu.int/rec/T-REC-X.225/en),
@@ -641,189 +718,186 @@ pub struct X225SessionConnection {
     // TODO:
     // TIM?: NodeJS.Timeout;
 
-    /**
-     * Used for buffering connect data both inbound and outbound.
-     */
-    connectData: BytesMut,
-    userDataBuffer: BytesMut,
-    // outgoingEvents: SessionLayerOutgoingEventEmitter;
-    max_ssdu_size: usize,
+    /// Used for buffering connect data both inbound and outbound.
+    pub connectData: BytesMut,
 
-    /**
-     * This field exists because, according to
-     * [ITU Recommendation X.225 (1995)](https://www.itu.int/rec/T-REC-X.225/en),
-     * Section 7.37.1:
-     *
-     * > Where an SSDU is segmented, the first SPDU contains all the parameters
-     * > which would have been present in the SPDU if the SSDU had not been
-     * > segmented...
-     *
-     * To handle the above requirement, this implementation preserves the first
-     * received SPDU when the Enclosure Item parameter indicates that an SPDU
-     * is the first of multiple segments.
-     */
-    in_progress_spdu: Option<PartialSPDU>,
-    /**
-     * An 16-bit field for the supported functional units.
-     */
-    FU: u16,
+    /// Used for buffering user data
+    pub userDataBuffer: BytesMut,
 
-    /**
-     * If true, use of transport expedited service is selected for use on this
-     * session connection.
-     */
-    TEXP: bool,
+    /// The maximum size, in bytes, of a received or sent SSDU.
+    pub max_ssdu_size: usize,
 
-    /**
-     * If true, an activity is in progress.
-     */
-    Vact: bool,
+    /// This field exists because, according to
+    /// [ITU Recommendation X.225 (1995)](https://www.itu.int/rec/T-REC-X.225/en),
+    /// Section 7.37.1:
+    ///
+    /// > Where an SSDU is segmented, the first SPDU contains all the parameters
+    /// > which would have been present in the SPDU if the SSDU had not been
+    /// > segmented...
+    ///
+    /// To handle the above requirement, this implementation preserves the first
+    /// received SPDU when the Enclosure Item parameter indicates that an SPDU
+    /// is the first of multiple segments.
+    ///
+    pub in_progress_spdu: Option<PartialSPDU>,
 
-    /**
-     * The next value of Vact when a MAJOR SYNC ACK SPDU or an ACTIVITY END ACK
-     * SPDU is sent or received.
-     */
-    Vnextact: bool,
+    /// An 16-bit field for the supported functional units.
+    pub FU: u16,
 
-    /**
-     * Indicates what kind of resynchronization is currently in progress.
-     */
-    Vrsp: ResyncType,
+    /// If true, use of transport expedited service is selected for use on this
+    /// session connection.
+    pub TEXP: bool,
 
-    /**
-     * The serial number in case of resynchronize restart.
-     */
-    Vrspnb: SerialNumber,
+    /// If true, an activity is in progress.
+    pub Vact: bool,
 
-    /**
-     * The resync type of the sending flow.
-     */
-    Vrsps: ResyncType,
+    /// The next value of Vact when a MAJOR SYNC ACK SPDU or an ACTIVITY END ACK
+    /// SPDU is sent or received.
+    pub Vnextact: bool,
 
-    /**
-     * The resync type of the receiving flow.
-     */
-    Vrspr: ResyncType,
+    /// Indicates what kind of resynchronization is currently in progress.
+    pub Vrsp: ResyncType,
 
-    /**
-     * The serial number for the SPM's receiving flow in the case of
-     * resynchronize restart.
-     */
-    Vrspnbr: SerialNumber,
+    /// The serial number in case of resynchronize restart.
+    pub Vrspnb: SerialNumber,
 
-    /**
-     * The serial number for the SPM's sending flow in the case of
-     * resynchronize restart.
-     */
-    Vrspnbs: SerialNumber,
+    /// The resync type of the sending flow.
+    pub Vrsps: ResyncType,
 
-    /**
-     * Which SPM wins in a collision.
-     */
-    SPMWinner: bool,
+    /// The resync type of the receiving flow.
+    pub Vrspr: ResyncType,
 
-    /**
-     * If true, the SPM received the T-CONNECT indication; if false, the SPM
-     * initiated the T-CONNECT indication. In other words, if this is false,
-     * the local SPM created the transport connection.
-     */
-    Vtca: bool,
+    /// The serial number for the SPM's receiving flow in the case of
+    /// resynchronize restart.
+    pub Vrspnbr: SerialNumber,
 
-    /**
-     * Whether the transport connection can be reused by the SPM for another
-     * session connection.
-     */
-    Vtrr: bool,
+    /// The serial number for the SPM's sending flow in the case of
+    /// resynchronize restart.
+    pub Vrspnbs: SerialNumber,
 
-    /**
-     * Whether there has been a collision of FINISH SPDUs.
-     */
-    Vcoll: bool,
+    /// Which SPM wins in a collision.
+    pub SPMWinner: bool,
 
-    /**
-     * Whether a DISCONNECT SPDU has been received in STA09 (collision of
-     * FINISH SPDUs).
-     */
-    Vdnr: bool,
+    /// If true, the SPM received the T-CONNECT indication; if false, the SPM
+    /// initiated the T-CONNECT indication. In other words, if this is false,
+    /// the local SPM created the transport connection.
+    pub Vtca: bool,
 
-    /**
-     * The lowest serial number to which a sync point confirmation is expected.
-     */
-    V_A: SerialNumber,
+    /// Whether the transport connection can be reused by the SPM for another
+    /// session connection.
+    pub Vtrr: bool,
 
-    /**
-     * The next serial number to be used.
-     */
-    V_M: SerialNumber,
+    /// Whether there has been a collision of FINISH SPDUs.
+    pub Vcoll: bool,
 
-    /**
-     * The lowest serial number to which resynchronization restart is permitted.
-     */
-    V_R: SerialNumber,
+    /// Whether a DISCONNECT SPDU has been received in STA09 (collision of
+    /// FINISH SPDUs).
+    pub Vdnr: bool,
 
-    /**
-     * Whether the SS-user has the right to issue minor sync point responses
-     * when V(A) is less than V(M).
-     */
-    Vsc: bool,
+    /// The lowest serial number to which a sync point confirmation is expected.
+    pub V_A: SerialNumber,
 
-    /**
-     * The highest sync point serial number which was sent in a MINOR
-     * SYNCHRONIZATION POINT SPDU with the data separation parameter set to
-     * true.
-     */
-    Vado: SerialNumber,
+    /// The next serial number to be used.
+    pub V_M: SerialNumber,
 
-    /**
-     * The highest sync point serial number which was received in a MINOR
-     * SYNCHRONIZATION POINT SPDU with the data separation parameter set to
-     * true.
-     */
-    Vadi: SerialNumber,
+    /// The lowest serial number to which resynchronization restart is permitted.
+    pub V_R: SerialNumber,
 
-    /**
-     * The lowest serial number on the SPM's sending data flow to which a
-     * sync point confirmation is expected to be received.
-     */
-    VAs: SerialNumber,
+    /// Whether the SS-user has the right to issue minor sync point responses
+    /// when V(A) is less than V(M).
+    pub Vsc: bool,
 
-    /**
-     * The lowest serial number on the SPM's receiving data flow for which a
-     * confirmation has not yet been sent.
-     */
-    VAr: SerialNumber,
+    /// The highest sync point serial number which was sent in a MINOR
+    /// SYNCHRONIZATION POINT SPDU with the data separation parameter set to
+    /// true.
+    pub Vado: SerialNumber,
 
-    /**
-     * The serial number of the next sync point to be sent.
-     */
-    VMs: SerialNumber,
+    /// The highest sync point serial number which was received in a MINOR
+    /// SYNCHRONIZATION POINT SPDU with the data separation parameter set to
+    /// true.
+    pub Vadi: SerialNumber,
 
-    /**
-     * The serial number of the next sync point to be received.
-     */
-    VMr: SerialNumber,
+    /// The lowest serial number on the SPM's sending data flow to which a
+    /// sync point confirmation is expected to be received.
+    pub VAs: SerialNumber,
 
-    /**
-     * The lowest serial number on the SPM's sending data flow to which resync
-     * restart is permitted.
-     */
-    VRs: SerialNumber,
+    /// The lowest serial number on the SPM's receiving data flow for which a
+    /// confirmation has not yet been sent.
+    pub VAr: SerialNumber,
 
-    /**
-     * The lowest serial number on the SPM's receiving data flow to which resync
-     * restart is permitted.
-     */
-    VRr: SerialNumber,
+    /// The serial number of the next sync point to be sent.
+    pub VMs: SerialNumber,
 
-    /**
-     * Whether the receiving flow is in the process of resynchronization.
-     */
-    Discard_rcv_flow: bool,
+    /// The serial number of the next sync point to be received.
+    pub VMr: SerialNumber,
 
-    /**
-     * Whether the sending flow is in the process of resynchronization.
-     */
-    Discard_snd_flow: bool,
+    /// The lowest serial number on the SPM's sending data flow to which resync
+    /// restart is permitted.
+    pub VRs: SerialNumber,
 
-    presentation: Option<X225PresentationConnection>,
+    /// The lowest serial number on the SPM's receiving data flow to which
+    /// resync restart is permitted.
+    pub VRr: SerialNumber,
+
+    /// Whether the receiving flow is in the process of resynchronization.
+    pub Discard_rcv_flow: bool,
+
+    /// Whether the sending flow is in the process of resynchronization.
+    pub Discard_snd_flow: bool,
+}
+
+impl Default for X225SessionConnection {
+
+    fn default() -> Self {
+        let transport_caller: bool = true;
+        X225SessionConnection {
+            version: SESSION_PROTOCOL_VERSION_1,
+            caller: transport_caller,
+            state: X225ConnectionState::STA01,
+            i_own_data_token: None,
+            i_own_release_token: None,
+            i_own_sync_minor_token: None,
+            i_own_major_act_token: None,
+            inbound_max_tsdu_size: usize::MAX, // Yes, this is the proper default.
+            outbound_max_tsdu_size: usize::MAX, // Yes, this is the proper default.
+            local_selector: None,
+            remote_selector: None,
+            timer_timeout_in_ms: None,
+            cn: None,
+            connectData: BytesMut::new(),
+            userDataBuffer: BytesMut::new(),
+            max_ssdu_size: usize::MAX, // This doesn't come from the protocol. It's just a config option.
+            in_progress_spdu: None,
+            FU: 0b0000_0011_0100_1001, // See X.225, Section 8.3.1.16.
+            TEXP: false,
+            Vact: false,
+            Vnextact: false,
+            Vrsp: ResyncType::NO,
+            Vrspnb: 0,
+            Vrsps: ResyncType::NO,
+            Vrspr: ResyncType::NO,
+            Vrspnbr: 0,
+            Vrspnbs: 0,
+            SPMWinner: false,
+            Vtca: !transport_caller,
+            Vtrr: false,
+            Vcoll: false,
+            Vdnr: false,
+            V_A: 0,
+            V_M: 0,
+            V_R: 0,
+            Vsc: false,
+            Vado: 0,
+            Vadi: 0,
+            VAs: 0,
+            VAr: 0,
+            VMs: 0,
+            VMr: 0,
+            VRs: 0,
+            VRr: 0,
+            Discard_rcv_flow: false,
+            Discard_snd_flow: false,
+        }
+    }
+
 }

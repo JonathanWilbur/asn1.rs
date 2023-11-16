@@ -1,4 +1,5 @@
 mod service;
+pub use service::*;
 use crate::{OsiSelector, session::{SerialNumber, ActivityIdentifier}};
 // import { Context_list_Item } from '@wildboar/copp/src/lib/modules/ISO8823-PRESENTATION/Context-list-Item.ta';
 // import {
@@ -8,7 +9,7 @@ use crate::{OsiSelector, session::{SerialNumber, ActivityIdentifier}};
 
 /// The presentation-layer states defined in ITU Recommendation X.226 (1994),
 /// Annex A, Table A.17.
-///
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
 pub enum X226ConnectionState {
     /// Idle - no connection
     STAI0,
@@ -50,8 +51,16 @@ pub struct ContextSets {
     // default_context: Option<Default_context_name>,
 }
 
+impl Default for ContextSets {
 
-pub struct X225PresentationConnection {
+    fn default() -> Self {
+        ContextSets{}
+    }
+
+}
+
+#[derive(Debug, Clone)]
+pub struct X226PresentationConnection {
 
     /**
      * Function for selecting presentation contexts.
@@ -75,25 +84,25 @@ pub struct X225PresentationConnection {
 
     /// The state of the connection, as defined in the state table in
     /// ITU Recommendation X.226 (1994), Annex A, Table A.17.
-    state: X226ConnectionState,
+    pub state: X226ConnectionState,
 
     /// Whether activity end is pending.
-    aep: bool,
+    pub aep: bool,
 
     /// Whether the release phase has been started.
-    rl: bool,
+    pub rl: bool,
 
     /// Whether a collision of release requests has been detected.
-    cr: bool,
+    pub cr: bool,
 
     /// Whether the context-management function unit is enabled.
-    FU_CM: bool,
+    pub FU_CM: bool,
 
     /// Whether the context-restoration function unit is enabled.
-    FU_CR: bool,
+    pub FU_CR: bool,
 
     /// Presentation context sets defined within this presentation connection.
-    contextSets: ContextSets,
+    pub contextSets: ContextSets,
 
     /**
      * The CP PPDU issued to create this connection. (This must be preserved
@@ -103,9 +112,30 @@ pub struct X225PresentationConnection {
 
     /// The maximum number of contexts that may appear in the context definition
     /// list, or which may exist in total for this presentation connection.
-    max_contexts: usize,
+    pub max_contexts: usize,
 
-    local_selector: Option<OsiSelector>,
+    /// The local P-selector
+    pub local_selector: Option<OsiSelector>,
 
-    remote_selector: Option<OsiSelector>,
+    /// The remote P-selector
+    pub remote_selector: Option<OsiSelector>,
+}
+
+impl Default for X226PresentationConnection {
+
+    fn default() -> Self {
+        X226PresentationConnection {
+            state: X226ConnectionState::STAI0,
+            aep: false,
+            rl: false,
+            cr: false,
+            FU_CM: false,
+            FU_CR: false,
+            contextSets: ContextSets::default(),
+            max_contexts: 16,
+            local_selector: None,
+            remote_selector: None,
+        }
+    }
+
 }
