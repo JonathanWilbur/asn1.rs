@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use std::net::IpAddr;
+
 use network::{NSProvider, NSUser};
 use transport::{COTSProvider, COTSUser};
 
@@ -66,3 +68,21 @@ pub trait OSIApplicationServiceElementInvocation : OSIApplicationServiceObjectIn
 
 
 // pub trait OSI
+
+
+pub type PeerId = IpAddr;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum PortSpace {
+    TCP,
+    UDP,
+    SCTP,
+}
+
+/// This type uniquely identifies a network connection.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct NetworkConnId2 {
+    pub addr: PeerId,
+    pub port: Option<u16>,
+    pub portspace: PortSpace,
+}

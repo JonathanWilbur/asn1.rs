@@ -12,7 +12,7 @@ use std::borrow::Cow;
 
 /// The session entity implements this.
 pub trait COTSUser <T: COTSProvider<Self>> where Self: Sized {
-    fn receive_nsdu(&mut self, t: &mut T, nsdu: Cow<'_, [u8]>) -> ServiceResult;
+    fn receive_tsdu(&mut self, t: &mut T, tsdu: Cow<'_, [u8]>) -> ServiceResult;
     fn receive_T_CONNECT_indication(&mut self, t: &mut T, params: T_CONNECT_Request_Parameters) -> ServiceResult;
     fn receive_T_CONNECT_confirmation(&mut self, t: &mut T, params: T_CONNECT_Request_Parameters) -> ServiceResult;
     fn receive_T_DISCONNECT_indication(&mut self, t: &mut T, params: T_CONNECT_Request_Parameters) -> ServiceResult;
@@ -216,7 +216,7 @@ pub struct T_DISCONNECT_Request_Parameters {
 pub type T_DISCONNECT_Indication_Parameters = T_DISCONNECT_Request_Parameters;
 
 pub enum IncomingEvent <'a> {
-    TPDU(TPDU<'a>),
+    TPDU(&'a TPDU<'a>),
     TCONreq(T_CONNECT_Request_Parameters),
     TCONresp(T_CONNECT_Response_Parameters),
     TDTreq(T_DATA_Request_Parameters),

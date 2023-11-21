@@ -1,9 +1,10 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 use smallvec::{SmallVec, smallvec};
-use crate::{OsiSelector, ServiceResult, RemoteAndLocalSels};
+use crate::{OsiSelector, ServiceResult, RemoteAndLocalSels, NetworkConnId2};
 use crate::transport::UserData;
 use crate::transport::service::{
     COTSProvider,
@@ -37,6 +38,7 @@ use crate::transport::pdu::{
 };
 use super::IncomingEvent;
 use crate::transport::classes::class0and2::dispatch_event as dispatch_event_class_0_or_2;
+use crate::stack::OSIApplicationAssociation;
 
 /// From Table A.2 of ITU Recommendation X.224.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -156,7 +158,7 @@ pub struct X224TransportConnection {
     // There may be 0, 1, or more network connections, which may change over time.
 
     pub state: X224ConnectionState,
-    pub cr: Option<CR_TPDU>, // The original CR-TPDU sent or received.
+    // pub cr: Option<CR_TPDU>, // The original CR-TPDU sent or received.
     // I think just passing in the lower layer into functions that need it will be enough.
     // This actually kind of makes sense, since an N-entity can apparently use the
     // services of one or more (N-1)-entities.
@@ -169,7 +171,7 @@ pub struct X224TransportConnection {
     pub max_tsdu_size: usize,
     /// X.224 seems to imply that a transport connection may temporarily have
     /// a network connection unassigned.
-    pub assigned_network_conn: Option<NetworkConnId>,
+    pub assigned_network_conn: Option<NetworkConnId2>,
     pub class: u8,
     pub cr_nsaps: Option<RemoteAndLocalSels>,
 
@@ -204,7 +206,7 @@ impl Default for X224TransportConnection {
     fn default() -> Self {
         X224TransportConnection {
             state: X224ConnectionState::CLOSED, // TODO: Is this the correct default state?
-            cr: None,
+            // cr: None,
             remote_ref: 0,
             local_ref: 0,
             local_t_selector: None,
@@ -243,68 +245,59 @@ impl X224TransportConnection {
         self.class == 4 && self.use_checksum_in_class_4
     }
 
-    pub fn receive_TPDU<N>(&mut self, n: &mut N, tpdu: &TPDU) -> ServiceResult
-        where N: NSProvider {
+    // NOTE: Passing a ref to Arc might seem weird, but it means one less clone.
+
+    pub fn receive_TPDU(&mut self, stack: &mut OSIApplicationAssociation, tpdu: &TPDU) -> ServiceResult {
+        let event = IncomingEvent::TPDU(tpdu);
+        dispatch_event_class_0_or_2(stack, self, &mut stack.session, &event)
+    }
+
+    pub fn receive_CR (&mut self, stack: &mut OSIApplicationAssociation, pdu: &CR_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_CR<N>(&mut self, n: &mut N, pdu: &CR_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_CC (&mut self, stack: &mut OSIApplicationAssociation, pdu: &CC_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_CC<N>(&mut self, n: &mut N, pdu: &CC_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_DR (&mut self, stack: &mut OSIApplicationAssociation, pdu: &DR_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_DR<N>(&mut self, n: &mut N, pdu: &DR_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_DC (&mut self, stack: &mut OSIApplicationAssociation, pdu: &DC_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_DC<N>(&mut self, n: &mut N, pdu: &DC_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_DT (&mut self, stack: &mut OSIApplicationAssociation, pdu: &DT_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_DT<N>(&mut self, n: &mut N, pdu: &DT_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_ED (&mut self, stack: &mut OSIApplicationAssociation, pdu: &ED_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_ED<N>(&mut self, n: &mut N, pdu: &ED_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_AK (&mut self, stack: &mut OSIApplicationAssociation, pdu: &AK_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_AK<N>(&mut self, n: &mut N, pdu: &AK_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_EA (&mut self, stack: &mut OSIApplicationAssociation, pdu: &EA_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_EA<N>(&mut self, n: &mut N, pdu: &EA_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_RJ (&mut self, stack: &mut OSIApplicationAssociation, pdu: &RJ_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }
 
-    pub fn receive_RJ<N>(&mut self, n: &mut N, pdu: &RJ_TPDU) -> ServiceResult
-        where N: NSProvider {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_ER<N>(&mut self, n: &mut N, pdu: &ER_TPDU) -> ServiceResult
-        where N: NSProvider {
+    pub fn receive_ER (&mut self, stack: &mut OSIApplicationAssociation, pdu: &ER_TPDU) -> ServiceResult {
         // TODO:
         todo!()
     }

@@ -1,6 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, borrow::Cow};
 use bytes::BytesMut;
-use crate::{OsiSelector, transport::TransportRef};
+use crate::{OsiSelector, transport::{TransportRef, COTSUser, X224TransportConnection}};
+use crate::ServiceResult;
+use crate::transport::T_CONNECT_Request_Parameters;
 mod layer;
 mod service;
 pub use layer::*;
@@ -938,5 +940,30 @@ impl Default for X225SessionConnection {
             Discard_snd_flow: false,
         }
     }
+
+}
+
+impl COTSUser<X224TransportConnection> for X225SessionConnection {
+
+    fn receive_tsdu(&mut self, t: &mut X224TransportConnection, tsdu: Cow<'_, [u8]>) -> ServiceResult {
+        // TODO:
+        todo!()
+    }
+
+    fn receive_T_CONNECT_indication(&mut self, t: &mut X224TransportConnection, params: T_CONNECT_Request_Parameters) -> ServiceResult {
+        // TODO:
+        todo!()
+    }
+
+    fn receive_T_CONNECT_confirmation(&mut self, t: &mut X224TransportConnection, params: T_CONNECT_Request_Parameters) -> ServiceResult {
+        // TODO:
+        todo!()
+    }
+
+    fn receive_T_DISCONNECT_indication(&mut self, t: &mut X224TransportConnection, params: T_CONNECT_Request_Parameters) -> ServiceResult {
+        // TODO:
+        todo!()
+    }
+
 
 }

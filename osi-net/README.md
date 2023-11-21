@@ -46,3 +46,18 @@ Protocol-Buffers-based presentation service.
 - [ ] Congestion Detection
 - [ ] DoS Prevention
 - [ ] Logging
+- [ ] Use the `parking_lot` crate for faster sync primitives
+- [ ] An API for running an OSI initiator or responder that shares no resources
+      and therefore has no locks or reference counting, etc.
+      - This is useful for when each underlying TCP connection runs in its own
+        completely isolated OSI environment rather than sharing a ref namespace.
+        I think this categorically rules out multiplexing and possibly
+        splitting, so it may be that only classes 0 and 1 are allowed in this case.
+
+## Notes
+
+- ISODE uses the process ID to determine the DST-REF of the responder, which
+  seems to mean that it will be reused among connections, which seems to
+  conflict with my implementation. The verbiage of X.224, Section 6.5.4,
+  suggests that each ref must be unique, so I think this detail is incorrect.
+  It also makes sense that each must be unique to support splitting.

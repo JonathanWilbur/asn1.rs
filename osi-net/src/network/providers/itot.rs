@@ -1,27 +1,47 @@
-//! The network service interface will not distinguish between CONS and CLNS.
-//! Instead, only a CONS-like interface will be provided, and if the underlying
-//! implementation is connectionless, `N-DATA`` primitives shall be treated as
-//! `N-UNIT-DATA` primitives, and all other primitives shall be no-ops that
-//! emulate connection-like behavior.
-use crate::ServiceResult;
-use super::*;
-use crate::NetworkConnId2;
+use std::net::TcpStream;
+use crate::network::{
+    N_CONNECT_Request_Parameters,
+    N_CONNECT_Response_Parameters,
+};
 
-pub trait NSUser <N: NSProvider> {
-    fn receive_nsdu(&mut self, n: &mut N, nsdu: Vec<u8>) -> ServiceResult;
-    // In X.224 COTP, there may be any number (including zero) of network
-    // connections associated with a transport connection. As such, we need to
-    // pass in the originating network connection.
-    fn receive_N_DISCONNECT_indication(&mut self, n: &mut N, params: N_DISCONNECT_Request_Parameters) -> ServiceResult;
-    fn receive_N_CONNECT_confirm(&mut self, n: &mut N, params: N_CONNECT_Confirm_Parameters) -> ServiceResult;
-    fn receive_N_RESET_indication(&mut self, n: &mut N, params: N_RESET_Confirm_Parameters) -> ServiceResult;
-}
+use crate::network::NSProvider;
+use nsap_address::X213NetworkAddress;
 
-pub trait NSProvider {
+/// NOTE: You can clone TcpStream using
+/// https://doc.rust-lang.org/std/net/struct.TcpStream.html#method.try_clone
+///
+/// I don't exactly see how this can fail other than running out of file
+/// descriptors, or maybe some other freak scenario. You can use one copy to
+/// own in this struct and write to and another externally to read from and
+/// enqueue NPDUs.
+///
+/// I think the same think can be done with Tokio using
+/// `tokio::net::TcpStream::into_split()`.
+///
+/// You can create raw sockets currently using the `socket2` crate, which is
+/// officially supported by the Rust foundation. But it is only synchronous
+/// currently. This means TP4 over IP will only be synchronous.
+pub struct SyncITOTStream(Option<TcpStream>);
 
-    // Actions performed by the local NS-user
-    fn submit_N_CONNECT_request (&mut self, params: N_CONNECT_Request_Parameters) -> ServiceResult;
-    fn submit_N_CONNECT_response (&mut self, params: N_CONNECT_Response_Parameters) -> ServiceResult;
+impl NSProvider for SyncITOTStream {
+
+    // Actions performed by the local NS-user / write half of the socket.
+    fn submit_N_CONNECT_request (&mut self, params: N_CONNECT_Request_Parameters) -> ServiceResult {
+        // TODO: Convert params.called_address to IP address and port
+        // TODO: let stream = TcpStream::connect(addr)?;
+        // self.0 = Some(stream);
+        let naddr = X213NetworkAddress::try_from(params.called_address.as_slice()).unwrap();
+        if let Some(socket_addr) = naddr.to_socket_addr() {
+
+        }
+    }
+    fn submit_N_CONNECT_response (&mut self, params: N_CONNECT_Response_Parameters) -> ServiceResult {
+        // TODO: Does anything need to be done here?
+        // I think the network connection is already established by the time
+        // this is called.
+        Ok(None)
+    }
+
     fn submit_N_DATA_request (&mut self, params: N_DATA_Request_Parameters) -> ServiceResult;
     fn submit_N_DATA_ACKNOWLEDGE_request (&mut self, params: N_DATA_ACKNOWLEDGE_Request_Parameters) -> ServiceResult;
     fn submit_N_EXPEDITED_DATA_request (&mut self, params: N_EXPEDITED_DATA_Request_Parameters) -> ServiceResult;
@@ -29,13 +49,20 @@ pub trait NSProvider {
     fn submit_N_RESET_response (&mut self, params: N_RESET_Response_Parameters) -> ServiceResult;
     fn submit_N_DISCONNECT_request (&mut self, params: N_DISCONNECT_Request_Parameters) -> ServiceResult;
 
-    // Actions that are performed by the remote NS-user.
+    // Actions that are performed by the remote NS-user / read half of the socket.
 
     /// For ITOT, this is called upon establishment of the TCP stream.
-    fn receive_N_CONNECT_request(&mut self, params: N_CONNECT_Request_Parameters) -> ServiceResult;
+    /// TODO: You need to pass in the originating
+    fn receive_N_CONNECT_request(&mut self, params: N_CONNECT_Request_Parameters) -> ServiceResult {
+        // TODO: Review. You might need a new field for network connection state, Per Figure 4 in ITU X.213.
+        Ok(None)
+    }
 
     /// For ITOT, this is called upon establishment of the TCP stream.
-    fn receive_N_CONNECT_confirm(&mut self, params: N_CONNECT_Confirm_Parameters) -> ServiceResult;
+    fn receive_N_CONNECT_confirm(&mut self, params: N_CONNECT_Confirm_Parameters) -> ServiceResult {
+        // TODO: Review.
+        Ok(None)
+    }
 
     /// For ITOT, this is called upon receipt of a TPKT containing a DT TPDU.
     fn receive_N_DATA_request(&mut self, params: N_DATA_Request_Parameters) -> ServiceResult;
@@ -55,7 +82,7 @@ pub trait NSProvider {
     /// For ITOT, this is sent upon closure of the TCP stream.
     fn receive_N_DISCONNECT_request(&mut self, params: N_DISCONNECT_Request_Parameters) -> ServiceResult;
 
-    fn id (&self) -> NetworkConnId2;
+    fn id (&self) -> NetworkConnId;
     fn is_available (&self) -> bool;
     fn is_open (&self) -> bool;
     fn is_open_in_progress (&self) -> bool;
@@ -74,10 +101,9 @@ pub trait NSProvider {
         (self.remote_selector(), self.local_selector())
     }
 
-    // These are useful because they can queried without locking the whole system.
-    // Only the network connection in question has to be locked for these to be read.
+    // TODO: These might need to die... It might be better to implement this in the transport provider.
     fn already_has_class_0_transport_conn (&self) -> bool;
     fn already_has_class_1_transport_conn (&self) -> bool;
     fn has_no_tc_assigned (&self) -> bool;
-}
 
+}
