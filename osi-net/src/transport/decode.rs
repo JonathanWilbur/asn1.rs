@@ -50,7 +50,7 @@ use nom::Err as NomErr;
 use std::error::Error;
 use std::fmt::Display;
 use std::borrow::Cow;
-use std::rc::Rc;
+use std::sync::Arc;
 
 fn code_to_tpdu_size (code: u8) -> Option<usize> {
     match code {
@@ -623,11 +623,11 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8]) -> IResult<&[u8], TPDU<'a>
             dst_ref,
             src_ref,
             class_option,
-            calling_transport_selector: calling_transport_selector.map(|cts| Rc::new(cts.to_owned())),
+            calling_transport_selector: calling_transport_selector.map(|cts| Arc::new(cts.to_owned())),
             tpdu_size,
             preferred_max_tpdu_size,
             version_number,
-            protection_parameters: protection_parameters.map(|pp| Rc::new(pp.to_owned())),
+            protection_parameters: protection_parameters.map(|pp| Arc::new(pp.to_owned())),
             checksum,
             additional_option_selection,
             alternative_protocol_classes,
@@ -638,8 +638,8 @@ pub fn parse_x224_tpdu <'a> (complete_nsdu: &'a [u8]) -> IResult<&[u8], TPDU<'a>
             transit_delay,
             reassignment_time,
             inactivity_timer,
-            called_or_responding_transport_selector: called_transport_selector.map(|cts| Rc::new(cts.to_owned())),
-            user_data: Rc::new(user_data.to_owned()),
+            called_or_responding_transport_selector: called_transport_selector.map(|cts| Arc::new(cts.to_owned())),
+            user_data: Arc::new(user_data.to_owned()),
         };
         let b = &complete_nsdu[complete_nsdu.len()..];
         debug_assert_eq!(b.len(), 0);

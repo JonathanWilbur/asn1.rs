@@ -203,6 +203,16 @@ pub struct N_DISCONNECT_Request_Parameters {
     pub responding_address: OsiSelector,
 }
 
+impl Default for N_DISCONNECT_Request_Parameters {
+    fn default() -> Self {
+        N_DISCONNECT_Request_Parameters {
+            reason: 0,
+            ns_user_data: vec![],
+            responding_address: vec![],
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct N_DISCONNECT_Indication_Parameters {
     pub originator: OsiSelector,

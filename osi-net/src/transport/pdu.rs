@@ -9,7 +9,7 @@ use crate::transport::service::{
     ResidualErrorRate,
     SelectiveAcknowledgement,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, sync::Arc};
 use std::rc::Rc;
 
 // #region TPDU codes
@@ -126,17 +126,19 @@ pub struct Parameter {
 // parameters, we use reference-counted, heap-allocated byte arrays, because
 // the CR-TPDU will need to be retained for comparison to the CC-TPDU when this
 // implementation is used as a client / initiator.
+//
+// NOTE: We had to use Arc here because the CR TPDU is retained in the network state.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CR_TPDU {
     pub cdt: u8,
     pub dst_ref: TransportRef,
     pub src_ref: TransportRef,
     pub class_option: u8,
-    pub calling_transport_selector: Option<Rc<OsiSelector>>,
+    pub calling_transport_selector: Option<Arc<OsiSelector>>,
     pub tpdu_size: Option<usize>,
     pub preferred_max_tpdu_size: Option<usize>,
     pub version_number: u8, // defaults to 1
-    pub protection_parameters: Option<Rc<Vec<u8>>>, // The value of this field is user-defined.
+    pub protection_parameters: Option<Arc<Vec<u8>>>, // The value of this field is user-defined.
     pub checksum: Option<u16>,
     pub additional_option_selection: u8,
     pub alternative_protocol_classes: u8, // A bit mask.
@@ -147,8 +149,8 @@ pub struct CR_TPDU {
     pub transit_delay: Option<BidirectionalTransitDelay>,
     pub reassignment_time: Option<u16>, // TTR in seconds.
     pub inactivity_timer: Option<u32>, // Expressed in milliseconds.
-    pub called_or_responding_transport_selector: Option<Rc<OsiSelector>>,
-    pub user_data: Rc<UserData>,
+    pub called_or_responding_transport_selector: Option<Arc<OsiSelector>>,
+    pub user_data: Arc<UserData>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

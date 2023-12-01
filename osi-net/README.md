@@ -61,3 +61,27 @@ Protocol-Buffers-based presentation service.
   conflict with my implementation. The verbiage of X.224, Section 6.5.4,
   suggests that each ref must be unique, so I think this detail is incorrect.
   It also makes sense that each must be unique to support splitting.
+
+## Network Service Implementation
+
+I have established that there will be separate `OSINetworkConn` and `NSProvider`
+traits. I got hung up because I tried to make `NSProvider` make sense for both,
+but they are two logically different things: when trying to make a "layer" make
+use of a particular connection, there was an unanswered "which?" and when trying
+to make a network connection make another network connection (via `N-CONNECT`
+request), there was an unanswered "how?". Now I believe that both should have
+separate traits.
+
+Further, the state tables for the transport layer should receive the whole
+application association stack, not just N, T, and S. This is because:
+
+1. You have to pass in the AA anyway so you can enqueue the creation of new
+   network connections.
+2. You cannot take a mutable reference to AA, then to S, which is one of its
+   fields.
+
+This is unique to this layer and should not be a problem for the upper layers,
+because creating a new network connection
+
+WAIT, are you sure? Actually, I think the AA will have to be passed into every
+state table at every layer. How will S know where to get P?

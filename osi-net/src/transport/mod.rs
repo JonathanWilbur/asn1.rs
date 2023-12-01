@@ -1,6 +1,6 @@
 pub mod pdu;
 mod checksum;
-mod classes;
+pub mod classes;
 mod decode;
 mod encode;
 mod service;

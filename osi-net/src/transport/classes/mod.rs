@@ -1,4 +1,5 @@
 use crate::network::NSProvider;
+use crate::stack::OSIApplicationAssociation;
 use crate::transport::conn::X224TransportConnection;
 use crate::transport::pdu::TPDU;
 use crate::ServiceResult;
@@ -40,10 +41,8 @@ pub(crate) fn transport_noop <N: NSProvider, S: Default + COTSUser<X224Transport
 ///    those which are impossible by the definition of the behaviour of the
 ///    transport entity or NS-provider), take no action.
 ///
-pub(crate) fn handle_invalid_sequence <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>(
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn handle_invalid_sequence (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
     event_came_from_ts_user: bool,
 ) -> ServiceResult {
@@ -56,5 +55,5 @@ pub(crate) fn handle_invalid_sequence <N: NSProvider, S: Default + COTSUser<X224
         return Ok(None);
     }
     // Otherwise, Annex A, Section A.2.3.b
-    treatment_of_protocol_errors_over_cons(n, t, s, pdu.unwrap(), None, None)
+    treatment_of_protocol_errors_over_cons(stack, pdu.unwrap(), None, None)
 }

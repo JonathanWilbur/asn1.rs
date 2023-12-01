@@ -158,7 +158,7 @@ pub struct X224TransportConnection {
     // There may be 0, 1, or more network connections, which may change over time.
 
     pub state: X224ConnectionState,
-    // pub cr: Option<CR_TPDU>, // The original CR-TPDU sent or received.
+    pub cr: Option<CR_TPDU>, // The original CR-TPDU sent or received.
     // I think just passing in the lower layer into functions that need it will be enough.
     // This actually kind of makes sense, since an N-entity can apparently use the
     // services of one or more (N-1)-entities.
@@ -206,7 +206,7 @@ impl Default for X224TransportConnection {
     fn default() -> Self {
         X224TransportConnection {
             state: X224ConnectionState::CLOSED, // TODO: Is this the correct default state?
-            // cr: None,
+            cr: None,
             remote_ref: 0,
             local_ref: 0,
             local_t_selector: None,
@@ -244,64 +244,6 @@ impl X224TransportConnection {
     pub fn is_checksummed (&self) -> bool {
         self.class == 4 && self.use_checksum_in_class_4
     }
-
-    // NOTE: Passing a ref to Arc might seem weird, but it means one less clone.
-
-    pub fn receive_TPDU(&mut self, stack: &mut OSIApplicationAssociation, tpdu: &TPDU) -> ServiceResult {
-        let event = IncomingEvent::TPDU(tpdu);
-        dispatch_event_class_0_or_2(stack, self, &mut stack.session, &event)
-    }
-
-    pub fn receive_CR (&mut self, stack: &mut OSIApplicationAssociation, pdu: &CR_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_CC (&mut self, stack: &mut OSIApplicationAssociation, pdu: &CC_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_DR (&mut self, stack: &mut OSIApplicationAssociation, pdu: &DR_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_DC (&mut self, stack: &mut OSIApplicationAssociation, pdu: &DC_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_DT (&mut self, stack: &mut OSIApplicationAssociation, pdu: &DT_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_ED (&mut self, stack: &mut OSIApplicationAssociation, pdu: &ED_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_AK (&mut self, stack: &mut OSIApplicationAssociation, pdu: &AK_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_EA (&mut self, stack: &mut OSIApplicationAssociation, pdu: &EA_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_RJ (&mut self, stack: &mut OSIApplicationAssociation, pdu: &RJ_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
-    pub fn receive_ER (&mut self, stack: &mut OSIApplicationAssociation, pdu: &ER_TPDU) -> ServiceResult {
-        // TODO:
-        todo!()
-    }
-
 
 }
 

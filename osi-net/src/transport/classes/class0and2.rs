@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
-use crate::network::NSProvider;
+use crate::network::{NSProvider, N_DISCONNECT_Request_Parameters};
+use crate::stack::OSIApplicationAssociation;
 use crate::transport::procedures::treatment_of_protocol_errors_over_cons;
 use crate::transport::{
     DR_TPDU,
@@ -13,9 +14,8 @@ use crate::transport::{
     T_CONNECT_Request_Parameters,
     CR_TPDU,
     CC_TPDU,
-    COTSUser,
 };
-use crate::transport::conn::{X224TransportConnection, X224ConnectionState};
+use crate::transport::conn::X224ConnectionState;
 use crate::transport::pdu::TPDU;
 use crate::ServiceResult;
 use crate::transport::classes::handle_invalid_sequence;
@@ -24,10 +24,8 @@ use crate::transport::encode::IntoNSDU;
 // PREDICATES
 
 /// T-CONNECT request unacceptable
-pub(crate) fn P0 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn P0 (
+    stack: &mut OSIApplicationAssociation,
     req: &T_CONNECT_Request_Parameters,
 ) -> bool {
     // TODO: Validate QoS paramters at some point in the future.
@@ -35,16 +33,14 @@ pub(crate) fn P0 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 }
 
 /// Unacceptable CR-TPDU
-pub(crate) fn P1 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn P1 (
+    stack: &mut OSIApplicationAssociation,
     pdu: &CR_TPDU,
 ) -> bool {
     if pdu.version_number != 1 {
         return true;
     }
-    if let Some(local_sel) = &t.local_t_selector {
+    if let Some(local_sel) = &stack.transport.local_t_selector {
         if pdu.called_or_responding_transport_selector.as_ref().is_some_and(|sel| sel.as_ref() != local_sel) {
             return true;
         }
@@ -53,10 +49,8 @@ pub(crate) fn P1 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 }
 
 /// No network connection available
-pub(crate) fn P2 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    _n: &mut N,
-    _t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn P2 (
+    _stack: &mut OSIApplicationAssociation,
     _pdu: Option<&TPDU>,
 ) -> bool {
     // When would there not be a network connection available?
@@ -64,30 +58,24 @@ pub(crate) fn P2 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 }
 
 /// Network connection available and open
-pub(crate) fn P3 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    _t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn P3 (
+    stack: &mut OSIApplicationAssociation,
     _pdu: Option<&TPDU>,
 ) -> bool {
-    n.is_open()
+    stack.network_conns.iter().any(|nc| nc.lock().is_ok_and(|n| n.is_open()))
 }
 
 /// Network connection available and open in progress
-pub(crate) fn P4 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    _t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn P4 (
+    stack: &mut OSIApplicationAssociation,
     _pdu: Option<&TPDU>,
 ) -> bool {
-    n.is_open_in_progress()
+    stack.network_conns.iter().any(|nc| nc.lock().is_ok_and(|n| n.is_open_in_progress()))
 }
 
 /// Class in class 0 (class selected in CC)
-pub(crate) fn P5 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    _n: &mut N,
-    t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn P5 (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> bool {
     if let Some(tpdu) = pdu {
@@ -96,22 +84,20 @@ pub(crate) fn P5 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
             return (cc.class_option & 0b1111_0000) == 0;
         }
     }
-    t.class == 0
+    stack.transport.class == 0
 }
 
 /// Unacceptable CC
-pub(crate) fn P6 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn P6 (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> bool {
     let pdu = pdu.expect("No TPDU provided to P6 for class 0 or 2 transport.");
-    if t.cr.is_none() {
+    if stack.transport.cr.is_none() {
         debug_assert!(false, "No CR to match up to the received CC.");
         return true;
     }
-    let cr = t.cr.as_ref().unwrap();
+    let cr = stack.transport.cr.as_ref().unwrap();
     if let TPDU::CC(cc) = pdu {
         !acceptable_cc(&cr, &cc)
     } else {
@@ -121,28 +107,24 @@ pub(crate) fn P6 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 }
 
 /// Class is class 2
-pub(crate) fn P7 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    _n: &mut N,
-    t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn P7 (
+    stack: &mut OSIApplicationAssociation,
     _pdu: Option<&TPDU>,
 ) -> bool {
-    t.class == 2
+    stack.transport.class == 2
 }
 
 /// Acceptable CC
-pub(crate) fn P8 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn P8 (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> bool {
     let pdu = pdu.expect("No TPDU provided to P8 for class 0 or 2 transport.");
-    if t.cr.is_none() {
+    if stack.transport.cr.is_none() {
         debug_assert!(false, "No CR to match up to the received CC.");
         return false;
     }
-    let cr = t.cr.as_ref().unwrap();
+    let cr = stack.transport.cr.as_ref().unwrap();
     if let TPDU::CC(cc) = pdu {
         acceptable_cc(&cr, &cc)
     } else {
@@ -152,10 +134,8 @@ pub(crate) fn P8 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 }
 
 /// Class 4 CR
-pub(crate) fn P9 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    _n: &mut N,
-    _t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn P9 (
+    _stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> bool {
     if pdu.is_none() {
@@ -170,10 +150,8 @@ pub(crate) fn P9 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 }
 
 /// Local choice
-pub(crate) fn P10 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    _n: &mut N,
-    _t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn P10 (
+    _stack: &mut OSIApplicationAssociation,
     _pdu: Option<&TPDU>,
 ) -> bool {
     true
@@ -183,29 +161,23 @@ pub(crate) fn P10 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>
 
 /// If the network connection is not used by another transport connection
 /// assigned to it, it may be disconnected. (See 6.1.1.3, Note 3).
-pub(crate) fn A1 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    _t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn A1 (
+    stack: &mut OSIApplicationAssociation,
     _pdu: Option<&TPDU>,
 ) -> ServiceResult {
-    if n.has_no_tc_assigned() {
-        n.close()?;
-    }
+    stack.submit_N_DISCONNECT_request(N_DISCONNECT_Request_Parameters::default())?;
     Ok(None)
 }
 
 /// See 6.22 (receipt of an ER-TPDU).
-pub(crate) fn A2 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn A2 (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> ServiceResult {
     if pdu.is_none() {
         return Ok(None);
     }
-    treatment_of_protocol_errors_over_cons(n, t, s, pdu.unwrap(), None, None)
+    treatment_of_protocol_errors_over_cons(stack, pdu.unwrap(), None, None)
 }
 
 /*
@@ -236,10 +208,8 @@ changes.
 */
 
 /// See data transfer procedures of the class.
-pub(crate) fn A3 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S, // TODO: Should this just be X225SessionConnection?
+pub(crate) fn A3 (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> ServiceResult {
     if pdu.is_none() {
@@ -251,7 +221,7 @@ pub(crate) fn A3 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
         if dt.eot {
 
         } else {
-            t.buffer.parts.push(data);
+            stack.transport.buffer.parts.push(data);
         }
     }
     // TODO:
@@ -259,10 +229,8 @@ pub(crate) fn A3 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 }
 
 /// See expedited data transfer procedure of the class.
-pub(crate) fn A4 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn A4 (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> ServiceResult {
     // TODO:
@@ -272,10 +240,8 @@ pub(crate) fn A4 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 /// An N-RESET response has to be issued once for the network
 /// connection if the network connection has not been released.
 /// In class 0, an N-DISCONNECT request has to be issued.
-pub(crate) fn A5 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn A5 (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
 ) -> ServiceResult {
     // TODO:
@@ -284,10 +250,8 @@ pub(crate) fn A5 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 
 /// The DC-TPDU contains a src-ref field set to zero and a dst-ref field set
 /// to the SRC-REF of the DR-TPDU received.
-pub(crate) fn A6 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    _n: &mut N,
-    _t: &mut X224TransportConnection,
-    _s: &mut S,
+pub(crate) fn A6 (
+    _stack: &mut OSIApplicationAssociation,
     _pdu: Option<&TPDU>,
 ) -> ServiceResult {
     // I think this should not have been an action at all. I think it was really
@@ -301,46 +265,42 @@ pub(crate) fn A6 <N: NSProvider, S: Default + COTSUser<X224TransportConnection>>
 /// it matches none of the conditions in the state table's cell, but I think it
 /// must be done. I am defining this function specifically for this case so I
 /// can easily remove it by name later on if I turn out to be wrong.
-pub(crate) fn implied_handle_invalid <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn implied_handle_invalid (
+    stack: &mut OSIApplicationAssociation,
     pdu: Option<&TPDU>,
     event_came_from_ts_user: bool,
 ) -> ServiceResult {
-    handle_invalid_sequence(n, t, s, pdu, event_came_from_ts_user)
+    handle_invalid_sequence(stack, pdu, event_came_from_ts_user)
 }
 
-pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn dispatch_tpdu (
+    stack: &mut OSIApplicationAssociation,
     pdu: &TPDU,
 ) -> ServiceResult {
-    match (pdu, t.state) {
+    match (pdu, stack.transport.state) {
         (TPDU::CR(tpdu), X224ConnectionState::OPEN)
         | (TPDU::CR(tpdu), X224ConnectionState::CLOSING)
         | (TPDU::CR(tpdu), X224ConnectionState::WFTRESP) => {
-            if !P9(n, t, s, Some(pdu)) {
-                return implied_handle_invalid(n, t, s, Some(pdu), false);
+            if !P9(stack, Some(pdu)) {
+                return implied_handle_invalid(stack, Some(pdu), false);
             }
             Ok(None)
         },
         (TPDU::CR(tpdu), X224ConnectionState::CLOSED) => {
-            if P1(n, t, s, tpdu) {
+            if P1(stack, tpdu) {
                 let dr = DR_TPDU{
-                    dst_ref: t.remote_ref,
-                    reason: if t.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_NEGOTIATION_FAILED },
+                    dst_ref: stack.transport.remote_ref,
+                    reason: if stack.transport.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_NEGOTIATION_FAILED },
                     additional_info: Some(b"unacceptable"),
                     checksum: None,
-                    src_ref: t.local_ref,
+                    src_ref: stack.transport.local_ref,
                     user_data: Cow::Owned(vec![]),
                 };
-                let nsdu_parts = dr.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
-                n.write_nsdu_parts(nsdu_parts)?;
+                let nsdu_parts = dr.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, stack.transport.is_checksummed());
+                stack.submit_N_DATA_request_parts(nsdu_parts)?;
             } else {
                 // TODO: Send TCONind to S
-                t.state = X224ConnectionState::WFTRESP;
+                stack.transport.state = X224ConnectionState::WFTRESP;
             }
             Ok(None)
         },
@@ -348,49 +308,49 @@ pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportC
         // What does it mean when the state table row is split horizontally?
         (TPDU::DR(tpdu), X224ConnectionState::WFCC) => {
             // TODO: Send TDISind to S
-            t.state = X224ConnectionState::CLOSED;
-            A1(n, t, s, Some(pdu))
+            stack.transport.state = X224ConnectionState::CLOSED;
+            A1(stack, Some(pdu))
         },
         (TPDU::DR(tpdu), X224ConnectionState::WBCL)
         | (TPDU::DR(tpdu), X224ConnectionState::CLOSING) => {
-            t.state = X224ConnectionState::CLOSED;
-            A1(n, t, s, Some(pdu))
+            stack.transport.state = X224ConnectionState::CLOSED;
+            A1(stack, Some(pdu))
         },
         (TPDU::DR(tpdu), X224ConnectionState::OPEN) => {
-            if P5(n, t, s, Some(pdu)) {
+            if P5(stack, Some(pdu)) {
                 // At the current time, this will have the effect of simply
                 // closing the connection.
-                return treatment_of_protocol_errors_over_cons(n, t, s, pdu, None, None);
+                return treatment_of_protocol_errors_over_cons(stack, pdu, None, None);
             }
-            else if P7(n, t, s, Some(pdu)) {
+            else if P7(stack, Some(pdu)) {
                 let dc = DC_TPDU{
                     checksum: None,
-                    dst_ref: t.remote_ref,
-                    src_ref: t.local_ref,
+                    dst_ref: stack.transport.remote_ref,
+                    src_ref: stack.transport.local_ref,
                 };
-                let nsdu_parts = dc.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
-                n.write_nsdu_parts(nsdu_parts)?;
+                let nsdu_parts = dc.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, stack.transport.is_checksummed());
+                stack.submit_N_DATA_request_parts(nsdu_parts)?;
                 // TODO: Send TDISind to S
-                t.state = X224ConnectionState::CLOSED;
+                stack.transport.state = X224ConnectionState::CLOSED;
                 Ok(None)
             }
             else {
-                panic!("Invalid implementation: invalid class {}", t.class);
+                panic!("Invalid implementation: invalid class {}", stack.transport.class);
             }
         },
         (TPDU::DR(tpdu), X224ConnectionState::WFTRESP) => {
-            if P10(n, t, s, Some(pdu)) {
-                A6(n, t, s, Some(pdu))?;
+            if P10(stack, Some(pdu)) {
+                A6(stack, Some(pdu))?;
                 let dc = DC_TPDU{
                     checksum: None,
                     dst_ref: tpdu.src_ref,
                     src_ref: 0, // [6]
                 };
-                let nsdu_parts = dc.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
-                n.write_nsdu_parts(nsdu_parts)?;
+                let nsdu_parts = dc.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, stack.transport.is_checksummed());
+                stack.submit_N_DATA_request_parts(nsdu_parts)?;
             }
             // TODO: Send TDISind to S
-            t.state = X224ConnectionState::CLOSED;
+            stack.transport.state = X224ConnectionState::CLOSED;
             Ok(None)
         },
         (TPDU::DR(tpdu), X224ConnectionState::CLOSED) => {
@@ -400,71 +360,71 @@ pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportC
                     dst_ref: tpdu.src_ref,
                     src_ref: 0,
                 };
-                let nsdu_parts = dc.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
-                n.write_nsdu_parts(nsdu_parts)?;
+                let nsdu_parts = dc.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, stack.transport.is_checksummed());
+                stack.submit_N_DATA_request_parts(nsdu_parts)?;
             }
             Ok(None)
         },
 
         (TPDU::DC(tpdu), X224ConnectionState::CLOSING) => {
-            if t.class == 0 {
-                return handle_invalid_sequence(n, t, s, Some(pdu), false);
+            if stack.transport.class == 0 {
+                return handle_invalid_sequence(stack, Some(pdu), false);
             }
-            t.state = X224ConnectionState::CLOSED;
-            if P7(n, t, s, Some(pdu)) {
-                A1(n, t, s, Some(pdu))
+            stack.transport.state = X224ConnectionState::CLOSED;
+            if P7(stack, Some(pdu)) {
+                A1(stack, Some(pdu))
             } else {
                 Ok(None)
             }
         },
 
         (TPDU::CC(tpdu), X224ConnectionState::WFCC) => {
-            if P8(n, t, s, Some(pdu)) {
+            if P8(stack, Some(pdu)) {
                 // TODO: Send TCONconf to S
-                t.state = X224ConnectionState::OPEN;
+                stack.transport.state = X224ConnectionState::OPEN;
             }
-            if P6(n, t, s, Some(pdu)) {
+            if P6(stack, Some(pdu)) {
                 // TODO: Send TDISind to S
-                if P5(n, t, s, Some(pdu)) {
+                if P5(stack, Some(pdu)) {
                     // TODO: Send TDISind to S
-                    n.close()?; // TODO: NDISreq
-                    t.state = X224ConnectionState::CLOSED;
+                    stack.submit_N_DISCONNECT_request(N_DISCONNECT_Request_Parameters::default())?;
+                    stack.transport.state = X224ConnectionState::CLOSED;
                 }
-                if P7(n, t, s, Some(pdu)) {
+                if P7(stack, Some(pdu)) {
                     let dr = DR_TPDU{
-                        dst_ref: t.remote_ref,
-                        reason: if t.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_NEGOTIATION_FAILED },
+                        dst_ref: stack.transport.remote_ref,
+                        reason: if stack.transport.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_NEGOTIATION_FAILED },
                         additional_info: Some(b"unacceptable"),
                         checksum: None,
-                        src_ref: t.local_ref,
+                        src_ref: stack.transport.local_ref,
                         user_data: Cow::Owned(vec![]),
                     };
-                    let nsdu_parts = dr.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
-                    n.write_nsdu_parts(nsdu_parts)?;
-                    t.state = X224ConnectionState::CLOSING;
+                    let nsdu_parts = dr.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, stack.transport.is_checksummed());
+                    stack.submit_N_DATA_request_parts(nsdu_parts)?;
+                    stack.transport.state = X224ConnectionState::CLOSING;
                 }
                 Ok(None)
             } else {
-                handle_invalid_sequence(n, t, s, Some(pdu), false)
+                handle_invalid_sequence(stack, Some(pdu), false)
             }
         },
         (TPDU::CC(tpdu), X224ConnectionState::WBCL) => {
-            if P5(n, t, s, Some(pdu)) {
-                n.close()?; // TODO: NDISreq
-                t.state = X224ConnectionState::CLOSED;
+            if P5(stack, Some(pdu)) {
+                stack.submit_N_DISCONNECT_request(N_DISCONNECT_Request_Parameters::default())?;
+                stack.transport.state = X224ConnectionState::CLOSED;
             }
-            if P7(n, t, s, Some(pdu)) {
+            if P7(stack, Some(pdu)) {
                 let dr = DR_TPDU{
-                    dst_ref: t.remote_ref,
-                    reason: if t.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_NORMAL_DISCONNECT },
+                    dst_ref: stack.transport.remote_ref,
+                    reason: if stack.transport.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_NORMAL_DISCONNECT },
                     additional_info: Some(b"unacceptable"),
                     checksum: None,
-                    src_ref: t.local_ref,
+                    src_ref: stack.transport.local_ref,
                     user_data: Cow::Owned(vec![]),
                 };
-                let nsdu_parts = dr.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
-                n.write_nsdu_parts(nsdu_parts)?;
-                t.state = X224ConnectionState::CLOSING;
+                let nsdu_parts = dr.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, stack.transport.is_checksummed());
+                stack.submit_N_DATA_request_parts(nsdu_parts)?;
+                stack.transport.state = X224ConnectionState::CLOSING;
             }
             Ok(None)
         },
@@ -473,27 +433,27 @@ pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportC
         },
         (TPDU::CC(tpdu), X224ConnectionState::CLOSED) => {
             let dr = DR_TPDU{
-                dst_ref: t.remote_ref,
-                reason: if t.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_PROTOCOL_ERROR },
+                dst_ref: stack.transport.remote_ref,
+                reason: if stack.transport.class == 0 { DR_REASON_NOT_SPECIFIED } else { DR_REASON_PROTOCOL_ERROR },
                 additional_info: Some(b"idk you"), // These messages are intentionally short to avoid overflowing.
                 checksum: None,
-                src_ref: t.local_ref,
+                src_ref: stack.transport.local_ref,
                 user_data: Cow::Owned(vec![]),
             };
-            let nsdu_parts = dr.to_nsdu_parts(t.class, t.use_extended_format, t.is_checksummed());
-            n.write_nsdu_parts(nsdu_parts)?;
+            let nsdu_parts = dr.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, stack.transport.is_checksummed());
+            stack.submit_N_DATA_request_parts(nsdu_parts)?;
             Ok(None)
         },
 
         (TPDU::AK(tpdu), X224ConnectionState::OPEN) => {
-            if t.class == 0 {
-                return treatment_of_protocol_errors_over_cons(n, t, s, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
+            if stack.transport.class == 0 {
+                return treatment_of_protocol_errors_over_cons(stack, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
             }
-            A3(n, t, s, Some(pdu))
+            A3(stack, Some(pdu))
         },
         (TPDU::AK(tpdu), X224ConnectionState::CLOSING) => {
-            if t.class == 0 {
-                return treatment_of_protocol_errors_over_cons(n, t, s, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
+            if stack.transport.class == 0 {
+                return treatment_of_protocol_errors_over_cons(stack, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
             }
             Ok(None)
         },
@@ -503,15 +463,15 @@ pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportC
 
         (TPDU::EA(_), X224ConnectionState::OPEN)
         | (TPDU::ED(_), X224ConnectionState::OPEN) => {
-            if t.class == 0 {
-                return treatment_of_protocol_errors_over_cons(n, t, s, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
+            if stack.transport.class == 0 {
+                return treatment_of_protocol_errors_over_cons(stack, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
             }
-            A4(n, t, s, Some(pdu))
+            A4(stack, Some(pdu))
         },
         (TPDU::EA(_), X224ConnectionState::CLOSING)
         | (TPDU::ED(_), X224ConnectionState::OPEN) => {
-            if t.class == 0 {
-                return treatment_of_protocol_errors_over_cons(n, t, s, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
+            if stack.transport.class == 0 {
+                return treatment_of_protocol_errors_over_cons(stack, pdu, None, Some(ER_REJECT_CAUSE_INVALID_TPDU_TYPE));
             }
             Ok(None)
         },
@@ -522,7 +482,7 @@ pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportC
 
 
         (TPDU::DT(tpdu), X224ConnectionState::OPEN) => {
-            A3(n, t, s, Some(pdu))
+            A3(stack, Some(pdu))
         },
         (TPDU::DT(tpdu), X224ConnectionState::CLOSING) => {
             Ok(None)
@@ -533,60 +493,58 @@ pub(crate) fn dispatch_tpdu <N: NSProvider, S: Default + COTSUser<X224TransportC
 
         (TPDU::ER(tpdu), X224ConnectionState::WFCC) => {
             // TODO: Send TDISind to S
-            t.state = X224ConnectionState::CLOSED;
-            A1(n, t, s, Some(pdu))
+            stack.transport.state = X224ConnectionState::CLOSED;
+            A1(stack, Some(pdu))
         },
         (TPDU::ER(tpdu), X224ConnectionState::WBCL) => {
-            t.state = X224ConnectionState::CLOSED;
-            A1(n, t, s, Some(pdu))
+            stack.transport.state = X224ConnectionState::CLOSED;
+            A1(stack, Some(pdu))
         },
         (TPDU::ER(tpdu), X224ConnectionState::OPEN)
         | (TPDU::ER(tpdu), X224ConnectionState::CLOSING) => {
-            treatment_of_protocol_errors_over_cons(n, t, s, pdu, None, None)
+            treatment_of_protocol_errors_over_cons(stack, pdu, None, None)
         },
         (TPDU::ER(tpdu), X224ConnectionState::CLOSED) => {
             Ok(None)
         },
 
-        _ => handle_invalid_sequence(n, t, s, Some(pdu), false),
+        _ => handle_invalid_sequence(stack, Some(pdu), false),
     }
 }
 
-pub(crate) fn dispatch_event <N: NSProvider, S: Default + COTSUser<X224TransportConnection>> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn dispatch_event (
+    stack: &mut OSIApplicationAssociation,
     event: &IncomingEvent,
 ) -> ServiceResult {
     if let IncomingEvent::TPDU(tpdu) = event {
-        return dispatch_tpdu(n, t, s, tpdu);
+        return dispatch_tpdu(stack, tpdu);
     }
-    match (event, t.state) {
+    match (event, stack.transport.state) {
         (IncomingEvent::TCONreq(e), X224ConnectionState::CLOSED) => {
-            if P0(n, t, s, e) {
+            if P0(stack, e) {
                 // TODO: Send TDISind to S
-                t.state = X224ConnectionState::CLOSED;
+                stack.transport.state = X224ConnectionState::CLOSED;
                 return Ok(None);
             }
-            if P2(n, t, s, None) {
+            if P2(stack, None) {
                 // TODO: Send NCONreq to N.
-                t.state = X224ConnectionState::WFNC;
+                stack.transport.state = X224ConnectionState::WFNC;
                 return Ok(None);
             }
-            if P3(n, t, s, None) {
+            if P3(stack, None) {
                 // TODO: Send CR.
-                t.state = X224ConnectionState::WFCC;
+                stack.transport.state = X224ConnectionState::WFCC;
                 return Ok(None);
             }
-            if P4(n, t, s, None) {
-                t.state = X224ConnectionState::WFNC;
+            if P4(stack, None) {
+                stack.transport.state = X224ConnectionState::WFNC;
                 return Ok(None);
             }
-            handle_invalid_sequence(n, t, s, None, true)
+            handle_invalid_sequence(stack, None, true)
         },
         (IncomingEvent::TCONresp(e), X224ConnectionState::WFTRESP) => {
             // TODO: CC
-            t.state = X224ConnectionState::OPEN;
+            stack.transport.state = X224ConnectionState::OPEN;
             Ok(None)
         },
         (IncomingEvent::TDTreq(e), X224ConnectionState::OPEN) => {
@@ -594,7 +552,7 @@ pub(crate) fn dispatch_event <N: NSProvider, S: Default + COTSUser<X224Transport
             Ok(None)
         },
         (IncomingEvent::TEXreq(e), X224ConnectionState::OPEN) => {
-            if t.class == 0 {
+            if stack.transport.class == 0 {
                 //
             }
             // TODO: [4]
@@ -602,37 +560,37 @@ pub(crate) fn dispatch_event <N: NSProvider, S: Default + COTSUser<X224Transport
         },
         (IncomingEvent::TDISreq(e), X224ConnectionState::WFNC) => {
             // [1]
-            t.state = X224ConnectionState::CLOSED;
+            stack.transport.state = X224ConnectionState::CLOSED;
             Ok(None)
         },
         (IncomingEvent::TDISreq(e), X224ConnectionState::WFCC) => {
-            if !P7(n, t, s, None) {
-                n.close()?; // NDISreq
-                t.state = X224ConnectionState::CLOSED;
+            if !P7(stack, None) {
+                stack.submit_N_DISCONNECT_request(N_DISCONNECT_Request_Parameters::default())?;
+                stack.transport.state = X224ConnectionState::CLOSED;
             } else {
-                t.state = X224ConnectionState::WBCL;
+                stack.transport.state = X224ConnectionState::WBCL;
             }
             Ok(None)
         },
         (IncomingEvent::TDISreq(e), X224ConnectionState::OPEN) => {
-            if P5(n, t, s, None) {
-                n.close()?; // NDISreq
-                t.state = X224ConnectionState::CLOSED;
+            if P5(stack, None) {
+                stack.submit_N_DISCONNECT_request(N_DISCONNECT_Request_Parameters::default())?;
+                stack.transport.state = X224ConnectionState::CLOSED;
             }
-            else if P7(n, t, s, None) {
+            else if P7(stack, None) {
                 // TODO: DR
-                t.state = X224ConnectionState::CLOSING;
+                stack.transport.state = X224ConnectionState::CLOSING;
             }
             Ok(None)
         },
         (IncomingEvent::TDISreq(e), X224ConnectionState::WFTRESP) => {
             // DR
-            t.state = X224ConnectionState::CLOSED;
+            stack.transport.state = X224ConnectionState::CLOSED;
             Ok(None)
         },
         (IncomingEvent::NCONconf(e), X224ConnectionState::WFNC) => {
             // TODO: CR
-            t.state = X224ConnectionState::WFCC;
+            stack.transport.state = X224ConnectionState::WFCC;
             Ok(None)
         },
         (IncomingEvent::NRSTind(e), X224ConnectionState::WFCC)
@@ -640,13 +598,13 @@ pub(crate) fn dispatch_event <N: NSProvider, S: Default + COTSUser<X224Transport
         | (IncomingEvent::NRSTind(e), X224ConnectionState::WFTRESP) => {
             // TDISind
             // [1] [5]
-            t.state = X224ConnectionState::CLOSED;
+            stack.transport.state = X224ConnectionState::CLOSED;
             Ok(None)
         },
         (IncomingEvent::NRSTind(e), X224ConnectionState::WBCL)
         | (IncomingEvent::NRSTind(e), X224ConnectionState::CLOSING) => {
             // [1] [5]
-            t.state = X224ConnectionState::CLOSED;
+            stack.transport.state = X224ConnectionState::CLOSED;
             Ok(None)
         },
         (IncomingEvent::NDISind(e), X224ConnectionState::WFNC)
@@ -654,15 +612,15 @@ pub(crate) fn dispatch_event <N: NSProvider, S: Default + COTSUser<X224Transport
         | (IncomingEvent::NDISind(e), X224ConnectionState::OPEN)
         | (IncomingEvent::NDISind(e), X224ConnectionState::WFTRESP) => {
             // TDISind
-            t.state = X224ConnectionState::CLOSED;
+            stack.transport.state = X224ConnectionState::CLOSED;
             Ok(None)
         },
         (IncomingEvent::NDISind(e), X224ConnectionState::WBCL)
         | (IncomingEvent::NDISind(e), X224ConnectionState::CLOSING) => {
-            t.state = X224ConnectionState::CLOSED;
+            stack.transport.state = X224ConnectionState::CLOSED;
             Ok(None)
         },
-        _ => handle_invalid_sequence(n, t, s, None, false), // FIXME: This might actually be user-initiated.
+        _ => handle_invalid_sequence(stack, None, false), // FIXME: This might actually be user-initiated.
     }
 }
 

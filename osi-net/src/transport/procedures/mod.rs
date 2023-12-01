@@ -1,21 +1,18 @@
-use crate::network::NSProvider;
-use crate::transport::conn::X224TransportConnection;
+use crate::network::N_DISCONNECT_Request_Parameters;
+use crate::{network::NSProvider, stack::OSIApplicationAssociation};
 use crate::transport::pdu::TPDU;
 use crate::ServiceResult;
 use std::borrow::Cow;
 use std::ops::Add;
 use std::time::SystemTime;
 use crate::transport::encode::IntoNSDU;
-
-use super::{ER_TPDU, ER_REJECT_CAUSE_NOT_SPECIFIED, COTSUser};
+use super::{ER_TPDU, ER_REJECT_CAUSE_NOT_SPECIFIED};
 
 /// Implements the procedures described in Section 6.22 of
 /// [ITU-T Recommendation X.224 (1995)](https://www.itu.int/rec/T-REC-X.224/en)
 /// related to handling protocol errors.
-pub(crate) fn treatment_of_protocol_errors_over_cons <'a, N: NSProvider, S: COTSUser<X224TransportConnection> + Default> (
-    n: &mut N,
-    t: &mut X224TransportConnection,
-    s: &mut S,
+pub(crate) fn treatment_of_protocol_errors_over_cons <'a> (
+    stack: &mut OSIApplicationAssociation,
     pdu: &'a TPDU,
     invalid_tpdu: Option<Cow<'a, [u8]>>,
     reject_cause: Option<u8>,
@@ -32,19 +29,24 @@ pub(crate) fn treatment_of_protocol_errors_over_cons <'a, N: NSProvider, S: COTS
     // in an ER-TPDU. If we don't have this information (and I doubt this
     // implementation ever will), we just close the network connection for a
     // class 0 transport.
-    if t.class == 0 && invalid_tpdu.is_none() {
-        n.close()?;
+    if stack.transport.class == 0 && invalid_tpdu.is_none() {
+        let disc = N_DISCONNECT_Request_Parameters{ // FIXME:
+            reason: 0,
+            ns_user_data: vec![],
+            responding_address: vec![],
+        };
+        stack.submit_N_DISCONNECT_request(disc)?;
         return Ok(None);
     }
-    let use_checksum = t.class == 4 && t.use_checksum_in_class_4;
+    let use_checksum = stack.transport.class == 4 && stack.transport.use_checksum_in_class_4;
     let er = ER_TPDU {
-        dst_ref: t.remote_ref,
+        dst_ref: stack.transport.remote_ref,
         reject_cause: reject_cause.unwrap_or(ER_REJECT_CAUSE_NOT_SPECIFIED),
         invalid_tpdu,
         checksum: None,
     };
-    let nsdu_parts = er.to_nsdu_parts(t.class, t.use_extended_format, use_checksum);
-    n.write_nsdu_parts(nsdu_parts)?;
+    let nsdu_parts = er.to_nsdu_parts(stack.transport.class, stack.transport.use_extended_format, use_checksum);
+    stack.submit_N_DATA_request_parts(nsdu_parts)?;
 
     // See NOTE 1.
     if let TPDU::CR(_) = pdu {
@@ -57,7 +59,7 @@ pub(crate) fn treatment_of_protocol_errors_over_cons <'a, N: NSProvider, S: COTS
     // class. The timer should be stopped when a DR-TPDU or an N-DISCONNECT
     // indication is received.
     let now = SystemTime::now();
-    let ts2 = now.add(t.ts2_duration);
-    t.ts2 = Some(ts2);
+    let ts2 = now.add(stack.transport.ts2_duration);
+    stack.transport.ts2 = Some(ts2);
     Ok(Some(ts2))
 }
