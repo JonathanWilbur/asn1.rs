@@ -205,7 +205,7 @@ pub struct UTCTime {
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct GeneralizedTime {
     pub date: DATE,
-    pub utc: bool, // If GT ends with "Z"
+    pub utc: bool, // If GT ends with "Z" // TODO: Doesn't utc_offset cover this?
     pub hour: u8,
     pub minute: Option<u8>,
     pub second: Option<u8>,
