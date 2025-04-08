@@ -53,8 +53,10 @@ pub enum ASN1ErrorCode {
     invalid_time_offset,
     invalid_utf8,
     nonsense, // An impossible error that should never happen.
-    trailing_data,
     constraint_violation,
+    trailing_content_octets, // Trailing data after parsing TLV
+    invalid_duration_component(char),
+    trailing_string, // Invalid data after parsing a string, time, etc.
 }
 
 #[derive(Debug)]
