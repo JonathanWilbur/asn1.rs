@@ -112,6 +112,14 @@ macro_rules! roid {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn test_roid_parsing () {
+        let roid1 = RELATIVE_OID::from_str("1.3.6.4.1").unwrap();
+        let roid2 = roid!(1,3,6,4,1);
+        assert_eq!(roid1, roid2);
+    }
 
     #[test]
     fn test_roid_macro () {

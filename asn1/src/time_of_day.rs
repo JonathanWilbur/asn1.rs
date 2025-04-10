@@ -35,10 +35,11 @@ impl From<DATE_TIME> for TIME_OF_DAY {
 
 impl From<GeneralizedTime> for TIME_OF_DAY {
     fn from(other: GeneralizedTime) -> Self {
+        let (minute, second) = other.minute.unwrap_or((0, None));
         TIME_OF_DAY {
             hour: other.hour,
-            minute: other.minute.unwrap_or(0),
-            second: other.second.unwrap_or(0),
+            minute,
+            second: second.unwrap_or(0),
         }
     }
 }
@@ -61,23 +62,14 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
             // "HH:MM:SS".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        // TODO: Make this more concise
-        let str_ = match std::str::from_utf8(&value_bytes) {
-            Ok(s) => s,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
-        let hour = match u8::from_str(&str_[0..2]) {
-            Ok(x) => x,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
-        let minute = match u8::from_str(&str_[3..5]) {
-            Ok(x) => x,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
-        let second = match u8::from_str(&str_[6..]) {
-            Ok(x) => x,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
+        let str_ = std::str::from_utf8(&value_bytes)
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        let hour = u8::from_str(&str_[0..2])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        let minute = u8::from_str(&str_[3..5])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        let second = u8::from_str(&str_[6..])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
         if hour > 23 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }
@@ -108,4 +100,46 @@ impl Display for TIME_OF_DAY {
         let str_form = format!("{:02}:{:02}:{:02}", self.hour, self.minute, self.second);
         f.write_str(&str_form)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+
+    #[test]
+    fn test_time_display() {
+        let x = TIME_OF_DAY::new(20, 19, 18);
+        assert_eq!(format!("{}", x), "20:19:18");
+    }
+
+    #[test]
+    fn test_time_parse() {
+        let x = TIME_OF_DAY::from_str("20:19:18").unwrap();
+        assert_eq!(x.hour, 20);
+        assert_eq!(x.minute, 19);
+        assert_eq!(x.second, 18);
+    }
+
+    #[test]
+    fn test_time_of_day_ordering_1() {
+        let tod1 = TIME_OF_DAY::new(22, 04, 22);
+        let tod2 = TIME_OF_DAY::new(22, 04, 23);
+        assert!(tod2 > tod1);
+    }
+
+    #[test]
+    fn test_time_of_day_ordering_2() {
+        let tod1 = TIME_OF_DAY::new(22, 04, 23);
+        let tod2 = TIME_OF_DAY::new(22, 05, 22);
+        assert!(tod2 > tod1);
+    }
+
+    #[test]
+    fn test_time_of_day_ordering_3() {
+        let tod1 = TIME_OF_DAY::new(22, 06, 23);
+        let tod2 = TIME_OF_DAY::new(23, 05, 22);
+        assert!(tod2 > tod1);
+    }
+
 }

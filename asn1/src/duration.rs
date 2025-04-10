@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{DurationFractionalPart, DURATION_EQUIVALENT};
+use crate::types::{FractionalPart, DURATION_EQUIVALENT};
 use core::str;
 use std::{fmt::Display, str::FromStr, time::Duration};
 
@@ -12,7 +12,7 @@ impl DURATION_EQUIVALENT {
         hours: u32,
         minutes: u32,
         seconds: u32,
-        fractional_part: Option<DurationFractionalPart>,
+        fractional_part: Option<FractionalPart>,
     ) -> Self {
         DURATION_EQUIVALENT {
             years,
@@ -148,7 +148,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                     // Way too many decimal digits. Probably malicious.
                     return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                 }
-                let mut frac = DurationFractionalPart {
+                let mut frac = FractionalPart {
                     number_of_digits: (i - (index_of_period+1)) as u8,
                     fractional_value: 0,
                 };
@@ -217,6 +217,9 @@ impl FromStr for DURATION_EQUIVALENT {
 }
 
 impl Display for DURATION_EQUIVALENT {
+
+    // TODO: Handle P0S and such.
+    // TODO: Find a more efficient way to do this.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut parts: Vec<String> = vec![String::from("P")];
         if self.years > 0 {
@@ -292,7 +295,7 @@ mod tests {
             hours: 4,
             minutes: 5,
             seconds: 6,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
             }),
@@ -312,7 +315,7 @@ mod tests {
             hours: 4,
             minutes: 5,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
             }),
@@ -332,7 +335,7 @@ mod tests {
             hours: 4,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
             }),
@@ -352,7 +355,7 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
             }),
@@ -372,7 +375,7 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
             }),
@@ -392,7 +395,7 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
             }),
@@ -412,7 +415,7 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
             }),
@@ -432,7 +435,7 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 4,
             }),
@@ -452,7 +455,7 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(DurationFractionalPart {
+            fractional_part: Some(FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 2,
             }),
@@ -512,7 +515,7 @@ mod tests {
         assert_eq!(dur.hours, 0);
         assert_eq!(dur.minutes, 0);
         assert_eq!(dur.seconds, 0);
-        assert_eq!(dur.fractional_part, Some(DurationFractionalPart { number_of_digits: 1, fractional_value: 5 }));
+        assert_eq!(dur.fractional_part, Some(FractionalPart { number_of_digits: 1, fractional_value: 5 }));
     }
 
 
@@ -573,7 +576,7 @@ mod tests {
         assert_eq!(dur.hours, 25);
         assert_eq!(dur.minutes, 65);
         assert_eq!(dur.seconds, 222);
-        assert_eq!(dur.fractional_part, Some(DurationFractionalPart { number_of_digits: 5, fractional_value: 505 }));
+        assert_eq!(dur.fractional_part, Some(FractionalPart { number_of_digits: 5, fractional_value: 505 }));
     }
 
 }

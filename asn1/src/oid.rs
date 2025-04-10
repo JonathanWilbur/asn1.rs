@@ -103,6 +103,17 @@ macro_rules! oid {
 #[cfg(test)]
 mod tests {
 
+    use std::str::FromStr;
+
+    use crate::OBJECT_IDENTIFIER;
+
+    #[test]
+    fn test_oid_parsing () {
+        let oid1 = OBJECT_IDENTIFIER::from_str("1.3.6.4.1").unwrap();
+        let oid2 = oid!(1,3,6,4,1);
+        assert_eq!(oid1, oid2);
+    }
+
     #[test]
     fn test_oid_macro () {
         let oid1 = oid!(1,3,6,4,1);

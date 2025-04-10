@@ -128,14 +128,14 @@ impl Default for UTCOffset {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
-pub struct DurationFractionalPart {
+pub struct FractionalPart {
     pub number_of_digits: u8,
     pub fractional_value: u32,
 }
 
-impl DurationFractionalPart {
+impl FractionalPart {
     pub fn new(number_of_digits: u8, fractional_value: u32) -> Self {
-        DurationFractionalPart {
+        FractionalPart {
             number_of_digits,
             fractional_value,
         }
@@ -152,7 +152,7 @@ pub struct DURATION_EQUIVALENT {
     pub hours: u32,
     pub minutes: u32,
     pub seconds: u32,
-    pub fractional_part: Option<DurationFractionalPart>,
+    pub fractional_part: Option<FractionalPart>,
 }
 
 // type END_OF_CONTENT = None;
@@ -198,18 +198,21 @@ pub struct UTCTime {
     pub day: u8,
     pub hour: u8,
     pub minute: u8,
-    pub second: Option<u8>,
+    pub second: Option<u8>, // TODO: Single word representation u8, non-optional utc offset
     pub utc_offset: Option<UTCOffset>,
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct GeneralizedTime {
     pub date: DATE,
-    pub utc: bool, // If GT ends with "Z" // TODO: Doesn't utc_offset cover this?
+    pub utc: bool, // If GT ends with "Z". utc_offset does not cover this. GeneralizedTime may have neither an offset or "Z."
     pub hour: u8,
-    pub minute: Option<u8>,
-    pub second: Option<u8>,
-    pub fraction: Option<u16>,
+
+    // Not only does this enforce correctness, but it also makes the struct
+    // 24 bytes instead of 28, meaning that it can be read or copied more
+    // efficiently on 64-bit systems.
+    pub minute: Option<(u8, Option<u8>)>, // TODO: Rename to min_and_sec
+    pub fraction: Option<FractionalPart>,
     pub utc_offset: Option<UTCOffset>,
 }
 pub type GraphicString = String;
@@ -220,7 +223,6 @@ pub type CHARACTER_STRING = CharacterString;
 pub type BMPString = String;
 pub type NULL = ();
 
-// TODO: Test the ordering produced using #[derive(PartialOrd)]
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct DATE {
     pub year: u16,

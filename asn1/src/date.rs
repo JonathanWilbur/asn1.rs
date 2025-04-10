@@ -68,26 +68,17 @@ impl TryFrom<&[u8]> for DATE {
     type Error = ASN1Error;
 
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        if value_bytes.len() != 10 {
-            // "YYYY-MM-DD".len()
+        if value_bytes.len() != 10 { // "YYYY-MM-DD".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let str_ = match std::str::from_utf8(&value_bytes) {
-            Ok(s) => s,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
-        let year = match u16::from_str(&str_[0..4]) {
-            Ok(x) => x,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
-        let month = match u8::from_str(&str_[5..7]) {
-            Ok(x) => x,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
-        let day = match u8::from_str(&str_[8..]) {
-            Ok(x) => x,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
+        let str_ = std::str::from_utf8(&value_bytes)
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        let year = u16::from_str(&str_[0..4])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        let month = u8::from_str(&str_[5..7])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        let day = u8::from_str(&str_[8..])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
         if month > 12 || month == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
@@ -108,7 +99,47 @@ impl FromStr for DATE {
 
 impl Display for DATE {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str_form = format!("{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day,);
-        f.write_str(&str_form)
+        f.write_fmt(format_args!("{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day))
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_date_display() {
+        let x = DATE::new(2022, 04, 23);
+        assert_eq!(format!("{}", x), "2022-04-23");
+    }
+
+    #[test]
+    fn test_date_parse() {
+        let x = DATE::from_str("2022-04-23").unwrap();
+        assert_eq!(x.year, 2022);
+        assert_eq!(x.month, 4);
+        assert_eq!(x.day, 23);
+    }
+
+    #[test]
+    fn test_date_ordering_1() {
+        let date1 = DATE::new(2022, 04, 22);
+        let date2 = DATE::new(2022, 04, 23);
+        assert!(date2 > date1);
+    }
+
+    #[test]
+    fn test_date_ordering_2() {
+        let date1 = DATE::new(2022, 04, 23);
+        let date2 = DATE::new(2022, 05, 22);
+        assert!(date2 > date1);
+    }
+
+    #[test]
+    fn test_date_ordering_3() {
+        let date1 = DATE::new(2022, 06, 23);
+        let date2 = DATE::new(2023, 05, 22);
+        assert!(date2 > date1);
+    }
+
 }

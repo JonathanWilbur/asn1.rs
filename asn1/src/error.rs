@@ -56,6 +56,7 @@ pub enum ASN1ErrorCode {
     constraint_violation,
     trailing_content_octets, // Trailing data after parsing TLV
     invalid_duration_component(char),
+    invalid_time_string_component(char),
     trailing_string, // Invalid data after parsing a string, time, etc.
 }
 
