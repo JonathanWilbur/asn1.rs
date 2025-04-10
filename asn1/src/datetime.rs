@@ -1,4 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
+use crate::types::ISO8601Timestampable;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -24,6 +25,18 @@ impl DATE_TIME {
             && self.time.minute == 0
             && self.time.second == 0
     }
+}
+
+impl ISO8601Timestampable for DATE_TIME {
+
+    /// NOTE: There is not supposed to be a "Z" at the end of this, nor should
+    /// there be a UTC offset. ITU-T Recommendation X.680 defines the
+    /// `DATE-TIME` type as being in local time with no UTC offset indication.
+    /// For this reason, I recommend against the use of `DATE-TIME`.
+    fn to_iso_8601_string (&self) -> String {
+        return format!("{}T{}", self.date, self.time);
+    }
+
 }
 
 impl Default for DATE_TIME {

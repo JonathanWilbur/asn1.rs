@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, DATE, DATE_TIME};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, DATE, DATE_TIME, ISO8601Timestampable};
 use crate::FractionalPart;
 use std::cmp::min;
 use std::fmt::{Display, Write};
@@ -27,10 +27,14 @@ impl GeneralizedTime {
             && second.unwrap_or(0) == 0
     }
 
+}
+
+impl ISO8601Timestampable for GeneralizedTime {
+
     /// Fractional seconds will only be displayed if the original
     /// GeneralizedTime used fractional seconds (not fractional hours or
     /// minutes).
-    pub fn to_iso_8601_string(&self) -> String {
+    fn to_iso_8601_string (&self) -> String {
         let mut fraction_string: Option<String> = None;
         let (mut minute, mut second) = self.minute.unwrap_or((0, None));
         if let Some(frac) = &self.fraction {
@@ -323,7 +327,7 @@ impl Display for GeneralizedTime {
 mod tests {
     use std::str::FromStr;
 
-    use crate::GeneralizedTime;
+    use crate::{GeneralizedTime, ISO8601Timestampable};
 
     #[test]
     fn gen_time_from_str_accepts_fractional_seconds() {

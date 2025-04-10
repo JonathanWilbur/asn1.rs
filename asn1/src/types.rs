@@ -401,6 +401,12 @@ pub trait ASN1Codec {
 
 }
 
+pub trait ISO8601Timestampable {
+
+    fn to_iso_8601_string (&self) -> String;
+
+}
+
 #[derive(Debug, Clone)]
 pub struct NamedType <'a, Type = ASN1Value> {
     pub identifier: &'a str,

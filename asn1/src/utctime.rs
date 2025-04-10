@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, DATE, DATE_TIME};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, DATE, DATE_TIME, ISO8601Timestampable};
 use std::fmt::{Display, Write};
 use std::str::FromStr;
 
@@ -25,8 +25,11 @@ impl UTCTime {
             && self.second.unwrap_or(0) == 0
     }
 
-    // TODO: Maybe make a trait for this?
-    pub fn to_iso_8601_string(&self) -> String {
+}
+
+impl ISO8601Timestampable for UTCTime {
+
+    fn to_iso_8601_string(&self) -> String {
         if let Some(offset) = &self.utc_offset {
             let sign = if offset.hour >= 0 { '+' } else { '-' };
             return format!(
@@ -240,7 +243,7 @@ impl Display for UTCTime {
 mod tests {
     use std::str::FromStr;
 
-    use crate::UTCTime;
+    use crate::{UTCTime, ISO8601Timestampable};
 
     #[test]
     fn utc_time_display_1() {
