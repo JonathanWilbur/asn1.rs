@@ -1,6 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
-use crate::FractionalPart;
 use std::cmp::min;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
@@ -9,10 +8,10 @@ impl GeneralizedTime {
     pub fn new() -> Self {
         GeneralizedTime {
             date: DATE::default(),
-            utc: true,
+            flags: 0,
             hour: 0,
             minute: None,
-            fraction: None,
+            fraction: 0,
             utc_offset: None,
         }
     }
@@ -27,6 +26,19 @@ impl GeneralizedTime {
             && second.unwrap_or(0) == 0
     }
 
+    pub fn is_utc(&self) -> bool {
+        self.utc_offset.is_some_and(|offset| offset.is_zero())
+    }
+
+    pub fn get_fraction_precision_digits(&self) -> u8 {
+        // This implementation only handles up to nano-second precision, hence % 10.
+        (self.flags & 0b0000_1111) % 10
+    }
+
+    pub fn has_fraction(&self) -> bool {
+        self.get_fraction_precision_digits() > 0
+    }
+
 }
 
 impl ISO8601Timestampable for GeneralizedTime {
@@ -37,9 +49,10 @@ impl ISO8601Timestampable for GeneralizedTime {
     fn to_iso_8601_string (&self) -> String {
         let mut fraction_string: Option<String> = None;
         let (mut minute, mut second) = self.minute.unwrap_or((0, None));
-        if let Some(frac) = &self.fraction {
-            let num: f64 = frac.fractional_value.into();
-            let denom: f64 = 10.0f64.powi(frac.number_of_digits as i32);
+        let frac_precision = self.get_fraction_precision_digits();
+        if frac_precision > 0 {
+            let num: f64 = self.fraction.into();
+            let denom: f64 = 10.0f64.powi(frac_precision as i32);
             if self.minute.is_none() {
                 // Fractional hours
                 let secondsf = (num / denom) * 3600.0;
@@ -52,12 +65,12 @@ impl ISO8601Timestampable for GeneralizedTime {
             } else {
                 // Fractional seconds
                 fraction_string = Some(format!(".{:0>width$}",
-                    frac.fractional_value,
-                    width = frac.number_of_digits as usize
+                    self.fraction,
+                    width = frac_precision as usize
                 ));
             }
         }
-        if self.utc {
+        if self.is_utc() {
             return format!(
                 "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}Z",
                 self.date.year,
@@ -101,10 +114,10 @@ impl Default for GeneralizedTime {
     fn default() -> Self {
         GeneralizedTime {
             date: DATE::default(),
+            flags: 0,
             hour: 0,
             minute: None,
-            fraction: None,
-            utc: true,
+            fraction: 0,
             utc_offset: None,
         }
     }
@@ -115,10 +128,10 @@ impl From<UTCTime> for GeneralizedTime {
         let date = DATE::from(other);
         GeneralizedTime {
             date,
-            utc: other.utc_offset.is_zero(),
+            flags: 0,
             hour: other.hour,
             minute: Some((other.minute, Some(other.second))),
-            fraction: None,
+            fraction: 0,
             utc_offset: None,
         }
     }
@@ -130,18 +143,12 @@ impl From<DATE> for GeneralizedTime {
     fn from(other: DATE) -> Self {
         GeneralizedTime {
             date: other,
-            utc: false,
+            flags: 0, // Local time, not UTC.
             hour: 0,
             minute: None,
-            fraction: None,
+            fraction: 0,
             utc_offset: None,
         }
-    }
-}
-
-impl PartialEq<UTCTime> for GeneralizedTime {
-    fn eq(&self, other: &UTCTime) -> bool {
-        GeneralizedTime::from(*other).eq(self)
     }
 }
 
@@ -224,18 +231,17 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             let end = min(i, start + 9); // We can only tolerate 9 digits of precision.
             let fractional_value = u32::from_str(&s[start..end])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds))?;
-            ret.fraction = Some(FractionalPart{
-                fractional_value,
-                number_of_digits: (end - start) as u8,
-            });
+            ret.fraction = fractional_value;
+            ret.flags &= 0b1111_0000; // Clear the bottom four bits
+            ret.flags |= ((end - start) as u8) % 10;
         }
 
         let offset_sign = value_bytes.get(i);
         if offset_sign.is_some_and(|c| *c == b'Z') {
             // ret.utc = true; // This is the default.
+            ret.utc_offset = Some(UTCOffset::utc());
             return Ok(ret); // UTCTime
         }
-        ret.utc = false;
         if offset_sign.is_none() {
             return Ok(ret); // Local Time
         }
@@ -292,10 +298,12 @@ impl Display for GeneralizedTime {
                 write!(f, "{:02}", sec)?;
             }
         }
-        if let Some(frac) = &self.fraction {
+
+        let frac_digits = self.get_fraction_precision_digits();
+        if frac_digits > 0 {
             write!(f, ".{:0>width$}",
-                frac.fractional_value,
-                width = frac.number_of_digits as usize
+                self.fraction,
+                width = frac_digits as usize
             )?;
         }
         match &self.utc_offset {

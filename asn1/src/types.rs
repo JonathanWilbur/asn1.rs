@@ -123,11 +123,15 @@ impl UTCOffset {
     pub fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0
     }
+
+    pub fn utc() -> Self {
+        UTCOffset{ hour: 0, minute: 0 }
+    }
 }
 
 impl Default for UTCOffset {
     fn default() -> Self {
-        UTCOffset { hour: 0, minute: 0 }
+        UTCOffset::utc()
     }
 }
 
@@ -256,15 +260,22 @@ pub struct UTCTime {
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct GeneralizedTime {
     pub date: DATE,
-    pub utc: bool, // If GT ends with "Z". utc_offset does not cover this. GeneralizedTime may have neither an offset or "Z."
+    /// `None` = Local time
+    /// `Some`, where the offset is zero: UTC time
+    /// `Some`, where the offset is non-zero: UTC difference
+    pub utc_offset: Option<UTCOffset>,
     pub hour: u8,
 
     // Not only does this enforce correctness, but it also makes the struct
     // 24 bytes instead of 28, meaning that it can be read or copied more
     // efficiently on 64-bit systems.
     pub minute: Option<(u8, Option<u8>)>, // TODO: Rename to min_and_sec
-    pub fraction: Option<FractionalPart>, // TODO: This is over half of the size of the struct. Find a more efficient way.
-    pub utc_offset: Option<UTCOffset>,
+
+    /// The least significant four bits are the precision, in terms of decimal
+    /// digits, of the fraction. This value will be 0 if there were no
+    /// fractional digits.
+    pub flags: u8,
+    pub fraction: u32, // TODO: This is over half of the size of the struct. Find a more efficient way.
 }
 pub type GraphicString = String;
 pub type VisibleString = String;
