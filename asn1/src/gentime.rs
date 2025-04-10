@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, DATE, DATE_TIME, ISO8601Timestampable};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
 use crate::FractionalPart;
 use std::cmp::min;
 use std::fmt::{Display, Write};
@@ -110,27 +110,14 @@ impl Default for GeneralizedTime {
     }
 }
 
-impl From<DATE_TIME> for GeneralizedTime {
-    fn from(other: DATE_TIME) -> Self {
-        GeneralizedTime {
-            date: other.date,
-            utc: true,
-            hour: other.time.hour,
-            minute: Some((other.time.minute, Some(other.time.second))),
-            fraction: None,
-            utc_offset: None,
-        }
-    }
-}
-
 impl From<UTCTime> for GeneralizedTime {
     fn from(other: UTCTime) -> Self {
         let date = DATE::from(other);
         GeneralizedTime {
             date,
-            utc: true,
+            utc: other.utc_offset.is_zero(),
             hour: other.hour,
-            minute: Some((other.minute, other.second)),
+            minute: Some((other.minute, Some(other.second))),
             fraction: None,
             utc_offset: None,
         }
@@ -138,21 +125,17 @@ impl From<UTCTime> for GeneralizedTime {
 }
 
 impl From<DATE> for GeneralizedTime {
+
+    /// **WARNING**: This sets the GeneralizedTime to be in local time!
     fn from(other: DATE) -> Self {
         GeneralizedTime {
             date: other,
-            utc: true,
+            utc: false,
             hour: 0,
             minute: None,
             fraction: None,
             utc_offset: None,
         }
-    }
-}
-
-impl PartialEq<DATE> for GeneralizedTime {
-    fn eq(&self, other: &DATE) -> bool {
-        DATE::from(*self).eq(other)
     }
 }
 
@@ -341,11 +324,8 @@ mod tests {
         GeneralizedTime::try_from(input.as_slice()).unwrap();
     }
 
-    // TODO: This needs a LOT more testing.
-
     #[test]
     fn gen_time_valid() {
-        // TODO: Decimals can appear after hours or minutes as well.
         let subtests = [
             // LOCAL TIME: This only works for me in Florida. This should be commented out.
             // [ "2021020304", "2021-02-03T09:00:00.000Z" ],

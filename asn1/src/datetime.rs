@@ -77,7 +77,7 @@ impl From<UTCTime> for DATE_TIME {
             time: TIME_OF_DAY {
                 hour: other.hour,
                 minute: other.minute,
-                second: other.second.unwrap_or(0),
+                second: other.second,
             },
         }
     }

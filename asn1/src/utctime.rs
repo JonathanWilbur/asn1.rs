@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, DATE, DATE_TIME, ISO8601Timestampable};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
 use std::fmt::{Display, Write};
 use std::str::FromStr;
 
@@ -11,8 +11,8 @@ impl UTCTime {
             day: 0,
             hour: 0,
             minute: 0,
-            second: None,
-            utc_offset: None,
+            second: 0,
+            utc_offset: UTCOffset::default()
         }
     }
 
@@ -22,7 +22,7 @@ impl UTCTime {
             && self.day <= 1
             && self.hour == 0
             && self.minute == 0
-            && self.second.unwrap_or(0) == 0
+            && self.second == 0
     }
 
 }
@@ -30,8 +30,8 @@ impl UTCTime {
 impl ISO8601Timestampable for UTCTime {
 
     fn to_iso_8601_string(&self) -> String {
-        if let Some(offset) = &self.utc_offset {
-            let sign = if offset.hour >= 0 { '+' } else { '-' };
+        if !self.utc_offset.is_zero() {
+            let sign = if self.utc_offset.hour >= 0 { '+' } else { '-' };
             return format!(
                 "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}{:02}{:02}",
                 if self.year >= 50 { self.year as u16 + 1900 } else { self.year as u16 + 2000 },
@@ -39,10 +39,10 @@ impl ISO8601Timestampable for UTCTime {
                 self.day,
                 self.hour,
                 self.minute,
-                self.second.unwrap_or(0),
+                self.second,
                 sign,
-                offset.hour.abs(),
-                offset.minute,
+                self.utc_offset.hour.abs(),
+                self.utc_offset.minute,
             );
         }
         return format!(
@@ -52,7 +52,7 @@ impl ISO8601Timestampable for UTCTime {
             self.day,
             self.hour,
             self.minute,
-            self.second.unwrap_or(0),
+            self.second,
         );
     }
 
@@ -66,8 +66,8 @@ impl Default for UTCTime {
             day: 1,
             hour: 0,
             minute: 0,
-            second: None,
-            utc_offset: None,
+            second: 0,
+            utc_offset: UTCOffset::default(),
         }
     }
 }
@@ -81,43 +81,9 @@ impl From<GeneralizedTime> for UTCTime {
             day: other.date.day,
             hour: other.hour,
             minute,
-            second,
-            utc_offset: None,
+            second: second.unwrap_or(0),
+            utc_offset: UTCOffset::default(),
         }
-    }
-}
-
-impl From<DATE_TIME> for UTCTime {
-    fn from(other: DATE_TIME) -> Self {
-        UTCTime {
-            year: (other.date.year % 100) as u8,
-            month: other.date.month,
-            day: other.date.day,
-            hour: other.time.hour,
-            minute: other.time.minute,
-            second: Some(other.time.second),
-            utc_offset: None,
-        }
-    }
-}
-
-impl From<DATE> for UTCTime {
-    fn from(other: DATE) -> Self {
-        UTCTime {
-            year: (other.year % 100) as u8,
-            month: other.month,
-            day: other.day,
-            hour: 0,
-            minute: 0,
-            second: None,
-            utc_offset: None,
-        }
-    }
-}
-
-impl PartialEq<DATE> for UTCTime {
-    fn eq(&self, other: &DATE) -> bool {
-        DATE::from(*self).eq(other)
     }
 }
 
@@ -179,9 +145,8 @@ impl TryFrom<&[u8]> for UTCTime {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
             ret.second = u8::from_str(&s[10..12])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?
-                .into();
-            if ret.second.is_some_and(|s| s > 59) {
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
+            if ret.second > 59 {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
         }
@@ -202,10 +167,10 @@ impl TryFrom<&[u8]> for UTCTime {
             if offset_minute > 59 {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
-            ret.utc_offset = Some(UTCOffset {
+            ret.utc_offset = UTCOffset {
                 hour: offset_hour,
                 minute: offset_minute,
-            });
+            };
         }
         Ok(ret)
     }
@@ -221,20 +186,18 @@ impl FromStr for UTCTime {
 
 impl Display for UTCTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:02}{:02}{:02}{:02}{:02}",
+        write!(f, "{:02}{:02}{:02}{:02}{:02}{:02}",
             self.year % 100,
             self.month,
             self.day,
             self.hour,
             self.minute,
+            self.second,
         )?;
-        if let Some(sec) = &self.second {
-            write!(f, "{:02}", sec)?;
-        }
-        match &self.utc_offset {
-            // TODO: Use this sign-formatting technique
-            Some(offset) => write!(f, "{:+03}{:02}", offset.hour, offset.minute),
-            _ => f.write_char('Z'),
+        if self.utc_offset.is_zero() {
+            f.write_char('Z')
+        } else {
+            write!(f, "{:+03}{:02}", self.utc_offset.hour, self.utc_offset.minute)
         }
     }
 }
@@ -253,7 +216,7 @@ mod tests {
             day: 10,
             hour: 9,
             minute: 8,
-            second: Some(7),
+            second: 7,
             ..Default::default()
         };
         assert_eq!(format!("{}", t), "221110090807Z");
