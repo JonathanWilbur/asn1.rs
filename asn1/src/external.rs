@@ -216,3 +216,5 @@ impl Display for CHARACTER_STRING {
         f.write_str("'H }")
     }
 }
+
+// TODO: Define component specs for this.

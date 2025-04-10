@@ -41,6 +41,9 @@ impl OBJECT_IDENTIFIER {
     }
 }
 
+// TODO: Ordering matching rules?
+// TODO: Iterator
+
 impl FromStr for OBJECT_IDENTIFIER {
     type Err = ParseIntError;
 

@@ -73,6 +73,7 @@ impl TryFrom<&[u8]> for DATE {
         }
         let str_ = std::str::from_utf8(&value_bytes)
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        // TODO: Hack to accelerate decoding of 202x by checking for "202" prefix
         let year = u16::from_str(&str_[0..4])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
         let month = u8::from_str(&str_[5..7])

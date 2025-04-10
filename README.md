@@ -184,7 +184,6 @@ struct X690Element {
     last_calculated_length: Option<usize>; // Maybe not pub
 }
 
-
 ```
 
 ## Encoding Instructions

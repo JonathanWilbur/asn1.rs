@@ -72,7 +72,7 @@ impl BIT_STRING {
 
     pub fn with_capacity(bits: usize) -> Self {
         BIT_STRING {
-            bytes: Vec::with_capacity(bits >> 3),
+            bytes: Vec::with_capacity(bits >> 3), // TODO: Is this the right number?
             trailing_bits: 0,
         }
     }
@@ -192,6 +192,9 @@ impl BIT_STRING {
 
 }
 
+// TODO: Implement equals
+// TODO: Implement compare
+
 impl <T> From<T> for BIT_STRING
     where T: AsRef<[u8]> {
     fn from(other: T) -> Self {
@@ -220,6 +223,7 @@ impl Default for BIT_STRING {
     }
 }
 
+// TODO: Why is this not implemented?
 // impl Concat<BIT_STRING> for [BIT_STRING] {
 
 //     fn concat(slice: &Self) -> Self::Output {
