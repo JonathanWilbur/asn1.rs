@@ -1,6 +1,6 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
-use crate::utils::get_days_in_month;
+use crate::utils::{get_days_in_month, unlikely};
 use crate::utils::macros::parse_uint;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
@@ -100,13 +100,13 @@ impl TryFrom<&[u8]> for UTCTime {
 
     fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
         let len = b.len();
-        if len < 10 {
+        if unlikely(len < 10) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        if len > 17 {
+        if unlikely(len > 17) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        if !b[0..10].is_ascii() {
+        if unlikely(!b[0..10].is_ascii()) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         // Note that we MUST check for ASCII before indexing into a string.
@@ -119,35 +119,35 @@ impl TryFrom<&[u8]> for UTCTime {
         ret.day = parse_uint!(u8, &b[4..6], &s[4..6], ASN1ErrorCode::invalid_month);
         ret.hour = parse_uint!(u8, &b[6..8], &s[6..8], ASN1ErrorCode::invalid_hour);
         ret.minute = parse_uint!(u8, &b[8..10], &s[8..10], ASN1ErrorCode::invalid_minute);
-        if ret.month == 0 || ret.month > 12 {
+        if unlikely(ret.month == 0 || ret.month > 12) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
-        let year = if ret.year >= 50 { ret.year as u16 + 1900 } else { ret.year as u16 + 2000 };
+        let year = if unlikely(ret.year >= 50) { ret.year as u16 + 1900 } else { ret.year as u16 + 2000 };
         let max_day: u8 = get_days_in_month(year, ret.month);
-        if ret.day == 0 || ret.day > max_day {
+        if unlikely(ret.day == 0 || ret.day > max_day) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
-        if ret.hour > 23 {
+        if unlikely(ret.hour > 23) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }
-        if ret.minute > 59 {
+        if unlikely(ret.minute > 59) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
         }
         if (len > 12) && b[10].is_ascii_digit() {
             // Seconds component is present.
-            if !b[11].is_ascii_digit() {
+            if unlikely(!b[11].is_ascii_digit()) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
             ret.second = parse_uint!(u8, &b[10..12], &s[10..12], ASN1ErrorCode::invalid_minute);
-            if ret.second > 59 {
+            if unlikely(ret.second > 59) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
         }
         if b[len - 1] != b'Z' {
-            if (b[len - 5] != b'+') && (b[len - 5] != b'-') {
+            if unlikely((b[len - 5] != b'+') && (b[len - 5] != b'-')) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
-            if b[len - 4..len].iter().any(|by| !by.is_ascii_digit()) {
+            if unlikely(b[len - 4..len].iter().any(|by| !by.is_ascii_digit())) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
             let offset_hour = if cfg!(feature = "atoi_simd") {
@@ -157,11 +157,11 @@ impl TryFrom<&[u8]> for UTCTime {
                 i8::from_str(&s[len-5..len-2])
                     .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
             };
-            if offset_hour.abs() > 12 {
+            if unlikely(offset_hour.abs() > 12) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
             let offset_minute = parse_uint!(u8, &b[len-2..len], &s[len-2..len], ASN1ErrorCode::invalid_time_offset);
-            if offset_minute > 59 {
+            if unlikely(offset_minute > 59) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
             ret.utc_offset = UTCOffset {

@@ -89,6 +89,7 @@ pub fn compare_numeric_string (a: &str, b: &str) -> bool {
 }
 
 /// This is not a time library.
+#[inline]
 pub(crate) fn get_days_in_month (year: u16, month: u8) -> u8 {
     let is_leap_year = ((year % 4) == 0) && (((year % 100) > 0) || ((year % 400) == 0));
     match month {
@@ -112,6 +113,24 @@ pub(crate) mod macros {
     }
 
     pub(crate) use parse_uint;
+}
+
+#[inline]
+pub(crate) fn likely (expr: bool) -> bool {
+    if cfg!(feature = "likely_stable") {
+        likely_stable::likely(expr)
+    } else {
+        expr
+    }
+}
+
+#[inline]
+pub(crate) fn unlikely (expr: bool) -> bool {
+    if cfg!(feature = "likely_stable") {
+        likely_stable::unlikely(expr)
+    } else {
+        expr
+    }
 }
 
 #[cfg(test)]

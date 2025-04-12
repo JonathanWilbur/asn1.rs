@@ -1,4 +1,5 @@
 use crate::types::{Tag, TagClass, TagNumber};
+use crate::utils::unlikely;
 use std::{
     fmt,
     io::{Error, ErrorKind},
@@ -70,6 +71,9 @@ impl FromStr for Tag {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if unlikely(!s.is_ascii()) {
+            return Err(Error::from(ErrorKind::InvalidInput));
+        }
         let mut index: usize = 0;
         for c in s.chars() {
             if c.is_ascii_whitespace() {
@@ -84,15 +88,15 @@ impl FromStr for Tag {
         }
         let upper = s[index..].trim_start().to_ascii_uppercase();
         let tag_class: TagClass;
-        if upper.starts_with("U") {
+        if upper.starts_with("UNIV") {
             tag_class = TagClass::UNIVERSAL;
         } else if upper.contains("X") {
             tag_class = TagClass::CONTEXT;
         } else if upper.starts_with("CO") {
             tag_class = TagClass::CONTEXT;
-        } else if upper.starts_with("AP") {
+        } else if upper.starts_with("APPL") {
             tag_class = TagClass::APPLICATION;
-        } else if upper.starts_with("PR") {
+        } else if upper.starts_with("PRIV") {
             tag_class = TagClass::PRIVATE;
         } else {
             return Err(Error::from(ErrorKind::InvalidInput));
@@ -111,9 +115,12 @@ impl FromStr for Tag {
             }
             end_of_digit += 1;
         }
-        let tag_number = match u16::from_str(&s[start_of_digit..end_of_digit]) {
-            Ok(n) => n,
-            Err(_) => return Err(Error::from(ErrorKind::InvalidInput)),
+        let tag_number = if cfg!(feature = "atoi_simd") {
+            atoi_simd::parse_pos::<u16>(&s[start_of_digit..end_of_digit].as_bytes())
+                .map_err(|_| Error::from(ErrorKind::InvalidInput))?
+        } else {
+            u16::from_str(&s[start_of_digit..end_of_digit])
+                .map_err(|_| Error::from(ErrorKind::InvalidInput))?
         };
         Ok(Tag {
             tag_class,

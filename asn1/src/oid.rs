@@ -8,6 +8,7 @@ impl OBJECT_IDENTIFIER {
         OBJECT_IDENTIFIER(nodes)
     }
 
+    // TODO: Do this more efficiently.
     pub fn to_asn1_string(&self) -> String {
         format!(
             "{{ {} }}",

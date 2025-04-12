@@ -1,8 +1,9 @@
 use crate::types::BIT_STRING;
-use std::{convert::TryInto, fmt::Display};
+use std::{convert::TryInto, fmt::{Display, Write}};
+use crate::utils::unlikely;
 
 pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
-    if strs.len() == 0 {
+    if unlikely(strs.len() == 0) {
         return BIT_STRING::new();
     }
     // This calculation does not consider trailing bits, both for simplicity,
@@ -145,7 +146,7 @@ impl BIT_STRING {
     }
 
     pub fn from_bin(bitstr: &str) -> BIT_STRING {
-        if bitstr.len() == 0 {
+        if unlikely(bitstr.len() == 0) {
             return BIT_STRING {
                 bytes: vec![],
                 trailing_bits: 0,
@@ -186,9 +187,6 @@ impl BIT_STRING {
     pub fn from_bytes(bytes: Vec<u8>) -> BIT_STRING {
         BIT_STRING { bytes, trailing_bits: 0 }
     }
-
-    // TODO: There is no way to get a bit currently.
-    // TODO: len()
 
 }
 
@@ -246,7 +244,7 @@ impl Display for BIT_STRING {
             return f.write_str("''B");
         }
         if self.trailing_bits == 0 {
-            f.write_str("'")?;
+            f.write_char('\'')?;
             write_bin(&self.bytes, f)?;
             return f.write_str("'B");
         }
@@ -260,7 +258,7 @@ impl Display for BIT_STRING {
             std::str::from_utf8_unchecked(&last_byte_str.as_bytes()[0..8 - self.trailing_bits as usize])
         };
 
-        f.write_str("'")?;
+        f.write_char('\'')?;
         write_bin(&self.bytes[..len - 1], f)?;
         f.write_str(last_bits)?;
         f.write_str("'B")

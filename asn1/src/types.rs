@@ -232,7 +232,6 @@ pub const UTC_TIME_SECONDS_UNKNOWN: u8 = 0xFF;
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCTime {
     /// Yes, `u8`, not `u16`: it is left to the application to determine which century the two-digit year identifies.
-    // TODO: Document decision
     pub year: u8,
     pub month: u8,
     pub day: u8,
@@ -275,7 +274,7 @@ pub struct GeneralizedTime {
     /// digits, of the fraction. This value will be 0 if there were no
     /// fractional digits.
     pub flags: u8,
-    pub fraction: u32, // TODO: This is over half of the size of the struct. Find a more efficient way.
+    pub fraction: u32,
 }
 pub type GraphicString = String;
 pub type VisibleString = String;

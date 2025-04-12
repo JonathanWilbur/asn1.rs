@@ -1,5 +1,6 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::ISO8601Timestampable;
+use crate::utils::{unlikely};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -99,7 +100,7 @@ impl TryFrom<&[u8]> for DATE_TIME {
     type Error = ASN1Error;
 
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        if value_bytes.len() != 19 {
+        if unlikely(value_bytes.len() != 19) {
             // "YYYY-MM-DDTHH:MM:SS".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }

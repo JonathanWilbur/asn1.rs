@@ -98,18 +98,12 @@ impl From<INSTANCE_OF> for EXTERNAL {
 impl Display for ExternalEncoding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ExternalEncoding::single_ASN1_type(v) => {
-                f.write_str("single-ASN1-type:")?;
-                std::fmt::Display::fmt(v, f)
-            }
+            ExternalEncoding::single_ASN1_type(v) => write!(f, "single-ASN1-type:{}", v),
             ExternalEncoding::octet_aligned(v) => {
                 f.write_str("octet-aligned:")?;
                 write_hex(v, f)
             }
-            ExternalEncoding::arbitrary(v) => {
-                f.write_str("arbitrary:")?;
-                std::fmt::Display::fmt(v, f)
-            }
+            ExternalEncoding::arbitrary(v) => write!(f, "arbitrary:{}", v),
         }
     }
 }
@@ -117,17 +111,12 @@ impl Display for ExternalEncoding {
 impl Display for ExternalIdentification {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ExternalIdentification::context_negotiation(cn) => {
-                f.write_str("context-negotiation:")?;
-                std::fmt::Display::fmt(cn, f)
-            }
+            ExternalIdentification::context_negotiation(cn) => write!(f, "context-negotiation:{}", cn),
             ExternalIdentification::presentation_context_id(pcid) => {
                 f.write_str("presentation-context-id:")?;
                 write_int(&pcid, f)
             }
-            ExternalIdentification::syntax(syn) => {
-                f.write_fmt(format_args!("syntax:{}", syn.to_asn1_string()))
-            }
+            ExternalIdentification::syntax(syn) => write!(f, "syntax:{}", syn.to_asn1_string()),
         }
     }
 }
@@ -135,24 +124,14 @@ impl Display for ExternalIdentification {
 impl Display for PresentationContextSwitchingTypeIdentification {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PresentationContextSwitchingTypeIdentification::context_negotiation(cn) => {
-                f.write_str("context-negotiation:")?;
-                std::fmt::Display::fmt(cn, f)
-            }
+            PresentationContextSwitchingTypeIdentification::context_negotiation(cn) => write!(f, "context-negotiation:{}", cn),
             PresentationContextSwitchingTypeIdentification::presentation_context_id(pcid) => {
                 f.write_str("presentation-context-id:")?;
                 write_int(&pcid, f)
             }
-            PresentationContextSwitchingTypeIdentification::syntax(syn) => {
-                f.write_fmt(format_args!("syntax:{}", syn.to_asn1_string()))
-            }
-            PresentationContextSwitchingTypeIdentification::syntaxes(syn) => {
-                f.write_str("syntaxes:")?;
-                std::fmt::Display::fmt(syn, f)
-            }
-            PresentationContextSwitchingTypeIdentification::transfer_syntax(syn) => {
-                f.write_fmt(format_args!("transfer-syntax:{}", syn.to_asn1_string()))
-            }
+            PresentationContextSwitchingTypeIdentification::syntax(syn) => write!(f, "syntax:{}", syn.to_asn1_string()),
+            PresentationContextSwitchingTypeIdentification::syntaxes(syn) => write!(f, "syntaxes:{}", syn),
+            PresentationContextSwitchingTypeIdentification::transfer_syntax(syn) => write!(f, "transfer-syntax:{}", syn.to_asn1_string()),
             PresentationContextSwitchingTypeIdentification::fixed => f.write_str("fixed:NULL"),
         }
     }
@@ -162,45 +141,38 @@ impl Display for ContextNegotiation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("{ presentation-context-id ")?;
         write_int(&self.presentation_context_id, f)?;
-        f.write_fmt(format_args!(
-            ", transfer-syntax {} }}",
-            self.transfer_syntax.to_asn1_string()
-        ))
+        write!(f, ", transfer-syntax {} }}", self.transfer_syntax.to_asn1_string())
     }
 }
 
 impl Display for IdentificationSyntaxes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!(
-            "{{ abstract {}, transfer {} }}",
+        write!(f, "{{ abstract {}, transfer {} }}",
             self.r#abstract.to_asn1_string(),
             self.transfer.to_asn1_string(),
-        ))
+        )
     }
 }
 
 impl Display for EXTERNAL {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(dvd) = &self.data_value_descriptor {
-            f.write_fmt(format_args!(
+            write!(f,
                 "{{ identification {}, data-value-descriptor \"{}\", data-value {} }}",
                 self.identification, dvd, self.data_value,
-            ))
+            )
         } else {
-            f.write_fmt(format_args!(
+            write!(f,
                 "{{ identification {}, data-value {} }}",
                 self.identification, self.data_value,
-            ))
+            )
         }
     }
 }
 
 impl Display for EMBEDDED_PDV {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!(
-            "{{ identification {}, data-value '",
-            self.identification
-        ))?;
+        write!(f, "{{ identification {}, data-value '", self.identification)?;
         write_hex(&self.data_value, f)?;
         f.write_str("'H }")
     }
@@ -208,10 +180,7 @@ impl Display for EMBEDDED_PDV {
 
 impl Display for CHARACTER_STRING {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!(
-            "{{ identification {}, string-value '",
-            self.identification
-        ))?;
+        write!(f, "{{ identification {}, string-value '", self.identification)?;
         write_hex(&self.string_value, f)?;
         f.write_str("'H }")
     }

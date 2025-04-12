@@ -1,6 +1,6 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
-use crate::utils::get_days_in_month;
+use crate::utils::{get_days_in_month, unlikely, likely};
 use crate::utils::macros::parse_uint;
 use std::cmp::min;
 use std::fmt::{Display, Write};
@@ -55,12 +55,12 @@ impl ISO8601Timestampable for GeneralizedTime {
         if frac_precision > 0 {
             let num: f64 = self.fraction.into();
             let denom: f64 = 10.0f64.powi(frac_precision as i32);
-            if self.minute.is_none() {
+            if unlikely(self.minute.is_none()) {
                 // Fractional hours
                 let secondsf = (num / denom) * 3600.0;
                 minute = (secondsf / 60.0).floor() as u8;
                 second = Some((secondsf.round() % 60.0) as u8 );
-            } else if second.is_none() {
+            } else if unlikely(second.is_none()) {
                 // Fractional minutes
                 let secondsf = (num / denom) * 60.0;
                 second = Some(secondsf.round() as u8);
@@ -159,15 +159,15 @@ impl TryFrom<&[u8]> for GeneralizedTime {
 
     fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
         let len = b.len();
-        if len < 10 {
+        if unlikely(len < 10) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         // There is technically no limit on how big a GeneralizedTime can be, but
         // we have to set a reasonable limit here. This accomodates nanoseconds.
-        if len > 32 {
+        if unlikely(len > 32) {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
         }
-        if !b.is_ascii() {
+        if unlikely(!b.is_ascii()) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         // Note that we MUST check for ASCII before indexing into a string.
@@ -179,19 +179,19 @@ impl TryFrom<&[u8]> for GeneralizedTime {
         ret.date.month = parse_uint!(u8, &b[4..6], &s[4..6], ASN1ErrorCode::invalid_month);
         ret.date.day = parse_uint!(u8, &b[6..8], &s[6..8], ASN1ErrorCode::invalid_day);
         ret.hour = parse_uint!(u8, &b[8..10], &s[8..10], ASN1ErrorCode::invalid_hour);
-        if ret.date.month == 0 || ret.date.month > 12 {
+        if unlikely(ret.date.month == 0 || ret.date.month > 12) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
         let max_day: u8 = get_days_in_month(ret.date.year, ret.date.month);
-        if ret.date.day == 0 || ret.date.day > max_day {
+        if unlikely(ret.date.day == 0 || ret.date.day > max_day) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
-        if ret.hour > 23 {
+        if unlikely(ret.hour > 23) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }
         if (len >= 12) && b[10].is_ascii_digit() {
             let minute = parse_uint!(u8, &b[10..12], &s[10..12], ASN1ErrorCode::invalid_minute);
-            if minute > 59 {
+            if unlikely(minute > 59) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
             }
             ret.minute = Some((minute, None));
@@ -202,7 +202,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             if (len >= 14) && b[12].is_ascii_digit() {
                 // Seconds component is present.
                 let second = parse_uint!(u8, &b[12..14], &s[12..14], ASN1ErrorCode::invalid_second);
-                if second > 59 {
+                if unlikely(second > 59) {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
                 }
                 ret.minute = Some((m, Some(second)));
@@ -242,10 +242,10 @@ impl TryFrom<&[u8]> for GeneralizedTime {
         }
 
         // TODO: Use https://docs.rs/likely_stable/latest/likely_stable/
-        if offset_sign.is_some_and(|c| *c != b'+' && *c != b'-') {
+        if unlikely(offset_sign.is_some_and(|c| *c != b'+' && *c != b'-')) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        if (len != (i + 3)) && (len != (i + 5)) {
+        if unlikely((len != (i + 3)) && (len != (i + 5))) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
         let offset_hour = if cfg!(feature = "atoi_simd") {
@@ -255,7 +255,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             i8::from_str(&s[i..i + 3])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
         };
-        if offset_hour.abs() > 12 {
+        if unlikely(offset_hour.abs() > 12) { // FIXME: 15 is valid
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
         i += 3;
@@ -264,7 +264,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
         } else {
             0
         };
-        if offset_minute > 59 {
+        if unlikely(offset_minute > 59) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
         ret.utc_offset = Some(UTCOffset {

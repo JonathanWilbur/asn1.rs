@@ -1,6 +1,6 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME};
-use crate::utils::get_days_in_month;
+use crate::utils::{get_days_in_month, unlikely, likely};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -69,7 +69,7 @@ impl TryFrom<&[u8]> for DATE {
     type Error = ASN1Error;
 
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        if value_bytes.len() != 10 { // "YYYY-MM-DD".len()
+        if unlikely(value_bytes.len() != 10) { // "YYYY-MM-DD".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         // TODO: Check for dashes
@@ -84,7 +84,7 @@ impl TryFrom<&[u8]> for DATE {
             day = atoi_simd::parse::<u8>(&value_bytes[8..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
         } else {
-            if !value_bytes.is_ascii() {
+            if unlikely(!value_bytes.is_ascii()) {
                 return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
             }
             // TODO: Unchecked
@@ -98,11 +98,11 @@ impl TryFrom<&[u8]> for DATE {
             day = u8::from_str(&str_[8..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
         }
-        if month > 12 || month == 0 {
+        if unlikely(month > 12 || month == 0) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
         let max_day = get_days_in_month(year, month);
-        if day > max_day || day == 0 {
+        if unlikely(day > max_day || day == 0) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
         Ok(DATE { year, month, day })
@@ -119,7 +119,7 @@ impl FromStr for DATE {
 
 impl Display for DATE {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day))
+        write!(f, "{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day)
     }
 }
 

@@ -2,6 +2,7 @@ use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{FractionalPart, DURATION_EQUIVALENT};
 use core::str;
 use std::{fmt::Display, str::FromStr, time::Duration};
+use crate::utils::{unlikely, likely};
 
 impl DURATION_EQUIVALENT {
     pub fn new(
@@ -75,15 +76,15 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
     type Error = ASN1Error;
 
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        if value_bytes.len() < 3 {
+        if unlikely(value_bytes.len() < 3) {
             // The smallest duration string, e.g. P1Y
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
-        if value_bytes.len() > 32 {
+        if unlikely(value_bytes.len() > 32) {
             // Values larger than this are probably malicious.
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
         }
-        if value_bytes[0] as char != 'P' {
+        if unlikely(value_bytes[0] as char != 'P') {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         let mut ret = DURATION_EQUIVALENT::default();
@@ -93,13 +94,10 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
         let mut encountered: u8 = 0;
         for i in 1..value_bytes.len() {
             let c = value_bytes[i] as char;
-            if index_of_period > 0 && c.is_ascii_digit() {
+            if likely(c.is_ascii_digit()) {
                 continue;
             }
-            if c.is_ascii_digit() {
-                continue;
-            }
-            if c == '.' || c == ',' {
+            if unlikely(c == '.' || c == ',') {
                 if index_of_period > 0 {
                     // Double periods
                     return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -107,7 +105,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                 index_of_period = i;
                 continue;
             }
-            if c == 'T' {
+            if unlikely(c == 'T') {
                 processing_time_components = true;
                 start_of_last_digit = i + 1;
                 continue;
@@ -131,7 +129,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                 ('S', _) => DURATION_COMPONENT_SECONDS,
                 (_, _) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c))),
             };
-            if max_encountered > 0 && encountered >= max_encountered {
+            if unlikely(max_encountered > 0 && encountered >= max_encountered) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)));
             }
 
@@ -209,7 +207,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                 _ => panic!("Impossible code reached."),
             };
         }
-        if start_of_last_digit != value_bytes.len() {
+        if unlikely(start_of_last_digit != value_bytes.len()) {
             // Extra data at the end
             return Err(ASN1Error::new(ASN1ErrorCode::trailing_string));
         }

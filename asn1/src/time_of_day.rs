@@ -1,5 +1,6 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY};
+use crate::utils::unlikely;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -58,7 +59,7 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
     type Error = ASN1Error;
 
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        if value_bytes.len() != 8 {
+        if unlikely(value_bytes.len() != 8) {
             // "HH:MM:SS".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
@@ -83,13 +84,13 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
             second = u8::from_str(&str_[6..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
         }
-        if hour > 23 {
+        if unlikely(hour > 23) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }
-        if minute > 59 {
+        if unlikely(minute > 59) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
         }
-        if second > 59 {
+        if unlikely(second > 59) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
         }
         return Ok(TIME_OF_DAY {

@@ -255,10 +255,11 @@ somewhat battle-tested.
 
 ## To Do
 
+- [ ] Normalize `NumericString`
 - [ ] To and from `NumericString` values for time types
   - This is for X.690 encoding, primarily
 - [ ] `no-std` and other feature flags
-- [ ] Likely branch prediction macros
+- [x] Likely branch prediction macros
 - [x] `atoi_simd`
 - [ ] `itoa` feature
 - [ ] Documentation comments
