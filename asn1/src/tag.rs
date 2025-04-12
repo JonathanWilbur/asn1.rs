@@ -65,6 +65,7 @@ impl From<(TagClass, TagNumber)> for Tag {
     }
 }
 
+// TODO: Test this
 impl FromStr for Tag {
     type Err = Error;
 

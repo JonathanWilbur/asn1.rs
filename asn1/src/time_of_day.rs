@@ -62,14 +62,27 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
             // "HH:MM:SS".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let str_ = std::str::from_utf8(&value_bytes)
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        let hour = u8::from_str(&str_[0..2])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        let minute = u8::from_str(&str_[3..5])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        let second = u8::from_str(&str_[6..])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        // TODO: Check for colons
+        let hour: u8;
+        let minute: u8;
+        let second: u8;
+        if cfg!(feature = "atoi_simd") {
+            hour = atoi_simd::parse_pos::<u8>(&value_bytes[0..2]) // TODO: Change all uses to parse_pos where appropriate
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            minute = atoi_simd::parse_pos::<u8>(&value_bytes[3..5])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            second = atoi_simd::parse_pos::<u8>(&value_bytes[6..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        } else {
+            let str_ = std::str::from_utf8(&value_bytes)
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            hour = u8::from_str(&str_[0..2])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            minute = u8::from_str(&str_[3..5])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            second = u8::from_str(&str_[6..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        }
         if hour > 23 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }

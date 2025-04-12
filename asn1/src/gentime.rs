@@ -1,5 +1,7 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
+use crate::utils::get_days_in_month;
+use crate::utils::macros::parse_uint;
 use std::cmp::min;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
@@ -155,47 +157,40 @@ impl From<DATE> for GeneralizedTime {
 impl TryFrom<&[u8]> for GeneralizedTime {
     type Error = ASN1Error;
 
-    fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        let len = value_bytes.len();
+    fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
+        let len = b.len();
         if len < 10 {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         // There is technically no limit on how big a GeneralizedTime can be, but
-        // we have to set a reasonable limit here.
+        // we have to set a reasonable limit here. This accomodates nanoseconds.
         if len > 32 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
         }
-        if value_bytes[0..10].iter().any(|b| !b.is_ascii_digit()) {
+        if !b.is_ascii() {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let s = std::str::from_utf8(&value_bytes)
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        let mut date = DATE::default();
+        // Note that we MUST check for ASCII before indexing into a string.
+        let s = unsafe { // Safe because we check for ASCII above.
+            std::str::from_utf8_unchecked(b)
+        };
         let mut ret = GeneralizedTime::new();
-        date.year = u16::from_str(&s[0..4])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
-        date.month = u8::from_str(&s[4..6])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
-        if date.month == 0 || date.month > 12 {
+        ret.date.year = parse_uint!(u16, &b[0..4], &s[0..4], ASN1ErrorCode::invalid_year);
+        ret.date.month = parse_uint!(u8, &b[4..6], &s[4..6], ASN1ErrorCode::invalid_month);
+        ret.date.day = parse_uint!(u8, &b[6..8], &s[6..8], ASN1ErrorCode::invalid_day);
+        ret.hour = parse_uint!(u8, &b[8..10], &s[8..10], ASN1ErrorCode::invalid_hour);
+        if ret.date.month == 0 || ret.date.month > 12 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
-        date.day = u8::from_str(&s[6..8])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
-        if date.day == 0 || date.day > 31 {
+        let max_day: u8 = get_days_in_month(ret.date.year, ret.date.month);
+        if ret.date.day == 0 || ret.date.day > max_day {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
-        ret.date = date;
-        ret.hour = u8::from_str(&s[8..10])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
         if ret.hour > 23 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }
-        if (len >= 12) && value_bytes[10].is_ascii_digit() {
-            if !value_bytes[11].is_ascii_digit() {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
-            }
-            let minute = u8::from_str(&s[10..12])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+        if (len >= 12) && b[10].is_ascii_digit() {
+            let minute = parse_uint!(u8, &b[10..12], &s[10..12], ASN1ErrorCode::invalid_minute);
             if minute > 59 {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
             }
@@ -204,13 +199,9 @@ impl TryFrom<&[u8]> for GeneralizedTime {
 
         if let Some((m, _)) = ret.minute {
             // Normal "if"s cannot be combined with "if let"s.
-            if (len >= 14) && value_bytes[12].is_ascii_digit() {
+            if (len >= 14) && b[12].is_ascii_digit() {
                 // Seconds component is present.
-                if !value_bytes[13].is_ascii_digit() { // TODO: Is this check necessary?
-                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-                }
-                let second = u8::from_str(&s[12..14])
-                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
+                let second = parse_uint!(u8, &b[12..14], &s[12..14], ASN1ErrorCode::invalid_second);
                 if second > 59 {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
                 }
@@ -222,21 +213,25 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             None => 10,
             Some((_, s)) => if s.is_some() { 14 } else { 12 },
         };
-        if (len > (i + 1)) && ((value_bytes[i] == b'.') || (value_bytes[i] == b',')) {
+        if (len > (i + 1)) && ((b[i] == b'.') || (b[i] == b',')) {
             i += 1;
             let start = i;
-            while i < len && value_bytes[i].is_ascii_digit() {
+            while i < len && b[i].is_ascii_digit() {
                 i += 1;
             }
             let end = min(i, start + 9); // We can only tolerate 9 digits of precision.
-            let fractional_value = u32::from_str(&s[start..end])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds))?;
+            let fractional_value = parse_uint!(
+                u32,
+                &b[start..end],
+                &s[start..end],
+                ASN1ErrorCode::invalid_fraction_of_seconds
+            );
             ret.fraction = fractional_value;
             ret.flags &= 0b1111_0000; // Clear the bottom four bits
             ret.flags |= ((end - start) as u8) % 10;
         }
 
-        let offset_sign = value_bytes.get(i);
+        let offset_sign = b.get(i);
         if offset_sign.is_some_and(|c| *c == b'Z') {
             // ret.utc = true; // This is the default.
             ret.utc_offset = Some(UTCOffset::utc());
@@ -253,15 +248,19 @@ impl TryFrom<&[u8]> for GeneralizedTime {
         if (len != (i + 3)) && (len != (i + 5)) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
-        let offset_hour = i8::from_str(&s[i..i + 3])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?;
+        let offset_hour = if cfg!(feature = "atoi_simd") {
+            atoi_simd::parse_skipped(&b[i..i + 3])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+        } else {
+            i8::from_str(&s[i..i + 3])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+        };
         if offset_hour.abs() > 12 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
         i += 3;
         let offset_minute = if len == (i + 2) {
-            u8::from_str(&s[i..i+2])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+            parse_uint!(u8, &b[i..i+2], &s[i..i+2], ASN1ErrorCode::invalid_time_offset)
         } else {
             0
         };
@@ -322,14 +321,14 @@ mod tests {
 
     #[test]
     fn gen_time_from_str_accepts_fractional_seconds() {
-        let input = b"19960415203000.0";
-        GeneralizedTime::try_from(input.as_slice()).unwrap();
+        let input = "19960415203000.0";
+        GeneralizedTime::from_str(input).unwrap();
     }
 
     #[test]
     fn gen_time_from_str_accepts_fractional_seconds_and_timezone() {
-        let input = b"19960415203000.0Z";
-        GeneralizedTime::try_from(input.as_slice()).unwrap();
+        let input = "19960415203000.0Z";
+        GeneralizedTime::from_str(input).unwrap();
     }
 
     #[test]
@@ -364,6 +363,8 @@ mod tests {
             // The most complicated examples
             [ "20210203040607.32895292-0503", "2021-02-03T04:06:07.32895292-0503" ],
             [ "20210203040607,32895292+0304", "2021-02-03T04:06:07.32895292+0304" ],
+            // Nanosecond precision
+            // [ "20210203040607.123456789-0503", "2021-02-03T04:06:07.123456789-0503" ],
         ];
         for [valid_gentime, should_be] in subtests {
             let gt = GeneralizedTime::from_str(valid_gentime).expect(valid_gentime);
@@ -371,7 +372,8 @@ mod tests {
         }
     }
 
-
+    // FIXME: Check that these do not panic and use assertions instead.
+    // This is to check for out of bounds access and such.
     #[test]
     fn gen_time_invalid() {
         let subtests = [

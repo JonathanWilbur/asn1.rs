@@ -168,11 +168,19 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
             } else {
                 i
             };
-            // TODO: do not allocate. Just make a string slice.
-            let component_str = String::from_utf8(value_bytes[start_of_last_digit..end_index].to_vec())
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?;
-            let component_value = u32::from_str(&component_str)
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?;
+
+            let component_value: u32 = if cfg!(feature = "atoi_simd") {
+                atoi_simd::parse_pos::<u32>(&value_bytes[start_of_last_digit..end_index])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
+            } else {
+                // TODO: do not allocate. Just make a string slice.
+                // TODO: Also, do it unchecked after checking for all ASCII bytes.
+                let component_str = String::from_utf8(value_bytes[start_of_last_digit..end_index].to_vec())
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?;
+                u32::from_str(&component_str)
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
+            };
+
             start_of_last_digit = i + 1;
             encountered |= max_encountered;
             match c as char {

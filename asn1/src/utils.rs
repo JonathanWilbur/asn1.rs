@@ -88,6 +88,32 @@ pub fn compare_numeric_string (a: &str, b: &str) -> bool {
     true
 }
 
+/// This is not a time library.
+pub(crate) fn get_days_in_month (year: u16, month: u8) -> u8 {
+    let is_leap_year = ((year % 4) == 0) && (((year % 100) > 0) || ((year % 400) == 0));
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        2 => if is_leap_year { 29 } else { 28 },
+        _ => 30,
+    }
+}
+
+pub(crate) mod macros {
+    macro_rules! parse_uint {
+        ( $inttype:ty, $bytes:expr, $string:expr, $errcode:expr ) => {
+            if cfg!(feature = "atoi_simd") {
+                atoi_simd::parse_pos::<$inttype>($bytes)
+                    .map_err(|_| ASN1Error::new($errcode))?
+            } else {
+                <$inttype>::from_str($string)
+                    .map_err(|_| ASN1Error::new($errcode))?
+            }
+        };
+    }
+
+    pub(crate) use parse_uint;
+}
+
 #[cfg(test)]
 mod tests {
 

@@ -1,5 +1,5 @@
 [workspace]
-
+resolver = "3"
 members = [
     "asn1",
     "x690",
@@ -11,9 +11,6 @@ members = [
     "cms",
     "tsp-server",
     "x500dsa",
-    "dirstudio",
-    "dirstudio/src-tauri",
-    "dirstudio-api-types",
     "nsap-address",
     "tpkt",
     "x691",
@@ -26,3 +23,7 @@ members = [
     "rfc4523-parsing",
     "osi-net",
 ]
+
+[workspace.dependencies]
+atoi_simd = "0.16.0"
+likely_stable = "0.1.3"

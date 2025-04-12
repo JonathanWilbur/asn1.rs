@@ -1,5 +1,7 @@
+use atoi_simd::AtoiSimdError;
+
 use crate::{types::OBJECT_IDENTIFIER, OID_ARC, RELATIVE_OID};
-use std::{fmt::Display, num::ParseIntError, str::FromStr};
+use std::{fmt::Display, num::{IntErrorKind, ParseIntError}, str::FromStr};
 
 impl OBJECT_IDENTIFIER {
     pub fn new(nodes: Vec<OID_ARC>) -> Self {
@@ -45,12 +47,17 @@ impl OBJECT_IDENTIFIER {
 // TODO: Iterator
 
 impl FromStr for OBJECT_IDENTIFIER {
-    type Err = ParseIntError;
+    type Err = (); // TODO: More detailed error type? Overflow, empty, etc.
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut nodes: Vec<u32> = Vec::with_capacity(s.len());
-        for str in s.split(".") {
-            nodes.push(str.parse::<u32>()?);
+        for arc_string in s.split(".") {
+            if cfg!(feature = "atoi_simd") {
+                let arc = atoi_simd::parse::<u32>(arc_string.as_bytes()).map_err(|_| ())?;
+                nodes.push(arc);
+            } else {
+                nodes.push(arc_string.parse::<u32>().map_err(|_| ())?);
+            }
         }
         Ok(OBJECT_IDENTIFIER(nodes))
     }
@@ -97,7 +104,7 @@ impl PartialEq for OBJECT_IDENTIFIER {
 macro_rules! oid {
     ( $( $x:expr ),* ) => {
         {
-            use super::OBJECT_IDENTIFIER;
+            use $crate::OBJECT_IDENTIFIER;
             OBJECT_IDENTIFIER::new(Vec::from([ $($x,)* ]))
         }
     };

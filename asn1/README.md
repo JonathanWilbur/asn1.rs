@@ -259,6 +259,7 @@ somewhat battle-tested.
   - This is for X.690 encoding, primarily
 - [ ] `no-std` and other feature flags
 - [ ] Likely branch prediction macros
-- [ ] `atoi_simd`
+- [x] `atoi_simd`
+- [ ] `itoa` feature
 - [ ] Documentation comments
 - [ ] `README.md` documentation

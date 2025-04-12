@@ -1,8 +1,9 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
+use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME};
+use crate::utils::get_days_in_month;
 use std::fmt::Display;
 use std::str::FromStr;
 
-use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME};
 
 impl DATE {
     pub fn new(year: u16, month: u8, day: u8) -> Self {
@@ -71,19 +72,37 @@ impl TryFrom<&[u8]> for DATE {
         if value_bytes.len() != 10 { // "YYYY-MM-DD".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let str_ = std::str::from_utf8(&value_bytes)
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        // TODO: Hack to accelerate decoding of 202x by checking for "202" prefix
-        let year = u16::from_str(&str_[0..4])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        let month = u8::from_str(&str_[5..7])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        let day = u8::from_str(&str_[8..])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        // TODO: Check for dashes
+        let year: u16;
+        let month: u8;
+        let day: u8;
+        if cfg!(feature = "atoi_simd") {
+            year = atoi_simd::parse::<u16>(&value_bytes[0..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            month = atoi_simd::parse::<u8>(&value_bytes[5..7])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            day = atoi_simd::parse::<u8>(&value_bytes[8..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        } else {
+            if !value_bytes.is_ascii() {
+                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+            }
+            // TODO: Unchecked
+            let str_ = std::str::from_utf8(&value_bytes)
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            // TODO: Hack to accelerate decoding of 202x by checking for "202" prefix
+            year = u16::from_str(&str_[0..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            month = u8::from_str(&str_[5..7])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            day = u8::from_str(&str_[8..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        }
         if month > 12 || month == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
-        if day > 31 || day == 0 {
+        let max_day = get_days_in_month(year, month);
+        if day > max_day || day == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
         Ok(DATE { year, month, day })

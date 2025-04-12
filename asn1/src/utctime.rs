@@ -1,5 +1,7 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
+use crate::utils::get_days_in_month;
+use crate::utils::macros::parse_uint;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
 
@@ -96,74 +98,69 @@ impl PartialEq<GeneralizedTime> for UTCTime {
 impl TryFrom<&[u8]> for UTCTime {
     type Error = ASN1Error;
 
-    fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        let len = value_bytes.len();
+    fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
+        let len = b.len();
         if len < 10 {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         if len > 17 {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        if value_bytes[0..10].iter().any(|b| !b.is_ascii_digit()) {
+        if !b[0..10].is_ascii() {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let s = std::str::from_utf8(&value_bytes)
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        // Note that we MUST check for ASCII before indexing into a string.
+        let s = unsafe { // Safe because we check for ASCII above.
+            std::str::from_utf8_unchecked(&b)
+        };
         let mut ret = UTCTime::new();
-        ret.year = u8::from_str(&s[0..2])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
-        ret.month = u8::from_str(&s[2..4])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+        ret.year = parse_uint!(u8, &b[0..2], &s[0..2], ASN1ErrorCode::invalid_year);
+        ret.month = parse_uint!(u8, &b[2..4], &s[2..4], ASN1ErrorCode::invalid_month);
+        ret.day = parse_uint!(u8, &b[4..6], &s[4..6], ASN1ErrorCode::invalid_month);
+        ret.hour = parse_uint!(u8, &b[6..8], &s[6..8], ASN1ErrorCode::invalid_hour);
+        ret.minute = parse_uint!(u8, &b[8..10], &s[8..10], ASN1ErrorCode::invalid_minute);
         if ret.month == 0 || ret.month > 12 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
-        ret.day = u8::from_str(&s[4..6])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
         let year = if ret.year >= 50 { ret.year as u16 + 1900 } else { ret.year as u16 + 2000 };
-        let is_leap_year = ((year % 4) == 0) && (((year % 100) > 0) || ((year % 400) == 0));
-        let max_day = match ret.month {
-            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-            2 => if is_leap_year { 29 } else { 28 },
-            _ => 30,
-        };
+        let max_day: u8 = get_days_in_month(year, ret.month);
         if ret.day == 0 || ret.day > max_day {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
-        ret.hour = u8::from_str(&s[6..8])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
         if ret.hour > 23 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }
-        ret.minute = u8::from_str(&s[8..10])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
         if ret.minute > 59 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
         }
-        if (len > 12) && value_bytes[10].is_ascii_digit() {
+        if (len > 12) && b[10].is_ascii_digit() {
             // Seconds component is present.
-            if !value_bytes[11].is_ascii_digit() {
+            if !b[11].is_ascii_digit() {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
-            ret.second = u8::from_str(&s[10..12])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
+            ret.second = parse_uint!(u8, &b[10..12], &s[10..12], ASN1ErrorCode::invalid_minute);
             if ret.second > 59 {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
         }
-        if value_bytes[len - 1] != b'Z' {
-            if (value_bytes[len - 5] != b'+') && (value_bytes[len - 5] != b'-') {
+        if b[len - 1] != b'Z' {
+            if (b[len - 5] != b'+') && (b[len - 5] != b'-') {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
-            if value_bytes[len - 4..len].iter().any(|b| !b.is_ascii_digit()) {
+            if b[len - 4..len].iter().any(|by| !by.is_ascii_digit()) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
-            let offset_hour = i8::from_str(&s[len - 5..len - 2])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?;
+            let offset_hour = if cfg!(feature = "atoi_simd") {
+                atoi_simd::parse_skipped(&b[len-5..len-2])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+            } else {
+                i8::from_str(&s[len-5..len-2])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+            };
             if offset_hour.abs() > 12 {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
-            let offset_minute = u8::from_str(&s[len - 2..len])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?;
+            let offset_minute = parse_uint!(u8, &b[len-2..len], &s[len-2..len], ASN1ErrorCode::invalid_time_offset);
             if offset_minute > 59 {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
