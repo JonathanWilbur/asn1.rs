@@ -255,12 +255,16 @@ somewhat battle-tested.
 
 ## To Do
 
+- [ ] Performance Hacks
+  - [ ] `heapless`
+  - [ ] `smallvec`
+  - [ ] `smolstr`
+-   [ ] `itoa`
+  - [ ] Inline all `new()`, `default()`, etc.
 - [ ] Normalize `NumericString`
 - [ ] To and from `NumericString` values for time types
   - This is for X.690 encoding, primarily
 - [ ] `no-std` and other feature flags
-- [x] Likely branch prediction macros
-- [x] `atoi_simd`
-- [ ] `itoa` feature
 - [ ] Documentation comments
 - [ ] `README.md` documentation
+- [ ] Debug assertions / debug logging?

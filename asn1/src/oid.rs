@@ -1,15 +1,18 @@
 use atoi_simd::AtoiSimdError;
 
-use crate::{types::OBJECT_IDENTIFIER, OID_ARC, RELATIVE_OID};
-use std::{fmt::Display, num::{IntErrorKind, ParseIntError}, str::FromStr};
+use crate::{types::OBJECT_IDENTIFIER, unlikely, OID_ARC, RELATIVE_OID};
+use std::{fmt::{Display, Write}, num::{IntErrorKind, ParseIntError}, str::FromStr};
 
 impl OBJECT_IDENTIFIER {
     pub fn new(nodes: Vec<OID_ARC>) -> Self {
         OBJECT_IDENTIFIER(nodes)
     }
 
-    // TODO: Do this more efficiently.
+    // TODO: Dedupe from ROID
     pub fn to_asn1_string(&self) -> String {
+        // I don't think there's really a much more performant way to implement
+        // this. itoa is not very helpful here, because we have to clone the
+        // stack buffer into an owned string anyway.
         format!(
             "{{ {} }}",
             self.0
@@ -21,6 +24,9 @@ impl OBJECT_IDENTIFIER {
     }
 
     pub fn to_iri_string(&self) -> String {
+        // I don't think there's really a much more performant way to implement
+        // this. itoa is not very helpful here, because we have to clone the
+        // stack buffer into an owned string anyway.
         format!(
             "/{}",
             self.0
@@ -64,16 +70,28 @@ impl FromStr for OBJECT_IDENTIFIER {
     }
 }
 
+// TODO: Dedupe by converting into ROID or vice versa
 impl Display for OBJECT_IDENTIFIER {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(
-            self.0
-                .iter()
-                .map(|n| n.to_string())
-                .collect::<Vec<String>>()
-                .join(".")
-                .as_str(),
-        )
+        if unlikely(self.0.len() == 0) {
+            return Ok(());
+        }
+        if cfg!(feature = "itoa") {
+            let mut buf1 = itoa::Buffer::new();
+            f.write_str(buf1.format(self.0[0]))?;
+        } else {
+            f.write_str(self.0[0].to_string().as_str())?;
+        }
+        for arc in self.0[1..].iter() {
+            f.write_char('.')?;
+            if cfg!(feature = "itoa") {
+                let mut buf1 = itoa::Buffer::new();
+                f.write_str(buf1.format(*arc))?;
+            } else {
+                f.write_str(arc.to_string().as_str())?;
+            }
+        }
+        Ok(())
     }
 }
 

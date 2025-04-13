@@ -1,17 +1,28 @@
 use crate::types::{ASN1Value, INTEGER};
-use crate::utils::{read_i64, unlikely};
+use crate::utils::{read_i64, likely};
 use std::fmt::{Display, Write};
 
-pub fn write_hex(v: &Vec<u8>, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    for b in v {
-        write!(f, "{:02x}", b)?;
+pub fn write_hex(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    if cfg!(feature = "faster-hex") {
+        f.write_str(faster_hex::hex_string(v).as_str())
+    } else {
+        for b in v {
+            write!(f, "{:02x}", b)?;
+        }
+        Ok(())
     }
-    Ok(())
 }
 
 pub fn write_int(int: &INTEGER, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match read_i64(int) {
-        Ok(v) => write!(f, "{}", v), // TODO: itoa
+        Ok(v) => {
+            if cfg!(feature = "itoa") {
+                let mut buf = itoa::Buffer::new();
+                f.write_str(buf.format(v))
+            } else {
+                write!(f, "{}", v)
+            }
+        },
         Err(()) => {
             f.write_str("0x")?;
             write_hex(int, f)
@@ -68,7 +79,7 @@ impl Display for ASN1Value {
                 let mut i = 0;
                 f.write_str("{ ")?;
                 for component in v {
-                    if unlikely(i > 0) {
+                    if likely(i > 0) {
                         f.write_str(", ")?;
                     }
                     std::fmt::Display::fmt(component, f)?;
@@ -80,7 +91,7 @@ impl Display for ASN1Value {
                 let mut i = 0;
                 f.write_str("{ ")?;
                 for component in v {
-                    if unlikely(i > 0) {
+                    if likely(i > 0) {
                         f.write_str(", ")?;
                     }
                     std::fmt::Display::fmt(component, f)?;
@@ -92,7 +103,7 @@ impl Display for ASN1Value {
                 let mut i = 0;
                 f.write_str("{ ")?;
                 for component in v {
-                    if i > 0 {
+                    if likely(i > 0) {
                         f.write_str(", ")?;
                     }
                     std::fmt::Display::fmt(component, f)?;
@@ -104,7 +115,7 @@ impl Display for ASN1Value {
                 let mut i = 0;
                 f.write_str("{ ")?;
                 for component in v {
-                    if i > 0 {
+                    if likely(i > 0) {
                         f.write_str(", ")?;
                     }
                     std::fmt::Display::fmt(component, f)?;

@@ -150,6 +150,7 @@ impl FractionalPart {
     }
 }
 
+// FIXME: Implement eq and hash
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 // Defined in ITU X.680, Section 38.4.4.2.
 pub struct DURATION_EQUIVALENT {
@@ -167,6 +168,7 @@ pub struct DURATION_EQUIVALENT {
 pub type BOOLEAN = bool;
 pub type INTEGER = Bytes;
 pub type BIT = usize;
+// FIXME: Implement eq and hash
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct BIT_STRING {
     pub bytes: Vec<u8>,

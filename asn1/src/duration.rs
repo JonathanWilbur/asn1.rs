@@ -1,6 +1,8 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{FractionalPart, DURATION_EQUIVALENT};
+use crate::write_int;
 use core::str;
+use std::fmt::Write;
 use std::{fmt::Display, str::FromStr, time::Duration};
 use crate::utils::{unlikely, likely};
 
@@ -223,67 +225,114 @@ impl FromStr for DURATION_EQUIVALENT {
     }
 }
 
+macro_rules! print_uint {
+    ($f:ident, $x:expr) => {
+        if cfg!(feature = "itoa") {
+            let mut buf = itoa::Buffer::new();
+            $f.write_str(buf.format($x))?;
+        } else {
+            $f.write_str($x.to_string().as_str())?;
+        }
+    };
+}
+
 impl Display for DURATION_EQUIVALENT {
 
-    // TODO: Handle P0S and such.
     // TODO: Find a more efficient way to do this.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut parts: Vec<String> = vec![String::from("P")];
+        if self.is_zero() {
+            return f.write_str("P0S");
+        }
+        f.write_char('P')?;
+        let mut unit: char = '\0';
+        // let mut parts: Vec<String> = vec![String::from("P")];
         if self.years > 0 {
-            parts.push(format!("{}Y", self.years));
+            print_uint!(f, self.years);
+            unit = 'Y';
         }
         if self.months > 0 {
-            parts.push(format!("{}M", self.months));
+            if unit > '\0' {
+                f.write_char(unit)?;
+            }
+            print_uint!(f, self.months);
+            unit = 'M';
         }
         if self.weeks > 0 {
-            parts.push(format!("{}W", self.weeks));
+            if unit > '\0' {
+                f.write_char(unit)?;
+            }
+            print_uint!(f, self.weeks);
+            unit = 'W';
         }
         if self.days > 0 {
-            parts.push(format!("{}D", self.days));
+            if unit > '\0' {
+                f.write_char(unit)?;
+            }
+            print_uint!(f, self.days);
+            unit = 'D';
         }
         if self.hours > 0 || self.minutes > 0 || self.seconds > 0 {
-            parts.push("T".into());
+            f.write_char('T')?;
         }
         if self.hours > 0 {
-            parts.push(format!("{}H", self.hours));
+            if unit > '\0' {
+                f.write_char(unit)?;
+            }
+            print_uint!(f, self.hours);
+            unit = 'H';
         }
         if self.minutes > 0 {
-            parts.push(format!("{}M", self.minutes));
+            if unit > '\0' {
+                f.write_char(unit)?;
+            }
+            print_uint!(f, self.minutes);
+            unit = 'M';
         }
         if self.seconds > 0 {
-            parts.push(format!("{}S", self.seconds));
+            if unit > '\0' {
+                f.write_char(unit)?;
+            }
+            print_uint!(f, self.seconds);
+            unit = 'S';
         }
-        if let Some(frac) = &self.fractional_part {
-            let last_part = parts.last_mut();
-            match last_part {
-                Some(part) => {
-                    let last_char = part.pop();
-                    match last_char {
-                        Some(c) => {
-                            parts.push(format!(
-                                ".{:0>width$}{}",
-                                frac.fractional_value,
-                                c,
-                                width = frac.number_of_digits as usize
-                            ));
-                        }
-                        None => {
-                            let str_form = parts.join("");
-                            return f.write_str(str_form.as_str());
-                        }
-                    }
-                }
-                None => {
-                    parts.push(format!(
-                        "0.{:>width$}S",
-                        frac.fractional_value,
-                        width = frac.number_of_digits as usize
-                    ));
-                }
-            };
-        }
-        let str_form = parts.join("");
-        f.write_str(str_form.as_str())
+        Ok(())
+        // if let Some(frac) = &self.fractional_part {
+        //     // FIXME: I just realized a big problem with this implementation:
+        //     // it is ambiguous as to which part the fraction belongs. 0 is used
+        //     // to mean "absent."
+        //     if unit > '\0' {
+
+        //     } else {
+        //         // It
+        //     }
+        //     let last_part = parts.last_mut();
+        //     match last_part {
+        //         Some(part) => {
+        //             let last_char = part.pop();
+        //             match last_char {
+        //                 Some(c) => {
+        //                     parts.push(format!(
+        //                         ".{:0>width$}{}",
+        //                         frac.fractional_value,
+        //                         c,
+        //                         width = frac.number_of_digits as usize
+        //                     ));
+        //                 }
+        //                 None => {
+        //                     let str_form = parts.join("");
+        //                     return f.write_str(str_form.as_str());
+        //                 }
+        //             }
+        //         }
+        //         None => {
+        //             parts.push(format!(
+        //                 "0.{:>width$}S",
+        //                 frac.fractional_value,
+        //                 width = frac.number_of_digits as usize
+        //             ));
+        //         }
+        //     };
+        // }
     }
 }
 

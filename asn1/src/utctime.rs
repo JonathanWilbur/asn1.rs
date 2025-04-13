@@ -31,6 +31,50 @@ impl UTCTime {
 
 impl ISO8601Timestampable for UTCTime {
 
+    #[cfg(feature = "itoa")]
+    fn to_iso_8601_string(&self) -> String {
+        let mut buf_year = itoa::Buffer::new();
+        let mut buf_month = itoa::Buffer::new();
+        let mut buf_day = itoa::Buffer::new();
+        let mut buf_hour = itoa::Buffer::new();
+        let mut buf_minute = itoa::Buffer::new();
+        let mut buf_second = itoa::Buffer::new();
+        let mut buf_offset_h = itoa::Buffer::new();
+        let mut buf_offset_m = itoa::Buffer::new();
+
+        let year = if self.year >= 50 {
+            self.year as u16 + 1900
+        } else {
+            self.year as u16 + 2000
+        };
+
+        if !self.utc_offset.is_zero() {
+            let sign = if self.utc_offset.hour >= 0 { '+' } else { '-' };
+            return format!(
+                "{:0>4}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:{:0>2}{}{:0>2}{:0>2}",
+                buf_year.format(year),
+                buf_month.format(self.month),
+                buf_day.format(self.day),
+                buf_hour.format(self.hour),
+                buf_minute.format(self.minute),
+                buf_second.format(self.second),
+                sign,
+                buf_offset_h.format(self.utc_offset.hour.abs()),
+                buf_offset_m.format(self.utc_offset.minute),
+            );
+        }
+        return format!(
+            "{:0>4}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:{:0>2}Z",
+            buf_year.format(year),
+            buf_month.format(self.month),
+            buf_day.format(self.day),
+            buf_hour.format(self.hour),
+            buf_minute.format(self.minute),
+            buf_second.format(self.second),
+        );
+    }
+
+    #[cfg(not(feature = "itoa"))]
     fn to_iso_8601_string(&self) -> String {
         if !self.utc_offset.is_zero() {
             let sign = if self.utc_offset.hour >= 0 { '+' } else { '-' };
@@ -182,6 +226,39 @@ impl FromStr for UTCTime {
 }
 
 impl Display for UTCTime {
+
+    #[cfg(feature = "itoa")]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut buf_year = itoa::Buffer::new();
+        let mut buf_month = itoa::Buffer::new();
+        let mut buf_day = itoa::Buffer::new();
+        let mut buf_hour = itoa::Buffer::new();
+        let mut buf_minute = itoa::Buffer::new();
+        let mut buf_second = itoa::Buffer::new();
+        let mut buf_offset_h = itoa::Buffer::new();
+        let mut buf_offset_m = itoa::Buffer::new();
+
+        write!(f, "{:0>2}{:0>2}{:0>2}{:0>2}{:0>2}{:0>2}",
+            buf_year.format(self.year),
+            buf_month.format(self.month),
+            buf_day.format(self.day),
+            buf_hour.format(self.hour),
+            buf_minute.format(self.minute),
+            buf_second.format(self.second),
+        )?;
+        if self.utc_offset.is_zero() {
+            f.write_char('Z')
+        } else {
+            let sign = if self.utc_offset.hour >= 0 { '+' } else { '-' };
+            f.write_char(sign)?;
+            write!(f, "{:0>2}{:0>2}",
+                buf_offset_h.format(self.utc_offset.hour),
+                buf_offset_m.format(self.utc_offset.minute),
+            )
+        }
+    }
+
+    #[cfg(not(feature = "itoa"))]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:02}{:02}{:02}{:02}{:02}{:02}",
             self.year % 100,
@@ -197,6 +274,7 @@ impl Display for UTCTime {
             write!(f, "{:+03}{:02}", self.utc_offset.hour, self.utc_offset.minute)
         }
     }
+
 }
 
 #[cfg(test)]

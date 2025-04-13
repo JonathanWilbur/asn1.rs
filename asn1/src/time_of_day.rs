@@ -111,8 +111,18 @@ impl FromStr for TIME_OF_DAY {
 
 impl Display for TIME_OF_DAY {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str_form = format!("{:02}:{:02}:{:02}", self.hour, self.minute, self.second);
-        f.write_str(&str_form)
+        if cfg!(feature = "itoa") {
+            let mut buf1 = itoa::Buffer::new();
+            let mut buf2 = itoa::Buffer::new();
+            let mut buf3 = itoa::Buffer::new();
+            write!(f, "{:0>2}:{:0>2}:{:0>2}",
+                buf1.format(self.hour),
+                buf2.format(self.minute),
+                buf3.format(self.second)
+            )
+        } else {
+            write!(f, "{:02}:{:02}:{:02}", self.hour, self.minute, self.second)
+        }
     }
 }
 

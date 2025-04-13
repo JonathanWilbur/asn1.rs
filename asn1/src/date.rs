@@ -119,7 +119,18 @@ impl FromStr for DATE {
 
 impl Display for DATE {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day)
+        if cfg!(feature = "itoa") {
+            let mut buf1 = itoa::Buffer::new();
+            let mut buf2 = itoa::Buffer::new();
+            let mut buf3 = itoa::Buffer::new();
+            write!(f, "{:0>4}-{:0>2}-{:0>2}",
+                buf1.format(self.year % 10000),
+                buf2.format(self.month),
+                buf3.format(self.day)
+            )
+        } else {
+            write!(f, "{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day)
+        }
     }
 }
 

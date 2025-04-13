@@ -158,16 +158,31 @@ impl fmt::Display for ASN1Error {
             write!(f, " tag={}", tag)?;
         }
         if let Some(len) = self.length {
-            write!(f, " len={}", len)?;
+            if cfg!(feature = "itoa") {
+                let mut buf = itoa::Buffer::new();
+                write!(f, " len={}", buf.format(len))?;
+            } else {
+                write!(f, " len={}", len)?;
+            }
         }
         if let Some(c) = self.constructed {
             write!(f, " cons={}", c)?;
         }
         if let Some(index) = self.bytes_read {
-            write!(f, " bytes_read={}", index)?;
+            if cfg!(feature = "itoa") {
+                let mut buf = itoa::Buffer::new();
+                write!(f, " bytes_read={}", buf.format(index))?;
+            } else {
+                write!(f, " bytes_read={}", index)?;
+            }
         }
         if let Some(index) = self.values_read {
-            write!(f, " values_read={}", index)?;
+            if cfg!(feature = "itoa") {
+                let mut buf = itoa::Buffer::new();
+                write!(f, " values_read={}", buf.format(index))?;
+            } else {
+                write!(f, " values_read={}", index)?;
+            }
         }
         if let Some(preview) = &self.value_preview {
             write!(f, " peek='{}'", preview)?;

@@ -53,7 +53,13 @@ impl fmt::Display for Tag {
             TagClass::APPLICATION => write!(f, "[ APPLICATION ")?,
             TagClass::PRIVATE => write!(f, "[ PRIVATE ")?,
         };
-        write!(f, "{} ]", self.tag_number)
+        if cfg!(feature = "itoa") {
+            let mut buf = itoa::Buffer::new();
+            f.write_str(buf.format(self.tag_number))?;
+            f.write_str(" ]")
+        } else {
+            write!(f, "{} ]", self.tag_number)
+        }
     }
 }
 
