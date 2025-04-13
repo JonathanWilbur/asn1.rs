@@ -6,6 +6,7 @@ use std::fmt::{Display, Write};
 use std::str::FromStr;
 
 impl UTCTime {
+    #[inline]
     pub fn new() -> Self {
         UTCTime {
             year: 0,
@@ -18,6 +19,7 @@ impl UTCTime {
         }
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.year == 0
             && self.month <= 1
@@ -105,6 +107,7 @@ impl ISO8601Timestampable for UTCTime {
 }
 
 impl Default for UTCTime {
+    #[inline]
     fn default() -> Self {
         UTCTime {
             year: 0,
@@ -119,6 +122,7 @@ impl Default for UTCTime {
 }
 
 impl From<GeneralizedTime> for UTCTime {
+    #[inline]
     fn from(other: GeneralizedTime) -> Self {
         let (minute, second) = other.minute.unwrap_or((0, None));
         UTCTime {
@@ -134,6 +138,7 @@ impl From<GeneralizedTime> for UTCTime {
 }
 
 impl PartialEq<GeneralizedTime> for UTCTime {
+    #[inline]
     fn eq(&self, other: &GeneralizedTime) -> bool {
         UTCTime::from(*other).eq(self)
     }
@@ -220,6 +225,7 @@ impl TryFrom<&[u8]> for UTCTime {
 impl FromStr for UTCTime {
     type Err = ASN1Error;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         UTCTime::try_from(s.as_bytes())
     }

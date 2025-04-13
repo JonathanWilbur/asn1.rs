@@ -7,6 +7,7 @@ use std::{fmt::Display, str::FromStr, time::Duration};
 use crate::utils::{unlikely, likely};
 
 impl DURATION_EQUIVALENT {
+    #[inline]
     pub fn new(
         years: u32,
         months: u32,
@@ -29,6 +30,7 @@ impl DURATION_EQUIVALENT {
         }
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.years == 0
             && self.months == 1
@@ -41,6 +43,7 @@ impl DURATION_EQUIVALENT {
 }
 
 impl Default for DURATION_EQUIVALENT {
+    #[inline]
     fn default() -> Self {
         DURATION_EQUIVALENT {
             years: 0,
@@ -58,6 +61,7 @@ impl Default for DURATION_EQUIVALENT {
 impl TryFrom<Duration> for DURATION_EQUIVALENT {
     type Error = std::num::TryFromIntError;
 
+    #[inline]
     fn try_from(other: Duration) -> Result<Self, Self::Error> {
         Ok(DURATION_EQUIVALENT {
             seconds: other.as_secs().try_into()?,
@@ -238,14 +242,12 @@ macro_rules! print_uint {
 
 impl Display for DURATION_EQUIVALENT {
 
-    // TODO: Find a more efficient way to do this.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.is_zero() {
             return f.write_str("P0S");
         }
         f.write_char('P')?;
         let mut unit: char = '\0';
-        // let mut parts: Vec<String> = vec![String::from("P")];
         if self.years > 0 {
             print_uint!(f, self.years);
             unit = 'Y';

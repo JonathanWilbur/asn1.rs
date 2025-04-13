@@ -2,10 +2,12 @@ use crate::{types::OBJECT_IDENTIFIER, OID_ARC, RELATIVE_OID};
 use std::{fmt::Display, num::ParseIntError, str::FromStr};
 
 impl RELATIVE_OID {
+    #[inline]
     pub fn new(nodes: &[OID_ARC]) -> Self {
         RELATIVE_OID(Vec::from(nodes))
     }
 
+    #[inline]
     pub fn to_asn1_string(&self) -> String {
         format!(
             "{{ {} }}",
@@ -17,6 +19,7 @@ impl RELATIVE_OID {
         )
     }
 
+    #[inline]
     pub fn to_iri_string(&self) -> String {
         format!(
             "/{}",
@@ -28,14 +31,17 @@ impl RELATIVE_OID {
         )
     }
 
+    #[inline]
     pub fn extend(&mut self, roid: &RELATIVE_OID) -> () {
         self.0.extend(roid.0.as_slice())
     }
 
+    #[inline]
     pub fn starts_with(&mut self, roid: &RELATIVE_OID) -> bool {
         self.0.starts_with(roid.0.as_slice())
     }
 
+    #[inline]
     pub fn ends_with(&mut self, roid: &RELATIVE_OID) -> bool {
         self.0.ends_with(roid.0.as_slice())
     }
@@ -75,12 +81,14 @@ impl IntoIterator for RELATIVE_OID {
     type Item = u32;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
 
 impl PartialEq for RELATIVE_OID {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         if self.0.len() != other.0.len() {
             return false;
@@ -95,6 +103,7 @@ impl PartialEq for RELATIVE_OID {
 }
 
 impl From<OBJECT_IDENTIFIER> for RELATIVE_OID {
+    #[inline]
     fn from(oid: OBJECT_IDENTIFIER) -> Self {
         RELATIVE_OID(oid.0.clone())
     }

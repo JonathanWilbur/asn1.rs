@@ -6,16 +6,19 @@ use std::str::FromStr;
 
 
 impl DATE {
+    #[inline]
     pub fn new(year: u16, month: u8, day: u8) -> Self {
         DATE { year, month, day }
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.year == 0 && self.month <= 1 && self.day <= 1
     }
 }
 
 impl Default for DATE {
+    #[inline]
     fn default() -> Self {
         DATE {
             year: 0,
@@ -26,18 +29,21 @@ impl Default for DATE {
 }
 
 impl From<GeneralizedTime> for DATE {
+    #[inline]
     fn from(other: GeneralizedTime) -> Self {
         other.date
     }
 }
 
 impl From<DATE_TIME> for DATE {
+    #[inline]
     fn from(other: DATE_TIME) -> Self {
         other.date
     }
 }
 
 impl From<UTCTime> for DATE {
+    #[inline]
     fn from(other: UTCTime) -> Self {
         DATE {
             /* The conversion below was taken from ITU Recommendation X.509
@@ -54,12 +60,14 @@ impl From<UTCTime> for DATE {
 }
 
 impl PartialEq<GeneralizedTime> for DATE {
+    #[inline]
     fn eq(&self, other: &GeneralizedTime) -> bool {
         DATE::from(*other).eq(self)
     }
 }
 
 impl PartialEq<UTCTime> for DATE {
+    #[inline]
     fn eq(&self, other: &UTCTime) -> bool {
         DATE::from(*other).eq(self)
     }
@@ -112,6 +120,7 @@ impl TryFrom<&[u8]> for DATE {
 impl FromStr for DATE {
     type Err = ASN1Error;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         DATE::try_from(s.as_bytes())
     }

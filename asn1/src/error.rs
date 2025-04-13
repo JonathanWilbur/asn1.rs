@@ -93,6 +93,7 @@ impl fmt::Display for ASN1ErrorCode {
 }
 
 impl ASN1Error {
+    #[inline]
     pub fn new(error_code: ASN1ErrorCode) -> Self {
         ASN1Error {
             error_code,
@@ -107,14 +108,17 @@ impl ASN1Error {
         }
     }
 
+    #[inline]
     pub fn relate_value (&mut self, value: &ASN1Value) {
         self.value_preview = Some(value.to_string());
     }
 
+    #[inline]
     pub fn relate_tag (&mut self, tag: &Tag) {
         self.tag = Some(*tag);
     }
 
+    #[inline]
     pub fn relate_spec (&mut self, spec: &ComponentSpec<'_>) {
         self.component_name = Some(String::from(spec.name));
     }
@@ -122,6 +126,7 @@ impl ASN1Error {
 }
 
 impl From<Error> for ASN1Error {
+    #[inline]
     fn from(other: Error) -> Self {
         ASN1Error {
             error_code: ASN1ErrorCode::io,
@@ -139,6 +144,7 @@ impl From<Error> for ASN1Error {
 
 impl From<ASN1Error> for std::io::Error {
 
+    #[inline]
     fn from(value: ASN1Error) -> Self {
         if let Some(e) = value.io_error {
             return e;

@@ -5,6 +5,7 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 impl TIME_OF_DAY {
+    #[inline]
     pub fn new(hour: u8, minute: u8, second: u8) -> Self {
         TIME_OF_DAY {
             hour,
@@ -13,12 +14,14 @@ impl TIME_OF_DAY {
         }
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0 && self.second == 0
     }
 }
 
 impl Default for TIME_OF_DAY {
+    #[inline]
     fn default() -> Self {
         TIME_OF_DAY {
             hour: 0,
@@ -29,12 +32,14 @@ impl Default for TIME_OF_DAY {
 }
 
 impl From<DATE_TIME> for TIME_OF_DAY {
+    #[inline]
     fn from(other: DATE_TIME) -> Self {
         other.time
     }
 }
 
 impl From<GeneralizedTime> for TIME_OF_DAY {
+    #[inline]
     fn from(other: GeneralizedTime) -> Self {
         let (minute, second) = other.minute.unwrap_or((0, None));
         TIME_OF_DAY {
@@ -46,6 +51,7 @@ impl From<GeneralizedTime> for TIME_OF_DAY {
 }
 
 impl From<UTCTime> for TIME_OF_DAY {
+    #[inline]
     fn from(other: UTCTime) -> Self {
         TIME_OF_DAY {
             hour: other.hour,
@@ -104,6 +110,7 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
 impl FromStr for TIME_OF_DAY {
     type Err = ASN1Error;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         TIME_OF_DAY::try_from(s.as_bytes())
     }
@@ -129,7 +136,6 @@ impl Display for TIME_OF_DAY {
 #[cfg(test)]
 mod tests {
     use super::*;
-
 
     #[test]
     fn test_time_display() {

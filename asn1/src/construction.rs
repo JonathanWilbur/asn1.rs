@@ -23,6 +23,8 @@ pub struct ComponentSpec<'a> {
 }
 
 impl<'a> ComponentSpec<'a> {
+
+    #[inline]
     pub const fn new(
         name: &'a str,
         optional: bool,
@@ -39,6 +41,7 @@ impl<'a> ComponentSpec<'a> {
         }
     }
 
+    #[inline]
     pub const fn req(
         name: &'a str,
         selector: TagSelector<'a>,
@@ -52,6 +55,7 @@ impl<'a> ComponentSpec<'a> {
         }
     }
 
+    #[inline]
     pub const fn opt(
         name: &'a str,
         selector: TagSelector<'a>,
@@ -69,6 +73,7 @@ impl<'a> ComponentSpec<'a> {
 // REVIEW: Does this make sense at all?
 impl <'a> Default for ComponentSpec<'a> {
 
+    #[inline]
     fn default() -> Self {
         ComponentSpec::<'a> {
             name: "",

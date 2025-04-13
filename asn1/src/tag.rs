@@ -37,6 +37,7 @@ impl PartialOrd for TagClass {
 }
 
 impl Tag {
+    #[inline]
     pub fn new(tag_class: TagClass, tag_number: TagNumber) -> Self {
         Tag {
             tag_class,
@@ -64,6 +65,7 @@ impl fmt::Display for Tag {
 }
 
 impl From<(TagClass, TagNumber)> for Tag {
+    #[inline]
     fn from(other: (TagClass, TagNumber)) -> Self {
         Tag {
             tag_class: other.0,

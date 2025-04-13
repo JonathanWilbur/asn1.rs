@@ -9,6 +9,7 @@ use crate::{
 use std::fmt::Display;
 
 impl EXTERNAL {
+    #[inline]
     pub fn new(
         identification: ExternalIdentification,
         data_value_descriptor: OPTIONAL<ObjectDescriptor>,
@@ -23,6 +24,7 @@ impl EXTERNAL {
 }
 
 impl EMBEDDED_PDV {
+    #[inline]
     pub fn new(
         identification: PresentationContextSwitchingTypeIdentification,
         data_value: OCTET_STRING,
@@ -35,6 +37,7 @@ impl EMBEDDED_PDV {
 }
 
 impl CHARACTER_STRING {
+    #[inline]
     pub fn new(
         identification: PresentationContextSwitchingTypeIdentification,
         string_value: OCTET_STRING,
@@ -86,6 +89,7 @@ impl From<ExternalIdentification> for PresentationContextSwitchingTypeIdentifica
 }
 
 impl From<INSTANCE_OF> for EXTERNAL {
+    #[inline]
     fn from(value: INSTANCE_OF) -> Self {
         EXTERNAL {
             identification: ExternalIdentification::syntax(value.type_id),

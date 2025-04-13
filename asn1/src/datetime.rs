@@ -7,6 +7,7 @@ use std::str::FromStr;
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, TIME_OF_DAY};
 
 impl DATE_TIME {
+    #[inline]
     pub fn new(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Self {
         DATE_TIME {
             date: DATE { year, month, day },
@@ -18,13 +19,9 @@ impl DATE_TIME {
         }
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
-        self.date.year == 0
-            && self.date.month <= 1
-            && self.date.day <= 1
-            && self.time.hour == 0
-            && self.time.minute == 0
-            && self.time.second == 0
+        self.date.is_zero() && self.time.is_zero()
     }
 }
 
@@ -34,13 +31,15 @@ impl ISO8601Timestampable for DATE_TIME {
     /// there be a UTC offset. ITU-T Recommendation X.680 defines the
     /// `DATE-TIME` type as being in local time with no UTC offset indication.
     /// For this reason, I recommend against the use of `DATE-TIME`.
+    #[inline]
     fn to_iso_8601_string (&self) -> String {
-        return format!("{}T{}", self.date, self.time);
+        self.to_string()
     }
 
 }
 
 impl Default for DATE_TIME {
+    #[inline]
     fn default() -> Self {
         DATE_TIME {
             date: DATE::default(),
@@ -50,6 +49,7 @@ impl Default for DATE_TIME {
 }
 
 impl From<GeneralizedTime> for DATE_TIME {
+    #[inline]
     fn from(other: GeneralizedTime) -> Self {
         let (minute, second) = other.minute.unwrap_or((0, None));
         DATE_TIME {
@@ -68,6 +68,7 @@ impl From<GeneralizedTime> for DATE_TIME {
 }
 
 impl From<UTCTime> for DATE_TIME {
+    #[inline]
     fn from(other: UTCTime) -> Self {
         DATE_TIME {
             date: DATE {
@@ -85,12 +86,14 @@ impl From<UTCTime> for DATE_TIME {
 }
 
 impl PartialEq<GeneralizedTime> for DATE_TIME {
+    #[inline]
     fn eq(&self, other: &GeneralizedTime) -> bool {
         DATE_TIME::from(*other).eq(self)
     }
 }
 
 impl PartialEq<UTCTime> for DATE_TIME {
+    #[inline]
     fn eq(&self, other: &UTCTime) -> bool {
         DATE_TIME::from(*other).eq(self)
     }
@@ -99,6 +102,7 @@ impl PartialEq<UTCTime> for DATE_TIME {
 impl TryFrom<&[u8]> for DATE_TIME {
     type Error = ASN1Error;
 
+    #[inline]
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
         if unlikely(value_bytes.len() != 19) {
             // "YYYY-MM-DDTHH:MM:SS".len()
@@ -113,27 +117,18 @@ impl TryFrom<&[u8]> for DATE_TIME {
 impl FromStr for DATE_TIME {
     type Err = ASN1Error;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         DATE_TIME::try_from(s.as_bytes())
     }
 }
 
-// FIXME: Fewer allocations approach
 impl Display for DATE_TIME {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str_form = format!(
-            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
-            self.date.year,
-            self.date.month,
-            self.date.day,
-            self.time.hour,
-            self.time.minute,
-            self.time.second,
-        );
-        f.write_str(&str_form)
+        write!(f, "{}T{}", self.date, self.time)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

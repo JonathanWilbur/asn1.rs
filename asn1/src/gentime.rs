@@ -7,6 +7,7 @@ use std::fmt::{Display, Write};
 use std::str::FromStr;
 
 impl GeneralizedTime {
+    #[inline]
     pub fn new() -> Self {
         GeneralizedTime {
             date: DATE::default(),
@@ -18,6 +19,7 @@ impl GeneralizedTime {
         }
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
         let (minute, second) = self.minute.unwrap_or((0, None));
         self.date.year == 0
@@ -28,15 +30,18 @@ impl GeneralizedTime {
             && second.unwrap_or(0) == 0
     }
 
+    #[inline]
     pub fn is_utc(&self) -> bool {
         self.utc_offset.is_some_and(|offset| offset.is_zero())
     }
 
+    #[inline]
     pub fn get_fraction_precision_digits(&self) -> u8 {
         // This implementation only handles up to nano-second precision, hence % 10.
         (self.flags & 0b0000_1111) % 10
     }
 
+    #[inline]
     pub fn has_fraction(&self) -> bool {
         self.get_fraction_precision_digits() > 0
     }
@@ -191,6 +196,7 @@ impl ISO8601Timestampable for GeneralizedTime {
 }
 
 impl Default for GeneralizedTime {
+    #[inline]
     fn default() -> Self {
         GeneralizedTime {
             date: DATE::default(),
@@ -204,6 +210,7 @@ impl Default for GeneralizedTime {
 }
 
 impl From<UTCTime> for GeneralizedTime {
+    #[inline]
     fn from(other: UTCTime) -> Self {
         let date = DATE::from(other);
         GeneralizedTime {
@@ -220,6 +227,7 @@ impl From<UTCTime> for GeneralizedTime {
 impl From<DATE> for GeneralizedTime {
 
     /// **WARNING**: This sets the GeneralizedTime to be in local time!
+    #[inline]
     fn from(other: DATE) -> Self {
         GeneralizedTime {
             date: other,
@@ -356,6 +364,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
 impl FromStr for GeneralizedTime {
     type Err = ASN1Error;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         GeneralizedTime::try_from(s.as_bytes())
     }

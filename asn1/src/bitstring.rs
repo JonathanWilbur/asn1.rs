@@ -67,10 +67,13 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
 }
 
 impl BIT_STRING {
+
+    #[inline]
     pub fn new() -> Self {
         BIT_STRING::default()
     }
 
+    #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         BIT_STRING {
             bytes: Vec::with_capacity(bits >> 3), // TODO: Is this the right number?
@@ -96,8 +99,8 @@ impl BIT_STRING {
         let extra_bytes_needed: usize = (byte_index + 1) - self.bytes.len();
         let extended: bool =
             (extra_bytes_needed > 0) || (bit_index > (7 - self.trailing_bits).into());
-        for _ in 0..extra_bytes_needed {
-            self.bytes.push(0);
+        if extended {
+            self.bytes.resize(self.bytes.len() + extra_bytes_needed, 0);
         }
         let len = self.bytes.len(); // See: https://stackoverflow.com/questions/30532628/cannot-borrow-as-immutable-string-and-len
         {
@@ -118,7 +121,9 @@ impl BIT_STRING {
         extended
     }
 
+    // TODO: Rename functions like these to include _in_bits or _in_bytes
     /// The length IN BITS of the bit string.
+    #[inline]
     pub fn len (&self) -> usize {
         (self.bytes.len() << 3)
             .checked_sub(self.trailing_bits as usize)
@@ -184,6 +189,7 @@ impl BIT_STRING {
         bs
     }
 
+    #[inline]
     pub fn from_bytes(bytes: Vec<u8>) -> BIT_STRING {
         BIT_STRING { bytes, trailing_bits: 0 }
     }
@@ -193,9 +199,8 @@ impl BIT_STRING {
 // TODO: Implement equals
 // TODO: Implement compare
 
-impl <T> From<T> for BIT_STRING
-    where T: AsRef<[u8]> {
-    fn from(other: T) -> Self {
+impl From<&[u8]> for BIT_STRING {
+    fn from(other: &[u8]) -> Self {
         BIT_STRING {
             bytes: Vec::from(other.as_ref()),
             trailing_bits: 0,
@@ -203,14 +208,14 @@ impl <T> From<T> for BIT_STRING
     }
 }
 
-// impl From<Vec<u8>> for BIT_STRING {
-//     fn from(other: Vec<u8>) -> Self {
-//         BIT_STRING {
-//             bytes: other,
-//             trailing_bits: 0,
-//         }
-//     }
-// }
+impl From<Vec<u8>> for BIT_STRING {
+    fn from(other: Vec<u8>) -> Self {
+        BIT_STRING {
+            bytes: other,
+            trailing_bits: 0,
+        }
+    }
+}
 
 impl Default for BIT_STRING {
     fn default() -> Self {
@@ -220,15 +225,6 @@ impl Default for BIT_STRING {
         }
     }
 }
-
-// TODO: Why is this not implemented?
-// impl Concat<BIT_STRING> for [BIT_STRING] {
-
-//     fn concat(slice: &Self) -> Self::Output {
-//         join_bit_strings(slice)
-//     }
-
-// }
 
 fn write_bin(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let bins = v.iter().map(|b| format!("{:08b}", b).to_string());
@@ -265,7 +261,6 @@ impl Display for BIT_STRING {
     }
 }
 
-// TODO: https://github.com/rust-lang/rust/issues/83527
 #[macro_export]
 macro_rules! bits {
     ( $( $x:expr ),* ) => {
@@ -444,7 +439,6 @@ mod tests {
         assert_eq!(bs1.to_string().as_str(), "'10100101111'B");
     }
 
-    // TODO: https://github.com/rust-lang/rust/issues/83527
     #[test]
     fn test_bits_macro() {
         let bs1 = bits!(1,0,1,0,0,1,0,1,1,1,1);

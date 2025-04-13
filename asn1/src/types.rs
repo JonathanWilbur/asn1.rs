@@ -25,6 +25,7 @@ pub struct IdentificationSyntaxes {
 }
 
 impl IdentificationSyntaxes {
+    #[inline]
     pub fn new(r#abstract: OBJECT_IDENTIFIER, transfer: OBJECT_IDENTIFIER) -> Self {
         IdentificationSyntaxes {
             r#abstract,
@@ -40,6 +41,7 @@ pub struct ContextNegotiation {
 }
 
 impl ContextNegotiation {
+    #[inline]
     pub fn new(presentation_context_id: INTEGER, transfer_syntax: OBJECT_IDENTIFIER) -> Self {
         ContextNegotiation {
             presentation_context_id,
@@ -104,6 +106,7 @@ pub struct InstanceOf {
 }
 
 impl InstanceOf {
+    #[inline]
     pub fn new(type_id: OBJECT_IDENTIFIER, value: Arc<ASN1Value>) -> Self {
         InstanceOf { type_id, value }
     }
@@ -116,20 +119,24 @@ pub struct UTCOffset {
 }
 
 impl UTCOffset {
+    #[inline]
     pub fn new(hour: i8, minute: u8) -> Self {
         UTCOffset { hour, minute }
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0
     }
 
+    #[inline]
     pub fn utc() -> Self {
         UTCOffset{ hour: 0, minute: 0 }
     }
 }
 
 impl Default for UTCOffset {
+    #[inline]
     fn default() -> Self {
         UTCOffset::utc()
     }
@@ -142,6 +149,7 @@ pub struct FractionalPart {
 }
 
 impl FractionalPart {
+    #[inline]
     pub fn new(number_of_digits: u8, fractional_value: u32) -> Self {
         FractionalPart {
             number_of_digits,
@@ -178,6 +186,28 @@ pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OID_ARC = u32;
 
+// TODO: Hear me out...
+/*
+pub enum OIDData {
+    Full((u8, RELATIVE_OID)),
+    Pen((OID_ARC, RELATIVE_OID)),
+    Smol([u8; 8]),
+}
+
+But maybe you could just interpret arc > 2 as a PEN...
+... also interpret highest MSb being set as "smol oid"
+
+What about
+
+pub enum OIDData {
+    Iso(RELATIVE_OID),
+    Itu(RELATIVE_OID),
+    Joint(RELATIVE_OID),
+    Pen(RELATIVE_OID),
+    Smol([u8; 8]), // continuation bits used to indicate next arc
+}
+
+*/
 #[derive(Debug, Hash, Eq, PartialOrd, Ord, Clone)]
 pub struct OBJECT_IDENTIFIER(pub Vec<OID_ARC>);
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
@@ -326,6 +356,7 @@ pub struct TaggedASN1Value {
 }
 
 impl TaggedASN1Value {
+    #[inline]
     pub fn new(
         tag_class: TagClass,
         tag_number: TagNumber,
