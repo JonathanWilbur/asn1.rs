@@ -1,5 +1,6 @@
 use crate::types::{ASN1Value, INTEGER};
 use crate::utils::{read_i64, likely};
+use crate::FractionalPart;
 use std::fmt::{Display, Write};
 
 pub fn write_hex(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -214,4 +215,26 @@ impl Display for ASN1Value {
             }
         }
     }
+}
+
+impl Display for FractionalPart {
+
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.number_of_digits == 0 {
+            return Ok(());
+        }
+        if cfg!(feature = "itoa") {
+            let mut buf = itoa::Buffer::new();
+            write!(f, ".{:0>width$}",
+                buf.format(self.fractional_value),
+                width = self.number_of_digits as usize
+            )
+        } else {
+            write!(f, ".{:0>width$}",
+                self.fractional_value,
+                width = self.number_of_digits as usize
+            )
+        }
+    }
+
 }

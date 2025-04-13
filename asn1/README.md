@@ -255,12 +255,6 @@ somewhat battle-tested.
 
 ## To Do
 
-- [ ] Performance Hacks
-  - [ ] `heapless`
-  - [ ] `smallvec`
-  - [ ] `smolstr`
--   [x] `itoa`
-  - [x] Inline all `new()`, `default()`, etc.
 - [ ] Normalize `NumericString`
 - [ ] To and from `NumericString` values for time types
 - [ ] Convertion to and from `std::time::Duration`

@@ -1,4 +1,6 @@
-use std::{fmt::Debug, sync::Arc, vec::Vec};
+use std::{fmt::Debug, path::Display, sync::Arc, vec::Vec};
+
+use crate::display;
 
 pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a [u8];
@@ -158,6 +160,33 @@ impl FractionalPart {
     }
 }
 
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+pub enum DurationPart {
+    Years,
+    Months,
+    Weeks,
+    Days,
+    Hours,
+    Minutes,
+    Seconds
+}
+
+impl Into<char> for DurationPart {
+
+    fn into(self) -> char {
+        match self {
+            DurationPart::Years => 'Y',
+            DurationPart::Months => 'M',
+            DurationPart::Weeks => 'W',
+            DurationPart::Days => 'D',
+            DurationPart::Hours => 'H',
+            DurationPart::Minutes => 'M',
+            DurationPart::Seconds => 'S',
+        }
+    }
+
+}
+
 // FIXME: Implement eq and hash
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 // Defined in ITU X.680, Section 38.4.4.2.
@@ -169,7 +198,7 @@ pub struct DURATION_EQUIVALENT {
     pub hours: u32,
     pub minutes: u32,
     pub seconds: u32,
-    pub fractional_part: Option<FractionalPart>,
+    pub fractional_part: Option<(DurationPart, FractionalPart)>,
 }
 
 // type END_OF_CONTENT = None;

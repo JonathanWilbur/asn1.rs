@@ -1,10 +1,43 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{FractionalPart, DURATION_EQUIVALENT};
-use crate::write_int;
+use crate::types::{FractionalPart, DURATION_EQUIVALENT, DurationPart};
 use core::str;
 use std::fmt::Write;
 use std::{fmt::Display, str::FromStr, time::Duration};
 use crate::utils::{unlikely, likely};
+
+impl TryFrom<char> for DurationPart {
+    type Error = ();
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            'Y' => Ok(DurationPart::Years),
+            'M' => Ok(DurationPart::Months),
+            'W' => Ok(DurationPart::Weeks),
+            'D' => Ok(DurationPart::Days),
+            'H' => Ok(DurationPart::Hours),
+            'm' => Ok(DurationPart::Minutes),
+            'S' => Ok(DurationPart::Seconds),
+            _ => Err(())
+        }
+    }
+
+}
+
+impl Display for DurationPart {
+
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DurationPart::Years => f.write_char('Y'),
+            DurationPart::Months => f.write_char('M'),
+            DurationPart::Weeks => f.write_char('W'),
+            DurationPart::Days => f.write_char('D'),
+            DurationPart::Hours => f.write_char('H'),
+            DurationPart::Minutes => f.write_char('M'),
+            DurationPart::Seconds => f.write_char('S'),
+        }
+    }
+
+}
 
 impl DURATION_EQUIVALENT {
     #[inline]
@@ -16,7 +49,7 @@ impl DURATION_EQUIVALENT {
         hours: u32,
         minutes: u32,
         seconds: u32,
-        fractional_part: Option<FractionalPart>,
+        fractional_part: Option<(DurationPart, FractionalPart)>,
     ) -> Self {
         DURATION_EQUIVALENT {
             years,
@@ -90,6 +123,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
             // Values larger than this are probably malicious.
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
         }
+        // FIXME: Make this optional, then you can also parse the X.690 encoding with this function
         if unlikely(value_bytes[0] as char != 'P') {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
@@ -164,7 +198,10 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                     frac.fractional_value *= 10;
                     frac.fractional_value += digit as u32;
                 }
-                ret.fractional_part = Some(frac);
+                let unambiguous_c = if c == 'M' && processing_time_components { 'm' } else { c };
+                let part = DurationPart::try_from(unambiguous_c)
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?;
+                ret.fractional_part = Some((part, frac));
             }
 
             let end_index = if index_of_period > 0 {
@@ -240,9 +277,12 @@ macro_rules! print_uint {
     };
 }
 
+const TIME_PARTS: [DurationPart; 3] = [ DurationPart::Hours, DurationPart::Minutes, DurationPart::Seconds ];
+
 impl Display for DURATION_EQUIVALENT {
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut in_time_components: bool = false;
         if self.is_zero() {
             return f.write_str("P0S");
         }
@@ -274,7 +314,10 @@ impl Display for DURATION_EQUIVALENT {
             unit = 'D';
         }
         if self.hours > 0 || self.minutes > 0 || self.seconds > 0 {
+            f.write_char(unit)?;
+            unit = '\0';
             f.write_char('T')?;
+            in_time_components = true;
         }
         if self.hours > 0 {
             if unit > '\0' {
@@ -297,44 +340,44 @@ impl Display for DURATION_EQUIVALENT {
             print_uint!(f, self.seconds);
             unit = 'S';
         }
+        /*
+        // TODO: Clarify this comment.
+        It is possible to display a wrong DURATION value. Since fmt() is
+        basically supposed to be infallible, this simply cannot be handled.
+        I had two choices: omit the fraction if wrong, or possibly print the
+        wrong component. I felt that it was better to produce a visibly wrong
+        DURATION value than an invisibly wrong one.
+         */
+        if let Some((fracpart, frac)) = &self.fractional_part {
+            let unambiguous_unit = if unit == 'M' && in_time_components { 'm' } else { unit };
+            let maybe_dp = DurationPart::try_from(unambiguous_unit);
+            if maybe_dp.is_err() {
+                return f.write_char(unit);
+            }
+            let dp = maybe_dp.unwrap();
+            // if fracparts match, just display the fraction, then print the unit
+            if dp == *fracpart {
+                f.write_str(frac.to_string().as_str())?;
+                f.write_char(unit)?;
+                return Ok(());
+            }
+            // if not:
+            //  print the current unit,
+            //  print "T" if unit is for a time component
+            //  print "0"
+            //  print the frac part
+            //  print the frac unit
+            f.write_char(unit)?;
+            if !in_time_components && TIME_PARTS.contains(fracpart) {
+                f.write_char('T')?;
+            }
+            f.write_char('0')?;
+            f.write_str(frac.to_string().as_str())?;
+            f.write_char((*fracpart).into())?;
+        } else {
+            f.write_char(unit)?;
+        }
         Ok(())
-        // if let Some(frac) = &self.fractional_part {
-        //     // FIXME: I just realized a big problem with this implementation:
-        //     // it is ambiguous as to which part the fraction belongs. 0 is used
-        //     // to mean "absent."
-        //     if unit > '\0' {
-
-        //     } else {
-        //         // It
-        //     }
-        //     let last_part = parts.last_mut();
-        //     match last_part {
-        //         Some(part) => {
-        //             let last_char = part.pop();
-        //             match last_char {
-        //                 Some(c) => {
-        //                     parts.push(format!(
-        //                         ".{:0>width$}{}",
-        //                         frac.fractional_value,
-        //                         c,
-        //                         width = frac.number_of_digits as usize
-        //                     ));
-        //                 }
-        //                 None => {
-        //                     let str_form = parts.join("");
-        //                     return f.write_str(str_form.as_str());
-        //                 }
-        //             }
-        //         }
-        //         None => {
-        //             parts.push(format!(
-        //                 "0.{:>width$}S",
-        //                 frac.fractional_value,
-        //                 width = frac.number_of_digits as usize
-        //             ));
-        //         }
-        //     };
-        // }
     }
 }
 
@@ -353,10 +396,10 @@ mod tests {
             hours: 4,
             minutes: 5,
             seconds: 6,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Seconds, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -373,10 +416,10 @@ mod tests {
             hours: 4,
             minutes: 5,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Minutes, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -393,10 +436,10 @@ mod tests {
             hours: 4,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Hours, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -413,10 +456,10 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Days, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -433,10 +476,10 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Weeks, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -453,10 +496,10 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Months, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -473,10 +516,10 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Years, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 3,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -493,10 +536,10 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Days, FractionalPart {
                 fractional_value: 123,
                 number_of_digits: 4,
-            }),
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -513,10 +556,10 @@ mod tests {
             hours: 0,
             minutes: 0,
             seconds: 0,
-            fractional_part: Some(FractionalPart {
+            fractional_part: Some((DurationPart::Days, FractionalPart {
                 fractional_value: 123,
-                number_of_digits: 2,
-            }),
+                number_of_digits: 3,
+            })),
         };
 
         let formatted = format!("{}", duration);
@@ -546,8 +589,10 @@ mod tests {
         assert_eq!(dur.hours, 0);
         assert_eq!(dur.minutes, 0);
         assert_eq!(dur.seconds, 0);
-        assert_eq!(dur.fractional_part.unwrap().number_of_digits, 4);
-        assert_eq!(dur.fractional_part.unwrap().fractional_value, 123);
+        let (part, frac) = dur.fractional_part.unwrap();
+        assert_eq!(part, DurationPart::Days);
+        assert_eq!(frac.number_of_digits, 4);
+        assert_eq!(frac.fractional_value, 123);
     }
 
     #[test]
@@ -573,7 +618,10 @@ mod tests {
         assert_eq!(dur.hours, 0);
         assert_eq!(dur.minutes, 0);
         assert_eq!(dur.seconds, 0);
-        assert_eq!(dur.fractional_part, Some(FractionalPart { number_of_digits: 1, fractional_value: 5 }));
+        let (part, frac) = dur.fractional_part.unwrap();
+        assert_eq!(part, DurationPart::Years);
+        assert_eq!(frac.fractional_value, 5);
+        assert_eq!(frac.number_of_digits, 1);
     }
 
 
@@ -634,7 +682,44 @@ mod tests {
         assert_eq!(dur.hours, 25);
         assert_eq!(dur.minutes, 65);
         assert_eq!(dur.seconds, 222);
-        assert_eq!(dur.fractional_part, Some(FractionalPart { number_of_digits: 5, fractional_value: 505 }));
+        let (part, frac) = dur.fractional_part.unwrap();
+        assert_eq!(part, DurationPart::Seconds);
+        assert_eq!(frac.fractional_value, 505);
+        assert_eq!(frac.number_of_digits, 5);
     }
+
+    #[test]
+    fn test_parse_duration_14() {
+        let dur = DURATION_EQUIVALENT::from_str("P7Y0.00123W").unwrap();
+        assert_eq!(dur.years, 7);
+        assert_eq!(dur.months, 0);
+        assert_eq!(dur.weeks, 0);
+        assert_eq!(dur.days, 0);
+        assert_eq!(dur.hours, 0);
+        assert_eq!(dur.minutes, 0);
+        assert_eq!(dur.seconds, 0);
+        let (part, frac) = dur.fractional_part.unwrap();
+        assert_eq!(part, DurationPart::Weeks);
+        assert_eq!(frac.fractional_value, 123);
+        assert_eq!(frac.number_of_digits, 5);
+    }
+
+    #[test]
+    fn test_parse_duration_15() {
+        let dur = DURATION_EQUIVALENT::from_str("P7YT0.00123M").unwrap();
+        assert_eq!(dur.years, 7);
+        assert_eq!(dur.months, 0);
+        assert_eq!(dur.weeks, 0);
+        assert_eq!(dur.days, 0);
+        assert_eq!(dur.hours, 0);
+        assert_eq!(dur.minutes, 0);
+        assert_eq!(dur.seconds, 0);
+        let (part, frac) = dur.fractional_part.unwrap();
+        assert_eq!(part, DurationPart::Minutes);
+        assert_eq!(frac.fractional_value, 123);
+        assert_eq!(frac.number_of_digits, 5);
+    }
+
+    // TODO: For all parsing tests, ensure output formats exactly the same.
 
 }
