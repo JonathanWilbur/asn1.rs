@@ -66,7 +66,7 @@ impl FromStr for OBJECT_IDENTIFIER {
         let mut nodes: Vec<u32> = Vec::with_capacity(s.len());
         for arc_string in s.split(".") {
             if cfg!(feature = "atoi_simd") {
-                let arc = atoi_simd::parse::<u32>(arc_string.as_bytes()).map_err(|_| ())?;
+                let arc = atoi_simd::parse_pos::<u32>(arc_string.as_bytes()).map_err(|_| ())?;
                 nodes.push(arc);
             } else {
                 nodes.push(arc_string.parse::<u32>().map_err(|_| ())?);
