@@ -327,7 +327,6 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             return Ok(ret); // Local Time
         }
 
-        // TODO: Use https://docs.rs/likely_stable/latest/likely_stable/
         if unlikely(offset_sign.is_some_and(|c| *c != b'+' && *c != b'-')) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
@@ -341,7 +340,8 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             i8::from_str(&s[i..i + 3])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
         };
-        if unlikely(offset_hour.abs() > 12) { // FIXME: 15 is valid
+        // I believe ISO 8601 allows hours up to 15.
+        if unlikely(offset_hour.abs() > 15) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
         i += 3;
@@ -404,10 +404,14 @@ impl Display for GeneralizedTime {
             )?;
         }
         match &self.utc_offset {
-            Some(offset) => write!(f, "{:+03}{:0>2}",
-                offset.hour,
-                buf_offset_m.format(offset.minute),
-            ),
+            Some(offset) => if offset.is_zero() {
+                f.write_char('Z')
+            } else {
+                write!(f, "{:+03}{:0>2}",
+                    offset.hour,
+                    buf_offset_m.format(offset.minute),
+                )
+            },
             None => f.write_char('Z')
         }
     }
@@ -466,38 +470,39 @@ mod tests {
             // LOCAL TIME: This only works for me in Florida. This should be commented out.
             // [ "2021020304", "2021-02-03T09:00:00.000Z" ],
             // The (second) smallest and simplest time.
-            [ "2021020304Z", "2021-02-03T04:00:00Z" ],
+            [ "2021020304Z", "2021-02-03T04:00:00Z", "2021020304Z" ],
             // With fractional hours
-            [ "2021020304.3334Z", "2021-02-03T04:20:00Z" ],
-            [ "2021020304,3334Z", "2021-02-03T04:20:00Z" ],
-            [ "2021020304.50Z", "2021-02-03T04:30:00Z" ],
-            [ "2021020304.333333334Z", "2021-02-03T04:20:00Z" ],
+            [ "2021020304.3334Z", "2021-02-03T04:20:00Z", "2021020304.3334Z" ],
+            [ "2021020304,3334Z", "2021-02-03T04:20:00Z", "2021020304.3334Z" ],
+            [ "2021020304.50Z", "2021-02-03T04:30:00Z", "2021020304.50Z" ],
+            [ "2021020304.333333334Z", "2021-02-03T04:20:00Z", "2021020304.333333334Z" ],
             // With fractional minutes
-            [ "202102030405.3334Z", "2021-02-03T04:05:20Z" ],
-            [ "202102030405,3334Z", "2021-02-03T04:05:20Z" ],
+            [ "202102030405.3334Z", "2021-02-03T04:05:20Z", "202102030405.3334Z" ],
+            [ "202102030405,3334Z", "2021-02-03T04:05:20Z", "202102030405.3334Z" ],
             // With fractional seconds
-            [ "20210203040506.3334Z", "2021-02-03T04:05:06.3334Z" ],
-            [ "20210203040506,3334Z", "2021-02-03T04:05:06.3334Z" ],
+            [ "20210203040506.3334Z", "2021-02-03T04:05:06.3334Z", "20210203040506.3334Z" ],
+            [ "20210203040506,3334Z", "2021-02-03T04:05:06.3334Z", "20210203040506.3334Z" ],
             // Simple timezone offset
-            [ "2021020304-05", "2021-02-03T04:00:00-0500" ],
-            [ "2021020304+05", "2021-02-03T04:00:00+0500" ],
-            [ "2021020304-0500", "2021-02-03T04:00:00-0500" ],
+            [ "2021020304-05", "2021-02-03T04:00:00-0500", "2021020304-0500" ],
+            [ "2021020304+05", "2021-02-03T04:00:00+0500", "2021020304+0500" ],
+            [ "2021020304-0500", "2021-02-03T04:00:00-0500", "2021020304-0500" ],
             // Carry over with offset minutes and fractional hours
-            [ "2021020304.25+0815", "2021-02-03T04:15:00+0815" ],
-            [ "2021020320.25-0815", "2021-02-03T20:15:00-0815" ],
+            [ "2021020304.25+0815", "2021-02-03T04:15:00+0815", "2021020304.25+0815" ],
+            [ "2021020320.25-0815", "2021-02-03T20:15:00-0815", "2021020320.25-0815" ],
             // Minutes with timezone offset
-            [ "202102030406-0500", "2021-02-03T04:06:00-0500" ],
+            [ "202102030406-0500", "2021-02-03T04:06:00-0500", "202102030406-0500" ],
             // Seconds with timezone offset
-            [ "20210203040607-0500", "2021-02-03T04:06:07-0500" ],
+            [ "20210203040607-0500", "2021-02-03T04:06:07-0500", "20210203040607-0500" ],
             // The most complicated examples
-            [ "20210203040607.32895292-0503", "2021-02-03T04:06:07.32895292-0503" ],
-            [ "20210203040607,32895292+0304", "2021-02-03T04:06:07.32895292+0304" ],
+            [ "20210203040607.32895292-0503", "2021-02-03T04:06:07.32895292-0503", "20210203040607.32895292-0503" ],
+            [ "20210203040607,32895292+0304", "2021-02-03T04:06:07.32895292+0304", "20210203040607.32895292+0304" ],
             // Nanosecond precision
             // [ "20210203040607.123456789-0503", "2021-02-03T04:06:07.123456789-0503" ],
         ];
-        for [valid_gentime, should_be] in subtests {
+        for [valid_gentime, should_be, should_be_str] in subtests {
             let gt = GeneralizedTime::from_str(valid_gentime).expect(valid_gentime);
             assert_eq!(gt.to_iso_8601_string(), should_be);
+            assert_eq!(gt.to_string(), should_be_str);
         }
     }
 

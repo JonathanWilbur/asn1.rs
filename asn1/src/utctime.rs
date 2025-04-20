@@ -206,7 +206,8 @@ impl TryFrom<&[u8]> for UTCTime {
                 i8::from_str(&s[len-5..len-2])
                     .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
             };
-            if unlikely(offset_hour.abs() > 12) {
+            // I believe ISO 8601 allows hours up to 15.
+            if unlikely(offset_hour.abs() > 15) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
             }
             let offset_minute = parse_uint!(u8, &b[len-2..len], &s[len-2..len], ASN1ErrorCode::invalid_time_offset);
@@ -255,10 +256,8 @@ impl Display for UTCTime {
         if self.utc_offset.is_zero() {
             f.write_char('Z')
         } else {
-            let sign = if self.utc_offset.hour >= 0 { '+' } else { '-' };
-            f.write_char(sign)?;
-            write!(f, "{:0>2}{:0>2}",
-                buf_offset_h.format(self.utc_offset.hour),
+            write!(f, "{:+03}{:0>2}",
+                self.utc_offset.hour,
                 buf_offset_m.format(self.utc_offset.minute),
             )
         }
@@ -303,25 +302,25 @@ mod tests {
         assert_eq!(format!("{}", t), "221110090807Z");
     }
 
-    // TODO: Test format
     #[test]
     fn utc_time_valid() {
         let subtests = [
-            [ "0102030405Z", "2001-02-03T04:05:00Z" ],
-            [ "010203040506Z", "2001-02-03T04:05:06Z" ],
-            [ "0102030405-0400", "2001-02-03T04:05:00-0400" ],
-            [ "010203040506-0400", "2001-02-03T04:05:06-0400" ],
-            [ "0102030405+0400", "2001-02-03T04:05:00+0400" ],
-            [ "010203040506+0400", "2001-02-03T04:05:06+0400" ],
+            [ "0102030405Z", "2001-02-03T04:05:00Z", "010203040500Z" ],
+            [ "010203040506Z", "2001-02-03T04:05:06Z", "010203040506Z" ],
+            [ "0102030405-0400", "2001-02-03T04:05:00-0400", "010203040500-0400" ],
+            [ "010203040506-0400", "2001-02-03T04:05:06-0400", "010203040506-0400" ],
+            [ "0102030405+0400", "2001-02-03T04:05:00+0400", "010203040500+0400" ],
+            [ "010203040506+0400", "2001-02-03T04:05:06+0400", "010203040506+0400" ],
             // Minute-specific timezone offsets
-            [ "0102030405-0415", "2001-02-03T04:05:00-0415" ],
-            [ "010203040506-0415", "2001-02-03T04:05:06-0415" ],
-            [ "0102030405+0415", "2001-02-03T04:05:00+0415" ],
-            [ "010203040506+0415", "2001-02-03T04:05:06+0415" ],
+            [ "0102030405-0415", "2001-02-03T04:05:00-0415", "010203040500-0415" ],
+            [ "010203040506-0415", "2001-02-03T04:05:06-0415", "010203040506-0415" ],
+            [ "0102030405+0415", "2001-02-03T04:05:00+0415", "010203040500+0415" ],
+            [ "010203040506+0415", "2001-02-03T04:05:06+0415", "010203040506+0415" ],
         ];
-        for [valid_utctime, should_be] in subtests {
+        for [valid_utctime, should_be, should_be_str] in subtests {
             let ut = UTCTime::from_str(valid_utctime).expect(valid_utctime);
             assert_eq!(ut.to_iso_8601_string(), should_be);
+            assert_eq!(ut.to_string(), should_be_str);
         }
     }
 
