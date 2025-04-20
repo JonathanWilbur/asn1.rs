@@ -185,8 +185,7 @@ impl Into<char> for DurationPart {
 
 }
 
-// FIXME: Implement hash
-#[derive(Debug, Hash, Eq, Clone, Copy)]
+#[derive(Debug, Eq, Clone, Copy)]
 // Defined in ITU X.680, Section 38.4.4.2.
 pub struct DURATION_EQUIVALENT {
     pub years: u32,
@@ -203,8 +202,7 @@ pub struct DURATION_EQUIVALENT {
 pub type BOOLEAN = bool;
 pub type INTEGER = Bytes;
 pub type BIT = usize;
-// FIXME: Implement hash
-#[derive(Debug, Hash, Eq, Clone)]
+#[derive(Debug, Eq, Clone)]
 pub struct BIT_STRING {
     pub bytes: Vec<u8>,
     pub trailing_bits: u8,
