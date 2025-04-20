@@ -72,7 +72,36 @@ impl DURATION_EQUIVALENT {
             && self.hours == 0
             && self.minutes == 0
             && self.seconds == 0
+            && self.fractional_part.is_none()
     }
+
+    pub fn normalize(&self) -> DURATION_EQUIVALENT {
+        let mut seconds = self.seconds;
+        // TODO: Checked addition
+        let mut minutes = self.minutes + self.seconds / 60;
+        seconds %= 60;
+
+        let hours = self.hours + minutes / 60;
+        minutes %= 60;
+
+        // Due to leap-seconds, a day is not always 24 hours.
+        // let mut days = self.days + hours / 24;
+        // hours %= 24;
+
+        let weeks = self.weeks + self.days / 7;
+
+        DURATION_EQUIVALENT {
+            years: self.years,
+            months: self.months,
+            weeks,
+            days: self.days % 7,
+            hours,
+            minutes,
+            seconds,
+            fractional_part: self.fractional_part,
+        }
+    }
+
 }
 
 impl Default for DURATION_EQUIVALENT {
@@ -114,8 +143,11 @@ const DURATION_COMPONENT_SECONDS: u8 = 0b0100_0000;
 impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
     type Error = ASN1Error;
 
+    /// This implementation makes the leading 'P' optional so that this can be
+    /// used to parse duration values as they are encoded by X.690--which is to
+    /// say: without the leading 'P'.
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
-        if unlikely(value_bytes.len() < 3) {
+        if unlikely(value_bytes.len() < 2) {
             // The smallest duration string, e.g. P1Y
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
@@ -123,16 +155,18 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
             // Values larger than this are probably malicious.
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
         }
-        // FIXME: Make this optional, then you can also parse the X.690 encoding with this function
-        if unlikely(value_bytes[0] as char != 'P') {
+        let mut start = 0;
+        if value_bytes[0] == b'P' {
+            start += 1;
+        } else if !value_bytes[0].is_ascii_digit() && value_bytes[0] != b'T' {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         let mut ret = DURATION_EQUIVALENT::default();
-        let mut start_of_last_digit = 1;
+        let mut start_of_last_digit = start;
         let mut processing_time_components: bool = false;
         let mut index_of_period = 0; // 0 means NULL in this case.
         let mut encountered: u8 = 0;
-        for i in 1..value_bytes.len() {
+        for i in start..value_bytes.len() {
             let c = value_bytes[i] as char;
             if likely(c.is_ascii_digit()) {
                 continue;
@@ -214,10 +248,7 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                 atoi_simd::parse_pos::<u32>(&value_bytes[start_of_last_digit..end_index])
                     .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
             } else {
-                // TODO: do not allocate. Just make a string slice.
-                // TODO: Also, do it unchecked after checking for all ASCII bytes.
-                let component_str = String::from_utf8(value_bytes[start_of_last_digit..end_index].to_vec())
-                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?;
+                let component_str = std::str::from_utf8(&value_bytes[start_of_last_digit..end_index])?;
                 u32::from_str(&component_str)
                     .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
             };
@@ -252,6 +283,10 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
         }
         if unlikely(start_of_last_digit != value_bytes.len()) {
             // Extra data at the end
+            return Err(ASN1Error::new(ASN1ErrorCode::trailing_string));
+        }
+        if unlikely(encountered == 0) {
+            // No components
             return Err(ASN1Error::new(ASN1ErrorCode::trailing_string));
         }
         Ok(ret)
@@ -340,16 +375,18 @@ impl Display for DURATION_EQUIVALENT {
             print_uint!(f, self.seconds);
             unit = 'S';
         }
-        /*
-        // TODO: Clarify this comment.
-        It is possible to display a wrong DURATION value. Since fmt() is
+        /* It is possible to display a wrong DURATION value where the fractional
+        part applies to a unit larger than the smallest unit. Since fmt() is
         basically supposed to be infallible, this simply cannot be handled.
         I had two choices: omit the fraction if wrong, or possibly print the
         wrong component. I felt that it was better to produce a visibly wrong
-        DURATION value than an invisibly wrong one.
-         */
+        DURATION value than an invisibly wrong one. */
         if let Some((fracpart, frac)) = &self.fractional_part {
-            let unambiguous_unit = if unit == 'M' && in_time_components { 'm' } else { unit };
+            let unambiguous_unit = match unit {
+                'M' => if in_time_components { 'm' } else { unit },
+                '\0' => (*fracpart).into(),
+                _ => unit,
+            };
             let maybe_dp = DurationPart::try_from(unambiguous_unit);
             if maybe_dp.is_err() {
                 return f.write_char(unit);
@@ -357,9 +394,12 @@ impl Display for DURATION_EQUIVALENT {
             let dp = maybe_dp.unwrap();
             // if fracparts match, just display the fraction, then print the unit
             if dp == *fracpart {
+                if unit == '\0' {
+                    f.write_char('0')?;
+                    unit = unambiguous_unit;
+                }
                 f.write_str(frac.to_string().as_str())?;
-                f.write_char(unit)?;
-                return Ok(());
+                return f.write_char(unit);
             }
             // if not:
             //  print the current unit,
@@ -381,6 +421,29 @@ impl Display for DURATION_EQUIVALENT {
     }
 }
 
+impl PartialEq for DURATION_EQUIVALENT {
+
+    fn eq(&self, other: &Self) -> bool {
+        if self.years > 0 && self.years != other.years {
+            return false;
+        }
+        if self.months > 0 && self.months != other.months {
+            return false;
+        }
+        if self.fractional_part.is_some() && self.fractional_part != other.fractional_part {
+            return false;
+        }
+        let selfn = self.normalize();
+        let othern = other.normalize();
+
+        selfn.weeks == othern.weeks
+            && selfn.days == othern.days
+            && selfn.hours == othern.hours
+            && selfn.minutes == othern.minutes
+            && selfn.seconds == othern.seconds
+    }
+
+}
 
 #[cfg(test)]
 mod tests {
@@ -577,6 +640,7 @@ mod tests {
         assert_eq!(dur.minutes, 0);
         assert_eq!(dur.seconds, 0);
         assert_eq!(dur.fractional_part, None);
+        assert_eq!(dur.to_string().as_str(), "P4D");
     }
 
     #[test]
@@ -593,6 +657,7 @@ mod tests {
         assert_eq!(part, DurationPart::Days);
         assert_eq!(frac.number_of_digits, 4);
         assert_eq!(frac.fractional_value, 123);
+        assert_eq!(dur.to_string().as_str(), "P4.0123D");
     }
 
     #[test]
@@ -606,6 +671,7 @@ mod tests {
         assert_eq!(dur.minutes, 0);
         assert_eq!(dur.seconds, 0);
         assert_eq!(dur.fractional_part, None);
+        assert_eq!(dur.to_string().as_str(), "P23DT23H");
     }
 
     #[test]
@@ -622,6 +688,7 @@ mod tests {
         assert_eq!(part, DurationPart::Years);
         assert_eq!(frac.fractional_value, 5);
         assert_eq!(frac.number_of_digits, 1);
+        assert_eq!(dur.to_string().as_str(), "P0.5Y");
     }
 
 
@@ -686,6 +753,7 @@ mod tests {
         assert_eq!(part, DurationPart::Seconds);
         assert_eq!(frac.fractional_value, 505);
         assert_eq!(frac.number_of_digits, 5);
+        assert_eq!(dur.to_string().as_str(), "P5Y6M1W23DT25H65M222.00505S");
     }
 
     #[test]
@@ -702,6 +770,7 @@ mod tests {
         assert_eq!(part, DurationPart::Weeks);
         assert_eq!(frac.fractional_value, 123);
         assert_eq!(frac.number_of_digits, 5);
+        assert_eq!(dur.to_string().as_str(), "P7Y0.00123W");
     }
 
     #[test]
@@ -718,8 +787,144 @@ mod tests {
         assert_eq!(part, DurationPart::Minutes);
         assert_eq!(frac.fractional_value, 123);
         assert_eq!(frac.number_of_digits, 5);
+        assert_eq!(dur.to_string().as_str(), "P7YT0.00123M");
     }
 
-    // TODO: For all parsing tests, ensure output formats exactly the same.
+    #[test]
+    fn test_parse_duration_no_p() {
+        let dur = DURATION_EQUIVALENT::from_str("7YT0.00123M").unwrap();
+        assert_eq!(dur.years, 7);
+        assert_eq!(dur.months, 0);
+        assert_eq!(dur.weeks, 0);
+        assert_eq!(dur.days, 0);
+        assert_eq!(dur.hours, 0);
+        assert_eq!(dur.minutes, 0);
+        assert_eq!(dur.seconds, 0);
+        let (part, frac) = dur.fractional_part.unwrap();
+        assert_eq!(part, DurationPart::Minutes);
+        assert_eq!(frac.fractional_value, 123);
+        assert_eq!(frac.number_of_digits, 5);
+        assert_eq!(dur.to_string().as_str(), "P7YT0.00123M");
+    }
+
+    #[test]
+    fn test_compare_duration_1() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P5Y").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P5Y").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_2() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P5M").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P5M").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_3() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P5W").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P5W").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_4() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P5D").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P5D").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_5() {
+        let dur1 = DURATION_EQUIVALENT::from_str("PT5H").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("PT5H").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_6() {
+        let dur1 = DURATION_EQUIVALENT::from_str("PT5M").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("PT5M").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_7() {
+        let dur1 = DURATION_EQUIVALENT::from_str("PT5S").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("PT5S").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_8() {
+        let dur1 = DURATION_EQUIVALENT::from_str("PT0.00005S").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("PT0.00005S").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_9() {
+        let dur1 = DURATION_EQUIVALENT::from_str("PT1M5S").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("PT65S").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_10() {
+        let dur1 = DURATION_EQUIVALENT::from_str("PT65M").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("PT1H5M").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_11() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P19D").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P2W5D").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_12() {
+        let dur1 = DURATION_EQUIVALENT::from_str("PT3605S").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("PT1H5S").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_13() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P49DT3605S").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P7WT1H5S").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_14() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P49DT3605S").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P7WT1H5S").unwrap();
+        assert_eq!(dur1, dur2);
+        assert_eq!(dur2, dur1);
+    }
+
+    #[test]
+    fn test_compare_duration_15() {
+        let dur1 = DURATION_EQUIVALENT::from_str("P49DT3605.0013S").unwrap();
+        let dur2 = DURATION_EQUIVALENT::from_str("P7WT1H5.0014S").unwrap();
+        assert!(dur1 != dur2);
+        assert!(dur2 != dur1);
+    }
 
 }
