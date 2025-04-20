@@ -1,6 +1,7 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME};
-use crate::utils::{get_days_in_month, unlikely, likely};
+use crate::utils::{get_days_in_month, unlikely};
+use crate::ASN1Result;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -15,6 +16,71 @@ impl DATE {
     pub fn is_zero(&self) -> bool {
         self.year == 0 && self.month <= 1 && self.day <= 1
     }
+
+    /// This is intentionally designed to be suitable as an encoding of this
+    /// abstract value as the content octets of a value according to the
+    /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
+    /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
+    pub fn to_num_str(&self) -> String {
+        if cfg!(feature = "itoa") {
+            let mut buf1 = itoa::Buffer::new();
+            let mut buf2 = itoa::Buffer::new();
+            let mut buf3 = itoa::Buffer::new();
+            format!("{:0>4}{:0>2}{:0>2}",
+                buf1.format(self.year % 10000),
+                buf2.format(self.month % 100),
+                buf3.format(self.day % 100)
+            )
+        } else {
+            format!("{:04}{:02}{:02}", self.year % 10000, self.month, self.day)
+        }
+    }
+
+    /// This is intentionally designed to be suitable as an decoding of this
+    /// abstract value from the content octets of a value according to the
+    /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
+    /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
+    pub fn try_from_num_str(s: &str) -> ASN1Result<Self> {
+        let b = s.as_bytes();
+        if b.len() != 8 {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        if unlikely(!b.is_ascii()) {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        let year: u16;
+        let month: u8;
+        let day: u8;
+        if cfg!(feature = "atoi_simd") {
+            year = atoi_simd::parse_pos::<u16>(&b[0..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
+            month = atoi_simd::parse_pos::<u8>(&b[4..6])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+            day = atoi_simd::parse_pos::<u8>(&b[6..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+        } else {
+            /* This is a performance hack: since most timestamps are probably
+            going to be from the same decade, we just try a year starting with
+            "202" first. In ten years, I'll change this. */
+            year = if b[0..3] == *(b"202") {
+                let last_digit = b[3] - 0x30;
+                if unlikely(last_digit > 9) {
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_year));
+                }
+                2020 + last_digit as u16
+            } else {
+                u16::from_str(&s[0..4])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?
+            };
+
+            month = u8::from_str(&s[5..7])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+            day = u8::from_str(&s[8..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+        }
+        Ok(DATE { year, month, day })
+    }
+
 }
 
 impl Default for DATE {
@@ -193,6 +259,18 @@ mod tests {
         let date1 = DATE::new(2022, 06, 23);
         let date2 = DATE::new(2023, 05, 22);
         assert!(date2 > date1);
+    }
+
+    #[test]
+    fn test_date_to_and_from_str_1() {
+        let date = DATE::try_from_num_str("20220304").unwrap();
+        assert_eq!(date.to_num_str(), "20220304");
+    }
+
+    #[test]
+    fn test_date_to_and_from_str_2() {
+        let date = DATE::try_from_num_str("02220304").unwrap();
+        assert_eq!(date.to_num_str(), "02220304");
     }
 
 }

@@ -1,4 +1,4 @@
-use crate::error::{ASN1Error, ASN1ErrorCode};
+use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY};
 use crate::utils::unlikely;
 use std::fmt::Display;
@@ -18,6 +18,59 @@ impl TIME_OF_DAY {
     pub fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0 && self.second == 0
     }
+
+    /// This is intentionally designed to be suitable as an encoding of this
+    /// abstract value as the content octets of a value according to the
+    /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
+    /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
+    pub fn to_num_str(&self) -> String {
+        if cfg!(feature = "itoa") {
+            let mut buf1 = itoa::Buffer::new();
+            let mut buf2 = itoa::Buffer::new();
+            let mut buf3 = itoa::Buffer::new();
+            format!("{:0>2}{:0>2}{:0>2}",
+                buf1.format(self.hour % 24),
+                buf2.format(self.minute % 60),
+                buf3.format(self.second % 60)
+            )
+        } else {
+            format!("{:02}{:02}{:02}", self.hour % 24, self.minute % 60, self.second % 60)
+        }
+    }
+
+    /// This is intentionally designed to be suitable as an decoding of this
+    /// abstract value from the content octets of a value according to the
+    /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
+    /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
+    pub fn try_from_num_str(s: &str) -> ASN1Result<Self> {
+        let b = s.as_bytes();
+        if b.len() != 6 {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        if unlikely(!b.is_ascii()) {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        let hour: u8;
+        let minute: u8;
+        let second: u8;
+        if cfg!(feature = "atoi_simd") {
+            hour = atoi_simd::parse_pos::<u8>(&b[0..2])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+            minute = atoi_simd::parse_pos::<u8>(&b[2..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+            second = atoi_simd::parse_pos::<u8>(&b[4..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
+        } else {
+            hour = u8::from_str(&s[0..2])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
+            minute = u8::from_str(&s[2..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+            second = u8::from_str(&s[4..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+        }
+        Ok(TIME_OF_DAY { hour, minute, second })
+    }
+
 }
 
 impl Default for TIME_OF_DAY {
@@ -172,6 +225,18 @@ mod tests {
         let tod1 = TIME_OF_DAY::new(22, 06, 23);
         let tod2 = TIME_OF_DAY::new(23, 05, 22);
         assert!(tod2 > tod1);
+    }
+
+    #[test]
+    fn test_time_of_day_to_and_from_str_1() {
+        let tod = TIME_OF_DAY::try_from_num_str("151317").unwrap();
+        assert_eq!(tod.to_num_str(), "151317");
+    }
+
+    #[test]
+    fn test_time_of_day_to_and_from_str_2() {
+        let tod = TIME_OF_DAY::try_from_num_str("050307").unwrap();
+        assert_eq!(tod.to_num_str(), "050307");
     }
 
 }

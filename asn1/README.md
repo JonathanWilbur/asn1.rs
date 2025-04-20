@@ -255,10 +255,11 @@ somewhat battle-tested.
 
 ## To Do
 
+- [ ] Fuzz testing
 - [ ] Normalize `NumericString`
-- [ ] To and from `NumericString` values for time types
-- [ ] Convertion to and from `std::time::Duration`
+- [x] To and from `NumericString` values for time types
   - This is for X.690 encoding, primarily
+- [x] ~~Convertion to and from `std::time::Duration`~~ (No unambiguous way)
 - [ ] `no-std` and other feature flags
 - [ ] Documentation comments
 - [ ] `README.md` documentation
