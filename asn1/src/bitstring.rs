@@ -76,7 +76,7 @@ impl BIT_STRING {
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         BIT_STRING {
-            bytes: Vec::with_capacity(bits >> 3), // TODO: Is this the right number?
+            bytes: Vec::with_capacity((bits >> 3) + 1),
             trailing_bits: 0,
         }
     }
@@ -121,10 +121,9 @@ impl BIT_STRING {
         extended
     }
 
-    // TODO: Rename functions like these to include _in_bits or _in_bytes
     /// The length IN BITS of the bit string.
     #[inline]
-    pub fn len (&self) -> usize {
+    pub fn len_in_bits (&self) -> usize {
         (self.bytes.len() << 3)
             .checked_sub(self.trailing_bits as usize)
             .unwrap_or(0)
@@ -196,8 +195,30 @@ impl BIT_STRING {
 
 }
 
-// TODO: Implement equals
-// TODO: Implement compare
+
+impl PartialEq for BIT_STRING {
+
+    fn eq(&self, other: &Self) -> bool {
+        if self.trailing_bits != other.trailing_bits {
+            return false;
+        }
+        // TODO: I can't seem to find a SIMD-accelerated compare
+        if self.bytes == other.bytes {
+            return true;
+        }
+        let trailing_bits = self.trailing_bits % 8; // Just to make sure.
+        if trailing_bits == 0 {
+            // Match MUST have failed because the whole bytes did not match.
+            return false;
+        }
+        match (self.bytes.last(), other.bytes.last()) {
+            (None, None) => true, // both empty
+            (Some(a), Some(b)) => (*a >> trailing_bits) == (*b >> trailing_bits),
+            (_, _) => false, // one empty, the other not
+        }
+    }
+
+}
 
 impl From<&[u8]> for BIT_STRING {
     fn from(other: &[u8]) -> Self {
@@ -275,6 +296,35 @@ macro_rules! bits {
 mod tests {
 
     use crate::{bitstring::join_bit_strings, types::BIT_STRING};
+
+    #[test]
+    fn test_bit_string_compare_1() {
+        let bs1 = BIT_STRING::new();
+        let bs2 = BIT_STRING::new();
+        assert_eq!(bs1, bs2);
+    }
+
+    #[test]
+    fn test_bit_string_compare_2() {
+        let bs1 = bits!(1,0,1,0,0,1,0,1,1,1,1);
+        let bs2 = bits!(1,0,1,0,0,1,0,1,1,1,1);
+        assert_eq!(bs1, bs2);
+    }
+
+    #[test]
+    fn test_bit_string_compare_3() {
+        // These only differ by trailing bits
+        let bs1 = BIT_STRING{
+            bytes: vec![0b1111_0000, 0b1010_0111],
+            trailing_bits: 3,
+        };
+        let bs2 = BIT_STRING{
+            bytes: vec![0b1111_0000, 0b1010_0101],
+            trailing_bits: 3,
+        };
+        assert_eq!(bs1, bs2);
+    }
+
 
     #[test]
     fn test_bit_string_set_1() {
@@ -485,7 +535,7 @@ mod tests {
             bytes: vec![0b0101_0000],
             trailing_bits: 3,
         };
-        assert_eq!(bs.len(), 5);
+        assert_eq!(bs.len_in_bits(), 5);
     }
 
 }
