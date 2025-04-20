@@ -80,27 +80,40 @@ impl TryFrom<&[u8]> for DATE {
         if unlikely(value_bytes.len() != 10) { // "YYYY-MM-DD".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        // TODO: Check for dashes
+        if unlikely(value_bytes[4] != b'-' || value_bytes[7] != b'-') {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
         let year: u16;
         let month: u8;
         let day: u8;
         if cfg!(feature = "atoi_simd") {
-            year = atoi_simd::parse::<u16>(&value_bytes[0..4])
+            year = atoi_simd::parse_pos::<u16>(&value_bytes[0..4])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-            month = atoi_simd::parse::<u8>(&value_bytes[5..7])
+            month = atoi_simd::parse_pos::<u8>(&value_bytes[5..7])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-            day = atoi_simd::parse::<u8>(&value_bytes[8..])
+            day = atoi_simd::parse_pos::<u8>(&value_bytes[8..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
         } else {
             if unlikely(!value_bytes.is_ascii()) {
                 return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
             }
-            // TODO: Unchecked
-            let str_ = std::str::from_utf8(&value_bytes)
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-            // TODO: Hack to accelerate decoding of 202x by checking for "202" prefix
-            year = u16::from_str(&str_[0..4])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            // We already checked for ASCII above.
+            let str_ = unsafe { std::str::from_utf8_unchecked(&value_bytes) };
+
+            /* This is a performance hack: since most timestamps are probably
+            going to be from the same decade, we just try a year starting with
+            "202" first. In ten years, I'll change this. */
+            year = if value_bytes[0..3] == *(b"202") {
+                let last_digit = value_bytes[3] - 0x30;
+                if unlikely(last_digit > 9) {
+                    return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+                }
+                2020 + last_digit as u16
+            } else {
+                u16::from_str(&str_[0..4])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?
+            };
+
             month = u8::from_str(&str_[5..7])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             day = u8::from_str(&str_[8..])
