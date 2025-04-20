@@ -13,7 +13,7 @@ impl GeneralizedTime {
             date: DATE::default(),
             flags: 0,
             hour: 0,
-            minute: None,
+            min_and_sec: None,
             fraction: 0,
             utc_offset: None,
         }
@@ -21,7 +21,7 @@ impl GeneralizedTime {
 
     #[inline]
     pub fn is_zero(&self) -> bool {
-        let (minute, second) = self.minute.unwrap_or((0, None));
+        let (minute, second) = self.min_and_sec.unwrap_or((0, None));
         self.date.year == 0
             && self.date.month <= 1
             && self.date.day <= 1
@@ -65,12 +65,12 @@ impl ISO8601Timestampable for GeneralizedTime {
         let mut buf_offset_m = itoa::Buffer::new();
 
         let mut fraction_string: Option<String> = None;
-        let (mut minute, mut second) = self.minute.unwrap_or((0, None));
+        let (mut minute, mut second) = self.min_and_sec.unwrap_or((0, None));
         let frac_precision = self.get_fraction_precision_digits();
         if frac_precision > 0 {
             let num: f64 = self.fraction.into();
             let denom: f64 = 10.0f64.powi(frac_precision as i32);
-            if unlikely(self.minute.is_none()) {
+            if unlikely(self.min_and_sec.is_none()) {
                 // Fractional hours
                 let secondsf = (num / denom) * 3600.0;
                 minute = (secondsf / 60.0).floor() as u8;
@@ -202,7 +202,7 @@ impl Default for GeneralizedTime {
             date: DATE::default(),
             flags: 0,
             hour: 0,
-            minute: None,
+            min_and_sec: None,
             fraction: 0,
             utc_offset: None,
         }
@@ -217,7 +217,7 @@ impl From<UTCTime> for GeneralizedTime {
             date,
             flags: 0,
             hour: other.hour,
-            minute: Some((other.minute, Some(other.second))),
+            min_and_sec: Some((other.minute, Some(other.second))),
             fraction: 0,
             utc_offset: None,
         }
@@ -233,7 +233,7 @@ impl From<DATE> for GeneralizedTime {
             date: other,
             flags: 0, // Local time, not UTC.
             hour: 0,
-            minute: None,
+            min_and_sec: None,
             fraction: 0,
             utc_offset: None,
         }
@@ -280,10 +280,10 @@ impl TryFrom<&[u8]> for GeneralizedTime {
             if unlikely(minute > 59) {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
             }
-            ret.minute = Some((minute, None));
+            ret.min_and_sec = Some((minute, None));
         }
 
-        if let Some((m, _)) = ret.minute {
+        if let Some((m, _)) = ret.min_and_sec {
             // Normal "if"s cannot be combined with "if let"s.
             if (len >= 14) && b[12].is_ascii_digit() {
                 // Seconds component is present.
@@ -291,11 +291,11 @@ impl TryFrom<&[u8]> for GeneralizedTime {
                 if unlikely(second > 59) {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
                 }
-                ret.minute = Some((m, Some(second)));
+                ret.min_and_sec = Some((m, Some(second)));
             }
         }
 
-        let mut i: usize = match ret.minute {
+        let mut i: usize = match ret.min_and_sec {
             None => 10,
             Some((_, s)) => if s.is_some() { 14 } else { 12 },
         };
@@ -389,7 +389,7 @@ impl Display for GeneralizedTime {
             buf_day.format(self.date.day),
             buf_hour.format(self.hour),
         )?;
-        if let Some((min, maybe_sec)) = &self.minute {
+        if let Some((min, maybe_sec)) = &self.min_and_sec {
             write!(f, "{:0>2}", buf_minute.format(*min))?;
             if let Some(sec) = &maybe_sec {
                 write!(f, "{:0>2}", buf_second.format(*sec))?;

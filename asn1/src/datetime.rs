@@ -51,7 +51,7 @@ impl Default for DATE_TIME {
 impl From<GeneralizedTime> for DATE_TIME {
     #[inline]
     fn from(other: GeneralizedTime) -> Self {
-        let (minute, second) = other.minute.unwrap_or((0, None));
+        let (minute, second) = other.min_and_sec.unwrap_or((0, None));
         DATE_TIME {
             date: DATE {
                 year: other.date.year,

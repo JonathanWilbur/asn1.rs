@@ -1,6 +1,4 @@
-use std::{fmt::Debug, path::Display, sync::Arc, vec::Vec};
-
-use crate::display;
+use std::{fmt::Debug, sync::Arc, vec::Vec};
 
 pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a [u8];
@@ -187,8 +185,8 @@ impl Into<char> for DurationPart {
 
 }
 
-// FIXME: Implement eq and hash
-#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+// FIXME: Implement hash
+#[derive(Debug, Hash, Eq, Clone, Copy)]
 // Defined in ITU X.680, Section 38.4.4.2.
 pub struct DURATION_EQUIVALENT {
     pub years: u32,
@@ -205,8 +203,8 @@ pub struct DURATION_EQUIVALENT {
 pub type BOOLEAN = bool;
 pub type INTEGER = Bytes;
 pub type BIT = usize;
-// FIXME: Implement eq and hash
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+// FIXME: Implement hash
+#[derive(Debug, Hash, Eq, Clone)]
 pub struct BIT_STRING {
     pub bytes: Vec<u8>,
     pub trailing_bits: u8,
@@ -329,7 +327,7 @@ pub struct GeneralizedTime {
     // Not only does this enforce correctness, but it also makes the struct
     // 24 bytes instead of 28, meaning that it can be read or copied more
     // efficiently on 64-bit systems.
-    pub minute: Option<(u8, Option<u8>)>, // TODO: Rename to min_and_sec
+    pub min_and_sec: Option<(u8, Option<u8>)>,
 
     /// The least significant four bits are the precision, in terms of decimal
     /// digits, of the fraction. This value will be 0 if there were no
@@ -352,7 +350,6 @@ pub struct DATE {
     pub day: u8,
 }
 
-// TODO: Test the ordering produced using #[derive(PartialOrd)]
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct TIME_OF_DAY {
     pub hour: u8,

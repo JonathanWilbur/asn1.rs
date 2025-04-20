@@ -124,7 +124,7 @@ impl Default for UTCTime {
 impl From<GeneralizedTime> for UTCTime {
     #[inline]
     fn from(other: GeneralizedTime) -> Self {
-        let (minute, second) = other.minute.unwrap_or((0, None));
+        let (minute, second) = other.min_and_sec.unwrap_or((0, None));
         UTCTime {
             year: (other.date.year % 100) as u8,
             month: other.date.month,

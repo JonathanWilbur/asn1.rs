@@ -41,7 +41,7 @@ impl From<DATE_TIME> for TIME_OF_DAY {
 impl From<GeneralizedTime> for TIME_OF_DAY {
     #[inline]
     fn from(other: GeneralizedTime) -> Self {
-        let (minute, second) = other.minute.unwrap_or((0, None));
+        let (minute, second) = other.min_and_sec.unwrap_or((0, None));
         TIME_OF_DAY {
             hour: other.hour,
             minute,
