@@ -2,6 +2,7 @@ use crate::{ASN1Value, ComponentSpec};
 use crate::types::Tag;
 use std::fmt;
 use std::io::{Error, ErrorKind};
+use std::str::Utf8Error;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ASN1ErrorCode {
@@ -150,6 +151,25 @@ impl From<ASN1Error> for std::io::Error {
             return e;
         }
         std::io::Error::from(ErrorKind::InvalidData)
+    }
+
+}
+
+impl From<Utf8Error> for ASN1Error {
+
+    #[inline]
+    fn from(value: Utf8Error) -> Self {
+        ASN1Error {
+            error_code: ASN1ErrorCode::invalid_utf8,
+            component_name: None,
+            tag: None,
+            length: None,
+            constructed: None,
+            value_preview: None,
+            bytes_read: Some(value.valid_up_to()),
+            values_read: None,
+            io_error: None,
+        }
     }
 
 }
