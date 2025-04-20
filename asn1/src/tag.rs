@@ -1,10 +1,5 @@
 use crate::types::{Tag, TagClass, TagNumber};
-use crate::utils::unlikely;
-use std::{
-    fmt,
-    io::{Error, ErrorKind},
-    str::FromStr,
-};
+use std::fmt;
 
 /*
 
@@ -71,69 +66,6 @@ impl From<(TagClass, TagNumber)> for Tag {
             tag_class: other.0,
             tag_number: other.1,
         }
-    }
-}
-
-// TODO: Test this
-impl FromStr for Tag {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if unlikely(!s.is_ascii()) {
-            return Err(Error::from(ErrorKind::InvalidInput));
-        }
-        let mut index: usize = 0;
-        for c in s.chars() {
-            if c.is_ascii_whitespace() {
-                index += 1;
-                continue;
-            } else if c == '[' {
-                index += 1;
-                continue;
-            } else {
-                break;
-            }
-        }
-        let upper = s[index..].trim_start().to_ascii_uppercase();
-        let tag_class: TagClass;
-        if upper.starts_with("UNIV") {
-            tag_class = TagClass::UNIVERSAL;
-        } else if upper.contains("X") {
-            tag_class = TagClass::CONTEXT;
-        } else if upper.starts_with("CO") {
-            tag_class = TagClass::CONTEXT;
-        } else if upper.starts_with("APPL") {
-            tag_class = TagClass::APPLICATION;
-        } else if upper.starts_with("PRIV") {
-            tag_class = TagClass::PRIVATE;
-        } else {
-            return Err(Error::from(ErrorKind::InvalidInput));
-        }
-        for c in upper.chars() {
-            if !c.is_ascii_whitespace() {
-                break;
-            }
-            index += 1;
-        }
-        let start_of_digit: usize = index;
-        let mut end_of_digit: usize = index;
-        for c in s[start_of_digit..].chars() {
-            if !c.is_ascii_digit() {
-                break;
-            }
-            end_of_digit += 1;
-        }
-        let tag_number = if cfg!(feature = "atoi_simd") {
-            atoi_simd::parse_pos::<u16>(&s[start_of_digit..end_of_digit].as_bytes())
-                .map_err(|_| Error::from(ErrorKind::InvalidInput))?
-        } else {
-            u16::from_str(&s[start_of_digit..end_of_digit])
-                .map_err(|_| Error::from(ErrorKind::InvalidInput))?
-        };
-        Ok(Tag {
-            tag_class,
-            tag_number,
-        })
     }
 }
 
