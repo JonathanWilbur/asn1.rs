@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 
 #[inline]
 pub fn is_printable_char (b: u8) -> bool {
@@ -37,4 +38,12 @@ pub fn is_general_str (s: &str) -> bool {
 #[inline]
 pub fn is_visible_str (s: &str) -> bool {
     s.chars().all(|c| c.is_ascii_graphic())
+}
+
+pub fn normalize_num_bytes (input: &[u8]) -> Cow<[u8]> {
+    if input.contains(&0x20) {
+        Cow::Owned(input.iter().copied().filter(|&b| b != 0x20).collect())
+    } else {
+        Cow::Borrowed(input)
+    }
 }

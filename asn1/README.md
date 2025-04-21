@@ -256,7 +256,7 @@ somewhat battle-tested.
 ## To Do
 
 - [ ] Fuzz testing
-- [ ] Normalize `NumericString`
+- [x] Normalize `NumericString`
 - [x] To and from `NumericString` values for time types
   - This is for X.690 encoding, primarily
 - [x] ~~Convertion to and from `std::time::Duration`~~ (No unambiguous way)
