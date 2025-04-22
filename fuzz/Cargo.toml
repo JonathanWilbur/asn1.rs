@@ -1,0 +1,43 @@
+[package]
+name = "asn1-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.asn1]
+path = "../asn1"
+features = ["arbitrary"]
+
+[[bin]]
+name = "date"
+path = "fuzz_targets/date.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "time_of_day"
+path = "fuzz_targets/time_of_day.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "datetime"
+path = "fuzz_targets/datetime.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "bitstring"
+path = "fuzz_targets/bitstring.rs"
+test = false
+doc = false
+bench = false

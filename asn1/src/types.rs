@@ -203,6 +203,7 @@ pub type BOOLEAN = bool;
 pub type INTEGER = Bytes;
 pub type BIT = usize;
 #[derive(Debug, Eq, Clone)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct BIT_STRING {
     pub bytes: Vec<u8>,
     pub trailing_bits: u8,
