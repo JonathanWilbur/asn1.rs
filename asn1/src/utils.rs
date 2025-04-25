@@ -50,6 +50,8 @@ pub fn read_i128(bytes: ByteSlice) -> Result<i128, ()> {
     }
 }
 
+/// If you need to remove spaces from numeric strings, consider using the
+/// `cow-utils` crate: https://crates.io/crates/cow-utils.
 pub fn compare_numeric_string (a: &str, b: &str) -> bool {
     let a_trim = a.trim().as_bytes();
     let b_trim = b.trim().as_bytes();

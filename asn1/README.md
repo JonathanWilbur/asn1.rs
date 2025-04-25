@@ -245,6 +245,23 @@ simpler libraries that do the bare minimum.
 [This](https://crates.io/crates/asn1_der) might be a suitable library for you
 in this case.
 
+## Fuzz Testing
+
+In the root of this monorepo, run:
+
+```sh
+cargo fuzz run bitstring
+cargo fuzz run date -- -max_len=10
+cargo fuzz run datetime -- -max_len=20
+cargo fuzz run time_of_day -- -max_len=8
+cargo fuzz run asn1utils -- -max_len=8
+cargo fuzz run duration -- -max_len=32
+cargo fuzz run gentime -- -max_len=35
+cargo fuzz run utctime -- -max_len=20
+```
+
+These will run forever, so you will want to kill them by pressing `Ctrl+C`.
+
 ## Versioning
 
 This is currently in beta. Be prepared for potentially large breaking changes
@@ -255,13 +272,10 @@ somewhat battle-tested.
 
 ## To Do
 
-- [ ] Fuzz testing
-- [x] Normalize `NumericString`
-- [x] To and from `NumericString` values for time types
-  - This is for X.690 encoding, primarily
-- [x] ~~Convertion to and from `std::time::Duration`~~ (No unambiguous way)
+- [ ] Fuzz testing for OIDs and ROIDs
 - [ ] I think you can replace `% 8` with a bit mask, which would be more performant
 - [ ] `no-std` and other feature flags
+- [ ] `const fn`
 - [ ] Documentation comments
 - [ ] `README.md` documentation
 - [ ] Debug assertions / debug logging?

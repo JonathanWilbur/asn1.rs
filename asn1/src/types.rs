@@ -143,6 +143,7 @@ impl Default for UTCOffset {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct FractionalPart {
     pub number_of_digits: u8,
     pub fractional_value: u32,
@@ -159,6 +160,7 @@ impl FractionalPart {
 }
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum DurationPart {
     Years,
     Months,
@@ -185,8 +187,9 @@ impl Into<char> for DurationPart {
 
 }
 
+/// Defined in ITU-T Recommendation X.680, Section 38.4.4.2.
 #[derive(Debug, Eq, Clone, Copy)]
-// Defined in ITU X.680, Section 38.4.4.2.
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct DURATION_EQUIVALENT {
     pub years: u32,
     pub months: u32,

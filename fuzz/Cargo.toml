@@ -41,3 +41,31 @@ path = "fuzz_targets/bitstring.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "duration"
+path = "fuzz_targets/duration.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "gentime"
+path = "fuzz_targets/gentime.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "utctime"
+path = "fuzz_targets/utctime.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "asn1utils"
+path = "fuzz_targets/asn1utils.rs"
+test = false
+doc = false
+bench = false
