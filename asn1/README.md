@@ -273,6 +273,7 @@ somewhat battle-tested.
 ## To Do
 
 - [ ] Fuzz testing for OIDs and ROIDs
+- [ ] Benchmarking
 - [ ] I think you can replace `% 8` with a bit mask, which would be more performant
 - [ ] `no-std` and other feature flags
 - [ ] `const fn`

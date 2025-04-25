@@ -506,8 +506,6 @@ mod tests {
         }
     }
 
-    // FIXME: Check that these do not panic and use assertions instead.
-    // This is to check for out of bounds access and such.
     #[test]
     fn gen_time_invalid() {
         let subtests = [
