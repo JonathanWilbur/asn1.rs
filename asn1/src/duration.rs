@@ -5,6 +5,15 @@ use std::fmt::Write;
 use std::{fmt::Display, str::FromStr, time::Duration};
 use crate::utils::{unlikely, likely};
 
+const SECONDS_PER_MINUTE: u64 = 60;
+const SECONDS_PER_HOUR: u64 = 60 * SECONDS_PER_MINUTE;
+const SECONDS_PER_DAY: u64 = 24 * SECONDS_PER_HOUR;
+const SECONDS_PER_WEEK: u64 = 7 * SECONDS_PER_DAY;
+// Average month length (30.44 days)
+const SECONDS_PER_MONTH: u64 = 2_629_746;
+// Average year length including leap years (365.24 days)
+const SECONDS_PER_YEAR: u64 = 31_556_952;
+
 impl TryFrom<char> for DurationPart {
     type Error = ();
 
@@ -75,20 +84,35 @@ impl DURATION_EQUIVALENT {
             && self.fractional_part.is_none()
     }
 
+    /// If the attempt to normalize the `DURATION` value _would_ cause an integer
+    /// overflow, the original `DURATION` value is return unchanged. It would
+    /// therefore fail to be normalized, but this is preferable to the `DURATION`
+    /// value being returned being _wrong_.
     pub fn normalize(&self) -> DURATION_EQUIVALENT {
         let mut seconds = self.seconds;
-        // TODO: Checked addition
-        let mut minutes = self.minutes + self.seconds / 60;
+        let mut minutes = match self.minutes.checked_add(self.seconds / 60) {
+            Some(m) => m,
+            None => return self.clone(),
+        };
         seconds %= 60;
 
-        let hours = self.hours + minutes / 60;
+        let hours = match self.hours.checked_add(minutes / 60) {
+            Some(h) => h,
+            None => return self.clone(),
+        };
         minutes %= 60;
 
+        // TODO: I think this might be overly strict.
         // Due to leap-seconds, a day is not always 24 hours.
         // let mut days = self.days + hours / 24;
         // hours %= 24;
 
-        let weeks = self.weeks + self.days / 7;
+        let weeks = match self.weeks.checked_add(self.days / 7) {
+            Some(w) => w,
+            None => return self.clone(),
+        };
+
+        // TODO: 12 months is a year, dumbass
 
         DURATION_EQUIVALENT {
             years: self.years,
@@ -102,6 +126,44 @@ impl DURATION_EQUIVALENT {
         }
     }
 
+    // TODO: Test this
+    /// Converts the duration to an approximate number of seconds.
+    ///
+    /// This uses the following approximations:
+    /// - 1 year ≈ 365.24 days ≈ 31,556,952 seconds
+    /// - 1 month ≈ 30.44 days ≈ 2,629,746 seconds
+    /// - 1 week = 7 days = 604,800 seconds
+    /// - 1 day = 24 hours = 86,400 seconds
+    /// - 1 hour = 60 minutes = 3,600 seconds
+    /// - 1 minute = 60 seconds
+    pub fn to_approximate_seconds(&self) -> u64 {
+        let mut total: u64 = 0;
+        // Overflow of a u64 is not possible.
+        total += SECONDS_PER_YEAR * self.years as u64;
+        total += SECONDS_PER_MONTH * self.months as u64;
+        total += SECONDS_PER_WEEK * self.weeks as u64;
+        total += SECONDS_PER_DAY * self.days as u64;
+        total += SECONDS_PER_HOUR * self.hours as u64;
+        total += SECONDS_PER_MINUTE * self.minutes as u64;
+        total += self.seconds as u64;
+        if let Some((durpart, frac)) = self.fractional_part {
+            let multiplier = match durpart {
+                DurationPart::Seconds => 1,
+                DurationPart::Minutes => SECONDS_PER_MINUTE,
+                DurationPart::Hours => SECONDS_PER_HOUR,
+                DurationPart::Days => SECONDS_PER_DAY,
+                DurationPart::Weeks => SECONDS_PER_WEEK,
+                DurationPart::Months => SECONDS_PER_MONTH,
+                DurationPart::Years => SECONDS_PER_YEAR,
+            };
+            let numerator: u64 = multiplier * frac.fractional_value as u64;
+            // The None case is ignored.
+            if let Some(denominator) = 10u64.checked_pow(frac.number_of_digits as u32) {
+                total += numerator / denominator; // flooring division
+            }
+        }
+        total
+    }
 }
 
 impl Default for DURATION_EQUIVALENT {
