@@ -84,6 +84,25 @@ impl DURATION_EQUIVALENT {
             && self.fractional_part.is_none()
     }
 
+    /// This method normalizes `DURATION` values by "folding" smaller units of
+    /// time into larger ones where there is an unconditional conversion factor.
+    /// For example, this method would normalize `PT60S` by "folding" it into
+    /// `PT1M` (60 seconds "folded" into one minute).
+    ///
+    /// One exception is for the folding of hours to days: this method regards
+    /// 24 hours as being always equal to one day, ignoring leap seconds. The
+    /// rationale for this is that:
+    ///
+    /// 1. Most people think of 24 hours as being synonymous with one day.
+    /// 2. Most years do not have a leap second, and a second is very small in
+    ///    comparison to 24-hours, so the difference is almost negligible.
+    /// 3. Normalization becomes much more effective at making two duration
+    ///    values comparable if we can fold seconds into minutes, minutes,
+    ///    to hours, etc. The more "folding" that we can "daisy chain" between
+    ///    the units, the more likely that two duration values that look the
+    ///    same to a human will also look the same to a computer.
+    /// 4. The concept of the leap second itself is deprecated.
+    ///
     /// If the attempt to normalize the `DURATION` value _would_ cause an integer
     /// overflow, the original `DURATION` value is return unchanged. It would
     /// therefore fail to be normalized, but this is preferable to the `DURATION`
@@ -96,29 +115,36 @@ impl DURATION_EQUIVALENT {
         };
         seconds %= 60;
 
-        let hours = match self.hours.checked_add(minutes / 60) {
+        let mut hours = match self.hours.checked_add(minutes / 60) {
             Some(h) => h,
             None => return self.clone(),
         };
         minutes %= 60;
 
-        // TODO: I think this might be overly strict.
-        // Due to leap-seconds, a day is not always 24 hours.
-        // let mut days = self.days + hours / 24;
-        // hours %= 24;
+        let mut days = match self.days.checked_add(hours / 24) {
+            Some(d) => d,
+            None => return self.clone(),
+        };
+        hours %= 24;
 
-        let weeks = match self.weeks.checked_add(self.days / 7) {
+        let weeks = match self.weeks.checked_add(days / 7) {
             Some(w) => w,
             None => return self.clone(),
         };
+        days %= 7;
 
-        // TODO: 12 months is a year, dumbass
+        let mut months = self.months;
+        let years = match self.years.checked_add(self.months / 12) {
+            Some(y) => y,
+            None => return self.clone(),
+        };
+        months %= 12;
 
         DURATION_EQUIVALENT {
-            years: self.years,
-            months: self.months,
+            years,
+            months,
             weeks,
-            days: self.days % 7,
+            days,
             hours,
             minutes,
             seconds,
@@ -126,7 +152,6 @@ impl DURATION_EQUIVALENT {
         }
     }
 
-    // TODO: Test this
     /// Converts the duration to an approximate number of seconds.
     ///
     /// This uses the following approximations:
@@ -381,7 +406,7 @@ impl Display for DURATION_EQUIVALENT {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut in_time_components: bool = false;
         if self.is_zero() {
-            return f.write_str("P0S");
+            return f.write_str("PT0S");
         }
         f.write_char('P')?;
         let mut unit: char = '\0';
@@ -486,12 +511,6 @@ impl Display for DURATION_EQUIVALENT {
 impl PartialEq for DURATION_EQUIVALENT {
 
     fn eq(&self, other: &Self) -> bool {
-        if self.years > 0 && self.years != other.years {
-            return false;
-        }
-        if self.months > 0 && self.months != other.months {
-            return false;
-        }
         if self.fractional_part.is_some() && self.fractional_part != other.fractional_part {
             return false;
         }
@@ -987,6 +1006,30 @@ mod tests {
         let dur2 = DURATION_EQUIVALENT::from_str("P7WT1H5.0014S").unwrap();
         assert!(dur1 != dur2);
         assert!(dur2 != dur1);
+    }
+
+    #[test]
+    fn duration_to_seconds_1() {
+        let dur = DURATION_EQUIVALENT::from_str("PT5S").unwrap();
+        assert_eq!(dur.to_approximate_seconds(), 5);
+    }
+
+    #[test]
+    fn duration_to_seconds_2() {
+        let dur = DURATION_EQUIVALENT::from_str("PT5.4S").unwrap();
+        assert_eq!(dur.to_approximate_seconds(), 5);
+    }
+
+    #[test]
+    fn duration_to_seconds_3() {
+        let dur = DURATION_EQUIVALENT::from_str("PT2.5M").unwrap();
+        assert_eq!(dur.to_approximate_seconds(), 150);
+    }
+
+    #[test]
+    fn duration_to_seconds_4() {
+        let dur = DURATION_EQUIVALENT::from_str("PT2.00085M").unwrap();
+        assert_eq!(dur.to_approximate_seconds(), 120);
     }
 
 }
