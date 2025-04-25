@@ -7,6 +7,9 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     if unlikely(strs.len() == 0) {
         return BIT_STRING::new();
     }
+    if unlikely(strs.len() == 1) {
+        return strs[0].clone();
+    }
     // This calculation does not consider trailing bits, both for simplicity,
     // and because doing so might save us only a few bytes of memory at the risk
     // of miscalculations / bugs resulting in reallocation.
@@ -20,8 +23,12 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     ret.bytes.extend(&strs[0].bytes);
 
     // let bit_debt: usize = strs[0].trailing_bits as usize;
-    let mut bit_index: usize = (strs[0].bytes.len() << 3) - strs[0].trailing_bits as usize;
+    let mut bit_index: usize = (strs[0].bytes.len() << 3).saturating_sub((strs[0].trailing_bits % 8) as usize);
     for bs in strs[1..].iter() {
+        // This check prevents a panic at 7dbfa994-2139-44a4-a94a-14b0fc9c3470
+        if bs.bytes.len() == 0 {
+            continue; // Ignore zero-length BIT STRINGs. They have no effect.
+        }
         if (bit_index % 8) == 0 {
             // We are octet-aligned, so we can just do a byte-for-byte copy.
             ret.bytes.extend(&bs.bytes);
@@ -32,7 +39,8 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
             // These should be the same for each iteration of the following loop.
             let trailing_bits = ((8 - (bit_index % 8)) % 8) as u8;
             let remaining_bits = (bit_index % 8) as u8;
-            for byte in bs.bytes[0..len - 1].iter() {
+            // 7dbfa994-2139-44a4-a94a-14b0fc9c3470
+            for byte in bs.bytes[0..len - 1].iter() { // TODO: Fuzz testing failed here once before. Write safer Rust.
                 let prev_byte_mask: u8 = byte >> remaining_bits;
                 let curr_byte_mask: u8 = byte << trailing_bits;
                 let ret_len = ret.bytes.len();
@@ -67,6 +75,15 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     ret
 }
 
+fn calculate_trailing_bits(total_bits: usize) -> u8 {
+    let used_bits_in_last_byte = total_bits % 8;
+    if used_bits_in_last_byte == 0 && total_bits != 0 {
+        0
+    } else {
+        (8 - used_bits_in_last_byte) as u8
+    }
+}
+
 impl BIT_STRING {
 
     #[inline]
@@ -82,7 +99,8 @@ impl BIT_STRING {
         }
     }
 
-    pub fn get(&mut self, index: usize) -> Option<bool> {
+    // TODO: Test this more
+    pub fn get(&self, index: usize) -> Option<bool> {
         let byte_index: usize = index >> 3;
         let bit_index: usize = index % 8;
         let byte = self.bytes.get(byte_index)?;
@@ -94,27 +112,32 @@ impl BIT_STRING {
         Some(masked > 0)
     }
 
+    // TODO: Use safer arithmetic functions?
     pub fn set(&mut self, index: usize, value: bool) -> bool {
+        let mut len = self.bytes.len();
         let byte_index: usize = index >> 3;
         let bit_index: usize = index % 8;
-        let extra_bytes_needed: usize = (byte_index + 1) - self.bytes.len();
-        let extended: bool =
-            (extra_bytes_needed > 0) || (bit_index > (7 - self.trailing_bits).into());
-        if extended {
+        let extra_bytes_needed: usize = (byte_index + 1).saturating_sub(self.bytes.len());
+        // The bit string is extended if...
+        let extended: bool = (extra_bytes_needed > 0) // we had to write more bytes to the end...
+            || ( // or we are...
+                (byte_index == len - 1) // writing to the last byte...
+                && (bit_index > ((8 - self.trailing_bits as usize) - 1)) // past the very last bit
+            );
+        if extra_bytes_needed > 0 {
             self.bytes.resize(self.bytes.len() + extra_bytes_needed, 0);
+            len = self.bytes.len();
         }
-        let len = self.bytes.len(); // See: https://stackoverflow.com/questions/30532628/cannot-borrow-as-immutable-string-and-len
-        {
-            // Zero remaining bits
-            let zeroing_mask: u8 = !(0xFFu8.overflowing_shr((8 - self.trailing_bits).into()).0);
+        if len > 0 && self.trailing_bits > 0 {
+            let zeroing_mask: u8 = 0xFFu8 << self.trailing_bits;
             self.bytes[len - 1] &= zeroing_mask;
         }
         if value {
             let mask: u8 = 1 << (7 - bit_index);
-            self.bytes[len - 1] |= mask;
+            self.bytes[byte_index] |= mask;
         } else {
             let mask: u8 = !(1 << (7 - bit_index));
-            self.bytes[len - 1] &= mask;
+            self.bytes[byte_index] &= mask;
         }
         if extended {
             self.trailing_bits = (7 - bit_index) as u8;
@@ -130,6 +153,7 @@ impl BIT_STRING {
             .unwrap_or(0)
     }
 
+    // TODO: Test this a lot
     pub fn with_bits_set(bits_to_set: &[usize]) -> BIT_STRING {
         let mut bit_size: usize = 0;
         for bit in bits_to_set.iter() {
@@ -158,33 +182,36 @@ impl BIT_STRING {
             };
         }
         let bit_size = bitstr.len();
-        let bytes: Vec<u8> = Vec::with_capacity(bitstr.len() >> 3);
-        let trailing_bits = (8 - (bit_size % 8)) as u8; // REVIEW: I am not sure this is right.
+        let bytes_len = (bitstr.len() >> 3) + if (bitstr.len() % 8) > 0 { 1 } else { 0 };
+        let bytes: Vec<u8> = vec![0; bytes_len];
         let mut bs = BIT_STRING {
             bytes,
-            trailing_bits,
+            trailing_bits: 0,
         };
-        let str_bytes = bitstr.as_bytes();
-        for i in 0..bitstr.len() {
-            let char = str_bytes[i];
-            if char == '1' as u8 {
+        for (i, c) in bitstr.chars().enumerate() {
+            if c == '1' {
                 bs.set(i, true);
             }
+        }
+        if bytes_len > 0 {
+            bs.trailing_bits = calculate_trailing_bits(bit_size);
         }
         bs
     }
 
     pub fn from_bits(bits: &[u8]) -> BIT_STRING {
-        let bit_size =  bits.len();
-        let byte_size = bits.len() >> 3;
-        let bytes: Vec<u8> = Vec::with_capacity(byte_size);
-        let trailing_bits = (8 - (bit_size % 8)) as u8;
+        let bit_size = bits.len();
+        let byte_size = (bits.len() >> 3) + if (bit_size % 8) > 0 { 1 } else { 0 };
+        let bytes: Vec<u8> = vec![0; byte_size];
         let mut bs = BIT_STRING {
             bytes,
-            trailing_bits,
+            trailing_bits: 0,
         };
         for (i, bit) in bits.iter().enumerate() {
             bs.set(i, *bit > 0);
+        }
+        if byte_size > 0 {
+            bs.trailing_bits = calculate_trailing_bits(bit_size);
         }
         bs
     }
@@ -222,6 +249,7 @@ impl PartialEq for BIT_STRING {
 }
 
 impl From<&[u8]> for BIT_STRING {
+    #[inline]
     fn from(other: &[u8]) -> Self {
         BIT_STRING {
             bytes: Vec::from(other.as_ref()),
@@ -240,6 +268,7 @@ impl From<Vec<u8>> for BIT_STRING {
 }
 
 impl Default for BIT_STRING {
+    #[inline]
     fn default() -> Self {
         BIT_STRING {
             bytes: vec![],
@@ -249,11 +278,9 @@ impl Default for BIT_STRING {
 }
 
 fn write_bin(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let bins = v.iter().map(|b| format!("{:08b}", b).to_string());
-    for bin in bins {
-        f.write_str(bin.as_str())?;
-    }
-    Ok(())
+    v.iter()
+        .map(|b| format!("{:08b}", b))
+        .try_for_each(|s| f.write_str(s.as_str()))
 }
 
 impl Display for BIT_STRING {
@@ -270,15 +297,13 @@ impl Display for BIT_STRING {
 
         // Print the trailing bits.
         let last_byte: u8 = self.bytes[len - 1];
-        let (zero_mask, _) = (0b1111_1111 as u8).overflowing_shl(self.trailing_bits as u32);
-        let last_byte_str = format!("{:08b}", last_byte & zero_mask).to_string();
-        let last_bits = unsafe {
-            std::str::from_utf8_unchecked(&last_byte_str.as_bytes()[0..8 - self.trailing_bits as usize])
-        };
 
         f.write_char('\'')?;
-        write_bin(&self.bytes[..len - 1], f)?;
-        f.write_str(last_bits)?;
+        write_bin(&self.bytes[0..len-1], f)?;
+        format!("{:08b}", last_byte)
+            .chars()
+            .take(8u8.saturating_sub(self.trailing_bits) as usize)
+            .try_for_each(|c| f.write_char(c))?;
         f.write_str("'B")
     }
 }
@@ -359,7 +384,7 @@ mod tests {
         let mut bs = BIT_STRING::new();
         bs.set(0, true);
         assert_eq!(bs.bytes.len(), 1);
-        assert!(bs.bytes.starts_with(&[0b1000_0000]));
+        assert_eq!(bs.bytes.as_slice(), &[0b1000_0000]);
         assert_eq!(bs.trailing_bits, 7);
     }
 
@@ -452,6 +477,7 @@ mod tests {
             0b10_010111,
             0b11_011000,
         ]));
+
     }
 
     #[test]
@@ -520,7 +546,6 @@ mod tests {
     #[test]
     fn test_bits_macro() {
         let bs1 = bits!(1,0,1,0,0,1,0,1,1,1,1);
-        // let bs1 = bits!(1010010111110111);
         assert_eq!(bs1.to_string().as_str(), "'10100101111'B");
     }
 
@@ -565,5 +590,26 @@ mod tests {
         };
         assert_eq!(bs.len_in_bits(), 5);
     }
+
+    #[test]
+    fn test_bit_string_from_bin() {
+        let bs = BIT_STRING::from_bin("00001010");
+        assert_eq!(bs.len_in_bits(), 8);
+        assert_eq!(bs.bytes.as_slice(), &[ 0b0000_1010 ]);
+        assert_eq!(bs.trailing_bits, 0);
+    }
+
+    #[test]
+    fn test_bit_string_reg_1() {
+        let bs1 = BIT_STRING::from_bin("11111100");
+        assert_eq!(bs1.to_string().as_str(), "'11111100'B");
+    }
+
+    #[test]
+    fn test_bit_string_reg_2() {
+        let bs1 = BIT_STRING::from_bin("00000000");
+        assert_eq!(bs1.to_string().as_str(), "'00000000'B");
+    }
+
 
 }
