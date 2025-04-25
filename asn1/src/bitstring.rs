@@ -40,7 +40,7 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
             let trailing_bits = ((8 - (bit_index % 8)) % 8) as u8;
             let remaining_bits = (bit_index % 8) as u8;
             // 7dbfa994-2139-44a4-a94a-14b0fc9c3470
-            for byte in bs.bytes[0..len - 1].iter() { // TODO: Fuzz testing failed here once before. Write safer Rust.
+            for byte in bs.bytes[0..len - 1].iter() {
                 let prev_byte_mask: u8 = byte >> remaining_bits;
                 let curr_byte_mask: u8 = byte << trailing_bits;
                 let ret_len = ret.bytes.len();
@@ -72,6 +72,7 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
         let ret_len = ret.bytes.len();
         ret.bytes[ret_len - 1] &= 0xFFu8.overflowing_shl(ret.trailing_bits as u32).0;
     }
+    debug_assert!(ret.trailing_bits < 8);
     ret
 }
 
@@ -99,20 +100,20 @@ impl BIT_STRING {
         }
     }
 
-    // TODO: Test this more
     pub fn get(&self, index: usize) -> Option<bool> {
-        let byte_index: usize = index >> 3;
+        let byte_index: usize = index >> 3; // This is faster "divide by 8"
         let bit_index: usize = index % 8;
         let byte = self.bytes.get(byte_index)?;
         let non_trailing_bits = 7 - (self.trailing_bits % 8);
-        if bit_index > non_trailing_bits as usize {
+        // We only check to see if we're outside of the range of bits if we're
+        // on the last byte.
+        if (byte_index == (self.bytes.len() - 1)) && bit_index > non_trailing_bits as usize {
             return None;
         }
         let masked = (1 << (7 - bit_index)) & byte;
         Some(masked > 0)
     }
 
-    // TODO: Use safer arithmetic functions?
     pub fn set(&mut self, index: usize, value: bool) -> bool {
         let mut len = self.bytes.len();
         let byte_index: usize = index >> 3;
@@ -129,7 +130,7 @@ impl BIT_STRING {
             len = self.bytes.len();
         }
         if len > 0 && self.trailing_bits > 0 {
-            let zeroing_mask: u8 = 0xFFu8 << self.trailing_bits;
+            let zeroing_mask: u8 = 0xFFu8.unbounded_shl(self.trailing_bits as u32);
             self.bytes[len - 1] &= zeroing_mask;
         }
         if value {
@@ -142,6 +143,7 @@ impl BIT_STRING {
         if extended {
             self.trailing_bits = (7 - bit_index) as u8;
         }
+        debug_assert!(self.trailing_bits < 8);
         extended
     }
 
@@ -153,7 +155,6 @@ impl BIT_STRING {
             .unwrap_or(0)
     }
 
-    // TODO: Test this a lot
     pub fn with_bits_set(bits_to_set: &[usize]) -> BIT_STRING {
         let mut bit_size: usize = 0;
         for bit in bits_to_set.iter() {
@@ -161,9 +162,8 @@ impl BIT_STRING {
                 bit_size = *bit;
             }
         }
-        let byte_size = bit_size >> 3;
-        let bytes: Vec<u8> = Vec::with_capacity(byte_size);
-        let trailing_bits = (8 - (bit_size % 8)) as u8;
+        let bytes: Vec<u8> = Vec::with_capacity(std::mem::size_of::<usize>());
+        let trailing_bits = (7 - (bit_size % 8)) as u8;
         let mut bs = BIT_STRING {
             bytes,
             trailing_bits,
@@ -171,6 +171,7 @@ impl BIT_STRING {
         for bit in bits_to_set.iter() {
             bs.set(*bit, true);
         }
+        debug_assert!(bs.trailing_bits < 8);
         bs
     }
 
@@ -196,6 +197,7 @@ impl BIT_STRING {
         if bytes_len > 0 {
             bs.trailing_bits = calculate_trailing_bits(bit_size);
         }
+        debug_assert!(bs.trailing_bits < 8);
         bs
     }
 
@@ -213,6 +215,7 @@ impl BIT_STRING {
         if byte_size > 0 {
             bs.trailing_bits = calculate_trailing_bits(bit_size);
         }
+        debug_assert!(bs.trailing_bits < 8);
         bs
     }
 
@@ -252,7 +255,7 @@ impl From<&[u8]> for BIT_STRING {
     #[inline]
     fn from(other: &[u8]) -> Self {
         BIT_STRING {
-            bytes: Vec::from(other.as_ref()),
+            bytes: Vec::from(other),
             trailing_bits: 0,
         }
     }
@@ -347,6 +350,8 @@ macro_rules! bits {
 
 #[cfg(test)]
 mod tests {
+
+    use std::usize;
 
     use crate::{bitstring::join_bit_strings, types::BIT_STRING};
 
@@ -551,7 +556,7 @@ mod tests {
 
     #[test]
     fn test_bit_string_get() {
-        let mut bs = BIT_STRING {
+        let bs = BIT_STRING {
             bytes: vec![0b0100_0000],
             trailing_bits: 5,
         };
@@ -564,7 +569,7 @@ mod tests {
     // cause a panic.
     #[test]
     fn test_bit_string_get_malformed_1() {
-        let mut bs = BIT_STRING {
+        let bs = BIT_STRING {
             bytes: vec![0b0100_0000],
             trailing_bits: 65,
         };
@@ -574,7 +579,7 @@ mod tests {
 
     #[test]
     fn test_bit_string_get_malformed_2() {
-        let mut bs = BIT_STRING {
+        let bs = BIT_STRING {
             bytes: vec![],
             trailing_bits: 3,
         };
@@ -609,6 +614,66 @@ mod tests {
     fn test_bit_string_reg_2() {
         let bs1 = BIT_STRING::from_bin("00000000");
         assert_eq!(bs1.to_string().as_str(), "'00000000'B");
+    }
+
+
+    #[test]
+    fn test_with_bits_set_1() {
+        let bs1 = BIT_STRING::with_bits_set(&[ 1, 3, 5, 7, 8, 9, 13 ]);
+        assert_eq!(bs1.to_string().as_str(), "'01010101110001'B");
+    }
+
+    #[test]
+    fn test_with_bits_set_2() {
+        let bs1 = BIT_STRING::with_bits_set(&[]);
+        assert_eq!(bs1.to_string().as_str(), "''B");
+    }
+
+    #[test]
+    fn test_bit_string_get_1() {
+        let bs1 = BIT_STRING::with_bits_set(&[ 1, 3, 5, 7, 8, 9, 13 ]);
+        assert_eq!(bs1.get(0),  Some(false));
+        assert_eq!(bs1.get(1),  Some(true));
+        assert_eq!(bs1.get(2),  Some(false));
+        assert_eq!(bs1.get(3),  Some(true));
+        assert_eq!(bs1.get(4),  Some(false));
+        assert_eq!(bs1.get(5),  Some(true));
+        assert_eq!(bs1.get(6),  Some(false));
+        assert_eq!(bs1.get(7),  Some(true));
+        assert_eq!(bs1.get(8),  Some(true));
+        assert_eq!(bs1.get(9),  Some(true));
+        assert_eq!(bs1.get(10), Some(false));
+        assert_eq!(bs1.get(11), Some(false));
+        assert_eq!(bs1.get(12), Some(false));
+        assert_eq!(bs1.get(13), Some(true));
+    }
+
+    #[test]
+    fn test_bit_string_get_2() {
+        let bs1 = BIT_STRING::with_bits_set(&[ 0, 2, 4, 6, 8, 10 ]);
+        assert_eq!(bs1.get(0),  Some(true));
+        assert_eq!(bs1.get(1),  Some(false));
+        assert_eq!(bs1.get(2),  Some(true));
+        assert_eq!(bs1.get(3),  Some(false));
+        assert_eq!(bs1.get(4),  Some(true));
+        assert_eq!(bs1.get(5),  Some(false));
+        assert_eq!(bs1.get(6),  Some(true));
+        assert_eq!(bs1.get(7),  Some(false));
+        assert_eq!(bs1.get(8),  Some(true));
+        assert_eq!(bs1.get(9),  Some(false));
+    }
+
+    #[test]
+    fn test_bit_string_get_3() {
+        let bs1 = BIT_STRING::with_bits_set(&[ 0 ]);
+        assert_eq!(bs1.get(usize::MAX), None);
+    }
+
+    #[test]
+    fn test_bit_string_set_4() {
+        let mut bs1 = BIT_STRING::new();
+        bs1.set(0, true);
+        assert_eq!(bs1.get(0), Some(true));
     }
 
 
