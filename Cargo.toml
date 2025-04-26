@@ -22,7 +22,8 @@ members = [
     "ldap-schema-parsers",
     "rfc4523-parsing",
     "osi-net",
-    "fuzz"
+    "fuzz",
+    "asn1lex",
 ]
 
 [workspace.dependencies]
