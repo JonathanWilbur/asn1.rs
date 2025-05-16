@@ -276,6 +276,7 @@ dependencies = [
  "faster-hex",
  "itoa",
  "likely_stable",
+ "smallvec",
 ]
 
 [[package]]

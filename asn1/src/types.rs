@@ -215,30 +215,51 @@ pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OID_ARC = u32;
 
-// TODO: Hear me out...
-/*
-pub enum OIDData {
-    Full((u8, RELATIVE_OID)),
-    Pen((OID_ARC, RELATIVE_OID)),
-    Smol([u8; 8]),
+// TODO: Use these
+// If the OID stores one of these values, it is a single root arc.
+pub(crate) const ROOT_ARC_0_HACK_VALUE: u8 = 0b1000_0000;
+pub(crate) const ROOT_ARC_1_HACK_VALUE: u8 = 0b1000_0001;
+pub(crate) const ROOT_ARC_2_HACK_VALUE: u8 = 0b1000_0010;
+
+// TODO: use 0b1000_0000 to store 0, 0b1000_0001 to store 1, 0b1000_0010 to store 2.
+#[cfg(not(feature = "smallvec"))]
+#[derive(Debug, Hash, Clone)]
+pub struct OBJECT_IDENTIFIER (
+    /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
+    /// Recommendation X.690. This implementation favors faster comparison and
+    /// hashing and lower memory footprint at the expense of slower parsing and
+    /// printing.
+    ///
+    /// Intentionally not exported to library users so as to avoid dependency
+    /// on the underlying storage of arcs.
+    pub(crate) Vec<u8>
+);
+
+// TODO: Using this encoding, there is no way to differentiate between a 1 or 2 arc OID.
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Hash, Clone)]
+pub struct OBJECT_IDENTIFIER (
+    /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
+    /// Recommendation X.690. This implementation favors faster comparison and
+    /// hashing and lower memory footprint at the expense of slower parsing and
+    /// printing.
+    ///
+    /// The 16-byte inline vector was chosen because it is more than enough to
+    /// accommodate the 12 bytes needed for an object identifier like
+    /// 1.3.6.1.4.1.56490.5.4.13000. The vast majority of all object identifiers
+    /// will fit without needing _any_ allocation on the heap.
+    ///
+    /// Intentionally not exported to library users so as to avoid dependency
+    /// on the underlying storage of arcs.
+    pub(crate) smallvec::SmallVec<[u8; 16]>
+);
+
+#[derive(Debug, Clone, Copy)]
+pub struct OidArcs<'a> {
+    pub(crate) encoded: &'a [u8],
+    pub(crate) i: usize,
 }
 
-But maybe you could just interpret arc > 2 as a PEN...
-... also interpret highest MSb being set as "smol oid"
-
-What about
-
-pub enum OIDData {
-    Iso(RELATIVE_OID),
-    Itu(RELATIVE_OID),
-    Joint(RELATIVE_OID),
-    Pen(RELATIVE_OID),
-    Smol([u8; 8]), // continuation bits used to indicate next arc
-}
-
-*/
-#[derive(Debug, Hash, Eq, PartialOrd, Ord, Clone)]
-pub struct OBJECT_IDENTIFIER(pub Vec<OID_ARC>);
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
 pub type EXTERNAL = External;
 pub type REAL = f64;
@@ -259,8 +280,6 @@ pub type T61String = Bytes;
 pub type TeletexString = T61String;
 pub type VideotexString = Bytes;
 pub type IA5String = String;
-
-pub const UTC_TIME_SECONDS_UNKNOWN: u8 = 0xFF;
 
 /// ## Omitted Seconds Handling
 ///

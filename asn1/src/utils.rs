@@ -50,6 +50,38 @@ pub fn read_i128(bytes: ByteSlice) -> Result<i128, ()> {
     }
 }
 
+pub fn write_base_128<W>(output: &mut W, num: u32) -> std::io::Result<usize>
+where
+    W: std::io::Write,
+{
+    if num < 128 {
+        return output.write(&[num as u8]);
+    }
+
+    // Number of bytes written to `encoded`.
+    let mut j = 0;
+    // A base-128-encoded u32 can only take up to five bytes.
+    let mut encoded: [u8; 5] = [0; 5];
+
+    let mut l = 0;
+    let mut i = num;
+    while i > 0 {
+        l += 1;
+        i >>= 7;
+    }
+
+    for i in (0..l).rev() {
+        let mut o = (num >> (i * 7)) as u8;
+        o &= 0x7f;
+        if i != 0 {
+            o |= 0x80;
+        }
+        encoded[j] = o;
+        j += 1;
+    }
+    return output.write(&encoded);
+}
+
 /// If you need to remove spaces from numeric strings, consider using the
 /// `cow-utils` crate: https://crates.io/crates/cow-utils.
 pub fn compare_numeric_string (a: &str, b: &str) -> bool {
