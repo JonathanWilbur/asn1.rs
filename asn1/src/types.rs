@@ -18,7 +18,7 @@ pub enum TagClass {
 // it would be acceptable to only tolerate two bytes of long-length tag numbers.
 pub type TagNumber = u16;
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct IdentificationSyntaxes {
     pub r#abstract: OBJECT_IDENTIFIER,
     pub transfer: OBJECT_IDENTIFIER,
@@ -34,7 +34,7 @@ impl IdentificationSyntaxes {
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct ContextNegotiation {
     pub presentation_context_id: INTEGER,
     pub transfer_syntax: OBJECT_IDENTIFIER,
@@ -50,7 +50,7 @@ impl ContextNegotiation {
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum ExternalIdentification {
     // syntaxes                (IdentificationSyntaxes),
     syntax(OBJECT_IDENTIFIER),
@@ -237,7 +237,7 @@ pub struct OBJECT_IDENTIFIER (
 
 // TODO: Using this encoding, there is no way to differentiate between a 1 or 2 arc OID.
 #[cfg(feature = "smallvec")]
-#[derive(Debug, Hash, Clone)]
+#[derive(Debug, Hash, Clone, Eq)]
 pub struct OBJECT_IDENTIFIER (
     /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
     /// Recommendation X.690. This implementation favors faster comparison and
@@ -256,8 +256,17 @@ pub struct OBJECT_IDENTIFIER (
 
 #[derive(Debug, Clone, Copy)]
 pub struct OidArcs<'a> {
+    /// The full DER-encoding, but optionally with a hack where a single root
+    /// arc is stored as a single byte with the most significant bit set.
     pub(crate) encoded: &'a [u8],
-    pub(crate) i: usize,
+    /// Index into the encoded OID. u32 instead of usize so this struct would
+    /// still be 24 bytes instead of 32.
+    pub(crate) i: u32,
+    /// Whether the iterator already handled the first arc. We need this because
+    /// both the first and second arcs could be encoded in the first byte, and
+    /// i alone would be insufficient to tell us if we iterated over the first
+    /// arc already.
+    pub(crate) first_arc_read: bool,
 }
 
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString

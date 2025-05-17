@@ -102,12 +102,12 @@ impl PartialEq for RELATIVE_OID {
     }
 }
 
-impl From<OBJECT_IDENTIFIER> for RELATIVE_OID {
-    #[inline]
-    fn from(oid: OBJECT_IDENTIFIER) -> Self {
-        RELATIVE_OID(oid.0.clone())
-    }
-}
+// impl From<OBJECT_IDENTIFIER> for RELATIVE_OID {
+//     #[inline]
+//     fn from(oid: OBJECT_IDENTIFIER) -> Self {
+//         RELATIVE_OID(oid.0.clone())
+//     }
+// }
 
 #[macro_export]
 macro_rules! roid {

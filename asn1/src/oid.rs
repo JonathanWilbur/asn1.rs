@@ -2,9 +2,16 @@ use atoi_simd::AtoiSimdError;
 use smallvec::SmallVec;
 
 use crate::{types::OBJECT_IDENTIFIER, unlikely, write_base_128, OidArcs, OID_ARC, RELATIVE_OID};
-use std::{cmp::max, fmt::{Display, Write}, num::{IntErrorKind, ParseIntError}, str::FromStr, sync::Arc};
+use std::{cmp::{self, max}, fmt::{Display, Write}, num::{IntErrorKind, ParseIntError}, str::FromStr, sync::Arc};
 
 const PEN_PREFIX: [u32; 6] = [ 1, 3, 6, 1, 4, 1 ];
+
+// TODO: Actually, I don't think you need this. You can check for overflows of u128 directly.
+const MAX_ENCODED_ARC_LEN: usize = 19; // Larger than this could exceed the bounds of u128.
+
+// TODO: Limit encoded OIDs to 127 bytes. No reasonable use case would exceed this.
+
+// TODO: Handle on huge arcs, OIDs, etc.
 
 impl OBJECT_IDENTIFIER {
 
@@ -13,24 +20,26 @@ impl OBJECT_IDENTIFIER {
         OidArcs{
             encoded: self.0.as_slice(),
             i: 0,
+            first_arc_read: false,
         }
     }
 
+    // TODO: More efficient implementation
     // TODO: Dedupe from ROID
     // #[inline]
-    // pub fn to_asn1_string(&self) -> String {
-    //     // I don't think there's really a much more performant way to implement
-    //     // this. itoa is not very helpful here, because we have to clone the
-    //     // stack buffer into an owned string anyway.
-    //     format!(
-    //         "{{ {} }}",
-    //         self.0
-    //             .iter()
-    //             .map(|n| n.to_string())
-    //             .collect::<Vec<String>>()
-    //             .join(" ")
-    //     )
-    // }
+    pub fn to_asn1_string(&self) -> String {
+        // I don't think there's really a much more performant way to implement
+        // this. itoa is not very helpful here, because we have to clone the
+        // stack buffer into an owned string anyway.
+        format!(
+            "{{ {} }}",
+            self.0
+                .iter()
+                .map(|arc| arc.to_string())
+                .collect::<Vec<String>>()
+                .join(" ")
+        )
+    }
 
     // #[inline]
     // pub fn to_iri_string(&self) -> String {
@@ -81,6 +90,40 @@ impl FromStr for OBJECT_IDENTIFIER {
         }
         OBJECT_IDENTIFIER::try_from(nodes).map_err(|_| ())
     }
+}
+
+impl TryFrom<Vec<u8>> for OBJECT_IDENTIFIER {
+    type Error = std::io::Error; // TODO: Why is this the return type?
+
+    // FIXME: Validate
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        #[cfg(feature = "smallvec")]
+        {
+            Ok(OBJECT_IDENTIFIER(value.into()))
+        }
+        #[cfg(not(feature = "smallvec"))]
+        {
+            Ok(OBJECT_IDENTIFIER(value))
+        }
+    }
+
+}
+
+impl TryFrom<&[u8]> for OBJECT_IDENTIFIER {
+    type Error = std::io::Error;
+
+    // FIXME: Validate
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        #[cfg(feature = "smallvec")]
+        {
+            Ok(OBJECT_IDENTIFIER(value.into()))
+        }
+        #[cfg(not(feature = "smallvec"))]
+        {
+            Ok(OBJECT_IDENTIFIER(value.to_owned()))
+        }
+    }
+
 }
 
 impl TryFrom<Vec<u32>> for OBJECT_IDENTIFIER {
@@ -153,41 +196,51 @@ impl Iterator for OidArcs<'_> {
     type Item = u128;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // This is a hack: to represent a single root arc, we create an
-        // invalid OID with the first bit set and a length of 1.
+        if unlikely(self.encoded.len() == 0) { // Handle an empty OID (invalid)
+            return None;
+        }
+        // Handle the single root arc "hack" case
         if unlikely(self.encoded.len() == 1 && self.encoded[0] > 0b1000_0000) {
-            if self.i == 0 {
-                self.i = 1;
-                return Some(max(self.encoded[0] & 0b0111_1111, 2) as u128);
-            } else {
+            if self.first_arc_read {
                 return None;
+            } else {
+                self.first_arc_read = true;
+                return Some(max(self.encoded[0] & 0b0111_1111, 2) as u128);
             }
         }
-        let i = self.i.saturating_sub(1); // both i=0 and i=1 will start at [0].
-        let arc_len = self.encoded[i..]
+        // Handle being at the end of the OID
+        if unlikely(self.i as usize >= self.encoded.len()) {
+            return None;
+        }
+        let i = self.i as usize;
+        let arc_len = self.encoded.get(i..)?
             .iter()
-            .position(|b| *b < 0b1000_0000)?;
+            .position(|b| *b < 0b1000_0000)? + 1;
         let mut current_node: u128 = 0;
         for byte in self.encoded[i..i+arc_len].iter() {
             current_node <<= 7;
             current_node += (byte & 0b0111_1111) as u128;
         }
-        if self.i == 0 {
-            self.i = 1;
-            if current_node >= 80 {
-                return Some(2);
+        // If we are starting on the first byte, it could encode either the
+        // first or second arc, so it requires special handling.
+        if unlikely(self.i == 0) {
+            if self.first_arc_read {
+                self.i = self.i.checked_add(arc_len as u32)?;
+                if current_node >= 80 {
+                    return Some((current_node - 80) as u128);
+                } else {
+                    return Some((current_node % 40) as u128);
+                }
             } else {
-                return Some((current_node / 40) as u128);
-            }
-        } else if self.i == 1 {
-            self.i += arc_len;
-            if current_node >= 80 {
-                return Some((current_node - 80) as u128);
-            } else {
-                return Some((current_node % 40) as u128);
+                self.first_arc_read = true;
+                if current_node >= 80 {
+                    return Some(2);
+                } else {
+                    return Some((current_node / 40) as u128);
+                }
             }
         }
-        self.i += arc_len;
+        self.i = self.i.checked_add(arc_len as u32)?;
         Some(current_node)
     }
 
@@ -204,93 +257,67 @@ impl Iterator for OidArcs<'_> {
                 (2, Some(2))
             },
             _ => {
-                let arcs = self.encoded[1..]
+                let arcs = self.encoded
                     .iter()
-                    .filter(|b| **b < 0b1000_0000).count() + 2;
+                    .filter(|b| **b < 0b1000_0000).count() + 1;
                 (arcs, Some(arcs))
             }
         }
     }
 
     /// Non-default implementation: the exact size is known.
-    fn count(mut self) -> usize
+    fn count(self) -> usize
         where
             Self: Sized, {
-        self.i = self.encoded.len();
         self.size_hint().0
     }
 
-    // FIXME: This is supposed to move the iterator
-    /// This implementation optimizes over the default by not decoding any OID
-    /// arcs other than the one requested.
-    // fn nth(&mut self, n: usize) -> Option<Self::Item> {
-    //     // This is a hack: to represent a single root arc, we create an
-    //     // invalid OID with the first bit set and a length of 1.
-    //     if unlikely(self.i == 0 && self.encoded.len() == 1 && self.encoded[0] > 0b1000_0000) {
-    //         if n == 0 {
-    //             return Some(max(self.encoded[0] & 0b0111_1111, 2) as u128);
-    //         } else {
-    //             return None;
-    //         }
-    //     }
-
-    //     let mut iter_debt = n;
-    //     let mut start_of_arc = self.i;
-
-    //     // TODO: I think I have overcomplicated this.
-    //     // Just turn the n into a coordinate.
-
-
-    //     // if n == 0 {
-    //     //     let first_byte = self.encoded.get(0)?;
-    //     //     if *first_byte >= 80 {
-    //     //         return Some(2);
-    //     //     } else {
-    //     //         return Some((*first_byte / 40) as u128);
-    //     //     }
-    //     // } else if n == 1 {
-    //     //     let first_byte = self.encoded.get(0)?;
-    //     //     if *first_byte >= 80 {
-    //     //         return Some((first_byte - 80) as u128);
-    //     //     } else {
-    //     //         return Some((first_byte % 40) as u128);
-    //     //     }
-    //     // }
-    //     for (i, b) in self.encoded[self.i..].iter().enumerate() {
-    //         if *b > 0b1000_0000 {
-    //             continue;
-    //         }
-    //         // We hit the end of an encoded arc.
-    //         iter_debt = iter_debt.saturating_sub(1);
-    //         if self.i == 0 && n == 2 {
-    //             // If we skip the first encoded subcomponent, it skips two arcs, not one.
-    //             iter_debt = iter_debt.saturating_sub(1);
-    //         }
-    //         if iter_debt == 0 { // If it's the nth arc, start decoding and return it.
-    //             let mut current_node: u128 = 0;
-    //             for byte in self.encoded[start_of_arc..i+1].iter() {
-    //                 current_node <<= 7;
-    //                 current_node += (byte & 0b0111_1111) as u128;
-    //             }
-    //             // TODO: Handle arc 0 and arc 1
-    //             // TODO: Increment self.i
-
-    //             return Some(current_node);
-    //         } else {
-    //             // Otherwise record the start of the arc as being the next byte.
-    //             start_of_arc = self.i + i + 1; // +1 for next byte, +1 since i starts at index 1.
-    //         }
-    //     }
-    //     None
-    // }
-
-    #[inline]
-    fn last(mut self) -> Option<Self::Item>
-        where
-            Self: Sized, {
-        // The Rust standard library does this as well.
-        self.next_back()
+    /// This performs better than the default implementation of nth() because
+    /// it does not bother decoding arcs that are being skipped.
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        if unlikely(self.encoded.len() == 0) {
+            return None;
+        }
+        if unlikely(self.i == 0 && self.encoded.len() == 1 && self.encoded[0] > 0b1000_0000) { // TODO: No masking. Just GTE
+            if self.first_arc_read {
+                return None; // We're already done iterating.
+            } else {
+                self.first_arc_read = true;
+                return Some(max(self.encoded[0] & 0b0111_1111, 2) as u128);
+            }
+        }
+        let mut iter_debt = n;
+        if self.i == 0 {
+            if !self.first_arc_read {
+                let arc0 = self.next()?;
+                if iter_debt == 0 {
+                    return Some(arc0);
+                }
+                iter_debt -= 1;
+            }
+            let arc1 = self.next()?;
+            if iter_debt == 0 {
+                return Some(arc1);
+            }
+        }
+        while iter_debt > 0 {
+            let i = self.i as usize;
+            let arc_len = self.encoded.get(i..)?
+                .iter()
+                .position(|b| *b < 0b1000_0000)? + 1;
+            self.i = self.i.checked_add(arc_len as u32)?;
+        }
+        // Once iter_debt reaches 0, this is effectively .nth(0), which is .next().
+        self.next() // TODO: This still incurs some overhead.
     }
+
+    // #[inline]
+    // fn last(mut self) -> Option<Self::Item>
+    //     where
+    //         Self: Sized, {
+    //     // The Rust standard library does this as well.
+    //     self.next_back()
+    // }
 
 }
 
@@ -302,111 +329,87 @@ impl std::iter::ExactSizeIterator for OidArcs<'_> {}
 impl std::iter::DoubleEndedIterator for OidArcs<'_> {
 
     fn next_back(&mut self) -> Option<Self::Item> {
-        let len = self.encoded.len();
-        if len == 0 {
+        if unlikely(self.encoded.len() == 0) {
             return None;
         }
-        if len == 1 {
-            let first_byte = self.encoded[0];
-            if (first_byte & 0b1000_0000) > 0 {
-                self.encoded = &[];
-                if first_byte >= 80 {
-                    return Some(2);
+        if unlikely(self.i == 0) {
+            return None;
+        }
+        if unlikely(self.encoded.len() == 1 && self.encoded[0] > 0b1000_0000) {
+             // NOTE: This is basically the reverse of what is in .next()
+            if self.first_arc_read {
+                self.first_arc_read = false;
+                return Some(max(self.encoded[0] & 0b0111_1111, 2) as u128);
+            } else {
+                return None;
+            }
+        }
+        let i = cmp::min(self.i as usize, self.encoded.len());
+        let start = self.encoded.get(0..i-1)? // Skip the previous byte, because it is the end of the last arc.
+            .iter()
+            .rposition(|x| (*x & 0b1000_0000) < 0b1000_0000) // Find the byte that terminates the previous arc
+            .map(|x| x + 1) // The byte after said terminating byte
+            .unwrap_or(0) // Or zero if there is no such terminating byte.
+            ;
+
+        let arc_len = i - start;
+        let mut current_node: u128 = 0;
+        for byte in self.encoded[start..start+arc_len].iter() {
+            current_node <<= 7; // TODO: Just return wrong arc or None on overflow?
+            current_node += (byte & 0b0111_1111) as u128;
+        }
+        if i.saturating_sub(arc_len) == 0 {
+            if self.first_arc_read {
+                self.first_arc_read = false;
+                // Return arc 2
+                // We intentionally do not subtract from self.i in this case.
+                if current_node >= 80 {
+                    return Some((current_node - 80) as u128);
                 } else {
-                    return Some((first_byte / 40) as u128);
+                    return Some((current_node % 40) as u128);
                 }
             } else {
-                // self.second_arc_popped = true;
-                // FIXME:
-                if first_byte >= 80 {
-                    return Some((first_byte - 80) as u128);
+                // Return arc 1
+                self.i = i.saturating_sub(arc_len) as u32;
+                if current_node >= 80 {
+                    return Some(2);
                 } else {
-                    return Some((first_byte % 40) as u128);
+                    return Some((current_node / 40) as u128);
                 }
             }
         }
-        // TODO: Test an OID like 2.1.525502
-        let start_of_last = self.encoded[1..len-1]
-            .iter()
-            .rposition(|b| *b < 0b1000_0000) // Find the last "end byte"
-            .map(|p| p + 1 + 1) // +1 to get the index in array, not slice; +1 to get index of subsequent byte
-            .unwrap_or(1); // If we didn't find a concluded previous arc, the first byte ended it.
-
-        // This is to make the reverse iterator respect the progress made by the
-        // forward iterator. This is required behavior.
-        if start_of_last < self.i {
-            return None;
-        }
-
-        let mut current_node: u128 = 0;
-        for byte in self.encoded[start_of_last..].iter() {
-            // TODO: Everywhere you do this, check that the encoded OID is not too large.
-            current_node <<= 7;
-            current_node += (byte & 0b0111_1111) as u128;
-        }
-        self.encoded = &self.encoded[0..start_of_last];
+        self.i = i.saturating_sub(arc_len) as u32;
         Some(current_node)
     }
 
-    // // FIXME: This is supposed to move the iterator
-    // fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-    //     let len = self.encoded.len();
-    //     if len == 0 {
-    //         return None;
-    //     }
-    //     if len == 1 {
-    //         if n > 2 {
-    //             return None;
-    //         }
-    //         let first_byte = self.encoded[0];
-    //         if self.second_arc_popped {
-    //             if n > 1 {
-    //                 return None;
-    //             }
-    //             if first_byte >= 80 {
-    //                 return Some((first_byte - 80) as u128);
-    //             } else {
-    //                 return Some((first_byte % 40) as u128);
-    //             }
-    //         } else if n == 1 {
-    //             if first_byte >= 80 {
-    //                 return Some((first_byte - 80) as u128);
-    //             } else {
-    //                 return Some((first_byte % 40) as u128);
-    //             }
-    //         } else { // n == 0
-
-    //         }
-    //     }
-    //     todo!()
-    // }
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        unimplemented!() // TODO:
+    }
 
 }
 
-// TODO: Dedupe by converting into ROID or vice versa
-// impl Display for OBJECT_IDENTIFIER {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         if unlikely(self.0.len() == 0) {
-//             return Ok(());
-//         }
-//         if cfg!(feature = "itoa") {
-//             let mut buf1 = itoa::Buffer::new();
-//             f.write_str(buf1.format(self.0[0]))?;
-//         } else {
-//             f.write_str(self.0[0].to_string().as_str())?;
-//         }
-//         for arc in self.0[1..].iter() {
-//             f.write_char('.')?;
-//             if cfg!(feature = "itoa") {
-//                 let mut buf1 = itoa::Buffer::new();
-//                 f.write_str(buf1.format(*arc))?;
-//             } else {
-//                 f.write_str(arc.to_string().as_str())?;
-//             }
-//         }
-//         Ok(())
-//     }
-// }
+impl Display for OBJECT_IDENTIFIER {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if unlikely(self.0.len() == 0) {
+            return Ok(());
+        }
+        let mut wrote_first: bool = false;
+        for arc in self.arcs() {
+            if wrote_first {
+                f.write_char('.')?;
+            } else {
+                wrote_first = true;
+            }
+            if cfg!(feature = "itoa") {
+                let mut buf1 = itoa::Buffer::new();
+                f.write_str(buf1.format(arc))?;
+            } else {
+                f.write_str(arc.to_string().as_str())?;
+            }
+        }
+        Ok(())
+    }
+}
 
 // impl IntoIterator for OBJECT_IDENTIFIER {
 //     type Item = u32;
@@ -425,34 +428,71 @@ impl PartialEq for OBJECT_IDENTIFIER {
 }
 
 
-#[macro_export]
-macro_rules! oid {
-    ( $( $x:expr ),* ) => {
-        {
-            use $crate::OBJECT_IDENTIFIER;
-            OBJECT_IDENTIFIER::from(Vec::<u32>::from([ $($x,)* ]))
-        }
-    };
-}
+// #[macro_export]
+// macro_rules! oid {
+//     ( $( $x:expr ),* ) => {
+//         {
+//             use $crate::OBJECT_IDENTIFIER;
+//             OBJECT_IDENTIFIER::from(Vec::<u32>::from([ $($x,)* ]))
+//         }
+//     };
+// }
 
 #[cfg(test)]
 mod tests {
 
     use std::str::FromStr;
 
+    use smallvec::SmallVec;
+
     use crate::OBJECT_IDENTIFIER;
 
-    #[test]
-    fn test_oid_parsing () {
-        let oid1 = OBJECT_IDENTIFIER::from_str("1.3.6.4.1").unwrap();
-        let oid2 = oid!(1,3,6,4,1);
-        assert_eq!(oid1, oid2);
-    }
+    // #[test]
+    // fn test_oid_parsing () {
+    //     let oid1 = OBJECT_IDENTIFIER::from_str("1.3.6.4.1").unwrap();
+    //     let oid2 = oid!(1,3,6,4,1);
+    //     assert_eq!(oid1, oid2);
+    // }
+
+    // #[test]
+    // fn test_oid_macro () {
+    //     let oid1 = oid!(1,3,6,4,1);
+    //     assert_eq!(oid1.to_string(), "1.3.6.4.1");
+    // }
 
     #[test]
-    fn test_oid_macro () {
-        let oid1 = oid!(1,3,6,4,1);
-        assert_eq!(oid1.to_string(), "1.3.6.4.1");
+    fn test_oid_iter_1 () {
+        let in_arcs: Vec<u8> = vec![ 43, 6, 4, 1, 120 ];
+        let oid1 = OBJECT_IDENTIFIER::try_from(in_arcs).unwrap();
+        let out_arcs: Vec<u128> = oid1.arcs().collect();
+        assert_eq!(out_arcs.len(), 6);
+        assert_eq!(oid1.to_string(), "1.3.6.4.1.120");
+
+        let mut arcs = oid1.arcs();
+        assert_eq!(arcs.count(), 6);
+        // arcs.nth(6);
+        arcs.i = arcs.encoded.len() as u32;
+        arcs.first_arc_read = true;
+        assert_eq!(arcs.next_back(), Some(120));
+        assert_eq!(arcs.next_back(), Some(1));
+        assert_eq!(arcs.next_back(), Some(4));
+        assert_eq!(arcs.next_back(), Some(6));
+        assert_eq!(arcs.next_back(), Some(3));
+        assert_eq!(arcs.next_back(), Some(1));
+        assert_eq!(arcs.next_back(), None);
+        assert_eq!(arcs.next_back(), None);
+
+        assert_eq!(arcs.next(), Some(1));
+        assert_eq!(arcs.next(), Some(3));
+        assert_eq!(arcs.next(), Some(4));
+        assert_eq!(arcs.next(), Some(6));
+        assert_eq!(arcs.next(), Some(3));
+        assert_eq!(arcs.next(), Some(1));
+        assert_eq!(arcs.next(), None);
+        assert_eq!(arcs.next(), None);
     }
+
+    // TODO: Test huge arcs
+    // TODO: Test huge OIDs
 
 }
