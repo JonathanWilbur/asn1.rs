@@ -267,6 +267,8 @@ pub struct OidArcs<'a> {
     /// i alone would be insufficient to tell us if we iterated over the first
     /// arc already.
     pub(crate) first_arc_read: bool,
+    /// This is just used for reverse iteration.
+    pub(crate) second_arc_read: bool,
 }
 
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
