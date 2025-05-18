@@ -216,9 +216,8 @@ pub type OCTET_STRING = Bytes;
 pub type OID_ARC = u32;
 
 
-// TODO: use 0b1000_0000 to store 0, 0b1000_0001 to store 1, 0b1000_0010 to store 2.
 #[cfg(not(feature = "smallvec"))]
-#[derive(Debug, Hash, Clone)]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub struct OBJECT_IDENTIFIER (
     /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
     /// Recommendation X.690. This implementation favors faster comparison and
@@ -230,9 +229,9 @@ pub struct OBJECT_IDENTIFIER (
     pub(crate) Vec<u8>
 );
 
-// TODO: Using this encoding, there is no way to differentiate between a 1 or 2 arc OID.
+// TODO: Can't this just implement PartialEq?
 #[cfg(feature = "smallvec")]
-#[derive(Debug, Hash, Clone, Eq)]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub struct OBJECT_IDENTIFIER (
     /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
     /// Recommendation X.690. This implementation favors faster comparison and
@@ -266,14 +265,32 @@ pub struct OidArcs<'a> {
     pub(crate) second_arc_read: bool,
 }
 
+#[cfg(not(feature = "smallvec"))]
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+pub struct RELATIVE_OID (
+    pub(crate) smallvec::SmallVec<[u8; 16]>
+);
+
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+pub struct RELATIVE_OID (
+    pub(crate) smallvec::SmallVec<[u8; 16]>
+);
+
+#[derive(Debug, Clone, Copy)]
+pub struct RelOidArcs<'a> {
+    /// The full DER-encoding
+    pub(crate) encoded: &'a [u8],
+    /// Index into the encoded OID.
+    pub(crate) i: usize,
+}
+
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
 pub type EXTERNAL = External;
 pub type REAL = f64;
 pub type ENUMERATED = i64;
 pub type EMBEDDED_PDV = EmbeddedPDV;
 pub type UTF8String = String;
-#[derive(Debug, Hash, Eq, PartialOrd, Ord, Clone)]
-pub struct RELATIVE_OID(pub Vec<OID_ARC>);
 pub type TIME = String;
 // type Reserved15 = None;
 pub type SEQUENCE = Vec<ASN1Value>;

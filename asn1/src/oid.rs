@@ -3,6 +3,8 @@ use smallvec::SmallVec;
 use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize};
 use std::{cmp::{min, Ordering}, fmt::{Display, Write}, str::FromStr, u32};
 
+// TODO: Could a really huge OID cause a panic when .collected() because the size_hint doesn't match?
+
 impl OBJECT_IDENTIFIER {
 
     #[inline]
@@ -45,6 +47,7 @@ impl OBJECT_IDENTIFIER {
         out
     }
 
+    // TODO: Abstract into a trait
     pub fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
@@ -178,7 +181,7 @@ impl Ord for OBJECT_IDENTIFIER {
 }
 
 impl FromStr for OBJECT_IDENTIFIER {
-    type Err = (); // TODO: More detailed error type? Overflow, empty, etc.
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut nodes: Vec<u32> = Vec::with_capacity(s.len());
@@ -561,26 +564,20 @@ impl Display for OBJECT_IDENTIFIER {
     }
 }
 
-impl PartialEq for OBJECT_IDENTIFIER {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
+impl X690KnownSize for OBJECT_IDENTIFIER {
+
+    fn x690_size (&self) -> usize {
+        self.0.len() // The inner value is just DER-encoded
     }
+
 }
-
-// impl X690KnownSize for OBJECT_IDENTIFIER {
-
-//     fn x690_size (&self) -> usize {
-
-//     }
-
-// }
 
 #[macro_export]
 macro_rules! oid {
     ( $( $x:expr ),* ) => {
         {
             use $crate::OBJECT_IDENTIFIER;
-            OBJECT_IDENTIFIER::try_from(Vec::<u32>::from([ $($x,)* ])).unwrap()
+            OBJECT_IDENTIFIER::try_from([ $($x as u32,)* ].as_slice()).unwrap()
         }
     };
 }

@@ -1,4 +1,4 @@
-use crate::types::BIT_STRING;
+use crate::types::{BIT_STRING, X690KnownSize};
 use std::{convert::TryInto, fmt::{Display, Write}};
 use crate::utils::unlikely;
 use std::hash::{Hash, Hasher};
@@ -226,6 +226,13 @@ impl BIT_STRING {
 
 }
 
+impl X690KnownSize for BIT_STRING {
+
+    fn x690_size (&self) -> usize {
+        self.bytes.len()
+    }
+
+}
 
 impl PartialEq for BIT_STRING {
 

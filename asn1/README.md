@@ -272,11 +272,14 @@ somewhat battle-tested.
 
 ## To Do
 
+- [ ] Implement `X690KnownSize` for many types
 - [ ] Fuzz testing for OIDs and ROIDs
 - [ ] Benchmarking
 - [ ] I think you can replace `% 8` with a bit mask, which would be more performant
 - [ ] `no-std` and other feature flags
 - [ ] `const fn`
+  - [ ] This can probaby be used for OID assignments too
 - [ ] Documentation comments
 - [ ] `README.md` documentation
 - [ ] Debug assertions / debug logging?
+- [ ] Hard-coded OID arc strings for 0 and 1
