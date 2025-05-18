@@ -215,11 +215,6 @@ pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OID_ARC = u32;
 
-// TODO: Use these
-// If the OID stores one of these values, it is a single root arc.
-pub(crate) const ROOT_ARC_0_HACK_VALUE: u8 = 0b1000_0000;
-pub(crate) const ROOT_ARC_1_HACK_VALUE: u8 = 0b1000_0001;
-pub(crate) const ROOT_ARC_2_HACK_VALUE: u8 = 0b1000_0010;
 
 // TODO: use 0b1000_0000 to store 0, 0b1000_0001 to store 1, 0b1000_0010 to store 2.
 #[cfg(not(feature = "smallvec"))]
@@ -563,6 +558,10 @@ pub trait ISO8601Timestampable {
 pub struct NamedType <'a, Type = ASN1Value> {
     pub identifier: &'a str,
     pub value: Type,
+}
+
+pub trait X690KnownSize {
+    fn x690_size (&self) -> usize;
 }
 
 // This is really just an alias for vec![], but it is defined for future-proofing.

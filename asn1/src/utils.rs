@@ -50,36 +50,24 @@ pub fn read_i128(bytes: ByteSlice) -> Result<i128, ()> {
     }
 }
 
-pub fn write_base_128<W>(output: &mut W, num: u32) -> std::io::Result<usize>
+pub fn write_oid_arc<W>(output: &mut W, mut num: u128) -> std::io::Result<usize>
 where
-    W: std::io::Write,
+    W: std::io::Write
 {
-    if num < 128 {
+    if likely(num < 128) {
         return output.write(&[num as u8]);
     }
 
-    // Number of bytes written to `encoded`.
-    let mut j = 0;
-    // A base-128-encoded u32 can only take up to five bytes.
-    let mut encoded: [u8; 5] = [0; 5];
-
-    let mut l = 0;
-    let mut i = num;
-    while i > 0 {
-        l += 1;
-        i >>= 7;
+    // A u128 can take up to 19 bytes. We do 20 just for safety.
+    let mut encoded: [u8; 20] = [0; 20];
+    let mut byte_count: usize = 0;
+    while num > 0b0111_1111 {
+        encoded[byte_count] = (num & 0b0111_1111) as u8 | 0b1000_0000;
+        byte_count += 1;
+        num >>= 7;
     }
-
-    for i in (0..l).rev() {
-        let mut o = (num >> (i * 7)) as u8;
-        o &= 0x7f;
-        if i != 0 {
-            o |= 0x80;
-        }
-        encoded[j] = o;
-        j += 1;
-    }
-    return output.write(&encoded);
+    encoded[byte_count] = num as u8;
+    output.write(&encoded[0..byte_count+1])
 }
 
 /// If you need to remove spaces from numeric strings, consider using the
