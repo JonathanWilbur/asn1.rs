@@ -269,6 +269,50 @@ impl TryFrom<&[u32]> for RELATIVE_OID {
 
 }
 
+impl TryFrom<Vec<i8>> for RELATIVE_OID {
+    type Error = ASN1Error;
+
+    fn try_from(value: Vec<i8>) -> Result<Self, Self::Error> {
+        RELATIVE_OID::try_from(value.as_slice())
+    }
+
+}
+
+impl TryFrom<&[i8]> for RELATIVE_OID {
+    type Error = ASN1Error;
+
+    /// This is a performance optimizing-hack: as long as an i8 representing an
+    /// arc is not negative, it can be written directly into the internal
+    /// buffer and still produce an invalid encoding.
+    fn try_from(value: &[i8]) -> Result<Self, Self::Error> {
+        if value.iter().any(|b| *b < 0) {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_oid_arc));
+        }
+
+        // Re-interpret the [i8] as a [u8]
+        let unsigned: &[u8] = unsafe {
+            std::slice::from_raw_parts(
+                value.as_ptr() as *const u8,
+                value.len(),
+            )
+        };
+
+        #[cfg(feature = "smallvec")]
+        {
+            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
+            inner.extend_from_slice(&unsigned);
+            Ok(RELATIVE_OID(inner))
+        }
+        #[cfg(not(feature = "smallvec"))]
+        {
+            let inner: Vec<u8> = Vec::with_capacity(value.len());
+            inner.extend_from_slice(&unsigned);
+            Ok(RELATIVE_OID(inner))
+        }
+    }
+
+}
+
 impl RelOidArcs<'_> {
 
     #[inline]
@@ -428,7 +472,13 @@ impl std::iter::DoubleEndedIterator for RelOidArcs<'_> {
 
 #[macro_export]
 macro_rules! roid {
-    ( $( $x:expr ),* ) => {
+    () => {
+        {
+            use $crate::RELATIVE_OID;
+            RELATIVE_OID::default()
+        }
+    };
+    ( $( $x:expr ),+ ) => {
         {
             use $crate::RELATIVE_OID;
             RELATIVE_OID::try_from([ $($x as u32,)* ].as_slice()).unwrap()

@@ -272,7 +272,7 @@ somewhat battle-tested.
 
 ## To Do
 
-- [ ] `TryFrom<&[i8]>` for `OBJECT_IDENTIFIER`
+- [x] `TryFrom<&[i8]>` for `OBJECT_IDENTIFIER`
 - [x] `OBJECT_IDENTIFIER::from_prefix_and_arc()`
 - [x] `OBJECT_IDENTIFIER::from_prefix_and_suffix()`
 - [x] `RELATIVE_OID::concat()`

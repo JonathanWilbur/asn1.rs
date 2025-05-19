@@ -355,7 +355,7 @@ impl TryFrom<&[u32]> for OBJECT_IDENTIFIER {
             if value.len() == 1 {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
-                inner.push(value[0] as u8 | 0b1000_0000);
+                inner.push(min(value[0], 2) as u8 | 0b1000_0000);
                 return Ok(OBJECT_IDENTIFIER(inner));
             }
             write_oid_arc(&mut inner, first_component as u128)?;
@@ -380,13 +380,84 @@ impl TryFrom<&[u32]> for OBJECT_IDENTIFIER {
             if value.len() == 1 {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
-                inner.push(value[0] as u8 | 0b1000_0000);
+                inner.push(min(value[0], 2) as u8 | 0b1000_0000);
                 return Ok(OBJECT_IDENTIFIER(inner));
             }
             write_oid_arc(&mut inner, first_component as u128)?;
             for arc in value[2..].iter() {
                 write_oid_arc(&mut inner, *arc as u128)?;
             }
+            Ok(OBJECT_IDENTIFIER(inner))
+        }
+    }
+
+}
+
+impl TryFrom<Vec<i8>> for OBJECT_IDENTIFIER {
+    type Error = ASN1Error;
+
+    fn try_from(value: Vec<i8>) -> Result<Self, Self::Error> {
+        OBJECT_IDENTIFIER::try_from(value.as_slice())
+    }
+
+}
+
+impl TryFrom<&[i8]> for OBJECT_IDENTIFIER {
+    type Error = ASN1Error;
+
+    /// This is a performance optimizing-hack: as long as an i8 representing an
+    /// arc is not negative, it can be written directly into the internal
+    /// buffer and still produce an invalid encoding (except for the first two
+    /// arcs).
+    fn try_from(value: &[i8]) -> Result<Self, Self::Error> {
+        if value.len() == 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
+        if value[0] > 2 || (value[0] < 2 && value.get(1).is_some_and(|second_arc| *second_arc > 39)) {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_oid_arc));
+        }
+        let node0: u32 = (value[0] * 40) as u32; // Checking not needed.
+        let node1: u32 = value.get(1).cloned().unwrap_or(0) as u32;
+        let first_component = node0.checked_add(node1)
+            .ok_or(std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
+
+        if value.iter().any(|b| *b < 0) {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_oid_arc));
+        }
+
+        // Re-interpret the [i8] as a [u8]
+        let unsigned: &[u8] = unsafe {
+            std::slice::from_raw_parts(
+                value.as_ptr() as *const u8,
+                value.len(),
+            )
+        };
+
+        #[cfg(feature = "smallvec")]
+        {
+            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
+            if value.len() == 1 {
+                // This is a hack: to represent a single root arc, we create an
+                // invalid OID with the first bit set and a length of 1.
+                inner.push(min(value[0], 2) as u8 | 0b1000_0000);
+                return Ok(OBJECT_IDENTIFIER(inner));
+            }
+            write_oid_arc(&mut inner, first_component as u128)?;
+            inner.extend_from_slice(&unsigned[2..]);
+            Ok(OBJECT_IDENTIFIER(inner))
+        }
+
+        #[cfg(not(feature = "smallvec"))]
+        {
+            let inner: Vec<u8> = Vec::with_capacity(value.len());
+            if value.len() == 1 {
+                // This is a hack: to represent a single root arc, we create an
+                // invalid OID with the first bit set and a length of 1.
+                inner.push(min(value[0], 2) as u8 | 0b1000_0000);
+                return Ok(OBJECT_IDENTIFIER(inner));
+            }
+            write_oid_arc(&mut inner, first_component as u128)?;
+            inner.extend_from_slice(&unsigned[2..]);
             Ok(OBJECT_IDENTIFIER(inner))
         }
     }
@@ -697,7 +768,7 @@ impl X690KnownSize for OBJECT_IDENTIFIER {
 
 #[macro_export]
 macro_rules! oid {
-    ( $( $x:expr ),* ) => {
+    ( $( $x:expr ),+ ) => {
         {
             use $crate::OBJECT_IDENTIFIER;
             OBJECT_IDENTIFIER::try_from([ $($x as u32,)* ].as_slice()).unwrap()
@@ -942,7 +1013,7 @@ mod tests {
     fn test_oid_bidirectional_edge_cases() {
         // Test edge cases for bidirectional iteration
         // First arc only
-        let oid1 = OBJECT_IDENTIFIER::try_from(vec![0]).unwrap();
+        let oid1 = OBJECT_IDENTIFIER::try_from(vec![0u32]).unwrap();
         let mut iter = oid1.arcs();
         assert_eq!(iter.next(), Some(0));
         assert_eq!(iter.next_back(), None);
@@ -1201,6 +1272,12 @@ mod tests {
         let prefix = oid!(1);
         let oid1 = OBJECT_IDENTIFIER::from_prefix_and_suffix(prefix, [4, 9].as_slice()).unwrap();
         assert_eq!(oid1.to_string(), "1.4.9");
+    }
+
+    #[test]
+    fn test_from_i8_slice() {
+        let oid = OBJECT_IDENTIFIER::try_from([ 2i8, 5, 4, 3 ].as_slice()).unwrap();
+        assert_eq!(oid.to_string(), "2.5.4.3");
     }
 
 }
