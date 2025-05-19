@@ -1,9 +1,7 @@
 use smallvec::SmallVec;
 
-use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize};
+use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, RELATIVE_OID};
 use std::{cmp::{min, Ordering}, fmt::{Display, Write}, str::FromStr, u32};
-
-// TODO: Could a really huge OID cause a panic when .collected() because the size_hint doesn't match?
 
 impl OBJECT_IDENTIFIER {
 
@@ -47,7 +45,6 @@ impl OBJECT_IDENTIFIER {
         out
     }
 
-    // TODO: Abstract into a trait
     pub fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
@@ -67,6 +64,7 @@ impl OBJECT_IDENTIFIER {
 
     /// This is defined so that you can define OIDs as compile-time constants.
     #[cfg(feature = "smallvec")]
+    #[inline]
     pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 16]>) -> Self {
         OBJECT_IDENTIFIER(enc)
     }
@@ -105,24 +103,66 @@ impl OBJECT_IDENTIFIER {
         Ok(OBJECT_IDENTIFIER::from_x690_encoding_unchecked(enc))
     }
 
-    // TODO: push()
+    /// Returns the number of arcs in this OID
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.arcs().count()
+    }
 
-    // TODO: x690_size_hint (Maybe an X690KnownSize trait?)
+    #[inline]
+    pub fn as_x690_slice(&self) -> &[u8] {
+        &self.0
+    }
 
-    // #[inline]
-    // pub fn extend(&mut self, roid: RELATIVE_OID) -> () {
-    //     self.0.extend(roid.0)
-    // }
+    #[inline]
+    pub fn to_x690_vec(self) -> Vec<u8> {
+        self.0.to_vec()
+    }
 
-    // #[inline]
-    // pub fn starts_with(&mut self, roid: &RELATIVE_OID) -> bool {
-    //     self.0.starts_with(roid.0.as_slice())
-    // }
+    #[cfg(feature = "smallvec")]
+    #[inline]
+    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 16]> {
+        self.0
+    }
 
-    // #[inline]
-    // pub fn ends_with(&mut self, roid: &RELATIVE_OID) -> bool {
-    //     self.0.ends_with(roid.0.as_slice())
-    // }
+    pub fn starts_with(&self, other: &OBJECT_IDENTIFIER) -> bool {
+        match (self.0.len(), other.0.len()) {
+            // If either is encoded on 1 byte, we iterate over all arcs to
+            // handle the single-arc "hack" appropriately.
+            (1, _) | (_, 1) => {
+                let mut my_arcs = self.arcs();
+                for other_arc in other.arcs() {
+                    if let Some(my_arc) = my_arcs.next() {
+                        if my_arc != other_arc {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+                true
+            },
+            _ => self.0.starts_with(other.0.as_slice())
+        }
+    }
+
+    #[inline]
+    pub fn ends_with(&self, other: &RELATIVE_OID) -> bool {
+        let mut my_arcs = self.arcs();
+        for other_arc in other.arcs().rev() {
+            if let Some(my_arc) = my_arcs.next_back() {
+                if my_arc != other_arc {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        true
+    }
+
+    // Concat may be implemented if the trait is ever stabilized.
+
 }
 
 impl PartialOrd for OBJECT_IDENTIFIER {
@@ -961,6 +1001,93 @@ mod tests {
         assert_eq!(arcs5.nth_back(3), Some(3));
         assert_eq!(arcs5.next(), Some(0));
         assert_eq!(arcs5.next(), None);
+    }
+
+    // This is to make sure that, if an arc is so large that it fails to be
+    // processed, it does not cause a panic when collected.
+    #[test]
+    fn test_arc_too_large_for_u128() {
+        // Test OID with a huge arc value exceeding u128 limits
+        let in_arcs: Vec<u8> = vec![
+            43, // 1.3
+            0xFF, // One byte plus a few bits too many.
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0x7F, // Final byte without continuation bit
+        ];
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(in_arcs).unwrap();
+        let _: Vec<u128> = oid.arcs().collect();
+        let _: std::collections::HashSet<u128> = oid.arcs().collect();
+    }
+
+    #[test]
+    fn test_oid_starts_with_1() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        let prefix = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B]).unwrap();
+        assert!(oid.starts_with(&prefix));
+    }
+
+    #[test]
+    fn test_oid_starts_with_2() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        let prefix = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8]).unwrap();
+        assert!(oid.starts_with(&prefix));
+    }
+
+    #[test]
+    fn test_oid_starts_with_3() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        let prefix = OBJECT_IDENTIFIER::try_from([ 0u32 ].as_slice()).unwrap();
+        assert!(oid.starts_with(&prefix));
+    }
+
+    #[test]
+    fn test_oid_starts_with_4() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![43]).unwrap();
+        let prefix = OBJECT_IDENTIFIER::try_from([ 1u32 ].as_slice()).unwrap();
+        assert!(oid.starts_with(&prefix));
+    }
+
+    #[test]
+    fn test_oid_starts_with_5() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![43]).unwrap();
+        let prefix = OBJECT_IDENTIFIER::try_from([ 2u32 ].as_slice()).unwrap();
+        assert!(!oid.starts_with(&prefix));
+    }
+
+    #[test]
+    fn test_oid_starts_with_6() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![43]).unwrap();
+        let prefix = OBJECT_IDENTIFIER::try_from([ 1u32, 4 ].as_slice()).unwrap();
+        assert!(!oid.starts_with(&prefix));
+    }
+
+    #[test]
+    fn test_oid_ends_with_1() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        let suffix = crate::RELATIVE_OID::from_x690_encoding(vec![127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        assert!(oid.ends_with(&suffix));
+    }
+
+    #[test]
+    fn test_oid_ends_with_2() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        let suffix = crate::RELATIVE_OID::from_x690_encoding(vec![3, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        assert!(oid.ends_with(&suffix));
+    }
+
+    #[test]
+    fn test_oid_ends_with_3() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        let suffix = crate::RELATIVE_OID::from_x690_encoding(vec![0, 3, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        assert!(oid.ends_with(&suffix));
+    }
+
+    #[test]
+    fn test_oid_ends_with_4() {
+        let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        let suffix = crate::RELATIVE_OID::from_x690_encoding(vec![0, 3, 126, 0x83, 0xAA, 0x1B, 1]).unwrap();
+        assert!(!oid.ends_with(&suffix));
     }
 
 }

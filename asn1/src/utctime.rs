@@ -242,7 +242,6 @@ impl Display for UTCTime {
         let mut buf_hour = itoa::Buffer::new();
         let mut buf_minute = itoa::Buffer::new();
         let mut buf_second = itoa::Buffer::new();
-        let mut buf_offset_h = itoa::Buffer::new();
         let mut buf_offset_m = itoa::Buffer::new();
 
         write!(f, "{:0>2}{:0>2}{:0>2}{:0>2}{:0>2}{:0>2}",

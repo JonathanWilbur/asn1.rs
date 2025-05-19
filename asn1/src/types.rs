@@ -1,4 +1,5 @@
 use std::{fmt::Debug, sync::Arc, vec::Vec};
+use crate::error::ASN1Result;
 
 pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a [u8];
@@ -266,16 +267,12 @@ pub struct OidArcs<'a> {
 }
 
 #[cfg(not(feature = "smallvec"))]
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
-pub struct RELATIVE_OID (
-    pub(crate) smallvec::SmallVec<[u8; 16]>
-);
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
+pub struct RELATIVE_OID (pub(crate) Vec<u8>);
 
 #[cfg(feature = "smallvec")]
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
-pub struct RELATIVE_OID (
-    pub(crate) smallvec::SmallVec<[u8; 16]>
-);
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
+pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 16]>);
 
 #[derive(Debug, Clone, Copy)]
 pub struct RelOidArcs<'a> {
@@ -568,6 +565,12 @@ pub trait ASN1Codec {
 pub trait ISO8601Timestampable {
 
     fn to_iso_8601_string (&self) -> String;
+
+}
+
+pub trait X690Validate {
+
+    fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()>;
 
 }
 

@@ -62,6 +62,7 @@ impl RELATIVE_OID {
 
     /// This is defined so that you can define OIDs as compile-time constants.
     #[cfg(feature = "smallvec")]
+    #[inline]
     pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 16]>) -> Self {
         RELATIVE_OID(enc)
     }
@@ -100,20 +101,42 @@ impl RELATIVE_OID {
         Ok(RELATIVE_OID::from_x690_encoding_unchecked(enc))
     }
 
-    // #[inline]
-    // pub fn extend(&mut self, roid: &RELATIVE_OID) -> () {
-    //     self.0.extend(roid.0.as_slice())
-    // }
+    /// Returns the number of arcs in this `RELATIVE-OID`
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.arcs().count()
+    }
 
-    // #[inline]
-    // pub fn starts_with(&mut self, roid: &RELATIVE_OID) -> bool {
-    //     self.0.starts_with(roid.0.as_slice())
-    // }
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
-    // #[inline]
-    // pub fn ends_with(&mut self, roid: &RELATIVE_OID) -> bool {
-    //     self.0.ends_with(roid.0.as_slice())
-    // }
+    #[inline]
+    pub fn as_x690_slice(&self) -> &[u8] {
+        &self.0
+    }
+
+    #[inline]
+    pub fn to_x690_vec(self) -> Vec<u8> {
+        self.0.to_vec()
+    }
+
+    #[cfg(feature = "smallvec")]
+    #[inline]
+    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 16]> {
+        self.0
+    }
+
+    #[inline]
+    pub fn starts_with(&self, roid: &RELATIVE_OID) -> bool {
+        self.0.starts_with(roid.0.as_slice())
+    }
+
+    #[inline]
+    pub fn ends_with(&self, roid: &RELATIVE_OID) -> bool {
+        self.0.ends_with(roid.0.as_slice())
+    }
 }
 
 impl PartialOrd for RELATIVE_OID {
@@ -454,6 +477,23 @@ mod tests {
         assert_eq!(iter.next(), Some(6));
         assert_eq!(iter.next_back(), Some(287));
         assert_eq!(iter.next(), Some(1));
+    }
+
+    // This is to make sure that, if an arc is so large that it fails to be
+    // processed, it does not cause a panic when collected.
+    #[test]
+    fn test_arc_too_large_for_u128() {
+        // Test OID with a huge arc value exceeding u128 limits
+        let in_arcs: Vec<u8> = vec![
+            43, // 1.3
+            0xFF, // One byte plus a few bits too many.
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0x7F, // Final byte without continuation bit
+        ];
+        let oid = RELATIVE_OID::from_x690_encoding(in_arcs).unwrap();
+        let _: Vec<u128> = oid.arcs().collect();
+        let _: std::collections::HashSet<u128> = oid.arcs().collect();
     }
 
 }
