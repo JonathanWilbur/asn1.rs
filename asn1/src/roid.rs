@@ -101,6 +101,16 @@ impl RELATIVE_OID {
         Ok(RELATIVE_OID::from_x690_encoding_unchecked(enc))
     }
 
+    pub fn concat (roids: &[RELATIVE_OID]) -> ASN1Result<Self> {
+        let bytes = roids
+            .iter()
+            .map(|r| r.0.as_slice())
+            .collect::<Vec<_>>()
+            .as_slice()
+            .concat();
+        RELATIVE_OID::from_x690_encoding(bytes)
+    }
+
     /// Returns the number of arcs in this `RELATIVE-OID`
     #[inline]
     pub fn len(&self) -> usize {
@@ -485,7 +495,7 @@ mod tests {
     fn test_arc_too_large_for_u128() {
         // Test OID with a huge arc value exceeding u128 limits
         let in_arcs: Vec<u8> = vec![
-            43, // 1.3
+            43, // 43
             0xFF, // One byte plus a few bits too many.
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -494,6 +504,18 @@ mod tests {
         let oid = RELATIVE_OID::from_x690_encoding(in_arcs).unwrap();
         let _: Vec<u128> = oid.arcs().collect();
         let _: std::collections::HashSet<u128> = oid.arcs().collect();
+    }
+
+    #[test]
+    fn test_roid_concat() {
+        let roid1 = roid!(43,81,29,7,3);
+        let roid2 = roid!(66,1,34,0);
+        let roid3 = roid!();
+        let roid4 = roid!(8);
+        let roid = RELATIVE_OID::concat([roid1, roid2, roid3, roid4].as_slice()).unwrap();
+        let arcs = roid.arcs();
+        assert_eq!(arcs.count(), 10);
+        assert_eq!(roid.to_string().as_str(), "43.81.29.7.3.66.1.34.0.8");
     }
 
 }
