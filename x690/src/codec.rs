@@ -304,23 +304,7 @@ pub trait X690Codec {
         x690_read_object_identifier_value(value_bytes)
     }
     fn decode_relative_oid_value(&self, value_bytes: ByteSlice) -> ASN1Result<RELATIVE_OID> {
-        let len = value_bytes.len();
-        // In pre-allocating, we assume the average OID arc consumes two bytes.
-        let mut nodes: Vec<u32> = Vec::with_capacity(len << 1);
-        let mut current_node: u32 = 0;
-        for byte in value_bytes[1..].iter() {
-            current_node <<= 7;
-            current_node += (byte & 0b0111_1111) as u32;
-            if (byte & 0b1000_0000) == 0 {
-                nodes.push(current_node);
-                current_node = 0;
-            }
-        }
-        if current_node > 0 {
-            // Truncated.
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        Ok(RELATIVE_OID(nodes))
+        RELATIVE_OID::from_x690_encoding_slice(value_bytes)
     }
     fn decode_real_value(&self, value_bytes: ByteSlice) -> ASN1Result<REAL>;
     fn decode_numeric_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<NumericString> {
@@ -751,7 +735,7 @@ pub trait X690Codec {
         ))
     }
     fn encode_object_identifier(&self, value: &OBJECT_IDENTIFIER) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(value.0.len() << 2).writer(); // We assume, on average, each arc takes two bytes.
+        let mut out = BytesMut::with_capacity(value.as_x690_slice().len()).writer();
         x690_write_object_identifier_value(&mut out, &value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
@@ -793,7 +777,7 @@ pub trait X690Codec {
         ))
     }
     fn encode_relative_oid(&self, value: &RELATIVE_OID) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(value.0.len() << 2).writer(); // We assume, on average, each arc takes two bytes.
+        let mut out = BytesMut::with_capacity(value.as_x690_slice().len()).writer();
         x690_write_relative_oid_value(&mut out, &value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID),
@@ -1788,7 +1772,7 @@ impl Default for DistinguishedEncodingRules {
 
 impl ASN1Codec for BasicEncodingRules {
     fn transfer_syntax_oid(&self) -> OBJECT_IDENTIFIER {
-        OBJECT_IDENTIFIER(vec![2, 1, 1])
+        OBJECT_IDENTIFIER::try_from([2u32, 1, 1].as_slice()).unwrap()
     }
 
     fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {
@@ -1798,7 +1782,7 @@ impl ASN1Codec for BasicEncodingRules {
 
 impl ASN1Codec for CanonicalEncodingRules {
     fn transfer_syntax_oid(&self) -> OBJECT_IDENTIFIER {
-        OBJECT_IDENTIFIER(vec![2, 1, 2, 0])
+        OBJECT_IDENTIFIER::try_from([2, 1, 2, 0].as_slice()).unwrap()
     }
 
     fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {
@@ -1808,7 +1792,7 @@ impl ASN1Codec for CanonicalEncodingRules {
 
 impl ASN1Codec for DistinguishedEncodingRules {
     fn transfer_syntax_oid(&self) -> OBJECT_IDENTIFIER {
-        OBJECT_IDENTIFIER(vec![2, 1, 2, 1])
+        OBJECT_IDENTIFIER::try_from([2, 1, 2, 1].as_slice()).unwrap()
     }
 
     fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {

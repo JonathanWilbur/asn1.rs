@@ -272,6 +272,8 @@ somewhat battle-tested.
 
 ## To Do
 
+- [ ] `OBJECT_IDENTIFIER::from_prefix_and_arc()`
+- [ ] Fix issues caused by OID refactor
 - [ ] Implement `X690KnownSize` for many types
 - [ ] Fuzz testing for OIDs and ROIDs
 - [ ] Benchmarking

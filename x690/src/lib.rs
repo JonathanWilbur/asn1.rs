@@ -286,33 +286,24 @@ fn base_128_len(num: u32) -> usize {
     return l;
 }
 
-fn write_base_128<W>(output: &mut W, num: u32) -> Result<usize>
+fn write_base_128<W>(output: &mut W, mut num: u32) -> Result<usize>
 where
     W: Write,
 {
-    if num < 128 {
+    if num < 128 { // TODO: likely?
         return output.write(&[num as u8]);
     }
 
-    let mut l = 0;
-    let mut i = num;
-    while i > 0 {
-        l += 1;
-        i >>= 7;
+    // A u32 can take up to 5 bytes.
+    let mut encoded: [u8; 5] = [0; 5];
+    let mut byte_count: usize = 0;
+    while num > 0b0111_1111 {
+        encoded[byte_count] = (num & 0b0111_1111) as u8 | 0b1000_0000;
+        byte_count += 1;
+        num >>= 7;
     }
-
-    // A base-128-encoded u32 can only take up to five bytes.
-    let mut encoded: SmallVec<[u8; 5]> = smallvec![];
-    // let mut encoded = BytesMut::with_capacity(5);
-    for i in (0..l).rev() {
-        let mut o = (num >> (i * 7)) as u8;
-        o &= 0x7f;
-        if i != 0 {
-            o |= 0x80;
-        }
-        encoded.push(o);
-    }
-    return output.write(&encoded);
+    encoded[byte_count] = num as u8;
+    output.write(&encoded[0..byte_count+1])
 }
 
 // Just gets the theoretical length of the written tag.
@@ -474,19 +465,7 @@ pub fn x690_write_object_identifier_value<W>(
 where
     W: Write,
 {
-    // TODO: Should object identifier be a type that forces a first and second arc?
-    if value.0.len() < 2 {
-        return Err(Error::from(ErrorKind::InvalidData));
-    }
-    let node0 = value.0[0];
-    let node1 = value.0[1];
-    let byte0 = (node0 * 40) + node1;
-    let mut bytes_written = 0;
-    bytes_written += output.write(&[byte0 as u8])?;
-    for arc in value.0[2..].iter() {
-        bytes_written += write_base_128(output, *arc)?;
-    }
-    Ok(bytes_written)
+    output.write(value.as_x690_slice())
 }
 
 pub fn x690_write_object_descriptor_value<W>(
@@ -684,7 +663,7 @@ pub fn x690_context_switching_identification_to_cst(
         }
         PresentationContextSwitchingTypeIdentification::syntax(oid) => {
             // We assume that, on average, each OID arc is encoded on two bytes.
-            let mut bytes = BytesMut::with_capacity(oid.0.len() << 1).writer();
+            let mut bytes = BytesMut::with_capacity(oid.as_x690_slice().len()).writer();
             x690_write_object_identifier_value(&mut bytes, &oid)?;
             let element = X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
@@ -792,11 +771,7 @@ pub fn x690_write_relative_oid_value<W>(output: &mut W, value: &RELATIVE_OID) ->
 where
     W: Write,
 {
-    let mut bytes_written: usize = 0;
-    for arc in value.0.iter() {
-        bytes_written +=  write_base_128(output, *arc)?;
-    }
-    Ok(bytes_written)
+    output.write(value.as_x690_slice())
 }
 
 pub fn x690_write_time_value<W>(output: &mut W, value: &TIME) -> Result<usize>
@@ -984,8 +959,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
         }
         ASN1Value::ObjectIdentifierValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER;
-            // We assume the average arc gets encoded on two bytes.
-            let mut value_bytes = BytesMut::with_capacity(v.0.len() << 1).writer();
+            let mut value_bytes = BytesMut::with_capacity(v.as_x690_slice().len()).writer();
             x690_write_object_identifier_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
@@ -1022,7 +996,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
         }
         ASN1Value::RelativeOIDValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID;
-            let mut value_bytes = BytesMut::with_capacity(v.0.len() << 1).writer();
+            let mut value_bytes = BytesMut::with_capacity(v.as_x690_slice().len()).writer();
             x690_write_relative_oid_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
@@ -1480,52 +1454,11 @@ pub fn x690_read_enum_value(value_bytes: ByteSlice) -> ASN1Result<ENUMERATED> {
 }
 
 pub fn x690_read_object_identifier_value(value_bytes: ByteSlice) -> ASN1Result<OBJECT_IDENTIFIER> {
-    let len = value_bytes.len();
-    if len < 1 {
-        return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
-    }
-    let arc1 = (value_bytes[0] / 40) as u32;
-    let arc2 = (value_bytes[0] % 40) as u32;
-    // In pre-allocating, we assume the average OID arc consumes two bytes.
-    let mut nodes: Vec<u32> = Vec::with_capacity(len << 1);
-    nodes.push(arc1);
-    nodes.push(arc2);
-    let mut current_node: u32 = 0;
-    for byte in value_bytes[1..].iter() {
-        if (current_node == 0) && (*byte == 0b1000_0000) {
-            return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
-        }
-        current_node <<= 7;
-        current_node += (byte & 0b0111_1111) as u32;
-        if (byte & 0b1000_0000) == 0 {
-            nodes.push(current_node);
-            current_node = 0;
-        }
-    }
-    if current_node > 0 {
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    Ok(OBJECT_IDENTIFIER(nodes))
+    OBJECT_IDENTIFIER::from_x690_encoding_slice(value_bytes)
 }
 
 pub fn x690_read_relative_oid_value(value_bytes: ByteSlice) -> ASN1Result<RELATIVE_OID> {
-    let len = value_bytes.len();
-    // In pre-allocating, we assume the average OID arc consumes two bytes.
-    let mut nodes: Vec<u32> = Vec::with_capacity(len << 1);
-    let mut current_node: u32 = 0;
-    for byte in value_bytes[1..].iter() {
-        current_node <<= 7;
-        current_node += (byte & 0b0111_1111) as u32;
-        if (byte & 0b1000_0000) == 0 {
-            nodes.push(current_node);
-            current_node = 0;
-        }
-    }
-    if current_node > 0 {
-        // Truncated.
-        return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-    }
-    Ok(RELATIVE_OID(nodes))
+    RELATIVE_OID::from_x690_encoding_slice(value_bytes)
 }
 
 pub fn x690_read_date_value(value_bytes: ByteSlice) -> ASN1Result<DATE> {
@@ -1664,7 +1597,7 @@ mod tests {
     #[test]
     fn test_x690_write_object_identifier_value() {
         let mut output = BytesMut::new().writer();
-        let oid = asn1::types::OBJECT_IDENTIFIER(vec![2, 5, 4, 3]);
+        let oid = asn1::types::OBJECT_IDENTIFIER::try_from(vec![2u32, 5, 4, 3]).unwrap();
         crate::x690_write_object_identifier_value(&mut output, &oid).unwrap();
         let output: Bytes = output.into_inner().into();
         assert_eq!(output.len(), 3);
