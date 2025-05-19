@@ -1,7 +1,7 @@
-use smallvec::SmallVec;
+use smallvec::{SmallVec, smallvec};
 
-use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, RELATIVE_OID};
-use std::{cmp::{min, Ordering}, fmt::{Display, Write}, str::FromStr, u32};
+use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, OID_ARC, RELATIVE_OID};
+use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, io::Write as IoWrite, str::FromStr, u32};
 
 impl OBJECT_IDENTIFIER {
 
@@ -101,6 +101,41 @@ impl OBJECT_IDENTIFIER {
     pub fn from_x690_encoding (enc: Vec<u8>) -> ASN1Result<Self> {
         OBJECT_IDENTIFIER::validate_x690_encoding(enc.as_slice())?;
         Ok(OBJECT_IDENTIFIER::from_x690_encoding_unchecked(enc))
+    }
+
+    pub fn from_prefix_and_arc (prefix: OBJECT_IDENTIFIER, arc: OID_ARC) -> ASN1Result<Self> {
+        // Handle the single-arc OID case.
+        if prefix.0.len() == 1 && prefix.0[0] >= 0b1000_0000 {
+            let arc1 = min(prefix.0[0] & 0b0111_1111, 2) as u32 * 40;
+            let first_component = arc1.checked_add(arc)
+                .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
+            #[cfg(feature = "smallvec")]
+            {
+                let mut inner: SmallVec<[u8; 16]> = smallvec![];
+                write_oid_arc(&mut inner, first_component as u128)?;
+                return Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner));
+            }
+            #[cfg(not(feature = "smallvec"))]
+            {
+                let mut inner: Vec<u8> = vec![];
+                write_oid_arc(&mut inner, first_component as u128)?;
+                return OBJECT_IDENTIFIER(inner)
+            }
+        }
+        #[cfg(feature = "smallvec")]
+        {
+            let mut inner: SmallVec<[u8; 16]> = smallvec![];
+            inner.write(prefix.0.as_slice())?;
+            write_oid_arc(&mut inner, arc as u128)?;
+            Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner))
+        }
+        #[cfg(not(feature = "smallvec"))]
+        {
+            let mut inner: Vec<u8> = vec![];
+            inner.write(prefix.0.as_slice())?;
+            write_oid_arc(&mut inner, arc as u128)?;
+            Ok(OBJECT_IDENTIFIER(inner))
+        }
     }
 
     /// Returns the number of arcs in this OID
@@ -1088,6 +1123,22 @@ mod tests {
         let oid = OBJECT_IDENTIFIER::from_x690_encoding(vec![03u8, 127, 0x83, 0xAA, 0x1B, 1]).unwrap();
         let suffix = crate::RELATIVE_OID::from_x690_encoding(vec![0, 3, 126, 0x83, 0xAA, 0x1B, 1]).unwrap();
         assert!(!oid.ends_with(&suffix));
+    }
+
+    #[test]
+    fn test_from_prefix_and_arc_1() {
+        let prefix = oid!(1,3,6,1);
+        let arc = 4;
+        let oid1 = OBJECT_IDENTIFIER::from_prefix_and_arc(prefix, arc).unwrap();
+        assert_eq!(oid1.to_string(), "1.3.6.1.4");
+    }
+
+    #[test]
+    fn test_from_prefix_and_arc_2() {
+        let prefix = oid!(1);
+        let arc = 4;
+        let oid1 = OBJECT_IDENTIFIER::from_prefix_and_arc(prefix, arc).unwrap();
+        assert_eq!(oid1.to_string(), "1.4");
     }
 
 }
