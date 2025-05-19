@@ -274,7 +274,8 @@ somewhat battle-tested.
 
 - [ ] `TryFrom<&[i8]>` for `OBJECT_IDENTIFIER`
 - [x] `OBJECT_IDENTIFIER::from_prefix_and_arc()`
-- [ ] `OBJECT_IDENTIFIER::concat(&[OBJECT_IDENTIFIER])` (Use arc iterators)
+- [x] `OBJECT_IDENTIFIER::from_prefix_and_suffix()`
+- [ ] `RELATIVE_OID::concat()`
 - [ ] Fix issues caused by OID refactor
 - [ ] Implement `X690KnownSize` for many types
 - [ ] Fuzz testing for OIDs and ROIDs

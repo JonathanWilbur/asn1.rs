@@ -104,6 +104,9 @@ impl OBJECT_IDENTIFIER {
     }
 
     pub fn from_prefix_and_arc (prefix: OBJECT_IDENTIFIER, arc: OID_ARC) -> ASN1Result<Self> {
+        if unlikely(prefix.len() == 0) {
+            return OBJECT_IDENTIFIER::try_from([ arc ].as_slice());
+        }
         // Handle the single-arc OID case.
         if prefix.0.len() == 1 && prefix.0[0] >= 0b1000_0000 {
             let arc1 = min(prefix.0[0] & 0b0111_1111, 2) as u32 * 40;
@@ -134,6 +137,51 @@ impl OBJECT_IDENTIFIER {
             let mut inner: Vec<u8> = vec![];
             inner.write(prefix.0.as_slice())?;
             write_oid_arc(&mut inner, arc as u128)?;
+            Ok(OBJECT_IDENTIFIER(inner))
+        }
+    }
+
+    pub fn from_prefix_and_suffix (prefix: OBJECT_IDENTIFIER, suffix: &[u32]) -> ASN1Result<Self> {
+        if unlikely(suffix.len() == 0) {
+            return Ok(prefix.clone());
+        }
+        if unlikely(prefix.len() == 0) {
+            return OBJECT_IDENTIFIER::try_from(suffix);
+        }
+        // Handle the single-arc OID case.
+        if prefix.0.len() == 1 && prefix.0[0] >= 0b1000_0000 {
+            let arc1 = min(prefix.0[0] & 0b0111_1111, 2) as u32 * 40;
+            let first_component = arc1.checked_add(suffix[0])
+                .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
+            let roid = RELATIVE_OID::try_from(&suffix[1..])?;
+            #[cfg(feature = "smallvec")]
+            {
+                let mut inner: SmallVec<[u8; 16]> = smallvec![];
+                write_oid_arc(&mut inner, first_component as u128)?;
+                inner.write(roid.0.as_slice())?;
+                return Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner));
+            }
+            #[cfg(not(feature = "smallvec"))]
+            {
+                let mut inner: Vec<u8> = vec![];
+                write_oid_arc(&mut inner, first_component as u128)?;
+                inner.write(roid.0.as_slice())?;
+                return OBJECT_IDENTIFIER(inner)
+            }
+        }
+        let roid = RELATIVE_OID::try_from(suffix)?;
+        #[cfg(feature = "smallvec")]
+        {
+            let mut inner = SmallVec::with_capacity(prefix.0.len() + roid.0.len());
+            inner.write(prefix.0.as_slice())?;
+            inner.write(roid.0.as_slice())?;
+            Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner))
+        }
+        #[cfg(not(feature = "smallvec"))]
+        {
+            let mut inner = Vec::with_capacity(prefix.0.len() + roid.0.len());
+            inner.write(prefix.0.as_slice())?;
+            inner.write(roid.0.as_slice())?;
             Ok(OBJECT_IDENTIFIER(inner))
         }
     }
@@ -1139,6 +1187,20 @@ mod tests {
         let arc = 4;
         let oid1 = OBJECT_IDENTIFIER::from_prefix_and_arc(prefix, arc).unwrap();
         assert_eq!(oid1.to_string(), "1.4");
+    }
+
+    #[test]
+    fn test_from_prefix_and_suffix_1() {
+        let prefix = oid!(1,3,6,1);
+        let oid1 = OBJECT_IDENTIFIER::from_prefix_and_suffix(prefix, [4, 9].as_slice()).unwrap();
+        assert_eq!(oid1.to_string(), "1.3.6.1.4.9");
+    }
+
+    #[test]
+    fn test_from_prefix_and_suffix_2() {
+        let prefix = oid!(1);
+        let oid1 = OBJECT_IDENTIFIER::from_prefix_and_suffix(prefix, [4, 9].as_slice()).unwrap();
+        assert_eq!(oid1.to_string(), "1.4.9");
     }
 
 }
