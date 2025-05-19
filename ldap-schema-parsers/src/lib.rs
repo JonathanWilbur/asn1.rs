@@ -153,7 +153,9 @@ fn parse_numeric_oid(s: &str) -> IResult<&str, OBJECT_IDENTIFIER> {
     for sarc in sarcs {
         arcs.push(u32::from_str(sarc).unwrap());
     }
-    Ok((s, OBJECT_IDENTIFIER::new(arcs)))
+    let oid = OBJECT_IDENTIFIER::try_from(arcs)
+        .map_err(|_| NomErr::Failure(NomError::new(s, NomErrorKind::TooLarge)))?;
+    Ok((s, oid))
 }
 
 #[derive(Clone)]
