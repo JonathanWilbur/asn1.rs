@@ -279,7 +279,8 @@ pub fn parse_ObjectIdentifierValue (s: &str) -> IResult<&str, GserOidValue> {
         return Ok((s, GserOidValue::Descriptor(descr)));
     }
     let (s, arcs) = separated_list1(tag("."), parse_oid_component)(s)?;
-    let oid = OBJECT_IDENTIFIER::new(arcs);
+    let oid = OBJECT_IDENTIFIER::try_from(arcs)
+        .map_err(|_| NomErr::Failure(NomError::new(s, NomErrorKind::Fail)))?;
     Ok((s, GserOidValue::Literal(oid)))
 }
 
@@ -308,7 +309,8 @@ pub fn parse_RealValue (s: &str) -> IResult<&str, GserRealValue> {
 
 pub fn parse_RelativeOIDValue (s: &str) -> IResult<&str, RELATIVE_OID> {
     let (s, arcs) = separated_list1(tag("."), parse_oid_component)(s)?;
-    let roid = RELATIVE_OID::new(&arcs);
+    let roid = RELATIVE_OID::try_from(arcs)
+        .map_err(|_| NomErr::Failure(NomError::new(s, NomErrorKind::Fail)))?;
     Ok((s, roid))
 }
 
@@ -385,13 +387,21 @@ pub fn parse_GserValue (s: &str) -> IResult<&str, GserValue> {
     }
     if let Ok((s, v)) = separated_list1(tag("."), parse_oid_component)(s) {
         if v.len() > 2 {
-            let oid = OBJECT_IDENTIFIER::new(v);
+            let oid = OBJECT_IDENTIFIER::try_from(v)
+                .map_err(|_| NomErr::Error(NomError::new(s, NomErrorKind::Fail)))?;
             return Ok((s, GserValue::ObjectIdentifierValue(oid)));
         }
     }
-    if let Ok((s, v)) = double::<&str, ()>(s) {
-        let finite_value = GserRealValue::FiniteValue(v);
-        return Ok((s, GserValue::RealValue(finite_value)));
+    if let Ok((new_s, v)) = double::<&str, ()>(s) {
+        let part_we_just_parsed = &s[0..s.len() - new_s.len()];
+        /* We can only be confident that it was actually a real number if the
+        parsed value is non-integral (the first condition), or if the part we
+        just parsed contains a non-digit character. Integers may only contain
+        digits. */
+        if v.fract() != 0.0 || part_we_just_parsed.chars().any(|c| !c.is_ascii_digit()) {
+            let finite_value = GserRealValue::FiniteValue(v);
+            return Ok((new_s, GserValue::RealValue(finite_value)));
+        }
     }
     if let Ok((s, v)) = take_i64::<&str, ()>(s) {
         let sizedint = GserIntegerValue::ReasonableLiteral(v);
@@ -466,7 +476,8 @@ mod tests {
             GserValue::ObjectIdentifierValue(oid) => oid,
             _ => panic!("Not an OID value"),
         };
-        assert!(alg == &OBJECT_IDENTIFIER::new(Vec::from([ 2, 5, 43, 19 ])));
+        assert!(alg == &OBJECT_IDENTIFIER::try_from(Vec::from([ 2u32, 5, 43, 19 ])).unwrap());
+        dbg!(&c2.value);
         let params = match &c2.value {
             GserValue::IntegerValue(i) => i,
             _ => panic!("Not an integer value"),
