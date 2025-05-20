@@ -32,14 +32,17 @@ use x690::*;
 /// ```
 pub type ID = OBJECT_IDENTIFIER; // ObjectIdentifierType
 
+#[inline]
 pub fn _decode_ID(el: &X690Element) -> ASN1Result<ID> {
     BER.decode_object_identifier(&el)
 }
 
+#[inline]
 pub fn _encode_ID(value_: &ID) -> ASN1Result<X690Element> {
     BER.encode_object_identifier(&value_)
 }
 
+#[inline]
 pub fn _validate_ID(el: &X690Element) -> ASN1Result<()> {
     BER.validate_object_identifier(&el)
 }
@@ -50,9 +53,9 @@ pub fn _validate_ID(el: &X690Element) -> ASN1Result<()> {
 /// nullAlgorithm           ID ::= {algorithm 0}
 /// ```
 ///
-///
-pub fn nullAlgorithm() -> ID {
-    OBJECT_IDENTIFIER([algorithm().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
+#[inline]
+pub fn nullAlgorithm () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(algorithm(), 0) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -61,9 +64,9 @@ pub fn nullAlgorithm() -> ID {
 /// encryptionAlgorithm     ID ::= {algorithm 1}
 /// ```
 ///
-///
-pub fn encryptionAlgorithm() -> ID {
-    OBJECT_IDENTIFIER([algorithm().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn encryptionAlgorithm () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(algorithm(), 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -72,9 +75,9 @@ pub fn encryptionAlgorithm() -> ID {
 /// hashAlgorithm           ID ::= {algorithm 2}
 /// ```
 ///
-///
-pub fn hashAlgorithm() -> ID {
-    OBJECT_IDENTIFIER([algorithm().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn hashAlgorithm () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(algorithm(), 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -83,9 +86,9 @@ pub fn hashAlgorithm() -> ID {
 /// signatureAlgorithm      ID ::= {algorithm 3}
 /// ```
 ///
-///
-pub fn signatureAlgorithm() -> ID {
-    OBJECT_IDENTIFIER([algorithm().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn signatureAlgorithm () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(algorithm(), 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -94,9 +97,9 @@ pub fn signatureAlgorithm() -> ID {
 /// id-ea                   ID ::= encryptionAlgorithm
 /// ```
 ///
-///
-pub fn id_ea() -> ID {
-    encryptionAlgorithm() // OID_GETTER
+#[inline]
+pub fn id_ea () -> OBJECT_IDENTIFIER {
+	encryptionAlgorithm // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -105,9 +108,9 @@ pub fn id_ea() -> ID {
 /// id-ha                   ID ::= hashAlgorithm
 /// ```
 ///
-///
-pub fn id_ha() -> ID {
-    hashAlgorithm() // OID_GETTER
+#[inline]
+pub fn id_ha () -> OBJECT_IDENTIFIER {
+	hashAlgorithm // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -116,9 +119,9 @@ pub fn id_ha() -> ID {
 /// id-sa                   ID ::= signatureAlgorithm
 /// ```
 ///
-///
-pub fn id_sa() -> ID {
-    signatureAlgorithm() // OID_GETTER
+#[inline]
+pub fn id_sa () -> OBJECT_IDENTIFIER {
+	signatureAlgorithm // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -127,9 +130,9 @@ pub fn id_sa() -> ID {
 /// id-ea-rsa               ID ::= {id-ea 1}
 /// ```
 ///
-///
-pub fn id_ea_rsa() -> ID {
-    OBJECT_IDENTIFIER([id_ea().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ea_rsa () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ea(), 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -138,9 +141,9 @@ pub fn id_ea_rsa() -> ID {
 /// id-ha-sqMod-n           ID ::= {id-ha 1}
 /// ```
 ///
-///
-pub fn id_ha_sqMod_n() -> ID {
-    OBJECT_IDENTIFIER([id_ha().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ha_sqMod_n () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ha(), 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -149,9 +152,9 @@ pub fn id_ha_sqMod_n() -> ID {
 /// id-sa-sqMod-nWithRSA    ID ::= {id-sa 1}
 /// ```
 ///
-///
-pub fn id_sa_sqMod_nWithRSA() -> ID {
-    OBJECT_IDENTIFIER([id_sa().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sa_sqMod_nWithRSA () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_sa(), 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -160,11 +163,9 @@ pub fn id_sa_sqMod_nWithRSA() -> ID {
 /// us-iso                  ID ::= { iso(1) member-body(2) us(840) }
 /// ```
 ///
-///
-pub fn us_iso() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840,
-    ])) // OID_GETTER
+#[inline]
+pub fn us_iso () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -173,10 +174,9 @@ pub fn us_iso() -> ID {
 /// ansi-x9-57              ID ::= { us-iso ansi-x9-57(10040) }
 /// ```
 ///
-///
-pub fn ansi_x9_57() -> ID {
-    OBJECT_IDENTIFIER([us_iso().0, Vec::<u32>::from([/* ansi-x9-57 */ 10040])].concat())
-    // OID_GETTER
+#[inline]
+pub fn ansi_x9_57 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, /* ansi-x9-57 */ 10040 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -185,10 +185,9 @@ pub fn ansi_x9_57() -> ID {
 /// ansi-x9-62              ID ::= { us-iso ansi-x962(10045) }
 /// ```
 ///
-///
-pub fn ansi_x9_62() -> ID {
-    OBJECT_IDENTIFIER([us_iso().0, Vec::<u32>::from([/* ansi-x962 */ 10045])].concat())
-    // OID_GETTER
+#[inline]
+pub fn ansi_x9_62 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, /* ansi-x962 */ 10045 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -197,10 +196,9 @@ pub fn ansi_x9_62() -> ID {
 /// ansi-x9-42              ID ::= { us-iso ansi-x942(10046) }
 /// ```
 ///
-///
-pub fn ansi_x9_42() -> ID {
-    OBJECT_IDENTIFIER([us_iso().0, Vec::<u32>::from([/* ansi-x942 */ 10046])].concat())
-    // OID_GETTER
+#[inline]
+pub fn ansi_x9_42 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, /* ansi-x942 */ 10046 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -209,9 +207,9 @@ pub fn ansi_x9_42() -> ID {
 /// iso-standard            ID ::= { iso(1) standard(0) }
 /// ```
 ///
-///
-pub fn iso_standard() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([/* iso */ 1, /* standard */ 0])) // OID_GETTER
+#[inline]
+pub fn iso_standard () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* standard */ 0) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -220,15 +218,9 @@ pub fn iso_standard() -> ID {
 /// iso9797                 ID ::= { iso-standard message-authentication-codes(9797) }
 /// ```
 ///
-///
-pub fn iso9797() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            iso_standard().0,
-            Vec::<u32>::from([/* message-authentication-codes */ 9797]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn iso9797 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 40, /* message-authentication-codes */ 9797 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -237,11 +229,9 @@ pub fn iso9797() -> ID {
 /// iso-organization        ID ::= { iso(1) identified-organization(3) }
 /// ```
 ///
-///
-pub fn iso_organization() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* identified-organization */ 3,
-    ])) // OID_GETTER
+#[inline]
+pub fn iso_organization () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* identified-organization */ 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -250,10 +240,9 @@ pub fn iso_organization() -> ID {
 /// certicom                ID ::= { iso-organization certicom(132) }
 /// ```
 ///
-///
-pub fn certicom() -> ID {
-    OBJECT_IDENTIFIER([iso_organization().0, Vec::<u32>::from([/* certicom */ 132])].concat())
-    // OID_GETTER
+#[inline]
+pub fn certicom () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, /* certicom */ 132 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -262,10 +251,9 @@ pub fn certicom() -> ID {
 /// certicom-curve          ID ::= { certicom curve(0) }
 /// ```
 ///
-///
-pub fn certicom_curve() -> ID {
-    OBJECT_IDENTIFIER([certicom().0, Vec::<u32>::from([/* curve */ 0])].concat())
-    // OID_GETTER
+#[inline]
+pub fn certicom_curve () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, /* curve */ 0 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -274,10 +262,9 @@ pub fn certicom_curve() -> ID {
 /// teletrust               ID ::= { iso-organization teletrust(36) }
 /// ```
 ///
-///
-pub fn teletrust() -> ID {
-    OBJECT_IDENTIFIER([iso_organization().0, Vec::<u32>::from([/* teletrust */ 36])].concat())
-    // OID_GETTER
+#[inline]
+pub fn teletrust () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, /* teletrust */ 36 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -286,17 +273,9 @@ pub fn teletrust() -> ID {
 /// ecStdCurvesAndGen       ID ::= { teletrust algorithm(3) signature-algorithm(3) ecSign(2) 8}
 /// ```
 ///
-///
-pub fn ecStdCurvesAndGen() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            teletrust().0,
-            Vec::<u32>::from([
-                /* algorithm */ 3, /* signature-algorithm */ 3, /* ecSign */ 2, 8,
-            ]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn ecStdCurvesAndGen () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, /* algorithm */ 3, /* signature-algorithm */ 3, /* ecSign */ 2, 8 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -305,15 +284,9 @@ pub fn ecStdCurvesAndGen() -> ID {
 /// versionOne              ID ::= { ecStdCurvesAndGen ellipticCurve(1) versionOne(1) }
 /// ```
 ///
-///
-pub fn versionOne() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ecStdCurvesAndGen().0,
-            Vec::<u32>::from([/* ellipticCurve */ 1, /* versionOne */ 1]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn versionOne () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, /* ellipticCurve */ 1, /* versionOne */ 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -322,11 +295,9 @@ pub fn versionOne() -> ID {
 /// us-joint                ID ::= { joint-iso-itu-t(2) country(16) us(840) }
 /// ```
 ///
-///
-pub fn us_joint() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* joint-iso-itu-t */ 2, /* country */ 16, /* us */ 840,
-    ])) // OID_GETTER
+#[inline]
+pub fn us_joint () -> OBJECT_IDENTIFIER {
+	oid!(/* joint-iso-itu-t */ 2,/* country */ 16,/* us */ 840) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -335,15 +306,9 @@ pub fn us_joint() -> ID {
 /// usgov                   ID ::= { us-joint organization(1) gov(101) }
 /// ```
 ///
-///
-pub fn usgov() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            us_joint().0,
-            Vec::<u32>::from([/* organization */ 1, /* gov */ 101]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn usgov () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, /* organization */ 1, /* gov */ 101 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -352,17 +317,9 @@ pub fn usgov() -> ID {
 /// dodAlgorithms           ID ::= { usgov dod(2) infosec(1) algorithms(1) }
 /// ```
 ///
-///
-pub fn dodAlgorithms() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            usgov().0,
-            Vec::<u32>::from([
-                /* dod */ 2, /* infosec */ 1, /* algorithms */ 1,
-            ]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn dodAlgorithms () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, /* dod */ 2, /* infosec */ 1, /* algorithms */ 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -371,9 +328,9 @@ pub fn dodAlgorithms() -> ID {
 /// csor                    ID ::= { usgov csor(3) }
 /// ```
 ///
-///
-pub fn csor() -> ID {
-    OBJECT_IDENTIFIER([usgov().0, Vec::<u32>::from([/* csor */ 3])].concat()) // OID_GETTER
+#[inline]
+pub fn csor () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, /* csor */ 3 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -382,10 +339,9 @@ pub fn csor() -> ID {
 /// nistAlgorithms          ID ::= { csor nistAlgorithm(4) }
 /// ```
 ///
-///
-pub fn nistAlgorithms() -> ID {
-    OBJECT_IDENTIFIER([csor().0, Vec::<u32>::from([/* nistAlgorithm */ 4])].concat())
-    // OID_GETTER
+#[inline]
+pub fn nistAlgorithms () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, /* nistAlgorithm */ 4 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -394,9 +350,9 @@ pub fn nistAlgorithms() -> ID {
 /// aes                     ID ::= { nistAlgorithms 1 }
 /// ```
 ///
-///
-pub fn aes() -> ID {
-    OBJECT_IDENTIFIER([nistAlgorithms().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn aes () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -405,10 +361,9 @@ pub fn aes() -> ID {
 /// hashAlgs                ID ::= { nistAlgorithms hashalgs(2) }
 /// ```
 ///
-///
-pub fn hashAlgs() -> ID {
-    OBJECT_IDENTIFIER([nistAlgorithms().0, Vec::<u32>::from([/* hashalgs */ 2])].concat())
-    // OID_GETTER
+#[inline]
+pub fn hashAlgs () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, /* hashalgs */ 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -417,9 +372,9 @@ pub fn hashAlgs() -> ID {
 /// sigAlgs                 ID ::= { nistAlgorithms 3 }
 /// ```
 ///
-///
-pub fn sigAlgs() -> ID {
-    OBJECT_IDENTIFIER([nistAlgorithms().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn sigAlgs () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 3 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -428,11 +383,9 @@ pub fn sigAlgs() -> ID {
 /// rsadsi                  ID ::= { iso(1) member-body(2) us(840) rsadsi(113549) }
 /// ```
 ///
-///
-pub fn rsadsi() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-    ])) // OID_GETTER
+#[inline]
+pub fn rsadsi () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -441,10 +394,9 @@ pub fn rsadsi() -> ID {
 /// pkcs-1                  ID ::= { rsadsi pkcs(1) pkcs-1(1) }
 /// ```
 ///
-///
-pub fn pkcs_1() -> ID {
-    OBJECT_IDENTIFIER([rsadsi().0, Vec::<u32>::from([/* pkcs */ 1, /* pkcs-1 */ 1])].concat())
-    // OID_GETTER
+#[inline]
+pub fn pkcs_1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, /* pkcs */ 1, /* pkcs-1 */ 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -453,10 +405,9 @@ pub fn pkcs_1() -> ID {
 /// digestAlgorithm         ID ::= { rsadsi digestAlgorithm(2) }
 /// ```
 ///
-///
-pub fn digestAlgorithm() -> ID {
-    OBJECT_IDENTIFIER([rsadsi().0, Vec::<u32>::from([/* digestAlgorithm */ 2])].concat())
-    // OID_GETTER
+#[inline]
+pub fn digestAlgorithm () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, /* digestAlgorithm */ 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -465,9 +416,9 @@ pub fn digestAlgorithm() -> ID {
 /// id-aes128-CBC           ID ::= { aes 2 }
 /// ```
 ///
-///
-pub fn id_aes128_CBC() -> ID {
-    OBJECT_IDENTIFIER([aes().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aes128_CBC () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 1, 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -476,9 +427,9 @@ pub fn id_aes128_CBC() -> ID {
 /// id-aes192-CBC           ID ::= { aes 22 }
 /// ```
 ///
-///
-pub fn id_aes192_CBC() -> ID {
-    OBJECT_IDENTIFIER([aes().0, Vec::<u32>::from([22])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aes192_CBC () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 1, 22 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -487,9 +438,9 @@ pub fn id_aes192_CBC() -> ID {
 /// id-aes256-CBC           ID ::= { aes 42 }
 /// ```
 ///
-///
-pub fn id_aes256_CBC() -> ID {
-    OBJECT_IDENTIFIER([aes().0, Vec::<u32>::from([42])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aes256_CBC () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 1, 42 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -498,9 +449,9 @@ pub fn id_aes256_CBC() -> ID {
 /// id-aes128-wrap          ID ::= { aes 5 }
 /// ```
 ///
-///
-pub fn id_aes128_wrap() -> ID {
-    OBJECT_IDENTIFIER([aes().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aes128_wrap () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 1, 5 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -509,9 +460,9 @@ pub fn id_aes128_wrap() -> ID {
 /// id-aes192-wrap          ID ::= { aes 25 }
 /// ```
 ///
-///
-pub fn id_aes192_wrap() -> ID {
-    OBJECT_IDENTIFIER([aes().0, Vec::<u32>::from([25])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aes192_wrap () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 1, 25 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -520,9 +471,9 @@ pub fn id_aes192_wrap() -> ID {
 /// id-aes256-wrap          ID ::= { aes 45 }
 /// ```
 ///
-///
-pub fn id_aes256_wrap() -> ID {
-    OBJECT_IDENTIFIER([aes().0, Vec::<u32>::from([45])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aes256_wrap () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 1, 45 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -531,10 +482,9 @@ pub fn id_aes256_wrap() -> ID {
 /// rsaEncryption           ID ::= { pkcs-1 rsaEncryption(1)}
 /// ```
 ///
-///
-pub fn rsaEncryption() -> ID {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([/* rsaEncryption */ 1])].concat())
-    // OID_GETTER
+#[inline]
+pub fn rsaEncryption () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, /* rsaEncryption */ 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -543,15 +493,9 @@ pub fn rsaEncryption() -> ID {
 /// id-keyExchangeAlgorithm ID ::= { dodAlgorithms id-keyExchangeAlgorithm(22)}
 /// ```
 ///
-///
-pub fn id_keyExchangeAlgorithm() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            dodAlgorithms().0,
-            Vec::<u32>::from([/* id-keyExchangeAlgorithm */ 22]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn id_keyExchangeAlgorithm () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 2, 1, 1, /* id-keyExchangeAlgorithm */ 22 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -560,10 +504,9 @@ pub fn id_keyExchangeAlgorithm() -> ID {
 /// id-dsa                  ID ::= { ansi-x9-57 x9algorithm(4) 1 }
 /// ```
 ///
-///
-pub fn id_dsa() -> ID {
-    OBJECT_IDENTIFIER([ansi_x9_57().0, Vec::<u32>::from([/* x9algorithm */ 4, 1])].concat())
-    // OID_GETTER
+#[inline]
+pub fn id_dsa () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 56, /* x9algorithm */ 4, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -572,10 +515,9 @@ pub fn id_dsa() -> ID {
 /// id-ecPublicKey          ID ::= { ansi-x9-62 keyType(2) 1 }
 /// ```
 ///
-///
-pub fn id_ecPublicKey() -> ID {
-    OBJECT_IDENTIFIER([ansi_x9_62().0, Vec::<u32>::from([/* keyType */ 2, 1])].concat())
-    // OID_GETTER
+#[inline]
+pub fn id_ecPublicKey () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 61, /* keyType */ 2, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -584,15 +526,9 @@ pub fn id_ecPublicKey() -> ID {
 /// id-ecDH                 ID ::= { certicom schemes(1) ecdh(12) }
 /// ```
 ///
-///
-pub fn id_ecDH() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            certicom().0,
-            Vec::<u32>::from([/* schemes */ 1, /* ecdh */ 12]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn id_ecDH () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, /* schemes */ 1, /* ecdh */ 12 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -601,15 +537,9 @@ pub fn id_ecDH() -> ID {
 /// id-ecMQV                ID ::= { certicom schemes(1) ecmqv(13) }
 /// ```
 ///
-///
-pub fn id_ecMQV() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            certicom().0,
-            Vec::<u32>::from([/* schemes */ 1, /* ecmqv */ 13]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn id_ecMQV () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, /* schemes */ 1, /* ecmqv */ 13 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -618,15 +548,9 @@ pub fn id_ecMQV() -> ID {
 /// dh-public-number        ID ::= { ansi-x9-42 number-type(2) dh-public-number(1) }
 /// ```
 ///
-///
-pub fn dh_public_number() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ansi_x9_42().0,
-            Vec::<u32>::from([/* number-type */ 2, /* dh-public-number */ 1]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn dh_public_number () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 62, /* number-type */ 2, /* dh-public-number */ 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -636,12 +560,9 @@ pub fn dh_public_number() -> ID {
 ///                                 algorithms(2) 26}
 /// ```
 ///
-///
-pub fn id_sha1() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* identified-organization */ 3, /* oiw */ 14,
-        /* secsig */ 3, /* algorithms */ 2, 26,
-    ])) // OID_GETTER
+#[inline]
+pub fn id_sha1 () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* identified-organization */ 3,/* oiw */ 14,/* secsig */ 3,/* algorithms */ 2,26) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -650,9 +571,9 @@ pub fn id_sha1() -> ID {
 /// id-sha256               ID ::= { hashAlgs 1 }
 /// ```
 ///
-///
-pub fn id_sha256() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha256 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -661,9 +582,9 @@ pub fn id_sha256() -> ID {
 /// id-sha384               ID ::= { hashAlgs 2 }
 /// ```
 ///
-///
-pub fn id_sha384() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha384 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -672,9 +593,9 @@ pub fn id_sha384() -> ID {
 /// id-sha512               ID ::= { hashAlgs 3 }
 /// ```
 ///
-///
-pub fn id_sha512() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha512 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 3 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -683,9 +604,9 @@ pub fn id_sha512() -> ID {
 /// id-sha224               ID ::= { hashAlgs 4 }
 /// ```
 ///
-///
-pub fn id_sha224() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha224 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 4 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -694,9 +615,9 @@ pub fn id_sha224() -> ID {
 /// id-sha512-224           ID ::= { hashAlgs 5 }
 /// ```
 ///
-///
-pub fn id_sha512_224() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha512_224 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 5 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -705,9 +626,9 @@ pub fn id_sha512_224() -> ID {
 /// id-sha512-256           ID ::= { hashAlgs 6 }
 /// ```
 ///
-///
-pub fn id_sha512_256() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha512_256 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 6 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -716,9 +637,9 @@ pub fn id_sha512_256() -> ID {
 /// id-sha3-224             ID ::= { hashAlgs 7 }
 /// ```
 ///
-///
-pub fn id_sha3_224() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha3_224 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 7 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -727,9 +648,9 @@ pub fn id_sha3_224() -> ID {
 /// id-sha3-256             ID ::= { hashAlgs 8 }
 /// ```
 ///
-///
-pub fn id_sha3_256() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha3_256 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 8 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -738,9 +659,9 @@ pub fn id_sha3_256() -> ID {
 /// id-sha3-384             ID ::= { hashAlgs 9 }
 /// ```
 ///
-///
-pub fn id_sha3_384() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha3_384 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 9 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -749,9 +670,9 @@ pub fn id_sha3_384() -> ID {
 /// id-sha3-512             ID ::= { hashAlgs 10 }
 /// ```
 ///
-///
-pub fn id_sha3_512() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_sha3_512 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 10 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -760,9 +681,9 @@ pub fn id_sha3_512() -> ID {
 /// id-shake128             ID ::= { hashAlgs 11 }
 /// ```
 ///
-///
-pub fn id_shake128() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn id_shake128 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -771,9 +692,9 @@ pub fn id_shake128() -> ID {
 /// id-shake256             ID ::= { hashAlgs 12 }
 /// ```
 ///
-///
-pub fn id_shake256() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([12])].concat()) // OID_GETTER
+#[inline]
+pub fn id_shake256 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 12 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -782,9 +703,9 @@ pub fn id_shake256() -> ID {
 /// id-shake128-len         ID ::= { hashAlgs 17 }
 /// ```
 ///
-///
-pub fn id_shake128_len() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([17])].concat()) // OID_GETTER
+#[inline]
+pub fn id_shake128_len () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 17 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -793,9 +714,9 @@ pub fn id_shake128_len() -> ID {
 /// id-shake256-len         ID ::= { hashAlgs 18 }
 /// ```
 ///
-///
-pub fn id_shake256_len() -> ID {
-    OBJECT_IDENTIFIER([hashAlgs().0, Vec::<u32>::from([18])].concat()) // OID_GETTER
+#[inline]
+pub fn id_shake256_len () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 2, 18 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -806,13 +727,9 @@ pub fn id_shake256_len() -> ID {
 ///                                   cryptography(12) 2 }
 /// ```
 ///
-///
-pub fn hashAlg() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* identified-organization */ 3, /* dod */ 6,
-        /* internet */ 1, /* private */ 4, /* enterprise */ 1,
-        /* kudelski */ 1722, /* cryptography */ 12, 2,
-    ])) // OID_GETTER
+#[inline]
+pub fn hashAlg () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* identified-organization */ 3,/* dod */ 6,/* internet */ 1,/* private */ 4,/* enterprise */ 1,/* kudelski */ 1722,/* cryptography */ 12,2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -821,15 +738,9 @@ pub fn hashAlg() -> ID {
 /// sha1WithRSAEncryption   ID ::= { pkcs-1 sha1WithRSAEncryption(5) }
 /// ```
 ///
-///
-pub fn sha1WithRSAEncryption() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            pkcs_1().0,
-            Vec::<u32>::from([/* sha1WithRSAEncryption */ 5]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn sha1WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, /* sha1WithRSAEncryption */ 5 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -838,15 +749,9 @@ pub fn sha1WithRSAEncryption() -> ID {
 /// sha256WithRSAEncryption ID ::= { pkcs-1 sha256WithRSAEncryption(11) }
 /// ```
 ///
-///
-pub fn sha256WithRSAEncryption() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            pkcs_1().0,
-            Vec::<u32>::from([/* sha256WithRSAEncryption */ 11]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn sha256WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, /* sha256WithRSAEncryption */ 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -855,15 +760,9 @@ pub fn sha256WithRSAEncryption() -> ID {
 /// sha384WithRSAEncryption ID ::= { pkcs-1 sha384WithRSAEncryption(12) }
 /// ```
 ///
-///
-pub fn sha384WithRSAEncryption() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            pkcs_1().0,
-            Vec::<u32>::from([/* sha384WithRSAEncryption */ 12]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn sha384WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, /* sha384WithRSAEncryption */ 12 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -872,15 +771,9 @@ pub fn sha384WithRSAEncryption() -> ID {
 /// sha512WithRSAEncryption ID ::= { pkcs-1 sha512WithRSAEncryption(13) }
 /// ```
 ///
-///
-pub fn sha512WithRSAEncryption() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            pkcs_1().0,
-            Vec::<u32>::from([/* sha512WithRSAEncryption */ 13]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn sha512WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, /* sha512WithRSAEncryption */ 13 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -889,15 +782,9 @@ pub fn sha512WithRSAEncryption() -> ID {
 /// sha224WithRSAEncryption ID ::= { pkcs-1 sha224WithRSAEncryption(14) }
 /// ```
 ///
-///
-pub fn sha224WithRSAEncryption() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            pkcs_1().0,
-            Vec::<u32>::from([/* sha224WithRSAEncryption */ 14]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn sha224WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, /* sha224WithRSAEncryption */ 14 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -906,9 +793,9 @@ pub fn sha224WithRSAEncryption() -> ID {
 /// id-RSASSA-PSS           ID ::= { pkcs-1 10 }
 /// ```
 ///
-///
-pub fn id_RSASSA_PSS() -> ID {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_RSASSA_PSS () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, 10 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -917,9 +804,9 @@ pub fn id_RSASSA_PSS() -> ID {
 /// id-mgf1                 ID ::= { pkcs-1 8 }
 /// ```
 ///
-///
-pub fn id_mgf1() -> ID {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn id_mgf1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, 8 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -929,12 +816,9 @@ pub fn id_mgf1() -> ID {
 ///                                 dsa-with-sha1(3)}
 /// ```
 ///
-///
-pub fn id_dsa_with_sha1() -> ID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* x9-57 */ 10040,
-        /* x9algorithm */ 4, /* dsa-with-sha1 */ 3,
-    ])) // OID_GETTER
+#[inline]
+pub fn id_dsa_with_sha1 () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* x9-57 */ 10040,/* x9algorithm */ 4,/* dsa-with-sha1 */ 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -943,9 +827,9 @@ pub fn id_dsa_with_sha1() -> ID {
 /// id-dsa-with-sha224      ID ::= { sigAlgs 1 }
 /// ```
 ///
-///
-pub fn id_dsa_with_sha224() -> ID {
-    OBJECT_IDENTIFIER([sigAlgs().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_dsa_with_sha224 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 3, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -954,9 +838,9 @@ pub fn id_dsa_with_sha224() -> ID {
 /// id-dsa-with-sha256      ID ::= { sigAlgs 2 }
 /// ```
 ///
-///
-pub fn id_dsa_with_sha256() -> ID {
-    OBJECT_IDENTIFIER([sigAlgs().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_dsa_with_sha256 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 96, 0x86, 72, 1, 101, 3, 4, 3, 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -966,15 +850,9 @@ pub fn id_dsa_with_sha256() -> ID {
 ///                                                 ecdsa-with-SHA2(3) 1 }
 /// ```
 ///
-///
-pub fn ecdsa_with_SHA224() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ansi_x9_62().0,
-            Vec::<u32>::from([/* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 1]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn ecdsa_with_SHA224 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 61, /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -984,15 +862,9 @@ pub fn ecdsa_with_SHA224() -> ID {
 ///                                                 ecdsa-with-SHA2(3) 2 }
 /// ```
 ///
-///
-pub fn ecdsa_with_SHA256() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ansi_x9_62().0,
-            Vec::<u32>::from([/* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 2]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn ecdsa_with_SHA256 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 61, /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1002,15 +874,9 @@ pub fn ecdsa_with_SHA256() -> ID {
 ///                                                 ecdsa-with-SHA2(3) 3 }
 /// ```
 ///
-///
-pub fn ecdsa_with_SHA384() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ansi_x9_62().0,
-            Vec::<u32>::from([/* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 3]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn ecdsa_with_SHA384 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 61, /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 3 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1019,15 +885,9 @@ pub fn ecdsa_with_SHA384() -> ID {
 /// ecdsa-with-SHA512       ID ::= { ansi-x9-62 signatures(4) ecdsa-with-SHA2(3) 4 }
 /// ```
 ///
-///
-pub fn ecdsa_with_SHA512() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ansi_x9_62().0,
-            Vec::<u32>::from([/* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 4]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn ecdsa_with_SHA512 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 61, /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 4 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1036,15 +896,9 @@ pub fn ecdsa_with_SHA512() -> ID {
 /// secp192r1       ID ::= { ansi-x9-62 curves(3) prime(1) 1 }
 /// ```
 ///
-///
-pub fn secp192r1() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ansi_x9_62().0,
-            Vec::<u32>::from([/* curves */ 3, /* prime */ 1, 1]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn secp192r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 61, /* curves */ 3, /* prime */ 1, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1053,9 +907,9 @@ pub fn secp192r1() -> ID {
 /// sect163k1       ID ::= { certicom-curve 1 }
 /// ```
 ///
-///
-pub fn sect163k1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn sect163k1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1064,9 +918,9 @@ pub fn sect163k1() -> ID {
 /// sect163r2       ID ::= { certicom-curve 15 }
 /// ```
 ///
-///
-pub fn sect163r2() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([15])].concat()) // OID_GETTER
+#[inline]
+pub fn sect163r2 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 15 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1075,9 +929,9 @@ pub fn sect163r2() -> ID {
 /// secp224r1       ID ::= { certicom-curve 33 }
 /// ```
 ///
-///
-pub fn secp224r1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([33])].concat()) // OID_GETTER
+#[inline]
+pub fn secp224r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 33 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1086,9 +940,9 @@ pub fn secp224r1() -> ID {
 /// sect233k1       ID ::= { certicom-curve 26 }
 /// ```
 ///
-///
-pub fn sect233k1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([26])].concat()) // OID_GETTER
+#[inline]
+pub fn sect233k1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 26 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1097,9 +951,9 @@ pub fn sect233k1() -> ID {
 /// sect233r1       ID ::= { certicom-curve 27 }
 /// ```
 ///
-///
-pub fn sect233r1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([27])].concat()) // OID_GETTER
+#[inline]
+pub fn sect233r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 27 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1108,15 +962,9 @@ pub fn sect233r1() -> ID {
 /// secp256r1       ID ::= { ansi-x9-62 curves(3) prime(1) 7 }
 /// ```
 ///
-///
-pub fn secp256r1() -> ID {
-    OBJECT_IDENTIFIER(
-        [
-            ansi_x9_62().0,
-            Vec::<u32>::from([/* curves */ 3, /* prime */ 1, 7]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn secp256r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0xce, 61, /* curves */ 3, /* prime */ 1, 7 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1125,9 +973,9 @@ pub fn secp256r1() -> ID {
 /// sect283k1       ID ::= { certicom-curve 16 }
 /// ```
 ///
-///
-pub fn sect283k1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([16])].concat()) // OID_GETTER
+#[inline]
+pub fn sect283k1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 16 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1136,9 +984,9 @@ pub fn sect283k1() -> ID {
 /// sect283r1       ID ::= { certicom-curve 17 }
 /// ```
 ///
-///
-pub fn sect283r1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([17])].concat()) // OID_GETTER
+#[inline]
+pub fn sect283r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 17 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1147,9 +995,9 @@ pub fn sect283r1() -> ID {
 /// secp384r1       ID ::= { certicom-curve 34 }
 /// ```
 ///
-///
-pub fn secp384r1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([34])].concat()) // OID_GETTER
+#[inline]
+pub fn secp384r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 34 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1158,9 +1006,9 @@ pub fn secp384r1() -> ID {
 /// sect409k1       ID ::= { certicom-curve 36 }
 /// ```
 ///
-///
-pub fn sect409k1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([36])].concat()) // OID_GETTER
+#[inline]
+pub fn sect409k1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 36 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1169,9 +1017,9 @@ pub fn sect409k1() -> ID {
 /// sect409r1       ID ::= { certicom-curve 37 }
 /// ```
 ///
-///
-pub fn sect409r1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([37])].concat()) // OID_GETTER
+#[inline]
+pub fn sect409r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 37 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1180,9 +1028,9 @@ pub fn sect409r1() -> ID {
 /// secp521r1       ID ::= { certicom-curve 35 }
 /// ```
 ///
-///
-pub fn secp521r1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([35])].concat()) // OID_GETTER
+#[inline]
+pub fn secp521r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 35 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1191,9 +1039,9 @@ pub fn secp521r1() -> ID {
 /// sect571k1       ID ::= { certicom-curve 38 }
 /// ```
 ///
-///
-pub fn sect571k1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([38])].concat()) // OID_GETTER
+#[inline]
+pub fn sect571k1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 38 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1202,9 +1050,9 @@ pub fn sect571k1() -> ID {
 /// sect571r1       ID ::= { certicom-curve 39 }
 /// ```
 ///
-///
-pub fn sect571r1() -> ID {
-    OBJECT_IDENTIFIER([certicom_curve().0, Vec::<u32>::from([39])].concat()) // OID_GETTER
+#[inline]
+pub fn sect571r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 0x81, 4, 0, 39 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1213,9 +1061,9 @@ pub fn sect571r1() -> ID {
 /// brainpoolP160r1 ID ::= { versionOne 1 }
 /// ```
 ///
-///
-pub fn brainpoolP160r1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP160r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1224,9 +1072,9 @@ pub fn brainpoolP160r1() -> ID {
 /// brainpoolP160t1 ID ::= { versionOne 2 }
 /// ```
 ///
-///
-pub fn brainpoolP160t1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP160t1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1235,9 +1083,9 @@ pub fn brainpoolP160t1() -> ID {
 /// brainpoolP192r1 ID ::= { versionOne 3 }
 /// ```
 ///
-///
-pub fn brainpoolP192r1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP192r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 3 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1246,9 +1094,9 @@ pub fn brainpoolP192r1() -> ID {
 /// brainpoolP192t1 ID ::= { versionOne 4 }
 /// ```
 ///
-///
-pub fn brainpoolP192t1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP192t1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 4 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1257,9 +1105,9 @@ pub fn brainpoolP192t1() -> ID {
 /// brainpoolP224r1 ID ::= { versionOne 5 }
 /// ```
 ///
-///
-pub fn brainpoolP224r1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP224r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 5 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1268,9 +1116,9 @@ pub fn brainpoolP224r1() -> ID {
 /// brainpoolP224t1 ID ::= { versionOne 6 }
 /// ```
 ///
-///
-pub fn brainpoolP224t1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP224t1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 6 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1279,9 +1127,9 @@ pub fn brainpoolP224t1() -> ID {
 /// brainpoolP256r1 ID ::= { versionOne 7 }
 /// ```
 ///
-///
-pub fn brainpoolP256r1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP256r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 7 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1290,9 +1138,9 @@ pub fn brainpoolP256r1() -> ID {
 /// brainpoolP256t1 ID ::= { versionOne 8 }
 /// ```
 ///
-///
-pub fn brainpoolP256t1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP256t1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 8 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1301,9 +1149,9 @@ pub fn brainpoolP256t1() -> ID {
 /// brainpoolP320r1 ID ::= { versionOne 9 }
 /// ```
 ///
-///
-pub fn brainpoolP320r1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP320r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 9 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1312,9 +1160,9 @@ pub fn brainpoolP320r1() -> ID {
 /// brainpoolP320t1 ID ::= { versionOne 10 }
 /// ```
 ///
-///
-pub fn brainpoolP320t1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP320t1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 10 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1323,9 +1171,9 @@ pub fn brainpoolP320t1() -> ID {
 /// brainpoolP384r1 ID ::= { versionOne 11 }
 /// ```
 ///
-///
-pub fn brainpoolP384r1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP384r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1334,9 +1182,9 @@ pub fn brainpoolP384r1() -> ID {
 /// brainpoolP384t1 ID ::= { versionOne 12 }
 /// ```
 ///
-///
-pub fn brainpoolP384t1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([12])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP384t1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 12 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1345,9 +1193,9 @@ pub fn brainpoolP384t1() -> ID {
 /// brainpoolP512r1 ID ::= { versionOne 13 }
 /// ```
 ///
-///
-pub fn brainpoolP512r1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP512r1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 13 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1356,9 +1204,9 @@ pub fn brainpoolP512r1() -> ID {
 /// brainpoolP512t1 ID ::= { versionOne 14 }
 /// ```
 ///
-///
-pub fn brainpoolP512t1() -> ID {
-    OBJECT_IDENTIFIER([versionOne().0, Vec::<u32>::from([14])].concat()) // OID_GETTER
+#[inline]
+pub fn brainpoolP512t1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 43, 36, 3, 3, 2, 8, 1, 1, 14 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1372,14 +1220,17 @@ pub fn brainpoolP512t1() -> ID {
 ///
 pub type X509Curves = OBJECT_IDENTIFIER; // VALUE_SET_TYPE
 
+#[inline]
 pub fn _decode_X509Curves(el: &X690Element) -> ASN1Result<X509Curves> {
     BER.decode_object_identifier(el)
 }
 
+#[inline]
 pub fn _encode_X509Curves(value_: &X509Curves) -> ASN1Result<X690Element> {
     BER.encode_object_identifier(value_)
 }
 
+#[inline]
 pub fn _validate_X509Curves(el: &X690Element) -> ASN1Result<()> {
     BER.validate_object_identifier(el)
 }
@@ -1390,9 +1241,9 @@ pub fn _validate_X509Curves(el: &X690Element) -> ASN1Result<()> {
 /// id-hmacWithSHA224       ID ::= { digestAlgorithm 8 }
 /// ```
 ///
-///
-pub fn id_hmacWithSHA224() -> ID {
-    OBJECT_IDENTIFIER([digestAlgorithm().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn id_hmacWithSHA224 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 2, 8 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1401,9 +1252,9 @@ pub fn id_hmacWithSHA224() -> ID {
 /// id-hmacWithSHA256       ID ::= { digestAlgorithm 9 }
 /// ```
 ///
-///
-pub fn id_hmacWithSHA256() -> ID {
-    OBJECT_IDENTIFIER([digestAlgorithm().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+#[inline]
+pub fn id_hmacWithSHA256 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 2, 9 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1412,9 +1263,9 @@ pub fn id_hmacWithSHA256() -> ID {
 /// id-hmacWithSHA384       ID ::= { digestAlgorithm 10 }
 /// ```
 ///
-///
-pub fn id_hmacWithSHA384() -> ID {
-    OBJECT_IDENTIFIER([digestAlgorithm().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_hmacWithSHA384 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 2, 10 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1423,9 +1274,9 @@ pub fn id_hmacWithSHA384() -> ID {
 /// id-hmacWithSHA512       ID ::= { digestAlgorithm 11 }
 /// ```
 ///
-///
-pub fn id_hmacWithSHA512() -> ID {
-    OBJECT_IDENTIFIER([digestAlgorithm().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn id_hmacWithSHA512 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 2, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1434,10 +1285,9 @@ pub fn id_hmacWithSHA512() -> ID {
 /// id-gmac                 ID ::= { iso9797 part3(3) gmac(4) }
 /// ```
 ///
-///
-pub fn id_gmac() -> ID {
-    OBJECT_IDENTIFIER([iso9797().0, Vec::<u32>::from([/* part3 */ 3, /* gmac */ 4])].concat())
-    // OID_GETTER
+#[inline]
+pub fn id_gmac () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_slice_unchecked([ 40, 0xcc, 69, /* part3 */ 3, /* gmac */ 4 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1448,7 +1298,7 @@ pub fn id_gmac() -> ID {
 ///   IDENTIFIED BY {iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) md5(5)}}
 /// ```
 ///
-///
+#[inline]
 pub fn mD5Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: OBJECT_IDENTIFIER(Vec::<u32>::from([
@@ -1462,12 +1312,18 @@ pub mod mD5Algorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -1481,7 +1337,7 @@ pub mod mD5Algorithm {
 ///   IDENTIFIED BY id-sha1 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha1Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: id_sha1(), /* OBJECT_FIELD_SETTING */
@@ -1492,12 +1348,18 @@ pub mod sha1Algorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -1510,7 +1372,7 @@ pub mod sha1Algorithm {
 ///   IDENTIFIED BY id-sha256 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha256() -> ALGORITHM {
     ALGORITHM {
         id: id_sha256(), /* OBJECT_FIELD_SETTING */
@@ -1528,7 +1390,7 @@ pub mod sha256 {
 ///   IDENTIFIED BY id-sha384 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha384() -> ALGORITHM {
     ALGORITHM {
         id: id_sha384(), /* OBJECT_FIELD_SETTING */
@@ -1546,7 +1408,7 @@ pub mod sha384 {
 ///   IDENTIFIED BY id-sha512 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha512() -> ALGORITHM {
     ALGORITHM {
         id: id_sha512(), /* OBJECT_FIELD_SETTING */
@@ -1564,7 +1426,7 @@ pub mod sha512 {
 ///   IDENTIFIED BY id-sha224 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha224() -> ALGORITHM {
     ALGORITHM {
         id: id_sha224(), /* OBJECT_FIELD_SETTING */
@@ -1582,7 +1444,7 @@ pub mod sha224 {
 ///   IDENTIFIED BY id-sha512-224 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha512_224() -> ALGORITHM {
     ALGORITHM {
         id: id_sha512_224(), /* OBJECT_FIELD_SETTING */
@@ -1600,7 +1462,7 @@ pub mod sha512_224 {
 ///   IDENTIFIED BY id-sha512-256 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha512_256() -> ALGORITHM {
     ALGORITHM {
         id: id_sha512_256(), /* OBJECT_FIELD_SETTING */
@@ -1618,7 +1480,7 @@ pub mod sha512_256 {
 ///   IDENTIFIED BY id-sha3-224 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha3_224() -> ALGORITHM {
     ALGORITHM {
         id: id_sha3_224(), /* OBJECT_FIELD_SETTING */
@@ -1636,7 +1498,7 @@ pub mod sha3_224 {
 ///   IDENTIFIED BY id-sha3-256 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha3_256() -> ALGORITHM {
     ALGORITHM {
         id: id_sha3_256(), /* OBJECT_FIELD_SETTING */
@@ -1654,7 +1516,7 @@ pub mod sha3_256 {
 ///   IDENTIFIED BY id-sha3-384 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha3_384() -> ALGORITHM {
     ALGORITHM {
         id: id_sha3_384(), /* OBJECT_FIELD_SETTING */
@@ -1672,7 +1534,7 @@ pub mod sha3_384 {
 ///   IDENTIFIED BY id-sha3-512 }
 /// ```
 ///
-///
+#[inline]
 pub fn sha3_512() -> ALGORITHM {
     ALGORITHM {
         id: id_sha3_512(), /* OBJECT_FIELD_SETTING */
@@ -1690,7 +1552,7 @@ pub mod sha3_512 {
 ///   IDENTIFIED BY id-shake128 }
 /// ```
 ///
-///
+#[inline]
 pub fn shake128() -> ALGORITHM {
     ALGORITHM {
         id: id_shake128(), /* OBJECT_FIELD_SETTING */
@@ -1708,7 +1570,7 @@ pub mod shake128 {
 ///   IDENTIFIED BY id-shake256 }
 /// ```
 ///
-///
+#[inline]
 pub fn shake256() -> ALGORITHM {
     ALGORITHM {
         id: id_shake256(), /* OBJECT_FIELD_SETTING */
@@ -1727,7 +1589,7 @@ pub mod shake256 {
 ///   IDENTIFIED BY id-shake128-len }
 /// ```
 ///
-///
+#[inline]
 pub fn shake128_len() -> ALGORITHM {
     ALGORITHM {
         id: id_shake128_len(), /* OBJECT_FIELD_SETTING */
@@ -1738,12 +1600,18 @@ pub mod shake128_len {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = ShakeOutputLen; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_ShakeOutputLen(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_ShakeOutputLen(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_ShakeOutputLen(el)
     }
@@ -1757,7 +1625,7 @@ pub mod shake128_len {
 ///   IDENTIFIED BY id-shake256-len }
 /// ```
 ///
-///
+#[inline]
 pub fn shake256_len() -> ALGORITHM {
     ALGORITHM {
         id: id_shake256_len(), /* OBJECT_FIELD_SETTING */
@@ -1768,12 +1636,18 @@ pub mod shake256_len {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = ShakeOutputLen; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_ShakeOutputLen(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_ShakeOutputLen(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_ShakeOutputLen(el)
     }
@@ -1786,14 +1660,17 @@ pub mod shake256_len {
 /// ```
 pub type ShakeOutputLen = INTEGER;
 
+#[inline]
 pub fn _decode_ShakeOutputLen(el: &X690Element) -> ASN1Result<ShakeOutputLen> {
     BER.decode_integer(&el)
 }
 
+#[inline]
 pub fn _encode_ShakeOutputLen(value_: &ShakeOutputLen) -> ASN1Result<X690Element> {
     BER.encode_integer(&value_)
 }
 
+#[inline]
 pub fn _validate_ShakeOutputLen(el: &X690Element) -> ASN1Result<()> {
     BER.validate_integer(&el)
 }
@@ -1808,7 +1685,7 @@ pub fn _validate_ShakeOutputLen(el: &X690Element) -> ASN1Result<()> {
 ///                               sha512 }
 /// ```
 ///
-///
+#[inline]
 pub fn HashAlgorithms() -> Vec<ALGORITHM> {
     Vec::from([sha1Algorithm(), sha224(), sha256(), sha384(), sha512()])
 }
@@ -1821,7 +1698,7 @@ pub fn HashAlgorithms() -> Vec<ALGORITHM> {
 ///   IDENTIFIED BY id-aes128-CBC }
 /// ```
 ///
-///
+#[inline]
 pub fn aes128_CBC() -> ALGORITHM {
     ALGORITHM {
         id: id_aes128_CBC(), /* OBJECT_FIELD_SETTING */
@@ -1832,12 +1709,18 @@ pub mod aes128_CBC {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = AES_InitializationVector; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_AES_InitializationVector(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_AES_InitializationVector(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_AES_InitializationVector(el)
     }
@@ -1851,7 +1734,7 @@ pub mod aes128_CBC {
 ///   IDENTIFIED BY id-aes192-CBC }
 /// ```
 ///
-///
+#[inline]
 pub fn aes192_CBC() -> ALGORITHM {
     ALGORITHM {
         id: id_aes192_CBC(), /* OBJECT_FIELD_SETTING */
@@ -1862,12 +1745,18 @@ pub mod aes192_CBC {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = AES_InitializationVector; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_AES_InitializationVector(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_AES_InitializationVector(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_AES_InitializationVector(el)
     }
@@ -1881,7 +1770,7 @@ pub mod aes192_CBC {
 ///   IDENTIFIED BY id-aes256-CBC }
 /// ```
 ///
-///
+#[inline]
 pub fn aes256_CBC() -> ALGORITHM {
     ALGORITHM {
         id: id_aes256_CBC(), /* OBJECT_FIELD_SETTING */
@@ -1892,12 +1781,18 @@ pub mod aes256_CBC {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = AES_InitializationVector; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_AES_InitializationVector(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_AES_InitializationVector(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_AES_InitializationVector(el)
     }
@@ -1910,16 +1805,19 @@ pub mod aes256_CBC {
 /// ```
 pub type AES_InitializationVector = OCTET_STRING; // OctetStringType
 
+#[inline]
 pub fn _decode_AES_InitializationVector(el: &X690Element) -> ASN1Result<AES_InitializationVector> {
     BER.decode_octet_string(&el)
 }
 
+#[inline]
 pub fn _encode_AES_InitializationVector(
     value_: &AES_InitializationVector,
 ) -> ASN1Result<X690Element> {
     BER.encode_octet_string(&value_)
 }
 
+#[inline]
 pub fn _validate_AES_InitializationVector(el: &X690Element) -> ASN1Result<()> {
     BER.validate_octet_string(&el)
 }
@@ -1932,7 +1830,7 @@ pub fn _validate_AES_InitializationVector(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY rsaEncryption }
 /// ```
 ///
-///
+#[inline]
 pub fn rsaEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: rsaEncryption(), /* OBJECT_FIELD_SETTING */
@@ -1943,12 +1841,18 @@ pub mod rsaEncryptionAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -1962,7 +1866,7 @@ pub mod rsaEncryptionAlgorithm {
 ///   IDENTIFIED BY id-keyExchangeAlgorithm }
 /// ```
 ///
-///
+#[inline]
 pub fn keyExchangeAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: id_keyExchangeAlgorithm(), /* OBJECT_FIELD_SETTING */
@@ -1973,12 +1877,18 @@ pub mod keyExchangeAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = KEA_Parms_Id; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_KEA_Parms_Id(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_KEA_Parms_Id(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_KEA_Parms_Id(el)
     }
@@ -1991,14 +1901,17 @@ pub mod keyExchangeAlgorithm {
 /// ```
 pub type KEA_Parms_Id = OCTET_STRING; // OctetStringType
 
+#[inline]
 pub fn _decode_KEA_Parms_Id(el: &X690Element) -> ASN1Result<KEA_Parms_Id> {
     BER.decode_octet_string(&el)
 }
 
+#[inline]
 pub fn _encode_KEA_Parms_Id(value_: &KEA_Parms_Id) -> ASN1Result<X690Element> {
     BER.encode_octet_string(&value_)
 }
 
+#[inline]
 pub fn _validate_KEA_Parms_Id(el: &X690Element) -> ASN1Result<()> {
     BER.validate_octet_string(&el)
 }
@@ -2011,7 +1924,7 @@ pub fn _validate_KEA_Parms_Id(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY id-dsa }
 /// ```
 ///
-///
+#[inline]
 pub fn dsa() -> ALGORITHM {
     ALGORITHM {
         id: id_dsa(), /* OBJECT_FIELD_SETTING */
@@ -2022,12 +1935,18 @@ pub mod dsa {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = DSS_Parms; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_DSS_Parms(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_DSS_Parms(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_DSS_Parms(el)
     }
@@ -2051,6 +1970,8 @@ pub struct DSS_Parms {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DSS_Parms {
+
+    #[inline]
     pub fn new(p: INTEGER, q: INTEGER, g: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
         DSS_Parms {
             p,
@@ -2062,6 +1983,8 @@ impl DSS_Parms {
 }
 impl TryFrom<&X690Element> for DSS_Parms {
     type Error = ASN1Error;
+
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_DSS_Parms(el)
     }
@@ -2181,7 +2104,7 @@ pub fn _validate_DSS_Parms(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY id-ecPublicKey }
 /// ```
 ///
-///
+#[inline]
 pub fn ecPublicKey() -> ALGORITHM {
     ALGORITHM {
         id: id_ecPublicKey(), /* OBJECT_FIELD_SETTING */
@@ -2192,12 +2115,18 @@ pub mod ecPublicKey {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = X509Curves; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_X509Curves(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_X509Curves(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_X509Curves(el)
     }
@@ -2211,7 +2140,7 @@ pub mod ecPublicKey {
 ///   IDENTIFIED BY id-ecDH }
 /// ```
 ///
-///
+#[inline]
 pub fn ecDH() -> ALGORITHM {
     ALGORITHM {
         id: id_ecDH(), /* OBJECT_FIELD_SETTING */
@@ -2222,12 +2151,18 @@ pub mod ecDH {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = X509Curves; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_X509Curves(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_X509Curves(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_X509Curves(el)
     }
@@ -2241,7 +2176,7 @@ pub mod ecDH {
 ///   IDENTIFIED BY id-ecMQV }
 /// ```
 ///
-///
+#[inline]
 pub fn ecMQV() -> ALGORITHM {
     ALGORITHM {
         id: id_ecMQV(), /* OBJECT_FIELD_SETTING */
@@ -2252,12 +2187,18 @@ pub mod ecMQV {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = X509Curves; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_X509Curves(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_X509Curves(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_X509Curves(el)
     }
@@ -2271,7 +2212,7 @@ pub mod ecMQV {
 ///   IDENTIFIED BY dh-public-number }
 /// ```
 ///
-///
+#[inline]
 pub fn dh_public_numberAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: dh_public_number(), /* OBJECT_FIELD_SETTING */
@@ -2282,12 +2223,18 @@ pub mod dh_public_numberAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = DomainParameters; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_DomainParameters(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_DomainParameters(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_DomainParameters(el)
     }
@@ -2315,6 +2262,8 @@ pub struct DomainParameters {
     pub _unrecognized: Vec<X690Element>,
 }
 impl DomainParameters {
+
+    #[inline]
     pub fn new(
         p: INTEGER,
         g: INTEGER,
@@ -2335,6 +2284,8 @@ impl DomainParameters {
 }
 impl TryFrom<&X690Element> for DomainParameters {
     type Error = ASN1Error;
+
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_DomainParameters(el)
     }
@@ -2498,6 +2449,8 @@ pub struct ValidationParms {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ValidationParms {
+
+    #[inline]
     pub fn new(seed: BIT_STRING, pgenCounter: INTEGER, _unrecognized: Vec<X690Element>) -> Self {
         ValidationParms {
             seed,
@@ -2508,6 +2461,8 @@ impl ValidationParms {
 }
 impl TryFrom<&X690Element> for ValidationParms {
     type Error = ASN1Error;
+
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ValidationParms(el)
     }
@@ -2619,7 +2574,7 @@ pub fn _validate_ValidationParms(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY sha1WithRSAEncryption }
 /// ```
 ///
-///
+#[inline]
 pub fn sha1WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha1WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
@@ -2630,12 +2585,18 @@ pub mod sha1WithRSAEncryptionAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -2649,7 +2610,7 @@ pub mod sha1WithRSAEncryptionAlgorithm {
 ///   IDENTIFIED BY sha224WithRSAEncryption }
 /// ```
 ///
-///
+#[inline]
 pub fn sha224WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha224WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
@@ -2660,12 +2621,18 @@ pub mod sha224WithRSAEncryptionAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -2679,7 +2646,7 @@ pub mod sha224WithRSAEncryptionAlgorithm {
 ///   IDENTIFIED BY sha256WithRSAEncryption }
 /// ```
 ///
-///
+#[inline]
 pub fn sha256WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha256WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
@@ -2690,12 +2657,18 @@ pub mod sha256WithRSAEncryptionAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -2709,7 +2682,7 @@ pub mod sha256WithRSAEncryptionAlgorithm {
 ///   IDENTIFIED BY sha384WithRSAEncryption }
 /// ```
 ///
-///
+#[inline]
 pub fn sha384WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha384WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
@@ -2720,12 +2693,18 @@ pub mod sha384WithRSAEncryptionAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -2739,7 +2718,7 @@ pub mod sha384WithRSAEncryptionAlgorithm {
 ///   IDENTIFIED BY sha512WithRSAEncryption }
 /// ```
 ///
-///
+#[inline]
 pub fn sha512WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: sha512WithRSAEncryption(), /* OBJECT_FIELD_SETTING */
@@ -2750,12 +2729,18 @@ pub mod sha512WithRSAEncryptionAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -2773,7 +2758,7 @@ pub mod sha512WithRSAEncryptionAlgorithm {
 ///   IDENTIFIED BY         id-RSASSA-PSS }
 /// ```
 ///
-///
+#[inline]
 pub fn rSASSA_PSS() -> ALGORITHM {
     ALGORITHM {
         id: id_RSASSA_PSS(), /* OBJECT_FIELD_SETTING */
@@ -2784,12 +2769,18 @@ pub mod rSASSA_PSS {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = rSASSA_PSS_Type; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_rSASSA_PSS_Type(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_rSASSA_PSS_Type(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_rSASSA_PSS_Type(el)
     }
@@ -2802,7 +2793,7 @@ pub mod rSASSA_PSS {
 ///   IDENTIFIED BY id-dsa-with-sha224 }
 /// ```
 ///
-///
+#[inline]
 pub fn dsa_with_sha224() -> ALGORITHM {
     ALGORITHM {
         id: id_dsa_with_sha224(), /* OBJECT_FIELD_SETTING */
@@ -2820,7 +2811,7 @@ pub mod dsa_with_sha224 {
 ///   IDENTIFIED BY id-dsa-with-sha256 }
 /// ```
 ///
-///
+#[inline]
 pub fn dsa_with_sha256() -> ALGORITHM {
     ALGORITHM {
         id: id_dsa_with_sha256(), /* OBJECT_FIELD_SETTING */
@@ -2838,7 +2829,7 @@ pub mod dsa_with_sha256 {
 ///   IDENTIFIED BY ecdsa-with-SHA224 }
 /// ```
 ///
-///
+#[inline]
 pub fn ecdsa_with_SHA224_Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: ecdsa_with_SHA224(), /* OBJECT_FIELD_SETTING */
@@ -2856,7 +2847,7 @@ pub mod ecdsa_with_SHA224_Algorithm {
 ///   IDENTIFIED BY ecdsa-with-SHA256 }
 /// ```
 ///
-///
+#[inline]
 pub fn ecdsa_with_SHA256_Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: ecdsa_with_SHA256(), /* OBJECT_FIELD_SETTING */
@@ -2874,7 +2865,7 @@ pub mod ecdsa_with_SHA256_Algorithm {
 ///   IDENTIFIED BY ecdsa-with-SHA384 }
 /// ```
 ///
-///
+#[inline]
 pub fn ecdsa_with_SHA384_Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: ecdsa_with_SHA384(), /* OBJECT_FIELD_SETTING */
@@ -2892,7 +2883,7 @@ pub mod ecdsa_with_SHA384_Algorithm {
 ///   IDENTIFIED BY ecdsa-with-SHA512 }
 /// ```
 ///
-///
+#[inline]
 pub fn ecdsa_with_SHA512_Algorithm() -> ALGORITHM {
     ALGORITHM {
         id: ecdsa_with_SHA512(), /* OBJECT_FIELD_SETTING */
@@ -2911,7 +2902,7 @@ pub mod ecdsa_with_SHA512_Algorithm {
 ///   IDENTIFIED BY id-hmacWithSHA224 }
 /// ```
 ///
-///
+#[inline]
 pub fn hmacWithSHA224() -> ALGORITHM {
     ALGORITHM {
         id: id_hmacWithSHA224(), /* OBJECT_FIELD_SETTING */
@@ -2922,12 +2913,18 @@ pub mod hmacWithSHA224 {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -2941,7 +2938,7 @@ pub mod hmacWithSHA224 {
 ///   IDENTIFIED BY id-hmacWithSHA256 }
 /// ```
 ///
-///
+#[inline]
 pub fn hmacWithSHA256() -> ALGORITHM {
     ALGORITHM {
         id: id_hmacWithSHA256(), /* OBJECT_FIELD_SETTING */
@@ -2952,12 +2949,18 @@ pub mod hmacWithSHA256 {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -2971,7 +2974,7 @@ pub mod hmacWithSHA256 {
 ///   IDENTIFIED BY id-hmacWithSHA384 }
 /// ```
 ///
-///
+#[inline]
 pub fn hmacWithSHA384() -> ALGORITHM {
     ALGORITHM {
         id: id_hmacWithSHA384(), /* OBJECT_FIELD_SETTING */
@@ -2982,12 +2985,18 @@ pub mod hmacWithSHA384 {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -3001,7 +3010,7 @@ pub mod hmacWithSHA384 {
 ///   IDENTIFIED BY id-hmacWithSHA512 }
 /// ```
 ///
-///
+#[inline]
 pub fn hmacWithSHA512() -> ALGORITHM {
     ALGORITHM {
         id: id_hmacWithSHA512(), /* OBJECT_FIELD_SETTING */
@@ -3012,12 +3021,18 @@ pub mod hmacWithSHA512 {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -3036,6 +3051,8 @@ pub struct rSASSA_PSS_Type {
     pub trailerField: OPTIONAL<INTEGER>,
 }
 impl rSASSA_PSS_Type {
+
+    #[inline]
     pub fn new(
         hashAlgorithm: AlgorithmIdentifier,
         saltLength: OPTIONAL<INTEGER>,
@@ -3047,15 +3064,21 @@ impl rSASSA_PSS_Type {
             trailerField,
         }
     }
+
+    #[inline]
     pub fn _default_value_for_saltLength() -> INTEGER {
         Vec::from([20])
     }
+
+    #[inline]
     pub fn _default_value_for_trailerField() -> INTEGER {
         Vec::from([1])
     }
 }
 impl TryFrom<&X690Element> for rSASSA_PSS_Type {
     type Error = ASN1Error;
+
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_rSASSA_PSS_Type(el)
     }
