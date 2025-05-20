@@ -175,10 +175,9 @@ pub fn SMimeCaps() -> Vec<SMIME_CAPS> {
 ///
 ///
 pub fn id_alg_ESDH() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 5,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -190,10 +189,9 @@ pub fn id_alg_ESDH() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_alg_SSDH() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 10,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 10) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -205,10 +203,9 @@ pub fn id_alg_SSDH() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_alg_CMS3DESwrap() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 6,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 6) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -220,10 +217,9 @@ pub fn id_alg_CMS3DESwrap() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_alg_CMSRC2wrap() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 7,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* alg */ 3, 7) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -235,10 +231,9 @@ pub fn id_alg_CMSRC2wrap() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn des_ede3_cbc() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* encryptionAlgorithm */ 3, 7,
-    ])) // OID_GETTER
+        /* encryptionAlgorithm */ 3, 7) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -250,10 +245,9 @@ pub fn des_ede3_cbc() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn rc2_cbc() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* encryptionAlgorithm */ 3, 2,
-    ])) // OID_GETTER
+        /* encryptionAlgorithm */ 3, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -265,10 +259,9 @@ pub fn rc2_cbc() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn hMAC_SHA1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* dod */ 6,
-        /* internet */ 1, /* security */ 5, /* mechanisms */ 5, 8, 1, 2,
-    ])) // OID_GETTER
+        /* internet */ 1, /* security */ 5, /* mechanisms */ 5, 8, 1, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -280,10 +273,9 @@ pub fn hMAC_SHA1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_PBKDF2() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-5 */ 5, 12,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-5 */ 5, 12) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

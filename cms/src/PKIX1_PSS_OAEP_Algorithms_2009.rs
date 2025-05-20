@@ -240,7 +240,7 @@ pub mod sa_sha224WithRSAEncryption {
 ///
 ///
 pub fn sha224WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([14])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 14) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -289,7 +289,7 @@ pub mod sa_sha256WithRSAEncryption {
 ///
 ///
 pub fn sha256WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 11) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -338,7 +338,7 @@ pub mod sa_sha384WithRSAEncryption {
 ///
 ///
 pub fn sha384WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([12])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 12) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -387,7 +387,7 @@ pub mod sa_sha512WithRSAEncryption {
 ///
 ///
 pub fn sha512WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 13) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -483,10 +483,9 @@ pub mod kta_rsaES_OAEP {
 ///
 ///
 pub fn pkcs_1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, 1,
-    ])) // OID_GETTER
+        /* pkcs */ 1, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -497,7 +496,7 @@ pub fn pkcs_1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_RSAES_OAEP() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 7) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -508,7 +507,7 @@ pub fn id_RSAES_OAEP() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_mgf1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 8) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -519,7 +518,7 @@ pub fn id_mgf1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_pSpecified() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 9) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -530,7 +529,7 @@ pub fn id_pSpecified() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_RSASSA_PSS() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([pkcs_1().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 10) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -542,11 +541,10 @@ pub fn id_RSASSA_PSS() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_sha224() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* joint-iso-itu-t */ 2, /* country */ 16, /* us */ 840,
         /* organization */ 1, /* gov */ 101, /* csor */ 3,
-        /* nistAlgorithms */ 4, /* hashalgs */ 2, 4,
-    ])) // OID_GETTER
+        /* nistAlgorithms */ 4, /* hashalgs */ 2, 4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -590,11 +588,10 @@ pub mod mda_sha224 {
 ///
 ///
 pub fn id_sha256() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* joint-iso-itu-t */ 2, /* country */ 16, /* us */ 840,
         /* organization */ 1, /* gov */ 101, /* csor */ 3,
-        /* nistAlgorithms */ 4, /* hashalgs */ 2, 1,
-    ])) // OID_GETTER
+        /* nistAlgorithms */ 4, /* hashalgs */ 2, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -638,11 +635,10 @@ pub mod mda_sha256 {
 ///
 ///
 pub fn id_sha384() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* joint-iso-itu-t */ 2, /* country */ 16, /* us */ 840,
         /* organization */ 1, /* gov */ 101, /* csor */ 3,
-        /* nistAlgorithms */ 4, /* hashalgs */ 2, 2,
-    ])) // OID_GETTER
+        /* nistAlgorithms */ 4, /* hashalgs */ 2, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -686,11 +682,10 @@ pub mod mda_sha384 {
 ///
 ///
 pub fn id_sha512() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* joint-iso-itu-t */ 2, /* country */ 16, /* us */ 840,
         /* organization */ 1, /* gov */ 101, /* csor */ 3,
-        /* nistAlgorithms */ 4, /* hashalgs */ 2, 3,
-    ])) // OID_GETTER
+        /* nistAlgorithms */ 4, /* hashalgs */ 2, 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

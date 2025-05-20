@@ -1782,7 +1782,7 @@ impl ASN1Codec for BasicEncodingRules {
 
 impl ASN1Codec for CanonicalEncodingRules {
     fn transfer_syntax_oid(&self) -> OBJECT_IDENTIFIER {
-        OBJECT_IDENTIFIER::try_from([2, 1, 2, 0].as_slice()).unwrap()
+        OBJECT_IDENTIFIER::try_from([2u32, 1, 2, 0].as_slice()).unwrap()
     }
 
     fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {
@@ -1792,7 +1792,7 @@ impl ASN1Codec for CanonicalEncodingRules {
 
 impl ASN1Codec for DistinguishedEncodingRules {
     fn transfer_syntax_oid(&self) -> OBJECT_IDENTIFIER {
-        OBJECT_IDENTIFIER::try_from([2, 1, 2, 1].as_slice()).unwrap()
+        OBJECT_IDENTIFIER::try_from([2u32, 1, 2, 1].as_slice()).unwrap()
     }
 
     fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {

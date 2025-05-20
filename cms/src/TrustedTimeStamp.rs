@@ -1598,11 +1598,10 @@ pub fn _validate_ETSTInfo(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_ct_TSTInfo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
         /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* ct */ 1,
-        /* tstInfo */ 4,
-    ])) // OID_GETTER
+        /* tstInfo */ 4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2675,10 +2674,9 @@ pub fn _validate_ExtRenewal(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn tsp_ext_renewal() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014,
-        /* extensions */ 1, /* renewal */ 3,
-    ])) // OID_GETTER
+        /* extensions */ 1, /* renewal */ 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2690,10 +2688,9 @@ pub fn tsp_ext_renewal() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_ext_hash() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014,
-        /* extensions */ 1, /* hash */ 1,
-    ])) // OID_GETTER
+        /* extensions */ 1, /* hash */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2705,10 +2702,9 @@ pub fn tsp_ext_hash() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_ext_meth() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014,
-        /* extensions */ 1, /* meth */ 2,
-    ])) // OID_GETTER
+        /* extensions */ 1, /* meth */ 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2720,10 +2716,9 @@ pub fn tsp_ext_meth() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_itm_ds() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* itm */ 2,
-        /* ds */ 1,
-    ])) // OID_GETTER
+        /* ds */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2735,10 +2730,9 @@ pub fn tsp_itm_ds() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_itm_mac() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* itm */ 2,
-        /* mac */ 2,
-    ])) // OID_GETTER
+        /* mac */ 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2750,10 +2744,9 @@ pub fn tsp_itm_mac() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_req_link() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* lt */ 3,
-        /* link */ 1,
-    ])) // OID_GETTER
+        /* link */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2765,10 +2758,9 @@ pub fn tsp_req_link() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_req_link_ds() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* lt */ 3,
-        /* link-ds */ 2,
-    ])) // OID_GETTER
+        /* link-ds */ 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2780,10 +2772,9 @@ pub fn tsp_req_link_ds() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_signedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 2,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs7 */ 7, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2796,11 +2787,10 @@ pub fn id_signedData() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_ct_authData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
         /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* ct */ 1,
-        /* authData */ 2,
-    ])) // OID_GETTER
+        /* authData */ 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2812,10 +2802,9 @@ pub fn id_ct_authData() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn id_digestedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 5,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs7 */ 7, 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2827,10 +2816,9 @@ pub fn id_digestedData() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_digestedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* lt */ 3,
-        /* digestedData */ 8,
-    ])) // OID_GETTER
+        /* digestedData */ 8) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2842,10 +2830,9 @@ pub fn tsp_digestedData() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_signedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* lt */ 3,
-        /* signedData */ 9,
-    ])) // OID_GETTER
+        /* signedData */ 9) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3892,10 +3879,9 @@ pub fn _validate_ExtName(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn tsp_ext_name() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* lt */ 3,
-        /* name */ 5,
-    ])) // OID_GETTER
+        /* name */ 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3926,10 +3912,9 @@ pub fn _validate_ExtTime(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn tsp_ext_time() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* lt */ 3,
-        /* time */ 6,
-    ])) // OID_GETTER
+        /* time */ 6) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -3985,10 +3970,9 @@ pub fn _validate_ExtPublication(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn tsp_ext_publication() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* standard */ 0, /* time-stamp */ 18014, /* lt */ 3,
-        /* publication */ 7,
-    ])) // OID_GETTER
+        /* publication */ 7) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4219,11 +4203,10 @@ pub fn _validate_PublicationInfo(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_merkle_chain () -> OID {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* tc68 */ 133,
         /* country */ 16, /* x9 */ 840, /* x9Standards */ 9, /* x9-95 */ 95,
-        /* ids */ 1, /* merkle-chain */ 1,
-    ]))
+        /* ids */ 1, /* merkle-chain */ 1)
 }
 
 /// ### ASN.1 Definition:

@@ -76,10 +76,9 @@ pub mod aa_signerInfo {
 ///
 ///
 pub fn id_signerInfo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* signerInfo */ 0,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* signerInfo */ 0) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -132,10 +131,9 @@ pub mod aa_signerInfos {
 ///
 ///
 pub fn id_signerInfos() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* signerInfos */ 1,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* signerInfos */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -207,10 +205,9 @@ pub fn _validate_URI(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_contentLocation() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* contentLocation */ 2,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* contentLocation */ 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -305,10 +302,9 @@ pub fn _validate_URIs(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_contentLocations() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* contentLocations */ 3,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* contentLocations */ 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -681,10 +677,9 @@ pub fn _validate_DBRecord(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_precedingBlock() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* precedingBlock */ 4,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* precedingBlock */ 4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -913,10 +908,9 @@ pub fn _validate_TimeStamp(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_timeStamped() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* timeStamped */ 5,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* timeStamped */ 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1030,10 +1024,9 @@ pub fn _validate_Sidechain(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_sidechains() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* sidechains */ 6,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* sidechains */ 6) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1105,10 +1098,9 @@ pub fn _validate_ParentBlock(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_parentBlock() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         itu_t, /* recommendation */ 0, /* x */ 24, /* cms-profile */ 894,
-        /* attribute */ 2, /* parentBlock */ 7,
-    ])) // OID_GETTER
+        /* attribute */ 2, /* parentBlock */ 7) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

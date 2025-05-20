@@ -35,11 +35,10 @@ use x690::*;
 ///
 ///
 pub fn transientKeySignedTST() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* tc68 */ 133,
         /* country */ 16, /* x9 */ 840, /* x9Standards */ 9, /* x9-95 */ 95,
-        /* module */ 0, /* tk */ 2, /* contentType */ 1,
-    ])) // OID_GETTER
+        /* module */ 0, /* tk */ 2, /* contentType */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -52,11 +51,10 @@ pub fn transientKeySignedTST() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn tsp_req_tk() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* tc68 */ 133,
         /* country */ 16, /* x9 */ 840, /* x9Standards */ 9, /* x9-95 */ 95,
-        /* module */ 0, /* tk */ 2, /* method */ 2,
-    ])) // OID_GETTER
+        /* module */ 0, /* tk */ 2, /* method */ 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
