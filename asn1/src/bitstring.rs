@@ -1,3 +1,4 @@
+use smallvec::{SmallVec, smallvec};
 use crate::{types::{X690KnownSize, BIT_STRING}};
 use std::{convert::TryInto, fmt::{Display, Write}};
 use crate::utils::unlikely;
@@ -20,6 +21,9 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     let mut ret: BIT_STRING = BIT_STRING::with_capacity(needed_capacity << 3);
     // The first BIT STRING can be mem-copied in directly, since it always
     // starts off 0-aligned.
+    #[cfg(feature = "smallvec")]
+    ret.bytes.extend_from_slice(&strs[0].bytes);
+    #[cfg(not(feature = "smallvec"))]
     ret.bytes.extend(&strs[0].bytes);
 
     // let bit_debt: usize = strs[0].trailing_bits as usize;
@@ -31,6 +35,9 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
         }
         if (bit_index % 8) == 0 {
             // We are octet-aligned, so we can just do a byte-for-byte copy.
+            #[cfg(feature = "smallvec")]
+            ret.bytes.extend_from_slice(&bs.bytes);
+            #[cfg(not(feature = "smallvec"))]
             ret.bytes.extend(&bs.bytes);
             bit_index += (bs.bytes.len() << 3) - bs.trailing_bits as usize;
         } else {
@@ -94,10 +101,16 @@ impl BIT_STRING {
 
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
-        BIT_STRING {
+        #[cfg(feature = "smallvec")]
+        return BIT_STRING {
+            bytes: SmallVec::with_capacity((bits >> 3) + 1),
+            trailing_bits: 0,
+        };
+        #[cfg(not(feature = "smallvec"))]
+        return BIT_STRING {
             bytes: Vec::with_capacity((bits >> 3) + 1),
             trailing_bits: 0,
-        }
+        };
     }
 
     pub fn get(&self, index: usize) -> Option<bool> {
@@ -162,10 +175,15 @@ impl BIT_STRING {
                 bit_size = *bit;
             }
         }
-        let bytes: Vec<u8> = Vec::with_capacity(std::mem::size_of::<usize>());
         let trailing_bits = (7 - (bit_size % 8)) as u8;
+        #[cfg(feature = "smallvec")]
         let mut bs = BIT_STRING {
-            bytes,
+            bytes: SmallVec::with_capacity(std::mem::size_of::<usize>()),
+            trailing_bits,
+        };
+        #[cfg(not(feature = "smallvec"))]
+        let mut bs = BIT_STRING {
+            bytes: Vec::with_capacity(std::mem::size_of::<usize>()),
             trailing_bits,
         };
         for bit in bits_to_set.iter() {
@@ -177,6 +195,12 @@ impl BIT_STRING {
 
     pub fn from_bin(bitstr: &str) -> BIT_STRING {
         if unlikely(bitstr.len() == 0) {
+            #[cfg(feature = "smallvec")]
+            return BIT_STRING {
+                bytes: smallvec![],
+                trailing_bits: 0,
+            };
+            #[cfg(not(feature = "smallvec"))]
             return BIT_STRING {
                 bytes: vec![],
                 trailing_bits: 0,
@@ -184,11 +208,18 @@ impl BIT_STRING {
         }
         let bit_size = bitstr.len();
         let bytes_len = (bitstr.len() >> 3) + if (bitstr.len() % 8) > 0 { 1 } else { 0 };
-        let bytes: Vec<u8> = vec![0; bytes_len];
+
+        #[cfg(feature = "smallvec")]
         let mut bs = BIT_STRING {
-            bytes,
+            bytes: smallvec![0; bytes_len],
             trailing_bits: 0,
         };
+        #[cfg(not(feature = "smallvec"))]
+        let mut bs = BIT_STRING {
+            bytes: vec![0; bytes_len],
+            trailing_bits: 0,
+        };
+
         for (i, c) in bitstr.chars().enumerate() {
             if c == '1' {
                 bs.set(i, true);
@@ -204,11 +235,17 @@ impl BIT_STRING {
     pub fn from_bits(bits: &[u8]) -> BIT_STRING {
         let bit_size = bits.len();
         let byte_size = (bits.len() >> 3) + if (bit_size % 8) > 0 { 1 } else { 0 };
-        let bytes: Vec<u8> = vec![0; byte_size];
+        #[cfg(feature = "smallvec")]
         let mut bs = BIT_STRING {
-            bytes,
+            bytes: SmallVec::with_capacity(byte_size),
             trailing_bits: 0,
         };
+        #[cfg(not(feature = "smallvec"))]
+        let mut bs = BIT_STRING {
+            bytes: vec![0; byte_size],
+            trailing_bits: 0,
+        };
+
         for (i, bit) in bits.iter().enumerate() {
             bs.set(i, *bit > 0);
         }
@@ -221,7 +258,10 @@ impl BIT_STRING {
 
     #[inline]
     pub fn from_bytes(bytes: Vec<u8>) -> BIT_STRING {
-        BIT_STRING { bytes, trailing_bits: 0 }
+        #[cfg(feature = "smallvec")]
+        return BIT_STRING { bytes: bytes.into(), trailing_bits: 0 };
+        #[cfg(not(feature = "smallvec"))]
+        return BIT_STRING { bytes, trailing_bits: 0 };
     }
 
 }
@@ -240,7 +280,6 @@ impl PartialEq for BIT_STRING {
         if self.trailing_bits != other.trailing_bits {
             return false;
         }
-        // TODO: I can't seem to find a SIMD-accelerated compare
         if self.bytes == other.bytes {
             return true;
         }
@@ -261,29 +300,47 @@ impl PartialEq for BIT_STRING {
 impl From<&[u8]> for BIT_STRING {
     #[inline]
     fn from(other: &[u8]) -> Self {
-        BIT_STRING {
-            bytes: Vec::from(other),
+        #[cfg(feature = "smallvec")]
+        return BIT_STRING {
+            bytes: SmallVec::from_slice(other),
             trailing_bits: 0,
-        }
+        };
+        #[cfg(not(feature = "smallvec"))]
+        return BIT_STRING {
+            bytes: other.to_owned(),
+            trailing_bits: 0,
+        };
     }
 }
 
 impl From<Vec<u8>> for BIT_STRING {
     fn from(other: Vec<u8>) -> Self {
-        BIT_STRING {
+        #[cfg(feature = "smallvec")]
+        return BIT_STRING {
+            bytes: other.into(),
+            trailing_bits: 0,
+        };
+        #[cfg(not(feature = "smallvec"))]
+        return BIT_STRING {
             bytes: other,
             trailing_bits: 0,
-        }
+        };
     }
 }
 
 impl Default for BIT_STRING {
     #[inline]
     fn default() -> Self {
-        BIT_STRING {
+        #[cfg(feature = "smallvec")]
+        return BIT_STRING {
+            bytes: smallvec![],
+            trailing_bits: 0,
+        };
+        #[cfg(not(feature = "smallvec"))]
+        return BIT_STRING {
             bytes: vec![],
             trailing_bits: 0,
-        }
+        };
     }
 }
 
@@ -358,6 +415,8 @@ macro_rules! bits {
 #[cfg(test)]
 mod tests {
 
+    #[cfg(feature = "smallvec")]
+    use smallvec::smallvec;
     use std::usize;
 
     use crate::{bitstring::join_bit_strings, types::BIT_STRING};
@@ -380,10 +439,16 @@ mod tests {
     fn test_bit_string_compare_3() {
         // These only differ by trailing bits
         let bs1 = BIT_STRING{
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1111_0000, 0b1010_0111],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1111_0000, 0b1010_0111],
             trailing_bits: 3,
         };
         let bs2 = BIT_STRING{
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1111_0000, 0b1010_0101],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1111_0000, 0b1010_0101],
             trailing_bits: 3,
         };
@@ -403,6 +468,9 @@ mod tests {
     #[test]
     fn test_bit_string_set_2() {
         let mut bs = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b0100_0000],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b0100_0000],
             trailing_bits: 5,
         };
@@ -415,6 +483,9 @@ mod tests {
     #[test]
     fn test_bit_string_set_3() {
         let mut bs = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b0100_0001],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b0100_0001],
             trailing_bits: 0,
         };
@@ -437,6 +508,9 @@ mod tests {
     #[test]
     fn test_join_bit_strings_2() {
         let bs1 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 0,
         };
@@ -449,10 +523,16 @@ mod tests {
     #[test]
     fn test_join_bit_strings_3() {
         let bs1 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs2 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
@@ -467,14 +547,23 @@ mod tests {
     #[test]
     fn test_join_bit_strings_4() {
         let bs1 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs2 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs3 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
@@ -495,14 +584,23 @@ mod tests {
     #[test]
     fn test_join_bit_strings_5() {
         let bs1 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0111],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0111],
             trailing_bits: 2,
         };
         let bs2 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
         let bs3 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 1,
         };
@@ -523,14 +621,23 @@ mod tests {
     #[test]
     fn test_join_bit_strings_6() {
         let bs1 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0111],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0111],
             trailing_bits: 5,
         };
         let bs2 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 5,
         };
         let bs3 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0110],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0110],
             trailing_bits: 2,
         };
@@ -549,6 +656,9 @@ mod tests {
     #[test]
     fn test_bit_string_display() {
         let bs1 = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b1010_0101, 0b1111_0111],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b1010_0101, 0b1111_0111],
             trailing_bits: 5,
         };
@@ -564,6 +674,9 @@ mod tests {
     #[test]
     fn test_bit_string_get() {
         let bs = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b0100_0000],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b0100_0000],
             trailing_bits: 5,
         };
@@ -577,6 +690,9 @@ mod tests {
     #[test]
     fn test_bit_string_get_malformed_1() {
         let bs = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b0100_0000],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b0100_0000],
             trailing_bits: 65,
         };
@@ -587,6 +703,9 @@ mod tests {
     #[test]
     fn test_bit_string_get_malformed_2() {
         let bs = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![],
             trailing_bits: 3,
         };
@@ -597,6 +716,9 @@ mod tests {
     #[test]
     fn test_bit_string_len() {
         let bs = BIT_STRING {
+            #[cfg(feature = "smallvec")]
+            bytes: smallvec![0b0101_0000],
+            #[cfg(not(feature = "smallvec"))]
             bytes: vec![0b0101_0000],
             trailing_bits: 3,
         };
