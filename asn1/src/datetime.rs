@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use crate::types::ISO8601Timestampable;
+use crate::types::{ISO8601Timestampable, X690KnownSize};
 use crate::utils::unlikely;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -68,6 +68,14 @@ impl DATE_TIME {
         let date = DATE::try_from_num_str(&s[0..8])?;
         let time = crate::TIME_OF_DAY::try_from_num_str(&s[8..])?;
         return Ok(DATE_TIME { date, time });
+    }
+
+}
+
+impl X690KnownSize for DATE_TIME {
+
+    fn x690_size (&self) -> usize {
+        14
     }
 
 }

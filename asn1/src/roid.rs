@@ -1,4 +1,5 @@
 use crate::{RELATIVE_OID, RelOidArcs};
+use crate::types::X690KnownSize;
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::utils::{write_oid_arc, unlikely};
 use std::{fmt::Display, str::FromStr};
@@ -430,6 +431,14 @@ impl Display for RELATIVE_OID {
                 .as_str(),
         )
     }
+}
+
+impl X690KnownSize for RELATIVE_OID {
+
+    fn x690_size (&self) -> usize {
+        self.0.len()
+    }
+
 }
 
 impl std::iter::FusedIterator for RelOidArcs<'_> {}

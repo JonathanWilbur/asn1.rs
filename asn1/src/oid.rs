@@ -70,7 +70,7 @@ impl OBJECT_IDENTIFIER {
     }
 
     #[inline]
-    pub fn from_x690_encoding_slice_unchecked (enc: &[u8]) -> Self {
+    pub unsafe fn from_x690_encoding_slice_unchecked (enc: &[u8]) -> Self {
         #[cfg(feature = "smallvec")]
         {
             OBJECT_IDENTIFIER(enc.into())
@@ -82,7 +82,7 @@ impl OBJECT_IDENTIFIER {
     }
 
     #[inline]
-    pub fn from_x690_encoding_unchecked (enc: Vec<u8>) -> Self {
+    pub unsafe fn from_x690_encoding_unchecked (enc: Vec<u8>) -> Self {
         #[cfg(feature = "smallvec")]
         {
             OBJECT_IDENTIFIER(enc.into())
@@ -95,15 +95,16 @@ impl OBJECT_IDENTIFIER {
 
     pub fn from_x690_encoding_slice (enc: &[u8]) -> ASN1Result<Self> {
         OBJECT_IDENTIFIER::validate_x690_encoding(enc)?;
-        Ok(OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked(enc))
+        unsafe { Ok(OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked(enc)) }
     }
 
     pub fn from_x690_encoding (enc: Vec<u8>) -> ASN1Result<Self> {
         OBJECT_IDENTIFIER::validate_x690_encoding(enc.as_slice())?;
-        Ok(OBJECT_IDENTIFIER::from_x690_encoding_unchecked(enc))
+        unsafe { Ok(OBJECT_IDENTIFIER::from_x690_encoding_unchecked(enc)) }
     }
 
-    pub fn from_prefix_and_arc (prefix: OBJECT_IDENTIFIER, arc: OID_ARC) -> ASN1Result<Self> {
+    // TODO: Maybe you should just rename this to push to make it clear.
+    pub fn from_prefix_and_arc (mut prefix: OBJECT_IDENTIFIER, arc: OID_ARC) -> ASN1Result<Self> {
         if unlikely(prefix.len() == 0) {
             return OBJECT_IDENTIFIER::try_from([ arc ].as_slice());
         }
@@ -120,30 +121,20 @@ impl OBJECT_IDENTIFIER {
             }
             #[cfg(not(feature = "smallvec"))]
             {
-                let mut inner: Vec<u8> = vec![];
+                let mut inner: Vec<u8> = Vec::with_capacity(16); // Just guess that we'll use more bytes.
                 write_oid_arc(&mut inner, first_component as u128)?;
                 return OBJECT_IDENTIFIER(inner)
             }
         }
-        #[cfg(feature = "smallvec")]
-        {
-            let mut inner: SmallVec<[u8; 16]> = smallvec![];
-            inner.write(prefix.0.as_slice())?;
-            write_oid_arc(&mut inner, arc as u128)?;
-            Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner))
-        }
-        #[cfg(not(feature = "smallvec"))]
-        {
-            let mut inner: Vec<u8> = vec![];
-            inner.write(prefix.0.as_slice())?;
-            write_oid_arc(&mut inner, arc as u128)?;
-            Ok(OBJECT_IDENTIFIER(inner))
-        }
+        write_oid_arc(&mut prefix.0, arc as u128)?;
+        Ok(prefix)
     }
 
-    pub fn from_prefix_and_suffix (prefix: OBJECT_IDENTIFIER, suffix: &[u32]) -> ASN1Result<Self> {
+    // TODO: Change to just modify the underlying OID
+    // TODO: Rename to extend from slice and make it use self
+    pub fn from_prefix_and_suffix (mut prefix: OBJECT_IDENTIFIER, suffix: &[u32]) -> ASN1Result<Self> {
         if unlikely(suffix.len() == 0) {
-            return Ok(prefix.clone());
+            return Ok(prefix);
         }
         if unlikely(prefix.len() == 0) {
             return OBJECT_IDENTIFIER::try_from(suffix);
@@ -163,28 +154,18 @@ impl OBJECT_IDENTIFIER {
             }
             #[cfg(not(feature = "smallvec"))]
             {
-                let mut inner: Vec<u8> = vec![];
+                let mut inner: Vec<u8> = Vec::with_capacity(16); // TODO: Ensure vec always uses capacity
                 write_oid_arc(&mut inner, first_component as u128)?;
                 inner.write(roid.0.as_slice())?;
                 return OBJECT_IDENTIFIER(inner)
             }
         }
         let roid = RELATIVE_OID::try_from(suffix)?;
-        #[cfg(feature = "smallvec")]
-        {
-            let mut inner = SmallVec::with_capacity(prefix.0.len() + roid.0.len());
-            inner.write(prefix.0.as_slice())?;
-            inner.write(roid.0.as_slice())?;
-            Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner))
-        }
-        #[cfg(not(feature = "smallvec"))]
-        {
-            let mut inner = Vec::with_capacity(prefix.0.len() + roid.0.len());
-            inner.write(prefix.0.as_slice())?;
-            inner.write(roid.0.as_slice())?;
-            Ok(OBJECT_IDENTIFIER(inner))
-        }
+        prefix.0.write(roid.0.as_slice())?;
+        Ok(prefix)
     }
+
+    // TODO: from prefix and roid
 
     /// Returns the number of arcs in this OID
     #[inline]

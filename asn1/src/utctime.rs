@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, X690KnownSize};
 use crate::utils::{get_days_in_month, unlikely};
 use crate::utils::macros::parse_uint;
 use std::fmt::{Display, Write};
@@ -230,6 +230,18 @@ impl FromStr for UTCTime {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         UTCTime::try_from(s.as_bytes())
     }
+}
+
+impl X690KnownSize for UTCTime {
+
+    fn x690_size (&self) -> usize {
+        if self.utc_offset.is_zero() {
+            15 // 8 for date, 6 for time, 1 for "Z"
+        } else {
+            19 // 8 for date, 6 for time, 5 for "+HHMM" offset
+        }
+    }
+
 }
 
 impl Display for UTCTime {

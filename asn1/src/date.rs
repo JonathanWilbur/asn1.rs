@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME};
+use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, X690KnownSize};
 use crate::utils::{get_days_in_month, unlikely};
 use crate::ASN1Result;
 use std::fmt::Display;
@@ -92,6 +92,14 @@ impl Default for DATE {
             day: 1,
         }
     }
+}
+
+impl X690KnownSize for DATE {
+
+    fn x690_size (&self) -> usize {
+        8
+    }
+
 }
 
 impl From<GeneralizedTime> for DATE {

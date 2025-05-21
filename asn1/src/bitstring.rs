@@ -1,4 +1,4 @@
-use crate::types::{BIT_STRING, X690KnownSize};
+use crate::{types::{X690KnownSize, BIT_STRING}};
 use std::{convert::TryInto, fmt::{Display, Write}};
 use crate::utils::unlikely;
 use std::hash::{Hash, Hasher};
@@ -229,7 +229,7 @@ impl BIT_STRING {
 impl X690KnownSize for BIT_STRING {
 
     fn x690_size (&self) -> usize {
-        self.bytes.len()
+        self.bytes.len() + 1
     }
 
 }

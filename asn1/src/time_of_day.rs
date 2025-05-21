@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY};
+use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY, X690KnownSize};
 use crate::utils::unlikely;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -169,6 +169,14 @@ impl FromStr for TIME_OF_DAY {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         TIME_OF_DAY::try_from(s.as_bytes())
     }
+}
+
+impl X690KnownSize for TIME_OF_DAY {
+
+    fn x690_size (&self) -> usize {
+        6
+    }
+
 }
 
 impl Display for TIME_OF_DAY {
