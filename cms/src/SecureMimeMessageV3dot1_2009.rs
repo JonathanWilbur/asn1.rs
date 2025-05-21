@@ -180,9 +180,9 @@ pub mod aa_encrypKeyPref {
 /// id-aa-encrypKeyPref OBJECT IDENTIFIER ::= {id-aa 11}
 /// ```
 ///
-///
-pub fn id_aa_encrypKeyPref() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(id_aa(), 11) // OID_GETTER
+#[inline]
+pub fn id_aa_encrypKeyPref () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 9, 16, 2, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -319,8 +319,9 @@ pub fn id_smime() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_cap() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(id_smime(), 11) // OID_GETTER
+#[inline]
+pub fn id_cap () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 9, 16, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -349,8 +350,9 @@ pub mod cap_preferBinaryInside {
 /// ```
 ///
 ///
-pub fn id_cap_preferBinaryInside() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(id_cap(), 1) // OID_GETTER
+#[inline]
+pub fn id_cap_preferBinaryInside () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 9, 16, 11, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

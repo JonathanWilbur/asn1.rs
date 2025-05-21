@@ -238,9 +238,9 @@ pub mod sa_sha224WithRSAEncryption {
 /// sha224WithRSAEncryption  OBJECT IDENTIFIER ::= { pkcs-1 14 }
 /// ```
 ///
-///
-pub fn sha224WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 14) // OID_GETTER
+#[inline]
+pub fn sha224WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 14).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -287,9 +287,9 @@ pub mod sa_sha256WithRSAEncryption {
 /// sha256WithRSAEncryption  OBJECT IDENTIFIER ::= { pkcs-1 11 }
 /// ```
 ///
-///
-pub fn sha256WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 11) // OID_GETTER
+#[inline]
+pub fn sha256WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 11).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -336,9 +336,9 @@ pub mod sa_sha384WithRSAEncryption {
 /// sha384WithRSAEncryption  OBJECT IDENTIFIER ::= { pkcs-1 12 }
 /// ```
 ///
-///
-pub fn sha384WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 12) // OID_GETTER
+#[inline]
+pub fn sha384WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 12).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -385,9 +385,9 @@ pub mod sa_sha512WithRSAEncryption {
 /// sha512WithRSAEncryption  OBJECT IDENTIFIER ::= { pkcs-1 13 }
 /// ```
 ///
-///
-pub fn sha512WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 13) // OID_GETTER
+#[inline]
+pub fn sha512WithRSAEncryption () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 13).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -482,10 +482,9 @@ pub mod kta_rsaES_OAEP {
 /// ```
 ///
 ///
-pub fn pkcs_1() -> OBJECT_IDENTIFIER {
-    oid!(
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, 1) // OID_GETTER
+#[inline]
+pub fn pkcs_1 () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549,/* pkcs */ 1,1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -495,8 +494,9 @@ pub fn pkcs_1() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_RSAES_OAEP() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 7) // OID_GETTER
+#[inline]
+pub fn id_RSAES_OAEP () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, 7 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -506,8 +506,9 @@ pub fn id_RSAES_OAEP() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_mgf1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 8) // OID_GETTER
+#[inline]
+pub fn id_mgf1 () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, 8 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -517,8 +518,9 @@ pub fn id_mgf1() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_pSpecified() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 9) // OID_GETTER
+#[inline]
+pub fn id_pSpecified () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, 9 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -528,8 +530,9 @@ pub fn id_pSpecified() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_RSASSA_PSS() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER::from_prefix_and_arc(pkcs_1(), 10) // OID_GETTER
+#[inline]
+pub fn id_RSASSA_PSS () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 1, 10 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -540,11 +543,9 @@ pub fn id_RSASSA_PSS() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_sha224() -> OBJECT_IDENTIFIER {
-    oid!(
-        /* joint-iso-itu-t */ 2, /* country */ 16, /* us */ 840,
-        /* organization */ 1, /* gov */ 101, /* csor */ 3,
-        /* nistAlgorithms */ 4, /* hashalgs */ 2, 4) // OID_GETTER
+#[inline]
+pub fn id_sha224 () -> OBJECT_IDENTIFIER {
+	oid!(/* joint-iso-itu-t */ 2,/* country */ 16,/* us */ 840,/* organization */ 1,/* gov */ 101,/* csor */ 3,/* nistAlgorithms */ 4,/* hashalgs */ 2,4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
