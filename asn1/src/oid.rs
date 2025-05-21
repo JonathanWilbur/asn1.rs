@@ -1,6 +1,6 @@
 use smallvec::{SmallVec, smallvec};
 
-use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, OID_ARC, RELATIVE_OID};
+use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, X690Validate, OID_ARC, RELATIVE_OID};
 use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, io::Write as IoWrite, str::FromStr, u32};
 
 impl OBJECT_IDENTIFIER {
@@ -743,6 +743,27 @@ impl X690KnownSize for OBJECT_IDENTIFIER {
 
     fn x690_size (&self) -> usize {
         self.0.len() // The inner value is just DER-encoded
+    }
+
+}
+
+impl X690Validate for OBJECT_IDENTIFIER {
+
+    fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
+        if content_octets.len() == 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
+        if content_octets.len() > 1 && content_octets[content_octets.len() - 1] >= 0b1000_0000 {
+            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+        }
+        let mut previous_byte_was_end_of_arc: bool = true;
+        for byte in content_octets {
+            if previous_byte_was_end_of_arc && *byte == 0b1000_0000 {
+                return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
+            }
+            previous_byte_was_end_of_arc = *byte < 0b1000_0000;
+        }
+        Ok(())
     }
 
 }

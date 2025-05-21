@@ -568,6 +568,15 @@ pub trait ISO8601Timestampable {
 
 }
 
+/// Trait for a type whose X.690 content octets can be validated in such a way
+/// that holds true for all of:
+///
+/// - The Basic Encoding Rules (BER)
+/// - The Distinguished Encoding Rules (DER)
+/// - The Canonical Encoding Rules (CER)
+///
+/// These functions are often useful for other codecs, such as the Packed
+/// Encoding Rules (PER) or the Octet Encoding Rules (OER).
 pub trait X690Validate {
 
     fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()>;

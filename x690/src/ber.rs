@@ -1,10 +1,5 @@
 use asn1::{
-    ASN1Result,
-    ASN1Error,
-    ASN1ErrorCode,
-    Tag,
-    TagNumber,
-    join_bit_strings,
+    join_bit_strings, ASN1Error, ASN1ErrorCode, ASN1Result, Tag, TagNumber, X690Validate, DATE, OBJECT_IDENTIFIER, RELATIVE_OID, TIME_OF_DAY
 };
 use crate::codec::{BasicEncodingRules, X690Codec};
 use std::io::{Write, Result};
@@ -1137,6 +1132,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn validate_boolean_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() != 1 {
             return Err(ASN1Error::new(ASN1ErrorCode::x690_boolean_not_one_byte));
@@ -1171,36 +1167,26 @@ impl X690Codec for BasicEncodingRules {
         return Ok(());
     }
 
+    #[inline]
     fn validate_octet_string_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
         Ok(())
     }
 
+    #[inline]
     fn validate_null_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() == 1 {
+        if content_octets.len() == 0 {
             Ok(())
         } else {
             Err(ASN1Error::new(ASN1ErrorCode::malformed_value))
         }
     }
 
-    // TODO: Moved into asn1/oid.rs. Just make this wrap that.
+    #[inline]
     fn validate_object_identifier_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() == 0 {
-            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
-        }
-        if content_octets.len() > 1 && content_octets[content_octets.len() - 1] >= 0b1000_0000 {
-            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
-        }
-        let mut previous_byte_was_end_of_arc: bool = true;
-        for byte in content_octets {
-            if previous_byte_was_end_of_arc && *byte == 0b1000_0000 {
-                return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
-            }
-            previous_byte_was_end_of_arc = *byte < 0b1000_0000;
-        }
-        Ok(())
+        OBJECT_IDENTIFIER::validate_x690_encoding(content_octets)
     }
 
+    #[inline]
     fn validate_object_descriptor_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         self.validate_graphic_string_value(content_octets)
     }
@@ -1347,6 +1333,7 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
+    #[inline]
     fn validate_enumerated_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         self.validate_integer_value(content_octets)
     }
@@ -1357,15 +1344,9 @@ impl X690Codec for BasicEncodingRules {
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8))
     }
 
+    #[inline]
     fn validate_relative_object_identifier_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let mut previous_byte_was_end_of_arc: bool = true;
-        for byte in content_octets {
-            if previous_byte_was_end_of_arc && *byte == 0b1000_0000 {
-                return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
-            }
-            previous_byte_was_end_of_arc = *byte < 0b1000_0000;
-        }
-        Ok(())
+        RELATIVE_OID::validate_x690_encoding(content_octets)
     }
 
     fn validate_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
@@ -1776,89 +1757,25 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    // FIXME: This is wrong.
+    #[inline]
     fn validate_date_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() != 10 { // YYYY-MM-DD
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        if
-            content_octets[4] != b'-'
-            || content_octets[6] != b'-'
-            || !content_octets[0..4].iter().all(|b| b.is_ascii_digit())
-            || !content_octets[5..7].iter().all(|b| b.is_ascii_digit())
-            || !content_octets[8..].iter().all(|b| b.is_ascii_digit())
-        {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
-        let year = u16::from_str(&s[0..4])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
-        let month = u8::from_str(&s[5..7])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
-        let day = u8::from_str(&s[8..])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
-        if month > 12 || month == 0 {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
-        }
-        let max_day = match month {
-            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-            // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
-            2 => if year % 4 > 0 { 28 } else { 29 },
-            _ => 30,
-        };
-        if day == 0 || day > max_day {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
-        }
-        // TODO: Do you need to do any validation with a BOM?
-        Ok(())
+        DATE::validate_x690_encoding(content_octets)
     }
 
-    // FIXME: This is wrong.
+    #[inline]
     fn validate_time_of_day_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() != 8 { // HH:MM:SS
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        if
-            content_octets[2] != b':'
-            || content_octets[5] != b':'
-            || !content_octets[0..2].iter().all(|b| b.is_ascii_digit())
-            || !content_octets[3..5].iter().all(|b| b.is_ascii_digit())
-            || !content_octets[6..].iter().all(|b| b.is_ascii_digit())
-        {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
-        let hour = u8::from_str(&s[0..2])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
-        let minute = u8::from_str(&s[3..5])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
-        let second = u8::from_str(&s[6..])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
-        if hour > 23 {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
-        }
-        if minute > 59 {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
-        }
-        if second > 59 {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-        }
-        Ok(())
+        TIME_OF_DAY::validate_x690_encoding(content_octets)
     }
 
-    // FIXME: This is wrong.
+    #[inline]
     fn validate_date_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() != 19 { // 1951-10-14T15:30:00
+        if content_octets.len() != 14 { // 19511014153000 (X.690 strips the hyphens, colon and "T")
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        if content_octets[10] != b'T' {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        self.validate_date_value(&content_octets[0..10])?;
-        self.validate_time_of_day_value(&content_octets[11..])
+        self.validate_date_value(&content_octets[0..8])?;
+        self.validate_time_of_day_value(&content_octets[8..])
     }
 
-    // TODO: Move to asn1
     // Before some tweaking, this was produced by ChatGPT.
     fn validate_duration_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         let mut idx = 0;

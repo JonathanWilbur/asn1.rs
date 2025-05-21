@@ -278,10 +278,12 @@ somewhat battle-tested.
 - [x] `RELATIVE_OID::concat()`
 - [x] Fix issues caused by OID refactor
 - [x] Implement `X690KnownSize` for many types
+  - [ ] You need to consider DER and CER, which might mean some implementations are wrong
+- [ ] `X690KnownSize` for context-switching types
+- [ ] `X690Validate` for context-switching types
 - [ ] Make `BIT_STRING` use smallvec or bytes
 - [ ] Fuzz testing for OIDs and ROIDs
 - [ ] Benchmarking
-- [ ] I think you can replace `% 8` with a bit mask, which would be more performant
 - [ ] `no-std` and other feature flags
 - [ ] `const fn`
   - [ ] This can probaby be used for OID assignments too

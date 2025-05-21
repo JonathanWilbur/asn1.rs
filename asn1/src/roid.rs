@@ -1,4 +1,4 @@
-use crate::{RELATIVE_OID, RelOidArcs};
+use crate::{RelOidArcs, X690Validate, RELATIVE_OID};
 use crate::types::X690KnownSize;
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::utils::{write_oid_arc, unlikely};
@@ -437,6 +437,21 @@ impl X690KnownSize for RELATIVE_OID {
 
     fn x690_size (&self) -> usize {
         self.0.len()
+    }
+
+}
+
+impl X690Validate for RELATIVE_OID {
+
+    fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
+        let mut previous_byte_was_end_of_arc: bool = true;
+        for byte in content_octets {
+            if previous_byte_was_end_of_arc && *byte == 0b1000_0000 {
+                return Err(ASN1Error::new(ASN1ErrorCode::oid_padding));
+            }
+            previous_byte_was_end_of_arc = *byte < 0b1000_0000;
+        }
+        Ok(())
     }
 
 }

@@ -318,18 +318,59 @@ pub const LEX_ASN1_RET_OUTPUT_EMPTY: LexASN1ReturnCode = -5;
 pub const LEX_ASN1_WARN_NOT_MODULE: LexASN1WarningCode = 1;
 pub const LEX_ASN1_WARN_NO_END: LexASN1WarningCode = 1 << 1;
 
+fn chomp_first_char(s: &str) -> Option<(char, &str)> {
+    let mut chars = s.chars();
+    let first = chars.next()?;
+    let rest = chars.as_str(); // Safe: chars.as_str() gives you the remainder
+    Some((first, rest))
+}
+
 fn lex(input: &str, output: &mut [ASN1Lexeme]) -> Result<(), LexASN1ReturnCode> {
     debug_assert!(input.len() > 0);
     debug_assert!(output.len() > 0);
-    /// We are going to mutate this so that the next character is always .get(0).
+    let mut lexeme_type: Option<ASN1LexemeType> = None;
+    // We are going to mutate this so that the next character is always .get(0).
     let mut input = input;
     let mut token_start: usize = 0;
-    // let mut i: usize = 0;
+    let mut token_end: usize = 0;
     let len = input.len();
+    let mut s = input;
+    let output_index: usize = 0;
 
-    for (i, c) in input.chars().enumerate() {
-
+    while s.len() < 0 {
+        let (c, new_s) = match chomp_first_char(s) {
+            None => break,
+            Some(x) => x,
+        };
+        s = new_s;
+        match lexeme_type {
+            None => {
+                match c {
+                    '-' => {
+                        if s.chars().next() == Some('-') {
+                            lexeme_type = Some(ASN1LexemeType::Comment);
+                        } else {
+                            lexeme_type = Some(ASN1LexemeType::Hyphen);
+                            output
+                        }
+                    }
+                };
+                continue;
+            },
+            _ => {
+                unimplemented!()
+            }
+        };
     }
+
+    // for (i, c) in input.chars().enumerate() {
+    //     let at_the_end: bool = i == len - 1;
+    //     match lexeme_type {
+    //         ASN1LexemeType::Empty => {
+
+    //         }
+    //     }
+    // }
 
     Ok(())
 }

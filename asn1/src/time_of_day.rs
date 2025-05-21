@@ -1,6 +1,7 @@
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY, X690KnownSize};
 use crate::utils::unlikely;
+use crate::X690Validate;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -175,6 +176,36 @@ impl X690KnownSize for TIME_OF_DAY {
 
     fn x690_size (&self) -> usize {
         6
+    }
+
+}
+
+impl X690Validate for TIME_OF_DAY {
+
+    fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
+        if content_octets.len() != 6 { // HHMMSS (X.690 strips the colons)
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        if !content_octets.iter().all(|b| b.is_ascii_digit()) {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
+        let hour = u8::from_str(&s[0..2])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+        let minute = u8::from_str(&s[2..4])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+        let second = u8::from_str(&s[4..])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
+        if hour > 23 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
+        }
+        if minute > 59 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
+        }
+        if second > 59 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+        }
+        Ok(())
     }
 
 }

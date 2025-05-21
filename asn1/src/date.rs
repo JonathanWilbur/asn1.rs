@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, X690KnownSize};
+use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, X690KnownSize, X690Validate};
 use crate::utils::{get_days_in_month, unlikely};
 use crate::ASN1Result;
 use std::fmt::Display;
@@ -228,6 +228,39 @@ impl Display for DATE {
             write!(f, "{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day)
         }
     }
+}
+
+impl X690Validate for DATE {
+
+    fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
+        if content_octets.len() != 8 { // YYYYMMDD (X.690 strips the dashes)
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        if !content_octets.iter().all(|b| b.is_ascii_digit()) {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
+        let year = u16::from_str(&s[0..4])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
+        let month = u8::from_str(&s[4..6])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+        let day = u8::from_str(&s[6..])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+        if month > 12 || month == 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
+        }
+        let max_day = match month {
+            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+            // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
+            2 => if year % 4 > 0 { 28 } else { 29 },
+            _ => 30,
+        };
+        if day == 0 || day > max_day {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
+        }
+        Ok(())
+    }
+
 }
 
 #[cfg(test)]

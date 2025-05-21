@@ -1,6 +1,7 @@
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::types::{ISO8601Timestampable, X690KnownSize};
 use crate::utils::unlikely;
+use crate::{X690Validate, TIME};
 use std::fmt::Display;
 use std::str::FromStr;
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, TIME_OF_DAY};
@@ -76,6 +77,18 @@ impl X690KnownSize for DATE_TIME {
 
     fn x690_size (&self) -> usize {
         14
+    }
+
+}
+
+impl X690Validate for DATE_TIME {
+
+    fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
+        if content_octets.len() != 14 { // 19511014153000 (X.690 strips the hyphens, colon and "T")
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        DATE::validate_x690_encoding(&content_octets[0..8])?;
+        TIME_OF_DAY::validate_x690_encoding(&content_octets[8..])
     }
 
 }
