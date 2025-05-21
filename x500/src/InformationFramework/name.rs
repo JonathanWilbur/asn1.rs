@@ -6,12 +6,7 @@ use crate::InformationFramework::{
     RDNSequence, _decode_RDNSequence, _encode_RDNSequence, _validate_RDNSequence,
     AttributeTypeAndValue,
 };
-use crate::SelectedAttributeTypes::{
-    dc,
-    oidC,
-    oidC1,
-    oidC2,
-};
+use crate::SelectedAttributeTypes::{dc, oidC};
 use asn1::*;
 use x690::*;
 use x690::X690Codec;
@@ -134,29 +129,12 @@ impl TryFrom<Name> for RDNSequence {
                 Ok(rdns)
             },
             Name::oid(oid) =>  {
-                if oid.0.len() < 2 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
-                }
-                let mut rdns: RDNSequence = Vec::with_capacity(oid.0.len());
-                rdns.push(vec![
-                    AttributeTypeAndValue::new(
-                        oidC1().id,
-                        BER.encode_u32(oid.0[0]).unwrap(),
-                        vec![],
-                    )
-                ]);
-                rdns.push(vec![
-                    AttributeTypeAndValue::new(
-                        oidC2().id,
-                        BER.encode_u32(oid.0[1]).unwrap(),
-                        vec![],
-                    )
-                ]);
-                for arc in oid.0[2..].iter() {
+                let mut rdns: RDNSequence = Vec::with_capacity(oid.len());
+                for arc in oid.arcs() {
                     rdns.push(vec![
                         AttributeTypeAndValue::new(
                             oidC().id,
-                            BER.encode_u32(*arc).unwrap(),
+                            BER.encode_u128(arc).unwrap(),
                             vec![],
                         )
                     ]);

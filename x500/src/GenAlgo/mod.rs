@@ -31,8 +31,9 @@ use x690::*;
 /// ```
 ///
 ///
-pub fn id_algo_mca() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_mca () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -42,8 +43,9 @@ pub fn id_algo_mca() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_ska() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_ska () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -53,8 +55,9 @@ pub fn id_algo_ska() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_aead() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_aead () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo(), 3).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -64,8 +67,9 @@ pub fn id_algo_aead() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_pka() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_pka () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -75,8 +79,9 @@ pub fn id_algo_pka() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_ha() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_ha () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -86,8 +91,9 @@ pub fn id_algo_ha() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_dsa() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dsa () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo(), 6).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -97,9 +103,11 @@ pub fn id_algo_dsa() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_kea() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_kea () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo(), 7).unwrap() // OID_GETTER
 }
+
 
 /// ### ASN.1 Definition:
 ///
@@ -675,8 +683,9 @@ pub fn _validate_Payload28(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn id_algo_dhModpGr14Hkdf256Algo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dhModpGr14Hkdf256Algo () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44, 7, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -686,8 +695,9 @@ pub fn id_algo_dhModpGr14Hkdf256Algo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_dhModpGr15Hkdf384Algo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dhModpGr15Hkdf384Algo () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44, 7, 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -697,8 +707,9 @@ pub fn id_algo_dhModpGr15Hkdf384Algo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_dhModpGr16Hkdf512Algo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dhModpGr16Hkdf512Algo () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44, 7, 3 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -708,8 +719,9 @@ pub fn id_algo_dhModpGr16Hkdf512Algo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_dhModpGr17Hkdf768Algo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dhModpGr17Hkdf768Algo () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44, 7, 4 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -719,8 +731,9 @@ pub fn id_algo_dhModpGr17Hkdf768Algo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_dhModpGr18Hkdf1024Algo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dhModpGr18Hkdf1024Algo () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44, 7, 5 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -730,8 +743,9 @@ pub fn id_algo_dhModpGr18Hkdf1024Algo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_dhModpGr23Hkdf256Algo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dhModpGr23Hkdf256Algo () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44, 7, 10 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -741,6 +755,7 @@ pub fn id_algo_dhModpGr23Hkdf256Algo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_dhModpGr28Hkdf256Algo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_kea().0, Vec::<u32>::from([15])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_dhModpGr28Hkdf256Algo () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44, 7, 15 ].as_slice()) } // OID_GETTER
 }

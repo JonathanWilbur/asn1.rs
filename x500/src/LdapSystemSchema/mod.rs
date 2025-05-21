@@ -547,8 +547,9 @@ pub fn _validate_LdapSyntaxDescription(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn id_lat_namingContexts() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lat_namingContexts () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lat(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -558,8 +559,9 @@ pub fn id_lat_namingContexts() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lat_altServer() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lat_altServer () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lat(), 6).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -569,8 +571,9 @@ pub fn id_lat_altServer() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lat_supportedExtension() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lat_supportedExtension () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lat(), 7).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -580,8 +583,9 @@ pub fn id_lat_supportedExtension() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lat_supportedControl() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lat_supportedControl () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lat(), 13).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -591,8 +595,9 @@ pub fn id_lat_supportedControl() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lat_supportedSASLMechanisms() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([14])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lat_supportedSASLMechanisms () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lat(), 14).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -602,8 +607,9 @@ pub fn id_lat_supportedSASLMechanisms() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lat_supportedLDAPVersion() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([15])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lat_supportedLDAPVersion () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lat(), 15).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -613,8 +619,9 @@ pub fn id_lat_supportedLDAPVersion() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_ldapSyntaxes() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lat().0, Vec::<u32>::from([16])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_ldapSyntaxes () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lat(), 16).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -624,6 +631,8 @@ pub fn id_soa_ldapSyntaxes() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_oat_supportedFeatures() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oat().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oat_supportedFeatures () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oat(), 5).unwrap() // OID_GETTER
 }
+

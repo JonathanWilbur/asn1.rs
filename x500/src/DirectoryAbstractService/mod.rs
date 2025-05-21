@@ -24699,9 +24699,9 @@ pub fn _validate_UpdateProblem(el: &X690Element) -> ASN1Result<()> {
 /// id-at-family-information OBJECT IDENTIFIER ::= {id-at 64}
 /// ```
 ///
-///
-pub fn id_at_family_information() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([64])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_family_information () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 64).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

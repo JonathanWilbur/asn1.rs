@@ -962,8 +962,8 @@ pub fn parse_value <K: ParseX500AttributeType> (k: &K, attr_type: &AttributeType
         let cst = ber_cst(&bytes).map_err(|_| std::fmt::Error)?;
         return Ok(Some(cst.1));
     }
-    if attr_type.0.len() == 4 && attr_type.0.starts_with(&[ 2, 5, 4 ]) {
-        match attr_type.0[3] {
+    if attr_type.as_x690_slice().len() == 3 && attr_type.as_x690_slice().starts_with(&[ 0x55, 4 ]) {
+        match attr_type.as_x690_slice().last().unwrap() {
             2 // knowledgeInformation
             | 3 // commonName
             | 4 // surname

@@ -2438,8 +2438,9 @@ pub mod subentryACI {
 /// ```
 ///
 ///
-pub fn id_aca_accessControlScheme() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_aca().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aca_accessControlScheme () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_aca(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2449,8 +2450,9 @@ pub fn id_aca_accessControlScheme() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_aca_prescriptiveACI() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_aca().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aca_prescriptiveACI () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_aca(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2460,8 +2462,9 @@ pub fn id_aca_prescriptiveACI() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_aca_entryACI() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_aca().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aca_entryACI () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_aca(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2471,8 +2474,9 @@ pub fn id_aca_entryACI() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_aca_subentryACI() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_aca().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aca_subentryACI () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_aca(), 6).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2482,8 +2486,9 @@ pub fn id_aca_subentryACI() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn basicAccessControlScheme() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_acScheme().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn basicAccessControlScheme () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_acScheme(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2493,8 +2498,9 @@ pub fn basicAccessControlScheme() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn simplifiedAccessControlScheme() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_acScheme().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn simplifiedAccessControlScheme () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_acScheme(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2504,8 +2510,9 @@ pub fn simplifiedAccessControlScheme() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn rule_based_access_control() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_acScheme().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn rule_based_access_control () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_acScheme(), 3).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2515,8 +2522,9 @@ pub fn rule_based_access_control() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn rule_and_basic_access_control() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_acScheme().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn rule_and_basic_access_control () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_acScheme(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2526,8 +2534,9 @@ pub fn rule_and_basic_access_control() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn rule_and_simple_access_control() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_acScheme().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn rule_and_simple_access_control () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_acScheme(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

@@ -416,11 +416,9 @@ pub mod ecPublicKey {
 /// ```
 ///
 ///
-pub fn id_ecPublicKey() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* keyType */ 2, 1,
-    ])) // OID_GETTER
+#[inline]
+pub fn id_ecPublicKey () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* ansi-X9-62 */ 10045,/* keyType */ 2,1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -451,8 +449,9 @@ pub fn _validate_SupportedCurves(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn dummyCurv() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([2, 5, 5])) // OID_GETTER
+#[inline]
+pub fn dummyCurv () -> OBJECT_IDENTIFIER {
+	oid!(2,5,5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1310,13 +1309,9 @@ pub fn _validate_Extension(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn der() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        joint_iso_itu_t,
-        /* asn1 */ 1,
-        /* ber-derived */ 2,
-        /* distinguished-encoding */ 1,
-    ])) // OID_GETTER
+#[inline]
+pub fn der () -> OBJECT_IDENTIFIER {
+	oid!(joint_iso_itu_t,/* asn1 */ 1,/* ber-derived */ 2,/* distinguished-encoding */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4309,8 +4304,9 @@ pub mod x509SupportedAlgorithm {
 /// ```
 ///
 ///
-pub fn id_oc_cRLDistributionPoint() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([19])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oc_cRLDistributionPoint () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oc(), 19).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4320,8 +4316,9 @@ pub fn id_oc_cRLDistributionPoint() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_oc_pkiUser() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([21])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oc_pkiUser () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oc(), 21).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4331,8 +4328,9 @@ pub fn id_oc_pkiUser() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_oc_pkiCA() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([22])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oc_pkiCA () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oc(), 22).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4342,8 +4340,9 @@ pub fn id_oc_pkiCA() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_oc_deltaCRL() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([23])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oc_deltaCRL () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oc(), 23).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4353,8 +4352,9 @@ pub fn id_oc_deltaCRL() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_oc_cpCps() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([30])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oc_cpCps () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oc(), 30).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4364,8 +4364,9 @@ pub fn id_oc_cpCps() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_oc_pkiCertPath() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([31])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oc_pkiCertPath () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oc(), 31).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4375,8 +4376,9 @@ pub fn id_oc_pkiCertPath() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_nf_cRLDistPtNameForm() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_nf().0, Vec::<u32>::from([14])].concat()) // OID_GETTER
+#[inline]
+pub fn id_nf_cRLDistPtNameForm () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_nf(), 14).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4386,8 +4388,9 @@ pub fn id_nf_cRLDistPtNameForm() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_userPassword() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([35])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_userPassword () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 35).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4397,8 +4400,9 @@ pub fn id_at_userPassword() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_userCertificate() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([36])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_userCertificate () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 36).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4408,8 +4412,9 @@ pub fn id_at_userCertificate() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_cAcertificate() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([37])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_cAcertificate () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 37).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4419,8 +4424,9 @@ pub fn id_at_cAcertificate() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_authorityRevocationList() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([38])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_authorityRevocationList () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 38).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4430,8 +4436,9 @@ pub fn id_at_authorityRevocationList() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_certificateRevocationList() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([39])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_certificateRevocationList () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 39).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4441,8 +4448,9 @@ pub fn id_at_certificateRevocationList() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_crossCertificatePair() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([40])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_crossCertificatePair () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 40).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4452,8 +4460,9 @@ pub fn id_at_crossCertificatePair() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_supportedAlgorithms() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([52])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_supportedAlgorithms () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 52).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4463,8 +4472,9 @@ pub fn id_at_supportedAlgorithms() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_deltaRevocationList() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([53])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_deltaRevocationList () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 53).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4474,8 +4484,9 @@ pub fn id_at_deltaRevocationList() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_certificationPracticeStmt() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([68])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_certificationPracticeStmt () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 68).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4485,8 +4496,9 @@ pub fn id_at_certificationPracticeStmt() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_certificatePolicy() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([69])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_certificatePolicy () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 69).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4496,8 +4508,9 @@ pub fn id_at_certificatePolicy() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_pkiPath() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([70])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_pkiPath () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 70).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4507,8 +4520,9 @@ pub fn id_at_pkiPath() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_eepkCertificateRevocationList() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([101])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_eepkCertificateRevocationList () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 101).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4518,8 +4532,9 @@ pub fn id_at_eepkCertificateRevocationList() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_supportedPublicKeyAlgorithms() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([103])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_supportedPublicKeyAlgorithms () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 103).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4529,8 +4544,9 @@ pub fn id_at_supportedPublicKeyAlgorithms() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_asx_x509SupportedPublicKeyAlgos() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_asx().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_asx_x509SupportedPublicKeyAlgos () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_asx(), 10).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4540,8 +4556,9 @@ pub fn id_asx_x509SupportedPublicKeyAlgos() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lsx_x509Certificate() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lsx().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lsx_x509Certificate () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lsx(), 8).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4551,8 +4568,9 @@ pub fn id_lsx_x509Certificate() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lsx_x509CertificateList() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lsx().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lsx_x509CertificateList () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lsx(), 9).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4562,8 +4580,9 @@ pub fn id_lsx_x509CertificateList() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lsx_x509CertificatePair() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lsx().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lsx_x509CertificatePair () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lsx(), 10).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -4573,8 +4592,9 @@ pub fn id_lsx_x509CertificatePair() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_lsx_x509SupportedAlgorithm() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_lsx().0, Vec::<u32>::from([49])].concat()) // OID_GETTER
+#[inline]
+pub fn id_lsx_x509SupportedAlgorithm () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_lsx(), 49).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

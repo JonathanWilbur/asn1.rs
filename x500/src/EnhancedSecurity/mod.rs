@@ -2385,8 +2385,9 @@ pub fn _validate_AttributeTypeValueContexts(el: &X690Element) -> ASN1Result<()> 
 /// ```
 ///
 ///
-pub fn id_oc_integrityInfo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_oc().0, Vec::<u32>::from([40])].concat()) // OID_GETTER
+#[inline]
+pub fn id_oc_integrityInfo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_oc(), 40).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2396,8 +2397,9 @@ pub fn id_oc_integrityInfo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_clearance() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([55])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_clearance () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 55).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2407,8 +2409,9 @@ pub fn id_at_clearance() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_at_attributeIntegrityInfo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_at().0, Vec::<u32>::from([57])].concat()) // OID_GETTER
+#[inline]
+pub fn id_at_attributeIntegrityInfo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_at(), 57).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2418,8 +2421,9 @@ pub fn id_at_attributeIntegrityInfo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_avc_attributeValueSecurityLabelContext() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_avc().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_avc_attributeValueSecurityLabelContext () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_avc(), 3).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2429,6 +2433,7 @@ pub fn id_avc_attributeValueSecurityLabelContext() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_avc_attributeValueIntegrityInfoContext() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_avc().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_avc_attributeValueIntegrityInfoContext () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_avc(), 4).unwrap() // OID_GETTER
 }

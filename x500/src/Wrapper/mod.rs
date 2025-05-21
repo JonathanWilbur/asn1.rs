@@ -831,14 +831,12 @@ pub fn _validate_DER_AttributeCertificate(el: &X690Element) -> ASN1Result<()> {
 /// der OBJECT IDENTIFIER ::= {joint-iso-itu-t asn1(1) ber-derived(2) distinguished-encoding(1)}
 /// ```
 ///
-///
+#[inline]
 pub fn der() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        joint_iso_itu_t,
+    oid!(joint_iso_itu_t,
         /* asn1 */ 1,
         /* ber-derived */ 2,
-        /* distinguished-encoding */ 1,
-    ])) // OID_GETTER
+        /* distinguished-encoding */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

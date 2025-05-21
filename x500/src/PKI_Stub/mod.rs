@@ -30,8 +30,9 @@ use x690::*;
 /// ```
 ///
 ///
-pub fn id_wrprot() -> OBJECT_IDENTIFIER {
-    wrapperProtocolType() // OID_GETTER
+#[inline]
+pub fn id_wrprot () -> OBJECT_IDENTIFIER {
+	wrapperProtocolType() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -41,8 +42,9 @@ pub fn id_wrprot() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn wrapperProtocolType() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([ds().0, Vec::<u32>::from([43])].concat()) // OID_GETTER
+#[inline]
+pub fn wrapperProtocolType () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(ds(), 43).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -52,8 +54,9 @@ pub fn wrapperProtocolType() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn ds() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([joint_iso_itu_t, /* ds */ 5])) // OID_GETTER
+#[inline]
+pub fn ds () -> OBJECT_IDENTIFIER {
+	oid!(joint_iso_itu_t,/* ds */ 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -63,8 +66,9 @@ pub fn ds() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo() -> OBJECT_IDENTIFIER {
-    algorithms() // OID_GETTER
+#[inline]
+pub fn id_algo () -> OBJECT_IDENTIFIER {
+	algorithms() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -74,10 +78,10 @@ pub fn id_algo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn algorithms() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([ds().0, Vec::<u32>::from([44])].concat()) // OID_GETTER
+#[inline]
+pub fn algorithms () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44 ].as_slice()) } // OID_GETTER
 }
-
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -579,7 +583,7 @@ pub fn _validate_HASH(el: &X690Element) -> ASN1Result<()> {
 ///
 pub fn sha224WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
-        id: OBJECT_IDENTIFIER(Vec::<u32>::from([1, 2, 840, 113549, 1, 11])), /* OBJECT_FIELD_SETTING */
+        id: oid!(1, 2, 840, 113549, 1, 11), /* OBJECT_FIELD_SETTING */
     }
 }
 
@@ -1904,12 +1908,10 @@ pub fn _validate_Extension(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn der() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        joint_iso_itu_t,
+    oid!(joint_iso_itu_t,
         /* asn1 */ 1,
         /* ber-derived */ 2,
-        /* distinguished-encoding */ 1,
-    ])) // OID_GETTER
+        /* distinguished-encoding */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
