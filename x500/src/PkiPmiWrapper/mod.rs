@@ -1471,17 +1471,15 @@ pub mod contentType {
 }
 
 /// ### ASN.1 Definition:
-///
+/// 
 /// ```asn1
 /// id-contentType OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9) 3 }
 /// ```
-///
-///
-pub fn id_contentType() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, 3,
-    ])) // OID_GETTER
+/// 
+/// 
+#[inline]
+pub fn id_contentType () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549,/* pkcs */ 1,/* pkcs9 */ 9,3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1530,17 +1528,15 @@ pub mod messageDigest {
 }
 
 /// ### ASN.1 Definition:
-///
+/// 
 /// ```asn1
 /// id-messageDigest OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9) 4 }
 /// ```
-///
-///
-pub fn id_messageDigest() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, 4,
-    ])) // OID_GETTER
+/// 
+/// 
+#[inline]
+pub fn id_messageDigest () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549,/* pkcs */ 1,/* pkcs9 */ 9,4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

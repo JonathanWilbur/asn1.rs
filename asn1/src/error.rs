@@ -59,6 +59,7 @@ pub enum ASN1ErrorCode {
     invalid_duration_component(char),
     invalid_time_string_component(char),
     trailing_string, // Invalid data after parsing a string, time, etc.
+    invalid_oid_arc,
 }
 
 #[derive(Debug)]

@@ -1183,6 +1183,7 @@ impl X690Codec for BasicEncodingRules {
         }
     }
 
+    // TODO: Moved into asn1/oid.rs. Just make this wrap that.
     fn validate_object_identifier_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
@@ -1431,6 +1432,7 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
+    // TODO: Move this to asn1.
     // 9604152030Z
     fn validate_utc_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() > 17 {
@@ -1774,6 +1776,7 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
+    // FIXME: This is wrong.
     fn validate_date_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() != 10 { // YYYY-MM-DD
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -1810,6 +1813,7 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
+    // FIXME: This is wrong.
     fn validate_time_of_day_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() != 8 { // HH:MM:SS
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -1842,6 +1846,7 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
+    // FIXME: This is wrong.
     fn validate_date_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() != 19 { // 1951-10-14T15:30:00
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -1853,6 +1858,7 @@ impl X690Codec for BasicEncodingRules {
         self.validate_time_of_day_value(&content_octets[11..])
     }
 
+    // TODO: Move to asn1
     // Before some tweaking, this was produced by ChatGPT.
     fn validate_duration_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         let mut idx = 0;

@@ -50,6 +50,26 @@ pub fn read_i128(bytes: ByteSlice) -> Result<i128, ()> {
     }
 }
 
+pub fn write_oid_arc<W>(output: &mut W, mut num: u128) -> std::io::Result<usize>
+where
+    W: std::io::Write
+{
+    if likely(num < 128) {
+        return output.write(&[num as u8]);
+    }
+
+    // A u128 can take up to 19 bytes. We do 20 just for safety.
+    let mut encoded: [u8; 20] = [0; 20];
+    let mut byte_count: usize = 0;
+    while num > 0b0111_1111 {
+        encoded[byte_count] = (num & 0b0111_1111) as u8 | 0b1000_0000;
+        byte_count += 1;
+        num >>= 7;
+    }
+    encoded[byte_count] = num as u8;
+    output.write(&encoded[0..byte_count+1])
+}
+
 /// If you need to remove spaces from numeric strings, consider using the
 /// `cow-utils` crate: https://crates.io/crates/cow-utils.
 pub fn compare_numeric_string (a: &str, b: &str) -> bool {

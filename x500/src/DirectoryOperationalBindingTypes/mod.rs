@@ -29,8 +29,9 @@ use asn1::*;
 /// ```
 ///
 ///
-pub fn id_op_binding_shadow() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ob().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_op_binding_shadow () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ob(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -40,8 +41,9 @@ pub fn id_op_binding_shadow() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_op_binding_hierarchical() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ob().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_op_binding_hierarchical () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ob(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -51,6 +53,7 @@ pub fn id_op_binding_hierarchical() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_op_binding_non_specific_hierarchical() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ob().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_op_binding_non_specific_hierarchical () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ob(), 3).unwrap() // OID_GETTER
 }

@@ -5489,10 +5489,9 @@ pub fn SupportedKeyAttributes() -> Vec<KEY_ATTRIBUTE> {
 ///
 ///
 pub fn id_ct_contentInfo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, /* smime */ 16, /* ct */ 1, 6,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs9 */ 9, /* smime */ 16, /* ct */ 1, 6) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5521,10 +5520,9 @@ pub mod ct_Data {
 ///
 ///
 pub fn id_data() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 1,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs7 */ 7, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5564,10 +5562,9 @@ pub mod ct_SignedData {
 ///
 ///
 pub fn id_signedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 2,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs7 */ 7, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5607,10 +5604,9 @@ pub mod ct_EnvelopedData {
 ///
 ///
 pub fn id_envelopedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 3,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs7 */ 7, 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5650,10 +5646,9 @@ pub mod ct_DigestedData {
 ///
 ///
 pub fn id_digestedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 5,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs7 */ 7, 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5693,10 +5688,9 @@ pub mod ct_EncryptedData {
 ///
 ///
 pub fn id_encryptedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 6,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs7 */ 7, 6) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5736,10 +5730,9 @@ pub mod ct_AuthenticatedData {
 ///
 ///
 pub fn id_ct_authData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* ct */ 1, 2,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* ct */ 1, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5902,10 +5895,9 @@ pub mod aa_contentType {
 ///
 ///
 pub fn id_contentType() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, 3,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs9 */ 9, 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5958,10 +5950,9 @@ pub mod aa_messageDigest {
 ///
 ///
 pub fn id_messageDigest() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, 4,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs9 */ 9, 4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6014,10 +6005,9 @@ pub mod aa_signingTime {
 ///
 ///
 pub fn id_signingTime() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, 5,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs9 */ 9, 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6070,10 +6060,9 @@ pub mod aa_countersignature {
 ///
 ///
 pub fn id_countersignature() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, 6,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs9 */ 9, 6) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

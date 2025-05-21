@@ -1454,8 +1454,9 @@ pub fn _validate_AUTHEN_ENCRYPT<ToBeAuth, ToBeEnciphered>(
 /// ```
 ///
 ///
-pub fn id_algo_multipleSignaturesAlgo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_mca().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_multipleSignaturesAlgo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo_mca(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1465,8 +1466,9 @@ pub fn id_algo_multipleSignaturesAlgo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_multipleSymmetricKeyAlgo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_mca().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_multipleSymmetricKeyAlgo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo_mca(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1476,8 +1478,9 @@ pub fn id_algo_multipleSymmetricKeyAlgo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_multiplePublicKeyAlgo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_mca().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_multiplePublicKeyAlgo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo_mca(), 3).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1487,8 +1490,9 @@ pub fn id_algo_multiplePublicKeyAlgo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_multipleHashAlgo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_mca().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_multipleHashAlgo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo_mca(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1498,8 +1502,9 @@ pub fn id_algo_multipleHashAlgo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_multipleAuthenEncryptAlgo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_mca().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_multipleAuthenEncryptAlgo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo_mca(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1509,10 +1514,10 @@ pub fn id_algo_multipleAuthenEncryptAlgo() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_algo_multipleIcvAlgo() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_algo_mca().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn id_algo_multipleIcvAlgo () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_algo_mca(), 6).unwrap() // OID_GETTER
 }
-
 /// ### ASN.1 Definition:
 ///
 /// ```asn1

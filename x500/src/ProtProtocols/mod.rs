@@ -135,8 +135,9 @@ pub fn SupportedProtSet() -> Vec<WRAPPED_PROT> {
 /// ```
 ///
 ///
-pub fn id_avlprot() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_wrprot().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
+#[inline]
+pub fn id_avlprot () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_wrprot(), 0).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -146,8 +147,9 @@ pub fn id_avlprot() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_casubprot() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_wrprot().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_casubprot () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_wrprot(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -157,6 +159,7 @@ pub fn id_casubprot() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_tbprot() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_wrprot().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_tbprot () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_wrprot(), 2).unwrap() // OID_GETTER
 }

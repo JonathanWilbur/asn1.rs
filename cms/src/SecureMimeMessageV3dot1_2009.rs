@@ -48,10 +48,9 @@ pub fn SMimeAttributeSet() -> Vec<ATTRIBUTE> {
 ///
 ///
 pub fn id_aa() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* usa */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* attributes */ 2,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-9 */ 9, /* smime */ 16, /* attributes */ 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -105,10 +104,9 @@ pub mod aa_smimeCapabilities {
 ///
 ///
 pub fn smimeCapabilities() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-9 */ 9, 15,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-9 */ 9, 15) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -182,9 +180,9 @@ pub mod aa_encrypKeyPref {
 /// id-aa-encrypKeyPref OBJECT IDENTIFIER ::= {id-aa 11}
 /// ```
 ///
-///
-pub fn id_aa_encrypKeyPref() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_aa().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn id_aa_encrypKeyPref () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 9, 16, 2, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -309,10 +307,9 @@ pub fn _validate_SMIMEEncryptionKeyPreference(el: &X690Element) -> ASN1Result<()
 ///
 ///
 pub fn id_smime() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs9 */ 9, 16,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs9 */ 9, 16) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -322,8 +319,9 @@ pub fn id_smime() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_cap() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_smime().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn id_cap () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 9, 16, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -352,8 +350,9 @@ pub mod cap_preferBinaryInside {
 /// ```
 ///
 ///
-pub fn id_cap_preferBinaryInside() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cap().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_cap_preferBinaryInside () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 42, 0x86, 72, 0x86, 0xf7, 13, 1, 9, 16, 11, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

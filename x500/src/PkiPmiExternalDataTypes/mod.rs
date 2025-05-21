@@ -695,14 +695,9 @@ pub fn _validate_SubjectInfoAccessSyntax(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn id_pkix() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(
-        [
-            intSecurity().0,
-            Vec::<u32>::from([/* mechanisms */ 5, /* pkix */ 7]),
-        ]
-        .concat(),
-    ) // OID_GETTER
+#[inline]
+pub fn id_pkix () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_suffix(intSecurity(), [/* mechanisms */ 5, /* pkix */ 7].as_slice()).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -712,8 +707,9 @@ pub fn id_pkix() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_pe() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_pkix().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_pe () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 43, 6, 1, 5, 5, 7, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -723,8 +719,9 @@ pub fn id_pe() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ad() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_pkix().0, Vec::<u32>::from([48])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ad () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 43, 6, 1, 5, 5, 7, 48 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -734,8 +731,9 @@ pub fn id_ad() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_pe_authorityInfoAccess() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_pe().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_pe_authorityInfoAccess () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 43, 6, 1, 5, 5, 7, 1, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -745,8 +743,9 @@ pub fn id_pe_authorityInfoAccess() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_pe_subjectInfoAccess() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_pe().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn id_pe_subjectInfoAccess () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 43, 6, 1, 5, 5, 7, 1, 11 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -756,8 +755,9 @@ pub fn id_pe_subjectInfoAccess() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ad_caIssuers() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ad().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ad_caIssuers () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 43, 6, 1, 5, 5, 7, 48, 2 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -767,8 +767,9 @@ pub fn id_ad_caIssuers() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ad_ocsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ad().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ad_ocsp () -> OBJECT_IDENTIFIER {
+	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 43, 6, 1, 5, 5, 7, 48, 1 ].as_slice()) } // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

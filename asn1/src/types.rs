@@ -1,4 +1,5 @@
 use std::{fmt::Debug, sync::Arc, vec::Vec};
+use crate::error::ASN1Result;
 
 pub type Bytes = Vec<u8>;
 pub type ByteSlice<'a> = &'a [u8];
@@ -18,7 +19,7 @@ pub enum TagClass {
 // it would be acceptable to only tolerate two bytes of long-length tag numbers.
 pub type TagNumber = u16;
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct IdentificationSyntaxes {
     pub r#abstract: OBJECT_IDENTIFIER,
     pub transfer: OBJECT_IDENTIFIER,
@@ -34,7 +35,7 @@ impl IdentificationSyntaxes {
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct ContextNegotiation {
     pub presentation_context_id: INTEGER,
     pub transfer_syntax: OBJECT_IDENTIFIER,
@@ -50,7 +51,7 @@ impl ContextNegotiation {
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum ExternalIdentification {
     // syntaxes                (IdentificationSyntaxes),
     syntax(OBJECT_IDENTIFIER),
@@ -215,38 +216,78 @@ pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OID_ARC = u32;
 
-// TODO: Hear me out...
-/*
-pub enum OIDData {
-    Full((u8, RELATIVE_OID)),
-    Pen((OID_ARC, RELATIVE_OID)),
-    Smol([u8; 8]),
+
+#[cfg(not(feature = "smallvec"))]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
+pub struct OBJECT_IDENTIFIER (
+    /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
+    /// Recommendation X.690. This implementation favors faster comparison and
+    /// hashing and lower memory footprint at the expense of slower parsing and
+    /// printing.
+    ///
+    /// Intentionally not exported to library users so as to avoid dependency
+    /// on the underlying storage of arcs.
+    pub(crate) Vec<u8>
+);
+
+// TODO: Can't this just implement PartialEq?
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
+pub struct OBJECT_IDENTIFIER (
+    /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
+    /// Recommendation X.690. This implementation favors faster comparison and
+    /// hashing and lower memory footprint at the expense of slower parsing and
+    /// printing.
+    ///
+    /// The 16-byte inline vector was chosen because it is more than enough to
+    /// accommodate the 12 bytes needed for an object identifier like
+    /// 1.3.6.1.4.1.56490.5.4.13000. The vast majority of all object identifiers
+    /// will fit without needing _any_ allocation on the heap.
+    ///
+    /// Intentionally not exported to library users so as to avoid dependency
+    /// on the underlying storage of arcs.
+    pub(crate) smallvec::SmallVec<[u8; 16]>
+);
+
+#[derive(Debug, Clone, Copy)]
+pub struct OidArcs<'a> {
+    /// The full DER-encoding, but optionally with a hack where a single root
+    /// arc is stored as a single byte with the most significant bit set.
+    pub(crate) encoded: &'a [u8],
+    /// Index into the encoded OID. u32 instead of usize so this struct would
+    /// still be 24 bytes instead of 32.
+    pub(crate) i: u32,
+    /// Whether the iterator already handled the first arc. We need this because
+    /// both the first and second arcs could be encoded in the first byte, and
+    /// i alone would be insufficient to tell us if we iterated over the first
+    /// arc already.
+    pub(crate) first_arc_read: bool,
+    /// This is just used for reverse iteration.
+    pub(crate) second_arc_read: bool,
 }
 
-But maybe you could just interpret arc > 2 as a PEN...
-... also interpret highest MSb being set as "smol oid"
+#[cfg(not(feature = "smallvec"))]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
+pub struct RELATIVE_OID (pub(crate) Vec<u8>);
 
-What about
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
+pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 16]>);
 
-pub enum OIDData {
-    Iso(RELATIVE_OID),
-    Itu(RELATIVE_OID),
-    Joint(RELATIVE_OID),
-    Pen(RELATIVE_OID),
-    Smol([u8; 8]), // continuation bits used to indicate next arc
+#[derive(Debug, Clone, Copy)]
+pub struct RelOidArcs<'a> {
+    /// The full DER-encoding
+    pub(crate) encoded: &'a [u8],
+    /// Index into the encoded OID.
+    pub(crate) i: usize,
 }
 
-*/
-#[derive(Debug, Hash, Eq, PartialOrd, Ord, Clone)]
-pub struct OBJECT_IDENTIFIER(pub Vec<OID_ARC>);
 pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
 pub type EXTERNAL = External;
 pub type REAL = f64;
 pub type ENUMERATED = i64;
 pub type EMBEDDED_PDV = EmbeddedPDV;
 pub type UTF8String = String;
-#[derive(Debug, Hash, Eq, PartialOrd, Ord, Clone)]
-pub struct RELATIVE_OID(pub Vec<OID_ARC>);
 pub type TIME = String;
 // type Reserved15 = None;
 pub type SEQUENCE = Vec<ASN1Value>;
@@ -259,8 +300,6 @@ pub type T61String = Bytes;
 pub type TeletexString = T61String;
 pub type VideotexString = Bytes;
 pub type IA5String = String;
-
-pub const UTC_TIME_SECONDS_UNKNOWN: u8 = 0xFF;
 
 /// ## Omitted Seconds Handling
 ///
@@ -529,10 +568,20 @@ pub trait ISO8601Timestampable {
 
 }
 
+pub trait X690Validate {
+
+    fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()>;
+
+}
+
 #[derive(Debug, Clone)]
 pub struct NamedType <'a, Type = ASN1Value> {
     pub identifier: &'a str,
     pub value: Type,
+}
+
+pub trait X690KnownSize {
+    fn x690_size (&self) -> usize;
 }
 
 // This is really just an alias for vec![], but it is defined for future-proofing.

@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{FractionalPart, DURATION_EQUIVALENT, DurationPart};
+use crate::types::{FractionalPart, DURATION_EQUIVALENT, DurationPart, X690KnownSize};
 use core::str;
 use std::fmt::Write;
 use std::{fmt::Display, str::FromStr, time::Duration};
@@ -522,6 +522,52 @@ impl PartialEq for DURATION_EQUIVALENT {
             && selfn.hours == othern.hours
             && selfn.minutes == othern.minutes
             && selfn.seconds == othern.seconds
+    }
+
+}
+
+// Calculates the number of decimal digits in a u32 without string conversion
+fn decimal_digits(n: u32) -> usize {
+    if n == 0 {
+        return 1;
+    }
+    if n < 10 { return 1; }
+    if n < 100 { return 2; }
+    if n < 1000 { return 3; }
+    if n < 10000 { return 4; }
+    if n < 100000 { return 5; }
+    if n < 1000000 { return 6; }
+    if n < 10000000 { return 7; }
+    if n < 100000000 { return 8; }
+    if n < 1000000000 { return 9; }
+    10
+}
+
+impl X690KnownSize for DURATION_EQUIVALENT {
+
+    fn x690_size (&self) -> usize {
+        let mut size = 0;
+        // For each component, add the number of digits plus the designator
+        if self.years > 0 { size += decimal_digits(self.years) + 1; }
+        if self.months > 0 { size += decimal_digits(self.months) + 1; }
+        if self.weeks > 0 { size += decimal_digits(self.weeks) + 1; }
+        if self.days > 0 { size += decimal_digits(self.days) + 1; }
+
+        // Add T if there are time components
+        if self.hours > 0 || self.minutes > 0 || self.seconds > 0 {
+            size += 1;
+        }
+
+        if self.hours > 0 { size += decimal_digits(self.hours) + 1; }
+        if self.minutes > 0 { size += decimal_digits(self.minutes) + 1; }
+        if self.seconds > 0 { size += decimal_digits(self.seconds) + 1; }
+
+        // Add fractional part if present
+        if let Some((_, frac)) = &self.fractional_part {
+            // Add size for decimal point and digits
+            size += 1 + frac.number_of_digits as usize;
+        }
+        size
     }
 
 }

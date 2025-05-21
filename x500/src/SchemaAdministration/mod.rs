@@ -5130,8 +5130,9 @@ pub fn _validate_FriendsDescription(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn id_soc_subschema() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soc().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soc_subschema () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soc(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5141,8 +5142,9 @@ pub fn id_soc_subschema() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_dITStructureRule() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_dITStructureRule () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5152,8 +5154,9 @@ pub fn id_soa_dITStructureRule() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_dITContentRules() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_dITContentRules () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5163,8 +5166,9 @@ pub fn id_soa_dITContentRules() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_matchingRules() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_matchingRules () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5174,8 +5178,9 @@ pub fn id_soa_matchingRules() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_attributeTypes() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_attributeTypes () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5185,8 +5190,9 @@ pub fn id_soa_attributeTypes() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_objectClasses() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_objectClasses () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 6).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5196,8 +5202,9 @@ pub fn id_soa_objectClasses() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_nameForms() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_nameForms () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 7).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5207,8 +5214,9 @@ pub fn id_soa_nameForms() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_matchingRuleUse() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_matchingRuleUse () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 8).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5218,8 +5226,9 @@ pub fn id_soa_matchingRuleUse() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_structuralObjectClass() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_structuralObjectClass () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 9).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5229,8 +5238,9 @@ pub fn id_soa_structuralObjectClass() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_governingStructureRule() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_governingStructureRule () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 10).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5240,8 +5250,9 @@ pub fn id_soa_governingStructureRule() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_contextTypes() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_contextTypes () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 11).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5251,8 +5262,9 @@ pub fn id_soa_contextTypes() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_dITContextUse() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([12])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_dITContextUse () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 12).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5262,6 +5274,7 @@ pub fn id_soa_dITContextUse() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_soa_friends() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_soa().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
+#[inline]
+pub fn id_soa_friends () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_soa(), 13).unwrap() // OID_GETTER
 }

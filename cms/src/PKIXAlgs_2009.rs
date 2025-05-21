@@ -192,10 +192,9 @@ pub mod pk_rsa {
 ///
 ///
 pub fn rsaEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-1 */ 1, 1,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-1 */ 1, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -386,10 +385,9 @@ pub mod pk_dsa {
 ///
 ///
 pub fn id_dsa() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* x9-57 */ 10040,
-        /* x9algorithm */ 4, 1,
-    ])) // OID_GETTER
+        /* x9algorithm */ 4, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -604,10 +602,9 @@ pub mod pk_dh {
 ///
 ///
 pub fn dhpublicnumber() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-x942 */ 10046,
-        /* number-type */ 2, 1,
-    ])) // OID_GETTER
+        /* number-type */ 2, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1001,11 +998,10 @@ pub mod pk_kea {
 ///
 ///
 pub fn id_keyExchangeAlgorithm() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* joint-iso-itu-t */ 2, /* country */ 16, /* us */ 840,
         /* organization */ 1, /* gov */ 101, /* dod */ 2, /* infosec */ 1,
-        /* algorithms */ 1, 22,
-    ])) // OID_GETTER
+        /* algorithms */ 1, 22) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1108,10 +1104,9 @@ pub fn _validate_ECPoint(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn id_ecPublicKey() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* keyType */ 2, 1,
-    ])) // OID_GETTER
+        /* keyType */ 2, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1173,10 +1168,9 @@ pub mod pk_ecDH {
 ///
 ///
 pub fn id_ecDH() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* schemes */ 1, /* ecdh */ 12,
-    ])) // OID_GETTER
+        /* schemes */ 1, /* ecdh */ 12) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1238,10 +1232,9 @@ pub mod pk_ecMQV {
 ///
 ///
 pub fn id_ecMQV() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* schemes */ 1, /* ecmqv */ 13,
-    ])) // OID_GETTER
+        /* schemes */ 1, /* ecmqv */ 13) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1360,10 +1353,9 @@ pub fn NamedCurve() -> Vec<CURVE> {
 ///
 ///
 pub fn secp192r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* curves */ 3, /* prime */ 1, 1,
-    ])) // OID_GETTER
+        /* curves */ 3, /* prime */ 1, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1375,10 +1367,9 @@ pub fn secp192r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect163k1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 1,
-    ])) // OID_GETTER
+        /* curve */ 0, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1390,10 +1381,9 @@ pub fn sect163k1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect163r2() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 15,
-    ])) // OID_GETTER
+        /* curve */ 0, 15) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1405,10 +1395,9 @@ pub fn sect163r2() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn secp224r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 33,
-    ])) // OID_GETTER
+        /* curve */ 0, 33) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1420,10 +1409,9 @@ pub fn secp224r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect233k1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 26,
-    ])) // OID_GETTER
+        /* curve */ 0, 26) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1435,10 +1423,9 @@ pub fn sect233k1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect233r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 27,
-    ])) // OID_GETTER
+        /* curve */ 0, 27) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1451,10 +1438,9 @@ pub fn sect233r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn secp256r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* curves */ 3, /* prime */ 1, 7,
-    ])) // OID_GETTER
+        /* curves */ 3, /* prime */ 1, 7) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1466,10 +1452,9 @@ pub fn secp256r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect283k1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 16,
-    ])) // OID_GETTER
+        /* curve */ 0, 16) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1481,10 +1466,9 @@ pub fn sect283k1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect283r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 17,
-    ])) // OID_GETTER
+        /* curve */ 0, 17) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1496,10 +1480,9 @@ pub fn sect283r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn secp384r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 34,
-    ])) // OID_GETTER
+        /* curve */ 0, 34) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1511,10 +1494,9 @@ pub fn secp384r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect409k1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 36,
-    ])) // OID_GETTER
+        /* curve */ 0, 36) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1526,10 +1508,9 @@ pub fn sect409k1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect409r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 37,
-    ])) // OID_GETTER
+        /* curve */ 0, 37) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1541,10 +1522,9 @@ pub fn sect409r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn secp521r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 35,
-    ])) // OID_GETTER
+        /* curve */ 0, 35) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1556,10 +1536,9 @@ pub fn secp521r1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect571k1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 38,
-    ])) // OID_GETTER
+        /* curve */ 0, 38) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1571,10 +1550,9 @@ pub fn sect571k1() -> OBJECT_IDENTIFIER {
 ///
 ///
 pub fn sect571r1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* certicom */ 132,
-        /* curve */ 0, 39,
-    ])) // OID_GETTER
+        /* curve */ 0, 39) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1625,10 +1603,9 @@ pub mod sa_rsaWithMD2 {
 ///
 ///
 pub fn md2WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-1 */ 1, 2,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-1 */ 1, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1678,10 +1655,9 @@ pub mod sa_rsaWithMD5 {
 ///
 ///
 pub fn md5WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-1 */ 1, 4,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-1 */ 1, 4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1731,10 +1707,9 @@ pub mod sa_rsaWithSHA1 {
 ///
 ///
 pub fn sha1WithRSAEncryption() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs-1 */ 1, 5,
-    ])) // OID_GETTER
+        /* pkcs */ 1, /* pkcs-1 */ 1, 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1795,10 +1770,9 @@ pub mod sa_dsaWithSHA1 {
 ///
 ///
 pub fn dsa_with_sha1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* x9-57 */ 10040,
-        /* x9algorithm */ 4, 3,
-    ])) // OID_GETTER
+        /* x9algorithm */ 4, 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1860,11 +1834,10 @@ pub mod sa_dsaWithSHA224 {
 ///
 ///
 pub fn dsa_with_sha224() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* joint-iso-ccitt */ 2, /* country */ 16, /* us */ 840,
         /* organization */ 1, /* gov */ 101, /* csor */ 3, /* algorithms */ 4,
-        /* id-dsa-with-sha2 */ 3, 1,
-    ])) // OID_GETTER
+        /* id-dsa-with-sha2 */ 3, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1926,11 +1899,10 @@ pub mod sa_dsaWithSHA256 {
 ///
 ///
 pub fn dsa_with_sha256() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* joint-iso-ccitt */ 2, /* country */ 16, /* us */ 840,
         /* organization */ 1, /* gov */ 101, /* csor */ 3, /* algorithms */ 4,
-        /* id-dsa-with-sha2 */ 3, 2,
-    ])) // OID_GETTER
+        /* id-dsa-with-sha2 */ 3, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -1992,10 +1964,9 @@ pub mod sa_ecdsaWithSHA1 {
 ///
 ///
 pub fn ecdsa_with_SHA1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* signatures */ 4, 1,
-    ])) // OID_GETTER
+        /* signatures */ 4, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2057,10 +2028,9 @@ pub mod sa_ecdsaWithSHA224 {
 ///
 ///
 pub fn ecdsa_with_SHA224() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 1,
-    ])) // OID_GETTER
+        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2122,10 +2092,9 @@ pub mod sa_ecdsaWithSHA256 {
 ///
 ///
 pub fn ecdsa_with_SHA256() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 2,
-    ])) // OID_GETTER
+        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2187,10 +2156,9 @@ pub mod sa_ecdsaWithSHA384 {
 ///
 ///
 pub fn ecdsa_with_SHA384() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 3,
-    ])) // OID_GETTER
+        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2252,10 +2220,9 @@ pub mod sa_ecdsaWithSHA512 {
 ///
 ///
 pub fn ecdsa_with_SHA512() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* ansi-X9-62 */ 10045,
-        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 4,
-    ])) // OID_GETTER
+        /* signatures */ 4, /* ecdsa-with-SHA2 */ 3, 4) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2568,10 +2535,9 @@ pub mod mda_md2 {
 ///
 ///
 pub fn id_md2() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* digestAlgorithm */ 2, 2,
-    ])) // OID_GETTER
+        /* digestAlgorithm */ 2, 2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2616,10 +2582,9 @@ pub mod mda_md5 {
 ///
 ///
 pub fn id_md5() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* digestAlgorithm */ 2, 5,
-    ])) // OID_GETTER
+        /* digestAlgorithm */ 2, 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2664,10 +2629,9 @@ pub mod mda_sha1 {
 ///
 ///
 pub fn id_sha1() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
+    oid!(
         /* iso */ 1, /* identified-organization */ 3, /* oiw */ 14,
-        /* secsig */ 3, /* algorithm */ 2, 26,
-    ])) // OID_GETTER
+        /* secsig */ 3, /* algorithm */ 2, 26) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

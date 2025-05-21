@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, X690KnownSize};
 use crate::utils::{get_days_in_month, unlikely};
 use crate::utils::macros::parse_uint;
 use std::fmt::{Display, Write};
@@ -232,6 +232,18 @@ impl FromStr for UTCTime {
     }
 }
 
+impl X690KnownSize for UTCTime {
+
+    fn x690_size (&self) -> usize {
+        if self.utc_offset.is_zero() {
+            15 // 8 for date, 6 for time, 1 for "Z"
+        } else {
+            19 // 8 for date, 6 for time, 5 for "+HHMM" offset
+        }
+    }
+
+}
+
 impl Display for UTCTime {
 
     #[cfg(feature = "itoa")]
@@ -242,7 +254,6 @@ impl Display for UTCTime {
         let mut buf_hour = itoa::Buffer::new();
         let mut buf_minute = itoa::Buffer::new();
         let mut buf_second = itoa::Buffer::new();
-        let mut buf_offset_h = itoa::Buffer::new();
         let mut buf_offset_m = itoa::Buffer::new();
 
         write!(f, "{:0>2}{:0>2}{:0>2}{:0>2}{:0>2}{:0>2}",

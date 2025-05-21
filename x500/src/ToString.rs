@@ -32,29 +32,6 @@ use teletex::teletex_to_utf8;
 ///
 /// Multiple version of `str::replace` which replaces multiple patterns at a time.
 ///
-///
-/// ```
-/// use multirep::multi_replace;
-///
-/// let s = "Hana is cute";
-/// let r = multi_replace(s, &[("Hana", "Minami"), ("cute", "kawaii")]);
-/// assert_eq!(r, "Minami is kawaii");
-/// ```
-///
-/// The replacement takes place in order of `pats`
-///
-/// ```
-/// use multirep::multi_replace;
-/// assert_eq!("Minami is kawaii", multi_replace("Hana is cute", &[("Hana", "Minami"), ("cute", "kawaii"), ("na", "no")]));
-/// ```
-///
-/// Replacement will not be interfere with previosly replaced strings.
-///
-/// ```
-/// use multirep::multi_replace;
-/// assert_eq!("Minami is kawaii", multi_replace("Hana is cute", &[("Hana", "Minami"), ("cute", "kawaii"), ("kawaii", "hot")]));
-/// ```
-///
 /// MIT License
 ///
 /// Copyright (c) 2022 snylonue
@@ -361,7 +338,11 @@ const BundleEID: [u32; 9] = [ 1, 3, 6, 1, 5, 5, 7, 8, 11 ];
 const UPN: [u32; 10] = [ 1, 3, 6, 1, 4, 1, 311, 20, 2, 3 ];
 
 pub fn display_other_name (n: &INSTANCE_OF, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    if &n.type_id.0 == &HardwareModuleName {
+    let n_slice: Vec<u32> = n.type_id
+        .arcs()
+        .map(|arc| std::cmp::min(arc, u32::MAX as u128) as u32)
+        .collect();
+    if &n_slice == HardwareModuleName.as_slice() {
         f.write_str("hardwareModuleName:")?;
         // HardwareModuleName ::= SEQUENCE {
         //     hwType OBJECT IDENTIFIER,
@@ -383,43 +364,43 @@ pub fn display_other_name (n: &INSTANCE_OF, f: &mut std::fmt::Formatter<'_>) -> 
             },
             _ => Err(std::fmt::Error)
         };
-    } else if &n.type_id.0 == &XmppAddr {
+    } else if &n_slice == XmppAddr.as_slice() {
         f.write_str("xmppAddr:")?;
         return match n.value.as_ref() {
             ASN1Value::UTF8String(s) => f.write_str(s),
             _ => Err(std::fmt::Error)
         };
-    } else if &n.type_id.0 == &SRVName {
+    } else if &n_slice == SRVName.as_slice() {
         f.write_str("srvName:")?;
         return match n.value.as_ref() {
             ASN1Value::IA5String(s) => f.write_str(s),
             _ => Err(std::fmt::Error)
         };
-    } else if &n.type_id.0 == &NAIRealm {
+    } else if &n_slice == NAIRealm.as_slice() {
         f.write_str("naiRealm:")?;
         return match n.value.as_ref() {
             ASN1Value::UTF8String(s) => f.write_str(s),
             _ => Err(std::fmt::Error)
         };
-    } else if &n.type_id.0 == &SmtpUTF8Mailbox {
+    } else if &n_slice == SmtpUTF8Mailbox.as_slice() {
         f.write_str("smtpUTF8Mailbox:")?;
         return match n.value.as_ref() {
             ASN1Value::UTF8String(s) => f.write_str(s),
             _ => Err(std::fmt::Error)
         };
-    } else if &n.type_id.0 == &AcpNodeName {
+    } else if &n_slice == AcpNodeName.as_slice() {
         f.write_str("acpNodeName:")?;
         return match n.value.as_ref() {
             ASN1Value::IA5String(s) => f.write_str(s),
             _ => Err(std::fmt::Error)
         };
-    } else if &n.type_id.0 == &BundleEID {
+    } else if &n_slice == BundleEID.as_slice() {
         f.write_str("bundleEID:")?;
         return match n.value.as_ref() {
             ASN1Value::IA5String(s) => f.write_str(s),
             _ => Err(std::fmt::Error)
         };
-    } else if &n.type_id.0 == &UPN {
+    } else if &n_slice == UPN.as_slice() {
         f.write_str("upn:")?;
         return match n.value.as_ref() {
             ASN1Value::UTF8String(s) => f.write_str(s),

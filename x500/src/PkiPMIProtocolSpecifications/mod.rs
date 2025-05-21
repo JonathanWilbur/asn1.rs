@@ -5904,11 +5904,9 @@ pub fn _validate_CASP_error(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
-pub fn id_signedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 2,
-    ])) // OID_GETTER
+#[inline]
+pub fn id_signedData () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549,/* pkcs */ 1,/* pkcs7 */ 7,2) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5919,11 +5917,9 @@ pub fn id_signedData() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_envelopedData() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        /* iso */ 1, /* member-body */ 2, /* us */ 840, /* rsadsi */ 113549,
-        /* pkcs */ 1, /* pkcs7 */ 7, 3,
-    ])) // OID_GETTER
+#[inline]
+pub fn id_envelopedData () -> OBJECT_IDENTIFIER {
+	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549,/* pkcs */ 1,/* pkcs7 */ 7,3) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5933,8 +5929,9 @@ pub fn id_envelopedData() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([0])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 0).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5944,8 +5941,9 @@ pub fn id_certReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5955,8 +5953,9 @@ pub fn id_certRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_addAvlReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_addAvlReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5966,8 +5965,9 @@ pub fn id_addAvlReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_addAvlRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_addAvlRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 3).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5977,8 +5977,9 @@ pub fn id_addAvlRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_replaceAvlReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_replaceAvlReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5988,8 +5989,9 @@ pub fn id_replaceAvlReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_replaceAvlRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_replaceAvlRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -5999,8 +6001,9 @@ pub fn id_replaceAvlRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_updateAvlReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([6])].concat()) // OID_GETTER
+#[inline]
+pub fn id_updateAvlReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 6).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6010,8 +6013,9 @@ pub fn id_updateAvlReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_updateAvlRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([7])].concat()) // OID_GETTER
+#[inline]
+pub fn id_updateAvlRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 7).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6021,8 +6025,9 @@ pub fn id_updateAvlRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_deleteAvlReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn id_deleteAvlReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 8).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6032,8 +6037,9 @@ pub fn id_deleteAvlReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_deleteAvlRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+#[inline]
+pub fn id_deleteAvlRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 9).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6043,8 +6049,9 @@ pub fn id_deleteAvlRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_rejectAVL() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([10])].concat()) // OID_GETTER
+#[inline]
+pub fn id_rejectAVL () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 10).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6054,8 +6061,9 @@ pub fn id_rejectAVL() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certSubscribeReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([11])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certSubscribeReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 11).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6065,8 +6073,9 @@ pub fn id_certSubscribeReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certSubscribeRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([12])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certSubscribeRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 12).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6076,8 +6085,9 @@ pub fn id_certSubscribeRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certUnsubscribeReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([13])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certUnsubscribeReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 13).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6087,8 +6097,9 @@ pub fn id_certUnsubscribeReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certUnsubscribeRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([14])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certUnsubscribeRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 14).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6098,8 +6109,9 @@ pub fn id_certUnsubscribeRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certReplaceReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([15])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certReplaceReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 15).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6109,8 +6121,9 @@ pub fn id_certReplaceReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certReplaceRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([16])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certReplaceRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 16).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6120,8 +6133,9 @@ pub fn id_certReplaceRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certUpdateReq() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([17])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certUpdateReq () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 17).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6131,8 +6145,9 @@ pub fn id_certUpdateReq() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_certUpdateRsp() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([18])].concat()) // OID_GETTER
+#[inline]
+pub fn id_certUpdateRsp () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 18).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -6142,8 +6157,9 @@ pub fn id_certUpdateRsp() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_rejectCAsubscribe() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_cmsct().0, Vec::<u32>::from([19])].concat()) // OID_GETTER
+#[inline]
+pub fn id_rejectCAsubscribe () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_cmsct(), 19).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:

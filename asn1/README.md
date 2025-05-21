@@ -272,11 +272,20 @@ somewhat battle-tested.
 
 ## To Do
 
+- [x] `TryFrom<&[i8]>` for `OBJECT_IDENTIFIER`
+- [x] `OBJECT_IDENTIFIER::from_prefix_and_arc()`
+- [x] `OBJECT_IDENTIFIER::from_prefix_and_suffix()`
+- [x] `RELATIVE_OID::concat()`
+- [x] Fix issues caused by OID refactor
+- [x] Implement `X690KnownSize` for many types
+- [ ] Make `BIT_STRING` use smallvec or bytes
 - [ ] Fuzz testing for OIDs and ROIDs
 - [ ] Benchmarking
 - [ ] I think you can replace `% 8` with a bit mask, which would be more performant
 - [ ] `no-std` and other feature flags
 - [ ] `const fn`
+  - [ ] This can probaby be used for OID assignments too
 - [ ] Documentation comments
 - [ ] `README.md` documentation
 - [ ] Debug assertions / debug logging?
+- [ ] Hard-coded OID arc strings for 0 and 1

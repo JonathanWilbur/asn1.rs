@@ -276,6 +276,7 @@ dependencies = [
  "faster-hex",
  "itoa",
  "likely_stable",
+ "smallvec",
 ]
 
 [[package]]
@@ -285,6 +286,10 @@ dependencies = [
  "asn1",
  "libfuzzer-sys",
 ]
+
+[[package]]
+name = "asn1lex"
+version = "0.1.0"
 
 [[package]]
 name = "async-trait"

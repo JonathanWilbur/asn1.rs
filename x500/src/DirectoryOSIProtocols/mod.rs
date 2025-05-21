@@ -424,8 +424,9 @@ pub mod directoryOperationalBindingManagementAC {
 /// ```
 ///
 ///
-pub fn id_as_directoryAccessAS() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_as().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_as_directoryAccessAS () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_as(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -435,8 +436,9 @@ pub fn id_as_directoryAccessAS() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_as_directorySystemAS() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_as().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_as_directorySystemAS () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_as(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -446,8 +448,9 @@ pub fn id_as_directorySystemAS() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_as_directoryShadowAS() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_as().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_as_directoryShadowAS () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_as(), 3).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -457,8 +460,9 @@ pub fn id_as_directoryShadowAS() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_as_directoryOperationalBindingManagementAS() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_as().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_as_directoryOperationalBindingManagementAS () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_as(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -468,14 +472,9 @@ pub fn id_as_directoryOperationalBindingManagementAS() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_acseAS() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER(Vec::<u32>::from([
-        joint_iso_itu_t,
-        /* association-control */ 2,
-        /* abstract-syntax */ 1,
-        /* apdus */ 0,
-        /* version */ 1,
-    ])) // OID_GETTER
+#[inline]
+pub fn id_acseAS () -> OBJECT_IDENTIFIER {
+	oid!(joint_iso_itu_t,/* association-control */ 2,/* abstract-syntax */ 1,/* apdus */ 0,/* version */ 1) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -485,8 +484,9 @@ pub fn id_acseAS() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ac_directoryAccessAC() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ac().0, Vec::<u32>::from([1])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ac_directoryAccessAC () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ac(), 1).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -496,8 +496,9 @@ pub fn id_ac_directoryAccessAC() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ac_directorySystemAC() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ac().0, Vec::<u32>::from([2])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ac_directorySystemAC () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ac(), 2).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -507,8 +508,9 @@ pub fn id_ac_directorySystemAC() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ac_directoryOperationalBindingManagementAC() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ac().0, Vec::<u32>::from([3])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ac_directoryOperationalBindingManagementAC () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ac(), 3).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -518,8 +520,9 @@ pub fn id_ac_directoryOperationalBindingManagementAC() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ac_shadowConsumerInitiatedAC() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ac().0, Vec::<u32>::from([4])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ac_shadowConsumerInitiatedAC () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ac(), 4).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -529,8 +532,9 @@ pub fn id_ac_shadowConsumerInitiatedAC() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ac_shadowSupplierInitiatedAC() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ac().0, Vec::<u32>::from([5])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ac_shadowSupplierInitiatedAC () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ac(), 5).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -540,8 +544,9 @@ pub fn id_ac_shadowSupplierInitiatedAC() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ac_shadowSupplierInitiatedAsynchronousAC() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ac().0, Vec::<u32>::from([8])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ac_shadowSupplierInitiatedAsynchronousAC () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ac(), 8).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -551,6 +556,7 @@ pub fn id_ac_shadowSupplierInitiatedAsynchronousAC() -> OBJECT_IDENTIFIER {
 /// ```
 ///
 ///
-pub fn id_ac_shadowConsumerInitiatedAsynchronousAC() -> OBJECT_IDENTIFIER {
-    OBJECT_IDENTIFIER([id_ac().0, Vec::<u32>::from([9])].concat()) // OID_GETTER
+#[inline]
+pub fn id_ac_shadowConsumerInitiatedAsynchronousAC () -> OBJECT_IDENTIFIER {
+	OBJECT_IDENTIFIER::from_prefix_and_arc(id_ac(), 9).unwrap() // OID_GETTER
 }

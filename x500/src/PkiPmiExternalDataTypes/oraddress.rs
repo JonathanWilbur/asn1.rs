@@ -697,9 +697,11 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
         let mut term_type: Option<TerminalType> = None; // T-TY
         let dda: HashMap<String, String> = HashMap::new(); // DDA: Domain-Defined Attribute
 
+
         for rdn in value.iter() {
-            if rdn.type_.0.len() == 5 && rdn.type_.0.starts_with(&[ 2, 6, 10, 3 ]) {
-                let last_arc = rdn.type_.0[4];
+            let type_x690_encoding = rdn.type_.as_x690_slice();
+            if type_x690_encoding.len() == 4 && rdn.type_.as_x690_slice().starts_with(&[ 0x56, 10, 3 ]) {
+                let last_arc = type_x690_encoding.last().unwrap();
                 match last_arc {
                     9 => { // id-at-mhs-admd-name ID ::= {id-at  9}
                         let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
@@ -850,8 +852,8 @@ impl TryFrom<&RelativeDistinguishedName> for ORAddressInfo {
                     _ => {}, // Do nothing for unrecognized attributes.
                 }
             }
-            if rdn.type_.0.len() == 4 && rdn.type_.0.starts_with(&[ 2, 5, 4 ]) {
-                let last_arc = rdn.type_.0[3];
+            if type_x690_encoding.len() == 3 && type_x690_encoding.starts_with(&[ 0x55, 4 ]) {
+                let last_arc = type_x690_encoding.last().unwrap();
                 match last_arc {
                     3 => { // commonName
                         let uds = _decode_UnboundedDirectoryString(&rdn.value)?;
