@@ -446,8 +446,8 @@ pub fn x690_write_bit_string_value<W>(output: &mut W, value: &BIT_STRING) -> Res
 where
     W: Write,
 {
-    output.write(&[value.trailing_bits % 8])?;
-    let bytes_written = output.write(&value.bytes)?;
+    output.write(&[value.get_trailing_bits_count()])?;
+    let bytes_written = output.write(value.get_bytes_ref())?;
     Ok(bytes_written + 1)
 }
 
@@ -945,7 +945,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
         }
         ASN1Value::BitStringValue(v) => {
             tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING;
-            let mut value_bytes = BytesMut::with_capacity(v.bytes.len() + 1).writer();
+            let mut value_bytes = BytesMut::with_capacity(v.len_in_bytes() + 1).writer();
             x690_write_bit_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }

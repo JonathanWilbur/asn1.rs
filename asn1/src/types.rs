@@ -1,4 +1,6 @@
 use std::{fmt::Debug, sync::Arc, vec::Vec};
+use smallvec::SmallVec;
+
 use crate::error::ASN1Result;
 
 pub type Bytes = Vec<u8>;
@@ -206,16 +208,27 @@ pub struct DURATION_EQUIVALENT {
 pub type BOOLEAN = bool;
 pub type INTEGER = Bytes;
 pub type BIT = usize;
+
+
+#[cfg(not(feature = "smallvec"))]
 #[derive(Debug, Eq, Clone)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct BIT_STRING {
-    pub bytes: Vec<u8>,
-    pub trailing_bits: u8,
+    pub(crate) bytes: Vec<u8>,
+    pub(crate) trailing_bits: u8,
 }
+
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Eq, Clone)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub struct BIT_STRING {
+    pub(crate) bytes: SmallVec<[u8; 16]>,
+    pub(crate) trailing_bits: u8,
+}
+
 pub type OCTET_STRING = Bytes;
 // type NULL = None;
 pub type OID_ARC = u32;
-
 
 #[cfg(not(feature = "smallvec"))]
 #[derive(Debug, Hash, Clone, PartialEq, Eq)]
