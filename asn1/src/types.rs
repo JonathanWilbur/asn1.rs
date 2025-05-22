@@ -243,7 +243,6 @@ pub struct OBJECT_IDENTIFIER (
     pub(crate) Vec<u8>
 );
 
-// TODO: Can't this just implement PartialEq?
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub struct OBJECT_IDENTIFIER (
@@ -602,13 +601,35 @@ pub struct NamedType <'a, Type = ASN1Value> {
     pub value: Type,
 }
 
+/// Anything that, when encoded as the content octets ("value") of an X.690
+/// Tag-Length-Value (TLV), will be encoded on a number of octets that can be
+/// trivially calculated, and does not vary with the choice of concrete syntax
+/// (BER, CER, or DER). This is so a codec can know in advance how many bytes
+/// a value will take up and pre-allocate them.
+///
+/// `OBJECT IDENTIFIER` values are an example: they are encoded the same way
+/// for BER, CER, and DER, and it isn't too hard to calculate how many bytes
+/// they will take up in advance (in this library's implementation, there is
+/// _no_ calculation that needs to be done: just reading a `.len()`). An example
+/// of a type that MUST NOT implement this trait would be a `BIT STRING` because
+/// it would have a different length if encoded using DER or CER. All of the
+/// context-switching types (e.g. `EXTERNAL`, `EMBEDDED PDV`, `CharacterString`)
+/// are also transitively disqualified for this reason and more.
+///
 pub trait X690KnownSize {
+
+    /// Get the size of the content octets ("value") of an X.690
+    /// Tag-Length-Value (TLV) encoding when this value is encoded.
     fn x690_size (&self) -> usize;
+
 }
 
 // This is really just an alias for vec![], but it is defined for future-proofing.
 #[macro_export]
 macro_rules! octs {
+    () => {
+        std::vec![]
+    };
     ( $( $x:expr ),* ) => {
         std::vec![$($x,)*]
     };

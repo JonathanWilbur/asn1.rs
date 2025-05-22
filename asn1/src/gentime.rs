@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE, X690KnownSize};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
 use crate::utils::{get_days_in_month, unlikely};
 use crate::utils::macros::parse_uint;
 use std::cmp::min;
@@ -370,32 +370,10 @@ impl FromStr for GeneralizedTime {
     }
 }
 
-impl X690KnownSize for GeneralizedTime {
-
-    fn x690_size (&self) -> usize {
-        let mut size: usize = 10;
-        if let Some((_, sec)) = self.min_and_sec {
-            size += 2;
-            if sec.is_some() {
-                size += 2;
-            }
-        }
-        let frac_digits = self.get_fraction_precision_digits();
-        if frac_digits > 0 {
-            size += (frac_digits + 1) as usize; // 1 for the period
-        }
-        if let Some(utc_offset) = self.utc_offset {
-            if utc_offset.is_zero() {
-                size + 1 // +1 for "Z"
-            } else {
-                size + 5 // +5 for "+HHMM" or "-HHMM" offset
-            }
-        } else {
-            size
-        }
-    }
-
-}
+// This trait MUST NOT be implemented for `GeneralizedTime`. In addition to the
+// option for it to be encoded in constructed and indefinite length form in BER,
+// it MUST be converted to UTC time ("Z") when CER or DER-encoded.
+// impl X690KnownSize for GeneralizedTime {}
 
 impl Display for GeneralizedTime {
 

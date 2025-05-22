@@ -1,5 +1,5 @@
 use smallvec::{SmallVec, smallvec};
-use crate::{types::{X690KnownSize, BIT_STRING}};
+use crate::{types::{BIT_STRING}};
 use std::{convert::TryInto, fmt::{Display, Write}};
 use crate::utils::unlikely;
 use std::hash::{Hash, Hasher};
@@ -307,13 +307,9 @@ impl BIT_STRING {
 
 }
 
-impl X690KnownSize for BIT_STRING {
-
-    fn x690_size (&self) -> usize {
-        self.bytes.len() + 1
-    }
-
-}
+// This trait MUST NOT be implemented for `BIT STRING` because its size will
+// vary depending on whether BER, CER, or DER is used.
+// impl X690KnownSize for BIT_STRING {}
 
 impl PartialEq for BIT_STRING {
 

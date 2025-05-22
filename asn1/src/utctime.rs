@@ -1,5 +1,5 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, X690KnownSize};
+use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
 use crate::utils::{get_days_in_month, unlikely};
 use crate::utils::macros::parse_uint;
 use std::fmt::{Display, Write};
@@ -232,17 +232,10 @@ impl FromStr for UTCTime {
     }
 }
 
-impl X690KnownSize for UTCTime {
-
-    fn x690_size (&self) -> usize {
-        if self.utc_offset.is_zero() {
-            15 // 8 for date, 6 for time, 1 for "Z"
-        } else {
-            19 // 8 for date, 6 for time, 5 for "+HHMM" offset
-        }
-    }
-
-}
+// This trait MUST NOT be implemented for `UTCTime`. In addition to the
+// option for it to be encoded in constructed and indefinite length form in BER,
+// it MUST be converted to UTC time ("Z") when CER or DER-encoded.
+// impl X690KnownSize for GeneralizedTime {}
 
 impl Display for UTCTime {
 

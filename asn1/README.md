@@ -278,9 +278,9 @@ somewhat battle-tested.
 - [x] `RELATIVE_OID::concat()`
 - [x] Fix issues caused by OID refactor
 - [x] Implement `X690KnownSize` for many types
-  - [ ] You need to consider DER and CER, which might mean some implementations are wrong
+  - [x] You need to consider DER and CER, which might mean some implementations are wrong
 - [x] ~~`X690KnownSize`~~ for context-switching types (not known because of tagging and length options)
-- [ ] `X690Validate` for context-switching types
+- [x] ~~`X690Validate` for context-switching types~~ (not possible because of tagging and length options)
 - [x] Make `BIT_STRING` use smallvec or bytes
 - [ ] Fuzz testing for OIDs and ROIDs
 - [ ] Benchmarking
