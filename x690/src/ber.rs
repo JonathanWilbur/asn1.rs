@@ -493,10 +493,7 @@ impl X690Codec for BasicEncodingRules {
                 ASN1ErrorCode::x690_bit_string_remainder_gt_7,
             ));
         }
-        Ok(BIT_STRING {
-            bytes: Vec::from(&value_bytes[1..]),
-            trailing_bits,
-        })
+        Ok(BIT_STRING::from_parts_borrowed(&value_bytes[1..], trailing_bits))
     }
 
     fn decode_octet_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<OCTET_STRING> {
@@ -900,7 +897,7 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn encode_bit_string(&self, value: &BIT_STRING) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(value.bytes.len() + 1).writer();
+        let mut out = BytesMut::with_capacity(value.len_in_bytes() + 1).writer();
         x690_write_bit_string_value(&mut out, &value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING),

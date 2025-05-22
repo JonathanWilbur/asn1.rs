@@ -168,6 +168,27 @@ impl BIT_STRING {
             .unwrap_or(0)
     }
 
+    #[inline]
+    pub fn len_in_bytes (&self) -> usize {
+        self.bytes.len()
+    }
+
+
+    #[inline]
+    pub fn get_trailing_bits_count (&self) -> u8 {
+        self.trailing_bits & 7 // More efficient than % 8
+    }
+
+    #[inline]
+    pub fn get_bytes_ref (&self) -> &[u8] {
+        &self.bytes
+    }
+
+    #[inline]
+    pub fn get_bytes_ref_mut (&mut self) -> &mut [u8] {
+        &mut self.bytes
+    }
+
     pub fn with_bits_set(bits_to_set: &[usize]) -> BIT_STRING {
         let mut bit_size: usize = 0;
         for bit in bits_to_set.iter() {
@@ -262,6 +283,16 @@ impl BIT_STRING {
         return BIT_STRING { bytes: bytes.into(), trailing_bits: 0 };
         #[cfg(not(feature = "smallvec"))]
         return BIT_STRING { bytes, trailing_bits: 0 };
+    }
+
+    // TODO: from_parts_owned
+
+    #[inline]
+    pub fn from_parts_borrowed(bytes: &[u8], trailing_bits: u8) -> BIT_STRING {
+        #[cfg(feature = "smallvec")]
+        return BIT_STRING { bytes: bytes.into(), trailing_bits };
+        #[cfg(not(feature = "smallvec"))]
+        return BIT_STRING { bytes: bytes.to_owned(), trailing_bits };
     }
 
 }
