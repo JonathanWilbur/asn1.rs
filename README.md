@@ -8,22 +8,6 @@ purpose.
 This is very much a work in progress. There is almost no documentation now, but
 it will be very well documented once it is all stabilized.
 
-## Decisions to make
-
-- Should `BIT STRING` just be a simple array of bytes and a length field, like in Go?
-  - I think this should be fine. This would even work well for PER and JER.
-  - One difference between X.690 and X.691 encoding is that PER encodes the
-    number of bits, whereas BER, CER, and DER encode the number of padding bits.
-    - I think the latter is computationally simpler and more secure.
-      - It is easy to validate. If you encode the length of bits, it could
-        misalign with the number of bytes.
-  - This would also probably be more performant, since large bit strings are
-    used in cryptographic files.
-- Should `chrono` be used at all? It seems like dates should just be represented as integers.
-- Is it even possible to have a uniform interface between codecs?
-  - I highly doubt it. Even if this is possible, I need to develop all of the
-    codecs to discover what this interface even would be.
-
 ## How to handle EXPLICIT encoding?
 
 This is a tricky problem, because you have to know the length of the inner value
