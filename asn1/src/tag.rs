@@ -33,7 +33,7 @@ impl PartialOrd for TagClass {
 
 impl Tag {
     #[inline]
-    pub fn new(tag_class: TagClass, tag_number: TagNumber) -> Self {
+    pub const fn new(tag_class: TagClass, tag_number: TagNumber) -> Self {
         Tag {
             tag_class,
             tag_number,

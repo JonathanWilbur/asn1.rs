@@ -8,9 +8,10 @@ use std::str::FromStr;
 
 impl GeneralizedTime {
     #[inline]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         GeneralizedTime {
-            date: DATE::default(),
+            // This is the same as default(). I just copied the literal so this could be const.
+            date: DATE { year: 0, month: 1, day: 1 },
             flags: 0,
             hour: 0,
             min_and_sec: None,
@@ -20,29 +21,48 @@ impl GeneralizedTime {
     }
 
     #[inline]
-    pub fn is_zero(&self) -> bool {
-        let (minute, second) = self.min_and_sec.unwrap_or((0, None));
-        self.date.year == 0
+    pub const fn is_zero(&self) -> bool {
+        // Using unwrap_or() would have made this whole function much cleaner,
+        // but it is not const for some reason.
+        let first_part_is_zero = self.date.year == 0
             && self.date.month <= 1
             && self.date.day <= 1
-            && self.hour == 0
-            && minute == 0
-            && second.unwrap_or(0) == 0
+            && self.hour == 0;
+        if !first_part_is_zero {
+            return false; // It is already non-zero. We don't need to check further.
+        }
+        if let Some((minute, second)) = self.min_and_sec {
+            if minute != 0 {
+                return false;
+            }
+            if let Some(sec) = second {
+                if sec != 0 {
+                    return false;
+                }
+            }
+        }
+        true
     }
 
     #[inline]
-    pub fn is_utc(&self) -> bool {
-        self.utc_offset.is_some_and(|offset| offset.is_zero())
+    pub const fn is_utc(&self) -> bool {
+        // This would have been more elegant, but not const:
+        // self.utc_offset.is_some_and(|offset| offset.is_zero())
+        if let Some(offset) = self.utc_offset {
+            offset.is_zero()
+        } else {
+            false
+        }
     }
 
     #[inline]
-    pub fn get_fraction_precision_digits(&self) -> u8 {
+    pub const fn get_fraction_precision_digits(&self) -> u8 {
         // This implementation only handles up to nano-second precision, hence % 10.
         (self.flags & 0b0000_1111) % 10
     }
 
     #[inline]
-    pub fn has_fraction(&self) -> bool {
+    pub const fn has_fraction(&self) -> bool {
         self.get_fraction_precision_digits() > 0
     }
 

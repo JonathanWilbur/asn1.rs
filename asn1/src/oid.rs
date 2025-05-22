@@ -108,7 +108,6 @@ impl OBJECT_IDENTIFIER {
         unsafe { Ok(OBJECT_IDENTIFIER::from_x690_encoding_unchecked(enc)) }
     }
 
-    // TODO: Maybe you should just rename this to push to make it clear.
     pub fn from_prefix_and_arc (mut prefix: OBJECT_IDENTIFIER, arc: OID_ARC) -> ASN1Result<Self> {
         if unlikely(prefix.len() == 0) {
             return OBJECT_IDENTIFIER::try_from([ arc ].as_slice());

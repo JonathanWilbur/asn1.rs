@@ -7,7 +7,7 @@ use std::str::FromStr;
 
 impl UTCTime {
     #[inline]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         UTCTime {
             year: 0,
             month: 0,
@@ -15,12 +15,12 @@ impl UTCTime {
             hour: 0,
             minute: 0,
             second: 0,
-            utc_offset: UTCOffset::default()
+            utc_offset: UTCOffset::utc()
         }
     }
 
     #[inline]
-    pub fn is_zero(&self) -> bool {
+    pub const fn is_zero(&self) -> bool {
         self.year == 0
             && self.month <= 1
             && self.day <= 1

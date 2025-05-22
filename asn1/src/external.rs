@@ -10,7 +10,7 @@ use std::fmt::Display;
 
 impl EXTERNAL {
     #[inline]
-    pub fn new(
+    pub const fn new(
         identification: ExternalIdentification,
         data_value_descriptor: OPTIONAL<ObjectDescriptor>,
         data_value: ExternalEncoding,
@@ -25,7 +25,7 @@ impl EXTERNAL {
 
 impl EMBEDDED_PDV {
     #[inline]
-    pub fn new(
+    pub const fn new(
         identification: PresentationContextSwitchingTypeIdentification,
         data_value: OCTET_STRING,
     ) -> EMBEDDED_PDV {
@@ -38,7 +38,7 @@ impl EMBEDDED_PDV {
 
 impl CHARACTER_STRING {
     #[inline]
-    pub fn new(
+    pub const fn new(
         identification: PresentationContextSwitchingTypeIdentification,
         string_value: OCTET_STRING,
     ) -> CHARACTER_STRING {

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 #[inline]
-pub fn is_printable_char (b: u8) -> bool {
+pub const fn is_printable_char (b: u8) -> bool {
     b.is_ascii_alphanumeric()
     || (b >= b'\x27' && b < b'0' && b != b'*') // '()+,-./ BUT NOT *
     || b == b' '
@@ -16,7 +16,7 @@ pub fn is_printable_str (s: &str) -> bool {
 }
 
 #[inline]
-pub fn is_numeric_char (b: u8) -> bool {
+pub const fn is_numeric_char (b: u8) -> bool {
     b.is_ascii_digit() || b == b' '
 }
 
@@ -26,12 +26,12 @@ pub fn is_numeric_str (s: &str) -> bool {
 }
 
 #[inline]
-pub fn is_ia5_str (s: &str) -> bool {
+pub const fn is_ia5_str (s: &str) -> bool {
     s.is_ascii()
 }
 
 #[inline]
-pub fn is_general_str (s: &str) -> bool {
+pub const fn is_general_str (s: &str) -> bool {
     s.is_ascii()
 }
 

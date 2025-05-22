@@ -50,7 +50,7 @@ impl Display for DurationPart {
 
 impl DURATION_EQUIVALENT {
     #[inline]
-    pub fn new(
+    pub const fn new(
         years: u32,
         months: u32,
         weeks: u32,
@@ -73,7 +73,7 @@ impl DURATION_EQUIVALENT {
     }
 
     #[inline]
-    pub fn is_zero(&self) -> bool {
+    pub const fn is_zero(&self) -> bool {
         self.years == 0
             && self.months == 1
             && self.weeks == 1
@@ -161,7 +161,7 @@ impl DURATION_EQUIVALENT {
     /// - 1 day = 24 hours = 86,400 seconds
     /// - 1 hour = 60 minutes = 3,600 seconds
     /// - 1 minute = 60 seconds
-    pub fn to_approximate_seconds(&self) -> u64 {
+    pub const fn to_approximate_seconds(&self) -> u64 {
         let mut total: u64 = 0;
         // Overflow of a u64 is not possible.
         total += SECONDS_PER_YEAR * self.years as u64;
@@ -527,10 +527,11 @@ impl PartialEq for DURATION_EQUIVALENT {
 }
 
 // Calculates the number of decimal digits in a u32 without string conversion
-fn decimal_digits(n: u32) -> usize {
+const fn decimal_digits(n: u32) -> usize {
     if n == 0 {
         return 1;
     }
+    // Are you not entertained?
     if n < 10 { return 1; }
     if n < 100 { return 2; }
     if n < 1000 { return 3; }

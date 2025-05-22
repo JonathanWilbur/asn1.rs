@@ -7,7 +7,7 @@ use std::str::FromStr;
 
 impl TIME_OF_DAY {
     #[inline]
-    pub fn new(hour: u8, minute: u8, second: u8) -> Self {
+    pub const fn new(hour: u8, minute: u8, second: u8) -> Self {
         TIME_OF_DAY {
             hour,
             minute,
@@ -16,7 +16,7 @@ impl TIME_OF_DAY {
     }
 
     #[inline]
-    pub fn is_zero(&self) -> bool {
+    pub const fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0 && self.second == 0
     }
 

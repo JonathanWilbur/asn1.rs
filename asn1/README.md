@@ -275,9 +275,9 @@ somewhat battle-tested.
 
 - [x] Fuzz testing for OIDs and ROIDs
 - [ ] Benchmarking
+  - Actually, I don't know precisely what I want to benchmark. Deferring
+- [x] `const fn`
 - [ ] `no-std` and other feature flags
-- [ ] `const fn`
-  - [ ] This can probaby be used for OID assignments too
 - [ ] Documentation comments
 - [ ] `README.md` documentation
 - [ ] Debug assertions / debug logging?

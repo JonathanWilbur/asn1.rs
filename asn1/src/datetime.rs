@@ -8,14 +8,10 @@ use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, TIME_OF_DAY};
 
 impl DATE_TIME {
     #[inline]
-    pub fn new(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Self {
+    pub const fn new(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Self {
         DATE_TIME {
             date: DATE { year, month, day },
-            time: crate::TIME_OF_DAY {
-                hour,
-                minute,
-                second,
-            },
+            time: TIME_OF_DAY { hour, minute, second },
         }
     }
 

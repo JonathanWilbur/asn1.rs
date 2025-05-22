@@ -72,18 +72,21 @@ where
 
 /// If you need to remove spaces from numeric strings, consider using the
 /// `cow-utils` crate: https://crates.io/crates/cow-utils.
-pub fn compare_numeric_string (a: &str, b: &str) -> bool {
-    let a_trim = a.trim().as_bytes();
-    let b_trim = b.trim().as_bytes();
+pub const fn compare_numeric_string (a: &str, b: &str) -> bool {
+    // This function was made uglier so it could be const.
+    let a_trim = a.as_bytes();
+    let b_trim = b.as_bytes();
     let mut i = 0;
     let mut j = 0;
-    'a_loop: while let Some(a_byte) = a_trim.get(i) {
-        if *a_byte == b' ' {
+    'a_loop: while i < a_trim.len() {
+        let a_byte = a_trim[i];
+        if a_byte == b' ' {
             i += 1;
             continue;
         }
-        while let Some(b_byte) = b_trim.get(j) {
-            if *b_byte == b' ' {
+        while j < b_trim.len() {
+            let b_byte = b_trim[j];
+            if b_byte == b' ' {
                 j += 1;
                 continue;
             }
@@ -100,8 +103,9 @@ pub fn compare_numeric_string (a: &str, b: &str) -> bool {
     }
     // Beyond this point, we ran out of A characters.
     // So we need to check if B has any more digits to match.
-    while let Some(b_byte) = b_trim.get(j) {
-        if *b_byte == b' ' {
+    while j < b_trim.len() {
+        let b_byte = b_trim[j];
+        if b_byte == b' ' {
             j += 1;
             continue;
         }
@@ -112,7 +116,7 @@ pub fn compare_numeric_string (a: &str, b: &str) -> bool {
 
 /// This is not a time library.
 #[inline]
-pub(crate) fn get_days_in_month (year: u16, month: u8) -> u8 {
+pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
     let is_leap_year = ((year % 4) == 0) && (((year % 100) > 0) || ((year % 400) == 0));
     match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,

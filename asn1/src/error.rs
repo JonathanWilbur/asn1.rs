@@ -96,7 +96,7 @@ impl fmt::Display for ASN1ErrorCode {
 
 impl ASN1Error {
     #[inline]
-    pub fn new(error_code: ASN1ErrorCode) -> Self {
+    pub const fn new(error_code: ASN1ErrorCode) -> Self {
         ASN1Error {
             error_code,
             component_name: None,

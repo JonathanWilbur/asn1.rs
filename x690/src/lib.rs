@@ -100,6 +100,7 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
 #[derive(Clone, Debug, Hash)]
 pub enum X690Value {
     Primitive(Bytes),
+    // TODO: I am reconsidering this being Arc'd or even Rc'd at all.
     Constructed(Arc<Vec<X690Element>>),
 }
 

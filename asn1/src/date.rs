@@ -8,12 +8,12 @@ use std::str::FromStr;
 
 impl DATE {
     #[inline]
-    pub fn new(year: u16, month: u8, day: u8) -> Self {
+    pub const fn new(year: u16, month: u8, day: u8) -> Self {
         DATE { year, month, day }
     }
 
     #[inline]
-    pub fn is_zero(&self) -> bool {
+    pub const fn is_zero(&self) -> bool {
         self.year == 0 && self.month <= 1 && self.day <= 1
     }
 

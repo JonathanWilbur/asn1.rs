@@ -29,7 +29,7 @@ pub struct IdentificationSyntaxes {
 
 impl IdentificationSyntaxes {
     #[inline]
-    pub fn new(r#abstract: OBJECT_IDENTIFIER, transfer: OBJECT_IDENTIFIER) -> Self {
+    pub const fn new(r#abstract: OBJECT_IDENTIFIER, transfer: OBJECT_IDENTIFIER) -> Self {
         IdentificationSyntaxes {
             r#abstract,
             transfer,
@@ -45,7 +45,7 @@ pub struct ContextNegotiation {
 
 impl ContextNegotiation {
     #[inline]
-    pub fn new(presentation_context_id: INTEGER, transfer_syntax: OBJECT_IDENTIFIER) -> Self {
+    pub const fn new(presentation_context_id: INTEGER, transfer_syntax: OBJECT_IDENTIFIER) -> Self {
         ContextNegotiation {
             presentation_context_id,
             transfer_syntax,
@@ -110,7 +110,7 @@ pub struct InstanceOf {
 
 impl InstanceOf {
     #[inline]
-    pub fn new(type_id: OBJECT_IDENTIFIER, value: Arc<ASN1Value>) -> Self {
+    pub const fn new(type_id: OBJECT_IDENTIFIER, value: Arc<ASN1Value>) -> Self {
         InstanceOf { type_id, value }
     }
 }
@@ -123,17 +123,17 @@ pub struct UTCOffset {
 
 impl UTCOffset {
     #[inline]
-    pub fn new(hour: i8, minute: u8) -> Self {
+    pub const fn new(hour: i8, minute: u8) -> Self {
         UTCOffset { hour, minute }
     }
 
     #[inline]
-    pub fn is_zero(&self) -> bool {
+    pub const fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0
     }
 
     #[inline]
-    pub fn utc() -> Self {
+    pub const fn utc() -> Self {
         UTCOffset{ hour: 0, minute: 0 }
     }
 }
@@ -154,7 +154,7 @@ pub struct FractionalPart {
 
 impl FractionalPart {
     #[inline]
-    pub fn new(number_of_digits: u8, fractional_value: u32) -> Self {
+    pub const fn new(number_of_digits: u8, fractional_value: u32) -> Self {
         FractionalPart {
             number_of_digits,
             fractional_value,
@@ -435,7 +435,7 @@ pub struct TaggedASN1Value {
 
 impl TaggedASN1Value {
     #[inline]
-    pub fn new(
+    pub const fn new(
         tag_class: TagClass,
         tag_number: TagNumber,
         explicit: bool,

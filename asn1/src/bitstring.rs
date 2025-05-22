@@ -83,7 +83,7 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     ret
 }
 
-fn calculate_trailing_bits(total_bits: usize) -> u8 {
+const fn calculate_trailing_bits(total_bits: usize) -> u8 {
     let used_bits_in_last_byte = total_bits % 8;
     if used_bits_in_last_byte == 0 && total_bits != 0 {
         0
