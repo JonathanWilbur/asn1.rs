@@ -102,16 +102,6 @@ impl ISO8601Timestampable for DATE_TIME {
 
 }
 
-impl Default for DATE_TIME {
-    #[inline]
-    fn default() -> Self {
-        DATE_TIME {
-            date: DATE::default(),
-            time: TIME_OF_DAY::default(),
-        }
-    }
-}
-
 impl From<GeneralizedTime> for DATE_TIME {
     #[inline]
     fn from(other: GeneralizedTime) -> Self {

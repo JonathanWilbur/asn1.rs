@@ -409,7 +409,7 @@ pub struct TIME_OF_DAY {
     pub second: u8,
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
 pub struct DATE_TIME {
     pub date: DATE,
     pub time: TIME_OF_DAY,
