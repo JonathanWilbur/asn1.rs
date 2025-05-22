@@ -293,6 +293,10 @@ impl BIT_STRING {
         return BIT_STRING { bytes: bytes.to_owned(), trailing_bits };
     }
 
+    /// If the `smallvec` feature is enabled, this doesn't really incur much of
+    /// a performance penalty: `smallvec` is smart enough to re-use the
+    /// `Vec<u8>`'s pointer rather than copying it, unless it needs to be
+    /// copied into the inline space.
     #[inline]
     pub fn from_parts_owned(bytes: Vec<u8>, trailing_bits: u8) -> BIT_STRING {
         #[cfg(feature = "smallvec")]
