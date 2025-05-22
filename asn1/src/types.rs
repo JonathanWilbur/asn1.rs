@@ -220,7 +220,6 @@ pub struct BIT_STRING {
 
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Eq, Clone)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct BIT_STRING {
     pub(crate) bytes: SmallVec<[u8; 16]>,
     pub(crate) trailing_bits: u8,

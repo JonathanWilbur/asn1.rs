@@ -45,6 +45,11 @@ impl OBJECT_IDENTIFIER {
         out
     }
 
+    #[inline]
+    pub fn to_dot_delim_string(&self) -> String {
+        self.to_string()
+    }
+
     pub fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));

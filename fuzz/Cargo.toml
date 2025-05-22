@@ -69,3 +69,10 @@ path = "fuzz_targets/asn1utils.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "oid"
+path = "fuzz_targets/oid.rs"
+test = false
+doc = false
+bench = false

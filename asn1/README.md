@@ -258,6 +258,7 @@ cargo fuzz run asn1utils -- -max_len=8
 cargo fuzz run duration -- -max_len=32
 cargo fuzz run gentime -- -max_len=35
 cargo fuzz run utctime -- -max_len=20
+cargo fuzz run oid -- -max_len=24
 ```
 
 These will run forever, so you will want to kill them by pressing `Ctrl+C`.
@@ -272,17 +273,7 @@ somewhat battle-tested.
 
 ## To Do
 
-- [x] `TryFrom<&[i8]>` for `OBJECT_IDENTIFIER`
-- [x] `OBJECT_IDENTIFIER::from_prefix_and_arc()`
-- [x] `OBJECT_IDENTIFIER::from_prefix_and_suffix()`
-- [x] `RELATIVE_OID::concat()`
-- [x] Fix issues caused by OID refactor
-- [x] Implement `X690KnownSize` for many types
-  - [x] You need to consider DER and CER, which might mean some implementations are wrong
-- [x] ~~`X690KnownSize`~~ for context-switching types (not known because of tagging and length options)
-- [x] ~~`X690Validate` for context-switching types~~ (not possible because of tagging and length options)
-- [x] Make `BIT_STRING` use smallvec or bytes
-- [ ] Fuzz testing for OIDs and ROIDs
+- [x] Fuzz testing for OIDs and ROIDs
 - [ ] Benchmarking
 - [ ] `no-std` and other feature flags
 - [ ] `const fn`

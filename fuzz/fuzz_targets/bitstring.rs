@@ -5,7 +5,7 @@ use libfuzzer_sys::fuzz_target;
 extern crate asn1;
 
 fuzz_target!(|data: asn1::BIT_STRING| {
-    if data.trailing_bits >= 8 || data.bytes.len() == 0 {
+    if data.get_trailing_bits_count() >= 8 || data.len_in_bytes() == 0 {
         return;
     }
     let _ = asn1::join_bit_strings(&[ data.to_owned(), asn1::BIT_STRING::new() ]);
