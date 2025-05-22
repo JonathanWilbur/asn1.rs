@@ -285,14 +285,20 @@ impl BIT_STRING {
         return BIT_STRING { bytes, trailing_bits: 0 };
     }
 
-    // TODO: from_parts_owned
-
     #[inline]
     pub fn from_parts_borrowed(bytes: &[u8], trailing_bits: u8) -> BIT_STRING {
         #[cfg(feature = "smallvec")]
         return BIT_STRING { bytes: bytes.into(), trailing_bits };
         #[cfg(not(feature = "smallvec"))]
         return BIT_STRING { bytes: bytes.to_owned(), trailing_bits };
+    }
+
+    #[inline]
+    pub fn from_parts_owned(bytes: Vec<u8>, trailing_bits: u8) -> BIT_STRING {
+        #[cfg(feature = "smallvec")]
+        return BIT_STRING { bytes: SmallVec::from_vec(bytes), trailing_bits };
+        #[cfg(not(feature = "smallvec"))]
+        return BIT_STRING { bytes, trailing_bits };
     }
 
 }
