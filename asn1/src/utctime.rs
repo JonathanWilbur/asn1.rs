@@ -6,6 +6,8 @@ use std::fmt::{Display, Write};
 use std::str::FromStr;
 
 impl UTCTime {
+
+    /// Create a new `UTCTime`
     #[inline]
     pub const fn new() -> Self {
         UTCTime {
@@ -19,6 +21,8 @@ impl UTCTime {
         }
     }
 
+    /// Return `true` if the `UTCTime` is zeroed (e.g. `00000101000000`) or the
+    /// invalid value, `00000000000000`.
     #[inline]
     pub const fn is_zero(&self) -> bool {
         self.year == 0
@@ -33,6 +37,7 @@ impl UTCTime {
 
 impl ISO8601Timestampable for UTCTime {
 
+    /// Convert the `UTCTime` to an ISO 8601 Timestamp string
     #[cfg(feature = "itoa")]
     fn to_iso_8601_string(&self) -> String {
         let mut buf_year = itoa::Buffer::new();
@@ -76,6 +81,7 @@ impl ISO8601Timestampable for UTCTime {
         );
     }
 
+    /// Convert the `UTCTime` to an ISO 8601 Timestamp string
     #[cfg(not(feature = "itoa"))]
     fn to_iso_8601_string(&self) -> String {
         if !self.utc_offset.is_zero() {
@@ -107,6 +113,8 @@ impl ISO8601Timestampable for UTCTime {
 }
 
 impl Default for UTCTime {
+
+    /// Create a zeroed `UTCTime` of `00000101000000Z`.
     #[inline]
     fn default() -> Self {
         UTCTime {
@@ -147,6 +155,7 @@ impl PartialEq<GeneralizedTime> for UTCTime {
 impl TryFrom<&[u8]> for UTCTime {
     type Error = ASN1Error;
 
+    /// Convert a `UTCTime` value from ASCII
     fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
         let len = b.len();
         if unlikely(len < 10) {
@@ -226,6 +235,7 @@ impl TryFrom<&[u8]> for UTCTime {
 impl FromStr for UTCTime {
     type Err = ASN1Error;
 
+    /// Convert a `UTCTime` value from ASCII
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         UTCTime::try_from(s.as_bytes())
@@ -239,6 +249,8 @@ impl FromStr for UTCTime {
 
 impl Display for UTCTime {
 
+    /// Print a `UTCTime` according to the abstract syntax, such as
+    /// `20210304123456Z`
     #[cfg(feature = "itoa")]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut buf_year = itoa::Buffer::new();
@@ -267,6 +279,8 @@ impl Display for UTCTime {
         }
     }
 
+    /// Print a `UTCTime` according to the abstract syntax, such as
+    /// `20210304123456Z`
     #[cfg(not(feature = "itoa"))]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:02}{:02}{:02}{:02}{:02}{:02}",

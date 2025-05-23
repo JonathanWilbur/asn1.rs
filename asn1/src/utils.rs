@@ -1,11 +1,20 @@
 use crate::types::ByteSlice;
 
-pub fn read_i64(bytes: ByteSlice) -> Result<i64, ()> {
+/// Attempt to read a variable-length big-endian signed integer (encoded as
+/// two's complement) from a byte slice (`&[u8]`) into an `i64`. This is
+/// primarily used for reading an ASN.1 `INTEGER` or `ENUMERATED` value into a
+/// more useful form.
+///
+/// No validation is performed on the byte slice `bytes`, not that there is
+/// really to be done, other than checking for padding bytes.
+///
+/// If the encoded value is too large to fit into an `i64`, `None` is returned.
+pub fn read_i64(bytes: ByteSlice) -> Option<i64> {
     let len = bytes.len();
     match len {
-        1 => Ok(bytes[0] as i64),
-        2 => Ok(i16::from_be_bytes([bytes[0], bytes[1]]) as i64),
-        3 => Ok(i32::from_be_bytes([
+        1 => Some(bytes[0] as i64),
+        2 => Some(i16::from_be_bytes([bytes[0], bytes[1]]) as i64),
+        3 => Some(i32::from_be_bytes([
             if bytes[0] & 0b1000_0000 > 0 {
                 0xFF
             } else {
@@ -15,22 +24,31 @@ pub fn read_i64(bytes: ByteSlice) -> Result<i64, ()> {
             bytes[1],
             bytes[2],
         ]) as i64),
-        4 => Ok(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as i64),
+        4 => Some(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as i64),
         5..=8 => {
             let mut buf: [u8; 8] = [0; 8];
             buf[8 - len..].copy_from_slice(bytes);
-            Ok(i64::from_be_bytes(buf))
+            Some(i64::from_be_bytes(buf))
         }
-        _ => Err(()),
+        _ => None,
     }
 }
 
-pub fn read_i128(bytes: ByteSlice) -> Result<i128, ()> {
+/// Attempt to read a variable-length big-endian signed integer (encoded as
+/// two's complement) from a byte slice (`&[u8]`) into an `i128`. This is
+/// primarily used for reading an ASN.1 `INTEGER` or `ENUMERATED` value into a
+/// more useful form.
+///
+/// No validation is performed on the byte slice `bytes`, not that there is
+/// really to be done, other than checking for padding bytes.
+///
+/// If the encoded value is too large to fit into an `i128`, `None` is returned.
+pub fn read_i128(bytes: ByteSlice) -> Option<i128> {
     let len = bytes.len();
     match len {
-        1 => Ok(bytes[0] as i128),
-        2 => Ok(i16::from_be_bytes([bytes[0], bytes[1]]) as i128),
-        3 => Ok(i32::from_be_bytes([
+        1 => Some(bytes[0] as i128),
+        2 => Some(i16::from_be_bytes([bytes[0], bytes[1]]) as i128),
+        3 => Some(i32::from_be_bytes([
             if bytes[0] & 0b1000_0000 > 0 {
                 0xFF
             } else {
@@ -40,16 +58,20 @@ pub fn read_i128(bytes: ByteSlice) -> Result<i128, ()> {
             bytes[1],
             bytes[2],
         ]) as i128),
-        4 => Ok(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as i128),
+        4 => Some(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as i128),
         5..=16 => {
             let mut buf: [u8; 16] = [0; 16];
             buf[16 - len..].copy_from_slice(bytes);
-            Ok(i128::from_be_bytes(buf))
+            Some(i128::from_be_bytes(buf))
         }
-        _ => Err(()),
+        _ => None,
     }
 }
 
+/// Write a single `OBJECT IDENTIFIER` arc, using the Variable-Length Quantity
+/// (VLQ) serialization that is used to encode arcs in X.690 encodings and
+/// others, to a writeable output, returning the number of bytes written within
+/// an [std::io::Result].
 pub fn write_oid_arc<W>(output: &mut W, mut num: u128) -> std::io::Result<usize>
 where
     W: std::io::Write
@@ -70,6 +92,10 @@ where
     output.write(&encoded[0..byte_count+1])
 }
 
+/// Compare two numeric strings without modifying them. Space characters are
+/// ignored in the comparison, so `00100` will match `00 1 00`. Leading and
+/// trailing zeroes are significant, so `99` will not match `0099`.
+///
 /// If you need to remove spaces from numeric strings, consider using the
 /// `cow-utils` crate: https://crates.io/crates/cow-utils.
 pub const fn compare_numeric_string (a: &str, b: &str) -> bool {

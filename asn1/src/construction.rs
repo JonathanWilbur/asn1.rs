@@ -1,29 +1,57 @@
 use crate::types::{TagClass, TagNumber};
 
-// This is recursively-defined using references instead of `Box` so that it can
-// be constructed statically / as a constant.
+/// A selector for an ASN.1 tag.
+/// This is recursively-defined using references instead of `Box` so that it can
+/// be constructed statically / as a constant.
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub enum TagSelector<'a> {
+
+    /// Matches a tag class and tag number exactly
     tag((TagClass, TagNumber)),
+
+    /// Matches just the tag class, ignoring the tag number
     class(TagClass),
+
+    /// Matches just the tag number, ignore the tag class
     number(TagNumber),
-    and(&'a [&'a TagSelector<'a>]),
+
+    /// Matches if any of the contained tag selectors match
     or(&'a [&'a TagSelector<'a>]),
+
+    /// Matches if the contained tag selectors DOES NOT match
     not(&'a TagSelector<'a>),
+
+    /// Matches any tag class and tag number
     any,
 }
 
+/// Metadata about a component of a `SET` or `SEQUENCE`.
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub struct ComponentSpec<'a> {
+
+    /// The name of the component
     pub name: &'a str,
+
+    /// Whether the component is `OPTIONAL`. This MUST be `TRUE` when the
+    /// component has a `DEFAULT` value.
     pub optional: bool,
+
+    /// The tag selector for this component. This selector is what is used to
+    /// match up an encoded component to this metadata.
     pub selector: TagSelector<'a>,
+
+    /// If component groups are used, this is the group in which the component
+    /// appears. From experience, this is rarely used.
     pub group_index: Option<u8>,
+
+    /// `SET` or `SEQUENCE` versioning is used, this is the version in which
+    /// this component is found. From experience, this is rarely used.
     pub version_number: Option<u8>,
 }
 
 impl<'a> ComponentSpec<'a> {
 
+    /// Define a new component spec
     #[inline]
     pub const fn new(
         name: &'a str,
@@ -41,6 +69,7 @@ impl<'a> ComponentSpec<'a> {
         }
     }
 
+    /// Define a new non-`OPTIONAL` and non-`DEFAULT`ing component spec
     #[inline]
     pub const fn req(
         name: &'a str,
@@ -55,6 +84,7 @@ impl<'a> ComponentSpec<'a> {
         }
     }
 
+    /// Define a new `OPTIONAL` or `DEFAULT`ing component spec
     #[inline]
     pub const fn opt(
         name: &'a str,
@@ -68,20 +98,4 @@ impl<'a> ComponentSpec<'a> {
             version_number: None,
         }
     }
-}
-
-// REVIEW: Does this make sense at all?
-impl <'a> Default for ComponentSpec<'a> {
-
-    #[inline]
-    fn default() -> Self {
-        ComponentSpec::<'a> {
-            name: "",
-            optional: true,
-            selector: TagSelector::any,
-            group_index: None,
-            version_number: None,
-        }
-    }
-
 }

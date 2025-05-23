@@ -170,7 +170,7 @@ fn days_in_month(year: u32, month: u32) -> u32 {
 
 pub fn ber_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
     if bytes.len() == 0 {
-        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+        return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
     }
     let mut bytes_read = 1;
     let tag_class = match (bytes[0] & 0b1100_0000) >> 6 {
@@ -222,7 +222,7 @@ pub fn ber_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
 pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     if bytes.len() == 0 {
         // Truncated.
-        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+        return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
     }
     if bytes[0] < 0b1000_0000 {
         // Equivalent to ((b[0] & 0b1000_0000) == 0)
@@ -239,7 +239,7 @@ pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     }
     if (bytes.len() - 1) < length_length {
         // Insufficient bytes to read the length.
-        return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+        return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
     }
     let bytes_read = 1 + length_length;
     let len: usize = match length_length {
@@ -304,7 +304,7 @@ impl X690Codec for BasicEncodingRules {
         match value_length {
             X690Length::Definite(len) => {
                 if (bytes.len() - bytes_read) < len {
-                    let mut err = ASN1Error::new(ASN1ErrorCode::truncated);
+                    let mut err = ASN1Error::new(ASN1ErrorCode::tlv_truncated);
                     err.tag = Some(Tag::new(tag.tag_class, tag.tag_number));
                     err.length = Some(len);
                     return Err(err);
@@ -394,7 +394,7 @@ impl X690Codec for BasicEncodingRules {
         match value_length {
             X690Length::Definite(len) => {
                 if (bytes.len() - bytes_read) < len {
-                    let mut err = ASN1Error::new(ASN1ErrorCode::truncated);
+                    let mut err = ASN1Error::new(ASN1ErrorCode::tlv_truncated);
                     err.tag = Some(Tag::new(tag.tag_class, tag.tag_number));
                     err.length = Some(len);
                     return Err(err);
@@ -510,14 +510,14 @@ impl X690Codec for BasicEncodingRules {
                 X690_SPECIAL_REAL_MINUS_INFINITY => return Ok(f64::NEG_INFINITY),
                 X690_SPECIAL_REAL_NOT_A_NUMBER => return Ok(f64::NAN),
                 X690_SPECIAL_REAL_MINUS_ZERO => return Ok(-0.000000),
-                _ => return Err(ASN1Error::new(ASN1ErrorCode::urecognized_real_format)),
+                _ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_special_real)),
             },
             X690_REAL_BASE10 => {
                 let str_ = match from_utf8(&value_bytes[1..]) {
                     Ok(v) => String::from(v.trim_start()),
                     _ => {
                         return Err(ASN1Error::new(
-                            ASN1ErrorCode::base_10_real_string_decoding_error,
+                            ASN1ErrorCode::malformed_value,
                         ))
                     }
                 };
@@ -1216,14 +1216,14 @@ impl X690Codec for BasicEncodingRules {
                 }
                 let mut remaining_slice = &content_octets[start..];
                 if remaining_slice.len() == 0 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+                    return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                 }
                 if remaining_slice[0] == b'+' || remaining_slice[0] == b'-' {
                     start += 1;
                     remaining_slice = &content_octets[start..];
                 }
                 if remaining_slice.len() == 0 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+                    return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                 }
                 match base10_format {
                     // Why yes, I did purchase a copy of ISO 6093 to figure out what these formats were.
@@ -1290,7 +1290,7 @@ impl X690Codec for BasicEncodingRules {
                         }
                         remaining_slice = &content_octets[index_of_e+1..];
                         if remaining_slice.len() <= 1 {
-                            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+                            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                         }
                         if remaining_slice[0] != b'+' && remaining_slice[0] != b'-' {
                             return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(remaining_slice.to_owned())));
@@ -1315,14 +1315,14 @@ impl X690Codec for BasicEncodingRules {
                     0b0000_0011 => {
                         // One byte for prefix, one for exp length, at least one for exp length and at least one for the mantissa.
                         if content_octets.len() < 4 {
-                            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+                            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                         }
                         content_octets[1] as usize + 1
                     },
                     _ => panic!(),
                 };
                 if content_octets.len() < exp_len + 2 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+                    return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                 }
             },
             _ => panic!(),
@@ -1737,7 +1737,7 @@ impl X690Codec for BasicEncodingRules {
 
     fn validate_universal_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() % 4 > 0 {
-            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
         // Theoretically, you could validate that every uint32 is a valid Unicode
         // code point as well, but that might be overkill.
@@ -1748,7 +1748,7 @@ impl X690Codec for BasicEncodingRules {
 
     fn validate_bmp_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() % 2 > 0 {
-            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
         // TODO: Do you need to do any validation with a BOM?
         Ok(())

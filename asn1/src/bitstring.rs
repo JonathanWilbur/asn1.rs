@@ -4,6 +4,7 @@ use std::{convert::TryInto, fmt::{Display, Write}};
 use crate::utils::unlikely;
 use std::hash::{Hash, Hasher};
 
+/// Combine `BIT STRING`s into one bigger `BIT STRING`
 pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     if unlikely(strs.len() == 0) {
         return BIT_STRING::new();
@@ -94,11 +95,14 @@ const fn calculate_trailing_bits(total_bits: usize) -> u8 {
 
 impl BIT_STRING {
 
+    /// Create a new empty `BIT STRING`
     #[inline]
     pub fn new() -> Self {
-        BIT_STRING::default()
+        Self::default()
     }
 
+    /// Create a new `BIT STRING` with enough capacity to store `bits` number of
+    /// bits without any further heap allocations.
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         #[cfg(feature = "smallvec")]
@@ -113,6 +117,7 @@ impl BIT_STRING {
         };
     }
 
+    /// Get a bit at the specified `index`, where `index` is zero-indexed.
     pub fn get(&self, index: usize) -> Option<bool> {
         let byte_index: usize = index >> 3; // This is faster "divide by 8"
         let bit_index: usize = index % 8;
@@ -127,6 +132,7 @@ impl BIT_STRING {
         Some(masked > 0)
     }
 
+    /// Set (or unset) a bit at the specified `index`, where `index` is zero-indexed.
     pub fn set(&mut self, index: usize, value: bool) -> bool {
         let mut len = self.bytes.len();
         let byte_index: usize = index >> 3;
@@ -160,7 +166,7 @@ impl BIT_STRING {
         extended
     }
 
-    /// The length IN BITS of the bit string.
+    /// The length IN BITS of the `BIT STRING`
     #[inline]
     pub fn len_in_bits (&self) -> usize {
         (self.bytes.len() << 3)
@@ -168,27 +174,38 @@ impl BIT_STRING {
             .unwrap_or(0)
     }
 
+    /// The length IN BYTES of the `BIT STRING`
     #[inline]
     pub fn len_in_bytes (&self) -> usize {
         self.bytes.len()
     }
 
-
+    /// Get the number of trailing bits
     #[inline]
     pub fn get_trailing_bits_count (&self) -> u8 {
         self.trailing_bits & 7 // More efficient than % 8
     }
 
+    /// Get an immutable reference to the bytes on which the bits are stored.
+    /// Bit zero is guaranteed to be the most significant bit of the first byte.
     #[inline]
     pub fn get_bytes_ref (&self) -> &[u8] {
         &self.bytes
     }
 
+    /// Get a mutable reference to the bytes on which the bits are stored.
+    /// Bit zero is guaranteed to be the most significant bit of the first byte.
     #[inline]
     pub fn get_bytes_ref_mut (&mut self) -> &mut [u8] {
         &mut self.bytes
     }
 
+    /// Create a new `BIT STRING` that is big enough to accommodate all of the
+    /// bits being set from `bits_to_set` and set those bits. The resulting
+    /// `BIT STRING` will have no trailing zeroes (i.e. the last bit will
+    /// always be a 1 unless `bits_to_set` is empty). The values of
+    /// `bits_to_set` are indexes into the `BIT STRING`, with `0` being the
+    /// first bit.
     pub fn with_bits_set(bits_to_set: &[usize]) -> BIT_STRING {
         let mut bit_size: usize = 0;
         for bit in bits_to_set.iter() {
@@ -214,6 +231,10 @@ impl BIT_STRING {
         bs
     }
 
+    /// Convert a binary string (only '1' and '0' ASCII characters) into a
+    /// `BIT STRING`. In this implementation, only '1' is used to set bits and
+    /// all other characters are treated as though they were '0'. This function
+    /// is infallible and assumes that the input is truly only ones and zeroes.
     pub fn from_bin(bitstr: &str) -> BIT_STRING {
         if unlikely(bitstr.len() == 0) {
             #[cfg(feature = "smallvec")]
@@ -253,6 +274,8 @@ impl BIT_STRING {
         bs
     }
 
+    /// Create a new `BIT STRING` out of `1`s and `0`s. This was implemented
+    /// solely for the `bits!` macro, but you could use it if you want.
     pub fn from_bits(bits: &[u8]) -> BIT_STRING {
         let bit_size = bits.len();
         let byte_size = (bits.len() >> 3) + if (bit_size % 8) > 0 { 1 } else { 0 };
@@ -268,6 +291,7 @@ impl BIT_STRING {
         };
 
         for (i, bit) in bits.iter().enumerate() {
+            debug_assert!(*bit == 1 || *bit == 0);
             bs.set(i, *bit > 0);
         }
         if byte_size > 0 {
@@ -277,6 +301,8 @@ impl BIT_STRING {
         bs
     }
 
+    /// Consume the bytes passed in to produce a `BIT STRING` that has no
+    /// trailing bits.
     #[inline]
     pub fn from_bytes(bytes: Vec<u8>) -> BIT_STRING {
         #[cfg(feature = "smallvec")]
@@ -285,6 +311,7 @@ impl BIT_STRING {
         return BIT_STRING { bytes, trailing_bits: 0 };
     }
 
+    /// Create a `BIT STRING` from borrowed bytes.
     #[inline]
     pub fn from_parts_borrowed(bytes: &[u8], trailing_bits: u8) -> BIT_STRING {
         #[cfg(feature = "smallvec")]
@@ -293,6 +320,7 @@ impl BIT_STRING {
         return BIT_STRING { bytes: bytes.to_owned(), trailing_bits };
     }
 
+    /// Create a `BIT STRING` from owned bytes.
     /// If the `smallvec` feature is enabled, this doesn't really incur much of
     /// a performance penalty: `smallvec` is smart enough to re-use the
     /// `Vec<u8>`'s pointer rather than copying it, unless it needs to be
@@ -313,6 +341,8 @@ impl BIT_STRING {
 
 impl PartialEq for BIT_STRING {
 
+    /// Compare bit strings, bit by bit, ignoring the trailing bits in the
+    /// comparison as one would expect.
     fn eq(&self, other: &Self) -> bool {
         if self.trailing_bits != other.trailing_bits {
             return false;
@@ -335,6 +365,9 @@ impl PartialEq for BIT_STRING {
 }
 
 impl From<&[u8]> for BIT_STRING {
+
+    /// Make a new `BIT STRING` using an integral number of octets, which will
+    /// have no trailing bits.
     #[inline]
     fn from(other: &[u8]) -> Self {
         #[cfg(feature = "smallvec")]
@@ -351,21 +384,17 @@ impl From<&[u8]> for BIT_STRING {
 }
 
 impl From<Vec<u8>> for BIT_STRING {
+
+    /// Make a new `BIT STRING` using an integral number of octets, which will
+    /// have no trailing bits.
     fn from(other: Vec<u8>) -> Self {
-        #[cfg(feature = "smallvec")]
-        return BIT_STRING {
-            bytes: other.into(),
-            trailing_bits: 0,
-        };
-        #[cfg(not(feature = "smallvec"))]
-        return BIT_STRING {
-            bytes: other,
-            trailing_bits: 0,
-        };
+        BIT_STRING::from_bytes(other)
     }
 }
 
 impl Default for BIT_STRING {
+
+    /// Create an empty `BIT STRING`
     #[inline]
     fn default() -> Self {
         #[cfg(feature = "smallvec")]
@@ -439,11 +468,27 @@ impl Hash for BIT_STRING {
     }
 }
 
+/// Macro to define a bit string from raw bits.
+///
+/// **HELP WANTED**: I would love it if somebody could make this require 1s and
+/// 0s at the macro level, rather than evaluating them at run-time.
+///
+/// ```rust
+/// let bs1 = asn1::bits!(1,0,1,0,0,1,0,1,1,1,1);
+/// assert_eq!(bs1.to_string().as_str(), "'10100101111'B");
+/// ```
+///
 #[macro_export]
 macro_rules! bits {
-    ( $( $x:expr ),* ) => {
+    () => {
         {
-            use super::BIT_STRING;
+            use $crate::BIT_STRING;
+            BIT_STRING::new()
+        }
+    };
+    ( $( $x:expr ),+ ) => {
+        {
+            use $crate::BIT_STRING;
             BIT_STRING::from_bits(&[ $($x,)* ])
         }
     };

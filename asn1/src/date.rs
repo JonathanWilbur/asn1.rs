@@ -7,16 +7,23 @@ use std::str::FromStr;
 
 
 impl DATE {
+
+    /// Create a new `DATE`
     #[inline]
     pub const fn new(year: u16, month: u8, day: u8) -> Self {
         DATE { year, month, day }
     }
 
+    /// Determine if the `DATE` is zero-valued, which is `0000-01-01` or the
+    /// invalid value `0000-00-00` (invalid because there is no month 0 or day
+    /// 0).
     #[inline]
     pub const fn is_zero(&self) -> bool {
         self.year == 0 && self.month <= 1 && self.day <= 1
     }
 
+    /// Convert to a string of decimal digits only.
+    ///
     /// This is intentionally designed to be suitable as an encoding of this
     /// abstract value as the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
@@ -36,6 +43,8 @@ impl DATE {
         }
     }
 
+    /// Convert from a string of decimal digits only.
+    ///
     /// This is intentionally designed to be suitable as an decoding of this
     /// abstract value from the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
@@ -84,6 +93,8 @@ impl DATE {
 }
 
 impl Default for DATE {
+
+    /// Create a new default `DATE` value, which is zeroed (`0000-01-01`).
     #[inline]
     fn default() -> Self {
         DATE {
@@ -96,6 +107,7 @@ impl Default for DATE {
 
 impl X690KnownSize for DATE {
 
+    /// Returns 8. The X.690 encoding of a `DATE` is always 8 bytes long.
     fn x690_size (&self) -> usize {
         8
     }
@@ -103,6 +115,8 @@ impl X690KnownSize for DATE {
 }
 
 impl From<GeneralizedTime> for DATE {
+
+    /// Extracts the `date` from a `GeneralizedTime`
     #[inline]
     fn from(other: GeneralizedTime) -> Self {
         other.date
@@ -110,6 +124,8 @@ impl From<GeneralizedTime> for DATE {
 }
 
 impl From<DATE_TIME> for DATE {
+
+    /// Extracts the `date` from a `DATE_TIME`
     #[inline]
     fn from(other: DATE_TIME) -> Self {
         other.date
@@ -117,6 +133,8 @@ impl From<DATE_TIME> for DATE {
 }
 
 impl From<UTCTime> for DATE {
+
+    /// Extracts the `date` from a `UTCTime`
     #[inline]
     fn from(other: UTCTime) -> Self {
         DATE {
@@ -150,6 +168,12 @@ impl PartialEq<UTCTime> for DATE {
 impl TryFrom<&[u8]> for DATE {
     type Error = ASN1Error;
 
+    /// Parse an abstract value string containing a `DATE` value. This expects
+    /// dashes in the date, such as `2001-01-24`.
+    ///
+    /// X.690 encoding does _not_ use the dashes. This is the wrong function for
+    /// decoding BER, CER, or DER-encoded `DATE` values. Use
+    /// [DATE::try_from_num_str] instead for X.690 decoding.
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
         if unlikely(value_bytes.len() != 10) { // "YYYY-MM-DD".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -207,6 +231,12 @@ impl TryFrom<&[u8]> for DATE {
 impl FromStr for DATE {
     type Err = ASN1Error;
 
+    /// Parse an abstract value string containing a `DATE` value. This expects
+    /// dashes in the date, such as `2001-01-24`.
+    ///
+    /// X.690 encoding does _not_ use the dashes. This is the wrong function for
+    /// decoding BER, CER, or DER-encoded `DATE` values. Use
+    /// [DATE::try_from_num_str] instead for X.690 decoding.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         DATE::try_from(s.as_bytes())
@@ -214,6 +244,13 @@ impl FromStr for DATE {
 }
 
 impl Display for DATE {
+
+    /// Prints an abstract value string containing a `DATE` value. This will
+    /// include dashes in the date, such as `2001-01-24`.
+    ///
+    /// X.690 encoding does _not_ use the dashes. This is the wrong function for
+    /// encoding BER, CER, or DER-encoded `DATE` values. Use [DATE::to_num_str]
+    /// instead for X.690 encoding.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if cfg!(feature = "itoa") {
             let mut buf1 = itoa::Buffer::new();
@@ -232,6 +269,8 @@ impl Display for DATE {
 
 impl X690Validate for DATE {
 
+    /// Validate the X.690 encoding (BER, CER, or DER) for a `DATE` value.
+    /// This takes the content octets ("value") of the X.690 Tag-Length-Value.
     fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() != 8 { // YYYYMMDD (X.690 strips the dashes)
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -240,6 +279,7 @@ impl X690Validate for DATE {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
+        // TODO: atoi_simd
         let year = u16::from_str(&s[0..4])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
         let month = u8::from_str(&s[4..6])

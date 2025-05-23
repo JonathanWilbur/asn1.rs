@@ -203,7 +203,7 @@ impl X690Element {
             value_preview: None,
             bytes_read: None,
             values_read: None,
-            io_error: None,
+            err_source: None,
         }
     }
 
@@ -217,7 +217,7 @@ impl X690Element {
             value_preview: None,
             bytes_read: None,
             values_read: None,
-            io_error: None,
+            err_source: None,
         }
     }
 
@@ -1321,7 +1321,7 @@ pub fn ber_cst (bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
     match value_length {
         X690Length::Definite(len) => {
             if (bytes.len() - bytes_read) < len {
-                let mut err = ASN1Error::new(ASN1ErrorCode::truncated);
+                let mut err = ASN1Error::new(ASN1ErrorCode::tlv_truncated);
                 err.tag = Some(Tag::new(tag.tag_class, tag.tag_number));
                 err.length = Some(len);
                 return Err(err);

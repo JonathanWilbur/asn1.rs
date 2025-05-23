@@ -7,6 +7,8 @@ use std::str::FromStr;
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, TIME_OF_DAY};
 
 impl DATE_TIME {
+
+    /// Create a new `DATE_TIME`
     #[inline]
     pub const fn new(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Self {
         DATE_TIME {
@@ -15,11 +17,16 @@ impl DATE_TIME {
         }
     }
 
+    /// Determine if the `DATE-TIME` is zero-valued, which is
+    /// `0000-01-01T00:00:00` or the invalid value `0000-00-00T00:00:00`
+    /// (invalid because there is no month 0 or day 0).
     #[inline]
     pub fn is_zero(&self) -> bool {
         self.date.is_zero() && self.time.is_zero()
     }
 
+    /// Convert to a string of decimal digits only.
+    ///
     /// This is intentionally designed to be suitable as an encoding of this
     /// abstract value as the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
@@ -53,6 +60,8 @@ impl DATE_TIME {
         }
     }
 
+    /// Convert from a string of decimal digits only.
+    ///
     /// This is intentionally designed to be suitable as an decoding of this
     /// abstract value from the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
@@ -71,6 +80,7 @@ impl DATE_TIME {
 
 impl X690KnownSize for DATE_TIME {
 
+    /// Returns 14. The X.690 encoding of a `DATE-TIME` is always 14 bytes long.
     fn x690_size (&self) -> usize {
         14
     }
@@ -79,6 +89,8 @@ impl X690KnownSize for DATE_TIME {
 
 impl X690Validate for DATE_TIME {
 
+    /// Validate the X.690 encoding (BER, CER, or DER) for a `DATE-TIME` value.
+    /// This takes the content octets ("value") of the X.690 Tag-Length-Value.
     fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() != 14 { // 19511014153000 (X.690 strips the hyphens, colon and "T")
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -91,6 +103,10 @@ impl X690Validate for DATE_TIME {
 
 impl ISO8601Timestampable for DATE_TIME {
 
+    /// Print the `DATE-TIME` value as an ISO 8601 Timestamp.
+    /// (This is actually just an alias to [DATE_TIME::to_string], because a
+    /// `DATE-TIME` is already an ISO 8601 timestamp.)
+    ///
     /// NOTE: There is not supposed to be a "Z" at the end of this, nor should
     /// there be a UTC offset. ITU-T Recommendation X.680 defines the
     /// `DATE-TIME` type as being in local time with no UTC offset indication.
@@ -156,6 +172,13 @@ impl PartialEq<UTCTime> for DATE_TIME {
 impl TryFrom<&[u8]> for DATE_TIME {
     type Error = ASN1Error;
 
+    /// Parse an abstract value string containing a `DATE-TIME` value. This
+    /// expects dashes in the date, colons in the time, and a "T" separating the
+    /// two, such as `2021-03-24T12:34:56`.
+    ///
+    /// X.690 encoding does _not_ use the dashes, colons, or "T". This is the
+    /// wrong function for decoding BER, CER, or DER-encoded `DATE` values. Use
+    /// [DATE_TIME::try_from_num_str] instead for X.690 decoding.
     #[inline]
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
         if unlikely(value_bytes.len() != 19) {
@@ -171,6 +194,13 @@ impl TryFrom<&[u8]> for DATE_TIME {
 impl FromStr for DATE_TIME {
     type Err = ASN1Error;
 
+    /// Parse an abstract value string containing a `DATE-TIME` value. This
+    /// expects dashes in the date, colons in the time, and a "T" separating the
+    /// two, such as `2021-03-24T12:34:56`.
+    ///
+    /// X.690 encoding does _not_ use the dashes, colons, or "T". This is the
+    /// wrong function for decoding BER, CER, or DER-encoded `DATE` values. Use
+    /// [DATE_TIME::try_from_num_str] instead for X.690 decoding.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         DATE_TIME::try_from(s.as_bytes())
@@ -178,6 +208,14 @@ impl FromStr for DATE_TIME {
 }
 
 impl Display for DATE_TIME {
+
+    /// Prints an abstract value string containing a `DATE-TIME` value. This
+    /// will include dashes in the date, colons in the time, and a "T"
+    /// separating the two, such as `2021-03-24T12:34:56`.
+    ///
+    /// X.690 encoding does _not_ use the dashes, colons, or "T". This is the
+    /// wrong function for encoding BER, CER, or DER-encoded `DATE-TIME` values.
+    /// Use [DATE_TIME::to_num_str] instead for X.690 encoding.
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}T{}", self.date, self.time)

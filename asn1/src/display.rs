@@ -3,7 +3,7 @@ use crate::utils::{read_i64, likely};
 use crate::FractionalPart;
 use std::fmt::{Display, Write};
 
-pub fn write_hex(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+pub(crate) fn write_hex(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     if cfg!(feature = "faster-hex") {
         f.write_str(faster_hex::hex_string(v).as_str())
     } else {
@@ -14,9 +14,12 @@ pub fn write_hex(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result 
     }
 }
 
+/// Write an ASN.1 `INTEGER` for human-reading. The output may be in decimal
+/// or hexadecimal, and this could vary by the length. Do not depend on this
+/// function for a particular output.
 pub fn write_int(int: &INTEGER, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match read_i64(int) {
-        Ok(v) => {
+        Some(v) => {
             if cfg!(feature = "itoa") {
                 let mut buf = itoa::Buffer::new();
                 f.write_str(buf.format(v))
@@ -24,7 +27,7 @@ pub fn write_int(int: &INTEGER, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Re
                 write!(f, "{}", v)
             }
         },
-        Err(()) => {
+        None => {
             f.write_str("0x")?;
             write_hex(int, f)
         }
@@ -32,6 +35,10 @@ pub fn write_int(int: &INTEGER, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Re
 }
 
 impl Display for ASN1Value {
+
+    /// Print an ASN.1 value as closely as possible to its abstract syntax
+    /// notation. For instance, a `BIT STRING` will be printed like
+    /// `'11010110'B`.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ASN1Value::BitStringValue(v) => std::fmt::Display::fmt(&v, f),

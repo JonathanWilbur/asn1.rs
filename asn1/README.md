@@ -17,8 +17,8 @@ haven't tested with all of the examples below; they might not work.
 Decode variable-length integers, which are used in multiple different encodings:
 
 ```rust
-assert_eq!(read_i64(&[ 0x01, 0x05 ]), Ok(256 + 5))
-assert_eq!(read_i128(&[ 0x01, 0x05 ]), Ok(256 + 5))
+assert_eq!(read_i64(&[ 0x01, 0x05 ]), Some(256 + 5))
+assert_eq!(read_i128(&[ 0x01, 0x05 ]), Some(256 + 5))
 ```
 
 ### String Validation
@@ -278,7 +278,7 @@ somewhat battle-tested.
   - Actually, I don't know precisely what I want to benchmark. Deferring
 - [x] `const fn`
 - [ ] `no-std` and other feature flags
-- [ ] Documentation comments
+- [x] Documentation comments
 - [ ] `README.md` documentation
 - [ ] Debug assertions / debug logging?
 - [ ] Hard-coded OID arc strings for 0 and 1

@@ -7,6 +7,8 @@ use std::fmt::{Display, Write};
 use std::str::FromStr;
 
 impl GeneralizedTime {
+
+    /// Create a new `GeneralizedTime`
     #[inline]
     pub const fn new() -> Self {
         GeneralizedTime {
@@ -20,6 +22,9 @@ impl GeneralizedTime {
         }
     }
 
+    /// Return `true` if this `GeneralizedTime` is "zeroed" meaning that the
+    /// date is 0000-01-01 (or the invalid date 0000-00-00) and the time is
+    /// 00:00:00, with all time components defaulting to zero if absent.
     #[inline]
     pub const fn is_zero(&self) -> bool {
         // Using unwrap_or() would have made this whole function much cleaner,
@@ -44,6 +49,8 @@ impl GeneralizedTime {
         true
     }
 
+    /// Returns `true` if the `GeneralizedTime` is Coordinated Universal Time
+    /// (UTC)
     #[inline]
     pub const fn is_utc(&self) -> bool {
         // This would have been more elegant, but not const:
@@ -55,12 +62,15 @@ impl GeneralizedTime {
         }
     }
 
+    /// Get the number of digits of precision in the fractional component of the
+    /// `GeneralizedTime`
     #[inline]
     pub const fn get_fraction_precision_digits(&self) -> u8 {
         // This implementation only handles up to nano-second precision, hence % 10.
         (self.flags & 0b0000_1111) % 10
     }
 
+    /// Returns `true` if this `GeneralizedTime` has a fractional component.
     #[inline]
     pub const fn has_fraction(&self) -> bool {
         self.get_fraction_precision_digits() > 0
@@ -70,6 +80,8 @@ impl GeneralizedTime {
 
 impl ISO8601Timestampable for GeneralizedTime {
 
+    /// Convert this `GeneralizedTime` string to an ISO 8601 String.
+    ///
     /// Fractional seconds will only be displayed if the original
     /// GeneralizedTime used fractional seconds (not fractional hours or
     /// minutes).
@@ -146,6 +158,8 @@ impl ISO8601Timestampable for GeneralizedTime {
         );
     }
 
+    /// Convert this `GeneralizedTime` string to an ISO 8601 String.
+    ///
     /// Fractional seconds will only be displayed if the original
     /// GeneralizedTime used fractional seconds (not fractional hours or
     /// minutes).
@@ -216,6 +230,8 @@ impl ISO8601Timestampable for GeneralizedTime {
 }
 
 impl Default for GeneralizedTime {
+
+    /// Create a zeroed `GeneralizedTime`
     #[inline]
     fn default() -> Self {
         GeneralizedTime {
@@ -263,6 +279,7 @@ impl From<DATE> for GeneralizedTime {
 impl TryFrom<&[u8]> for GeneralizedTime {
     type Error = ASN1Error;
 
+    /// Decode a `GeneralizedTime` from ASCII.
     fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
         let len = b.len();
         if unlikely(len < 10) {
@@ -384,6 +401,7 @@ impl TryFrom<&[u8]> for GeneralizedTime {
 impl FromStr for GeneralizedTime {
     type Err = ASN1Error;
 
+    /// Decode a `GeneralizedTime` from ASCII.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         GeneralizedTime::try_from(s.as_bytes())
@@ -397,6 +415,7 @@ impl FromStr for GeneralizedTime {
 
 impl Display for GeneralizedTime {
 
+    /// Prints a `GeneralizedTime`
     #[cfg(feature = "itoa")]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut buf_year = itoa::Buffer::new();
@@ -441,6 +460,7 @@ impl Display for GeneralizedTime {
         }
     }
 
+    /// Prints a `GeneralizedTime`
     #[cfg(not(feature = "itoa"))]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:04}{:02}{:02}{:02}",
@@ -469,7 +489,6 @@ impl Display for GeneralizedTime {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

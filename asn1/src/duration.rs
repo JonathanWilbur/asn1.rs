@@ -17,6 +17,9 @@ const SECONDS_PER_YEAR: u64 = 31_556_952;
 impl TryFrom<char> for DurationPart {
     type Error = ();
 
+    /// Convert from a duration part's unit character (such as 'Y' for years)
+    /// Since `M` is used for both months and minutes, `m` (lowercased) is used
+    /// for minutes.
     fn try_from(value: char) -> Result<Self, Self::Error> {
         match value {
             'Y' => Ok(DurationPart::Years),
@@ -34,6 +37,7 @@ impl TryFrom<char> for DurationPart {
 
 impl Display for DurationPart {
 
+    /// Display a duration part's unit character, such as 'Y' for years
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             DurationPart::Years => f.write_char('Y'),
@@ -49,6 +53,8 @@ impl Display for DurationPart {
 }
 
 impl DURATION_EQUIVALENT {
+
+    /// Create a new `DURATION` value.
     #[inline]
     pub const fn new(
         years: u32,
@@ -72,11 +78,12 @@ impl DURATION_EQUIVALENT {
         }
     }
 
+    /// Return `true` if the `DURATION` value is "zeroed."
     #[inline]
     pub const fn is_zero(&self) -> bool {
         self.years == 0
-            && self.months == 1
-            && self.weeks == 1
+            && self.months == 0
+            && self.weeks == 0
             && self.days == 0
             && self.hours == 0
             && self.minutes == 0
@@ -192,6 +199,8 @@ impl DURATION_EQUIVALENT {
 }
 
 impl Default for DURATION_EQUIVALENT {
+
+    /// Creates a zeroed duration
     #[inline]
     fn default() -> Self {
         DURATION_EQUIVALENT {
@@ -230,6 +239,8 @@ const DURATION_COMPONENT_SECONDS: u8 = 0b0100_0000;
 impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
     type Error = ASN1Error;
 
+    /// Parse a `DURATION`.
+    ///
     /// This implementation makes the leading 'P' optional so that this can be
     /// used to parse duration values as they are encoded by X.690--which is to
     /// say: without the leading 'P'.
@@ -370,11 +381,11 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
         }
         if unlikely(start_of_last_digit != value_bytes.len()) {
             // Extra data at the end
-            return Err(ASN1Error::new(ASN1ErrorCode::trailing_string));
+            return Err(ASN1Error::new(ASN1ErrorCode::trailing_content_octets));
         }
         if unlikely(encountered == 0) {
             // No components
-            return Err(ASN1Error::new(ASN1ErrorCode::trailing_string));
+            return Err(ASN1Error::new(ASN1ErrorCode::trailing_content_octets));
         }
         Ok(ret)
     }
@@ -383,6 +394,11 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
 impl FromStr for DURATION_EQUIVALENT {
     type Err = ASN1Error;
 
+    /// Parse a `DURATION`.
+    ///
+    /// This implementation makes the leading 'P' optional so that this can be
+    /// used to parse duration values as they are encoded by X.690--which is to
+    /// say: without the leading 'P'.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         DURATION_EQUIVALENT::try_from(s.as_bytes())
     }
@@ -403,6 +419,8 @@ const TIME_PARTS: [DurationPart; 3] = [ DurationPart::Hours, DurationPart::Minut
 
 impl Display for DURATION_EQUIVALENT {
 
+    /// Print a `DURATION` value in the ISO 8601 format, which includes the
+    /// leading "P", such as "P5M".
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut in_time_components: bool = false;
         if self.is_zero() {

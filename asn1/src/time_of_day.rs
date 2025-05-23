@@ -6,6 +6,8 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 impl TIME_OF_DAY {
+
+    /// Create a new `TIME-OF-DAY`
     #[inline]
     pub const fn new(hour: u8, minute: u8, second: u8) -> Self {
         TIME_OF_DAY {
@@ -15,11 +17,15 @@ impl TIME_OF_DAY {
         }
     }
 
+    /// Determine if the `TIME-OF-DAY` is zero-valued, which is `00:00:00` or
+    /// the invalid value `00:00:00`.
     #[inline]
     pub const fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0 && self.second == 0
     }
 
+    /// Convert to a string of decimal digits only.
+    ///
     /// This is intentionally designed to be suitable as an encoding of this
     /// abstract value as the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
@@ -39,6 +45,8 @@ impl TIME_OF_DAY {
         }
     }
 
+    /// Convert from a string of decimal digits only.
+    ///
     /// This is intentionally designed to be suitable as an decoding of this
     /// abstract value from the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
@@ -75,6 +83,8 @@ impl TIME_OF_DAY {
 }
 
 impl Default for TIME_OF_DAY {
+
+    /// Create a new default `TIME-OF-DAY` value, which is zeroed (`00:00:00`).
     #[inline]
     fn default() -> Self {
         TIME_OF_DAY {
@@ -118,6 +128,12 @@ impl From<UTCTime> for TIME_OF_DAY {
 impl TryFrom<&[u8]> for TIME_OF_DAY {
     type Error = ASN1Error;
 
+    /// Parse an abstract value string containing a `TIME-OF-DAY` value. This
+    /// expects colons in the date, such as `12:34:56`.
+    ///
+    /// X.690 encoding does _not_ use the colons. This is the wrong function for
+    /// decoding BER, CER, or DER-encoded `TIME-OF-DAY` values. Use
+    /// [TIME_OF_DAY::try_from_num_str] instead for X.690 decoding.
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
         if unlikely(value_bytes.len() != 8) {
             // "HH:MM:SS".len()
@@ -166,6 +182,12 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
 impl FromStr for TIME_OF_DAY {
     type Err = ASN1Error;
 
+    /// Parse an abstract value string containing a `TIME-OF-DAY` value. This
+    /// expects colons in the date, such as `12:34:56`.
+    ///
+    /// X.690 encoding does _not_ use the colons. This is the wrong function for
+    /// decoding BER, CER, or DER-encoded `TIME-OF-DAY` values. Use
+    /// [TIME_OF_DAY::try_from_num_str] instead for X.690 decoding.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         TIME_OF_DAY::try_from(s.as_bytes())
@@ -174,6 +196,7 @@ impl FromStr for TIME_OF_DAY {
 
 impl X690KnownSize for TIME_OF_DAY {
 
+    /// Returns 6. The X.690 encoding of a `TIME-OF-DAY` is always 6 bytes long.
     fn x690_size (&self) -> usize {
         6
     }
@@ -182,6 +205,9 @@ impl X690KnownSize for TIME_OF_DAY {
 
 impl X690Validate for TIME_OF_DAY {
 
+    /// Validate the X.690 encoding (BER, CER, or DER) for a `TIME-OF-DAY`
+    /// value. This takes the content octets ("value") of the X.690
+    /// Tag-Length-Value.
     fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() != 6 { // HHMMSS (X.690 strips the colons)
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -211,6 +237,13 @@ impl X690Validate for TIME_OF_DAY {
 }
 
 impl Display for TIME_OF_DAY {
+
+    /// Prints an abstract value string containing a `TIME-OF-DAY` value. This
+    /// will include dashes in the date, such as `12:34:56`.
+    ///
+    /// X.690 encoding does _not_ use the colons. This is the wrong function for
+    /// encoding BER, CER, or DER-encoded `TIME-OF-DAY` values. Use
+    /// [TIME_OF_DAY::to_num_str] instead for X.690 encoding.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if cfg!(feature = "itoa") {
             let mut buf1 = itoa::Buffer::new();

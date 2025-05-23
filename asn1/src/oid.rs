@@ -55,7 +55,7 @@ impl OBJECT_IDENTIFIER {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
         if content_octets.len() > 1 && content_octets[content_octets.len() - 1] >= 0b1000_0000 {
-            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+            return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
         }
         let mut previous_byte_was_end_of_arc: bool = true;
         for byte in content_octets {
@@ -758,7 +758,7 @@ impl X690Validate for OBJECT_IDENTIFIER {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
         if content_octets.len() > 1 && content_octets[content_octets.len() - 1] >= 0b1000_0000 {
-            return Err(ASN1Error::new(ASN1ErrorCode::truncated));
+            return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
         }
         let mut previous_byte_was_end_of_arc: bool = true;
         for byte in content_octets {

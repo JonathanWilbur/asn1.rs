@@ -629,7 +629,7 @@ macro_rules! octs {
     () => {
         std::vec![]
     };
-    ( $( $x:expr ),* ) => {
+    ( $( $x:expr ),+ ) => {
         std::vec![$($x,)*]
     };
 }
