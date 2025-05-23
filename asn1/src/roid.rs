@@ -9,6 +9,7 @@ use std::fmt::Write;
 
 impl RELATIVE_OID {
 
+    /// Iterate over the arcs of the `RELATIVE-OID`
     #[inline]
     pub fn arcs(&self) -> RelOidArcs<'_> {
         RelOidArcs{
@@ -17,8 +18,9 @@ impl RELATIVE_OID {
         }
     }
 
+    /// Convert to an ASN.1 `RELATIVE-OID`` string, such as: `{ 6 1 4 1 56940 }`.
     pub fn to_asn1_string(&self) -> String {
-        let mut out = String::with_capacity(self.0.len() << 2 + 4);
+        let mut out = String::with_capacity(self.0.len() << 3 + 4);
         out.write_str("{ ").unwrap();
         for arc in self.arcs() {
             if cfg!(feature = "itoa") {
@@ -33,10 +35,17 @@ impl RELATIVE_OID {
         out
     }
 
+    /// Convert to an ASN.1 Relative OID Internationalized Resource Identifier
+    /// (OID-IRI) string, such as: `6/1/4/1/56940`.
     pub fn to_iri_string(&self) -> String {
-        let mut out = String::with_capacity(self.0.len() << 2);
+        let mut out = String::with_capacity(self.0.len() << 3);
+        let mut first = true;
         for arc in self.arcs() {
-            out.write_char('/').unwrap();
+            if first {
+                first = false;
+            } else {
+                out.write_char('/').unwrap();
+            }
             if cfg!(feature = "itoa") {
                 let mut buf = itoa::Buffer::new();
                 out.write_str(buf.format(arc)).unwrap();
@@ -47,6 +56,8 @@ impl RELATIVE_OID {
         out
     }
 
+    /// Validate that the supplied `content_octets` are a valid X.690 encoding
+    /// of a `RELATIVE-OID`.
     pub fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() > 1 && content_octets[content_octets.len() - 1] >= 0b1000_0000 {
             return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
@@ -61,6 +72,9 @@ impl RELATIVE_OID {
         Ok(())
     }
 
+
+    /// Create a `RELATIVE-OID` directly from a `SmallVec`.
+    ///
     /// This is defined so that you can define OIDs as compile-time constants.
     #[cfg(feature = "smallvec")]
     #[inline]
@@ -68,6 +82,18 @@ impl RELATIVE_OID {
         RELATIVE_OID(enc)
     }
 
+    /// Create an `RELATIVE-OID` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV) without checking
+    /// for validity. (Other codecs use this encoding as well.)
+    ///
+    /// This is marked `unsafe` because of the potential to provide an invalid
+    /// encoding. Wrong encodings should _never_ panic or read or write
+    /// out-of-bounds, but their behavior is _undefined_. In all likelihood,
+    /// supplying a wrongly-encoded ROID will result in arcs you didn't expect,
+    /// aberrant printing, incorrect comparison and ordering, etc.
+    ///
+    /// If you want to validate the encoding, consider using the safer
+    /// [RELATIVE_OID::from_x690_encoding_slice] instead.
     #[inline]
     pub fn from_x690_encoding_slice_unchecked (enc: &[u8]) -> Self {
         #[cfg(feature = "smallvec")]
@@ -80,6 +106,18 @@ impl RELATIVE_OID {
         }
     }
 
+    /// Create a `RELATIVE-OID` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV) without checking
+    /// for validity. (Other codecs use this encoding as well.)
+    ///
+    /// This is marked `unsafe` because of the potential to provide an invalid
+    /// encoding. Wrong encodings should _never_ panic or read or write
+    /// out-of-bounds, but their behavior is _undefined_. In all likelihood,
+    /// supplying a wrongly-encoded ROID will result in arcs you didn't expect,
+    /// aberrant printing, incorrect comparison and ordering, etc.
+    ///
+    /// If you want to validate the encoding, consider using the safer
+    /// [RELATIVE_OID::from_x690_encoding] instead.
     #[inline]
     pub fn from_x690_encoding_unchecked (enc: Vec<u8>) -> Self {
         #[cfg(feature = "smallvec")]
@@ -92,16 +130,32 @@ impl RELATIVE_OID {
         }
     }
 
+    /// Create a `RELATIVE-OID` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV). (Other codecs use
+    /// this encoding as well.)
+    ///
+    /// This method validates the encoded data. If you are certain that you do
+    /// not need to validate the encoding, consider using the `unsafe`
+    /// [RELATIVE_OID::from_x690_encoding_slice_unchecked] instead.
     pub fn from_x690_encoding_slice (enc: &[u8]) -> ASN1Result<Self> {
         RELATIVE_OID::validate_x690_encoding(enc)?;
         Ok(RELATIVE_OID::from_x690_encoding_slice_unchecked(enc))
     }
 
+    /// Create a `RELATIVE-OID` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV). (Other codecs use
+    /// this encoding as well.)
+    ///
+    /// This method validates the encoded data. If you are certain that you do
+    /// not need to validate the encoding, consider using the `unsafe`
+    /// [RELATIVE_OID::from_x690_encoding_unchecked] instead.
     pub fn from_x690_encoding (enc: Vec<u8>) -> ASN1Result<Self> {
         RELATIVE_OID::validate_x690_encoding(enc.as_slice())?;
         Ok(RELATIVE_OID::from_x690_encoding_unchecked(enc))
     }
 
+    /// Concatenate multiple `RELATIVE-OID` values into a single longer
+    /// `RELATIVE-OID`.
     pub fn concat (roids: &[RELATIVE_OID]) -> ASN1Result<Self> {
         let bytes = roids
             .iter()
@@ -118,35 +172,42 @@ impl RELATIVE_OID {
         self.arcs().count()
     }
 
+    /// Returns `true` if this `RELATIVE-OID` is empty (zero-length)
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// Returns the X.690 encoding of this `RELATIVE-OID`
     #[inline]
     pub fn as_x690_slice(&self) -> &[u8] {
         &self.0
     }
 
+    /// Produces an X.690 encoding of this `RELATIVE-OID`
     #[inline]
     pub fn to_x690_vec(self) -> Vec<u8> {
         self.0.to_vec()
     }
 
+    /// Produces an X.690 encoding of this `RELATIVE-OID` in a `SmallVec`
     #[cfg(feature = "smallvec")]
     #[inline]
     pub fn to_x690_smallvec(self) -> SmallVec<[u8; 16]> {
         self.0
     }
 
+    /// Determine if this `RELATIVE-OID` starts with the `other`, and is
+    /// therefore a prefix of the latter.
     #[inline]
     pub fn starts_with(&self, roid: &RELATIVE_OID) -> bool {
         self.0.starts_with(roid.0.as_slice())
     }
 
+    /// Determine if this `RELATIVE-OID` ends with the `other`.
     #[inline]
-    pub fn ends_with(&self, roid: &RELATIVE_OID) -> bool {
-        self.0.ends_with(roid.0.as_slice())
+    pub fn ends_with(&self, other: &RELATIVE_OID) -> bool {
+        self.0.ends_with(other.0.as_slice())
     }
 }
 
@@ -164,6 +225,25 @@ impl PartialOrd for RELATIVE_OID {
     /// 1.3.6.1.6
     /// 1.3.6.1.6.8
     /// ```
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// let oid1 = asn1::roid!(1,3,6,1);
+    /// let oid2 = asn1::roid!(1,3,6,1,5);
+    /// let oid3 = asn1::roid!(1,3,6,1,6);
+    /// let oid4 = asn1::roid!(1,3,6,1,6,8);
+    ///
+    /// let mut unordered = Vec::from([
+    ///     oid4.clone(),
+    ///     oid2.clone(),
+    ///     oid1.clone(),
+    ///     oid3.clone(),
+    /// ].as_slice());
+    /// unordered.sort();
+    /// assert_eq!(unordered.as_slice(), [ oid1, oid2, oid3, oid4 ].as_slice());
+    /// ```
+    ///
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -184,6 +264,25 @@ impl Ord for RELATIVE_OID {
     /// 1.3.6.1.6
     /// 1.3.6.1.6.8
     /// ```
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// let oid1 = asn1::roid!(1,3,6,1);
+    /// let oid2 = asn1::roid!(1,3,6,1,5);
+    /// let oid3 = asn1::roid!(1,3,6,1,6);
+    /// let oid4 = asn1::roid!(1,3,6,1,6,8);
+    ///
+    /// let mut unordered = Vec::from([
+    ///     oid4.clone(),
+    ///     oid2.clone(),
+    ///     oid1.clone(),
+    ///     oid3.clone(),
+    /// ].as_slice());
+    /// unordered.sort();
+    /// assert_eq!(unordered.as_slice(), [ oid1, oid2, oid3, oid4 ].as_slice());
+    /// ```
+    ///
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let mut iter1 = self.arcs();
         let mut iter2 = other.arcs();
@@ -208,6 +307,7 @@ impl Ord for RELATIVE_OID {
 impl FromStr for RELATIVE_OID {
     type Err = ();
 
+    /// Parse a `RELATIVE-OID` from a dot-delimited string, such as `10.50.4.3`
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut nodes: Vec<u32> = Vec::with_capacity(s.len());
         for arc_string in s.split(".") {
@@ -225,6 +325,13 @@ impl FromStr for RELATIVE_OID {
 impl TryFrom<Vec<u32>> for RELATIVE_OID {
     type Error = ASN1Error;
 
+    /// Create an `RELATIVE-OID` from arcs
+    ///
+    /// It is an unfortunate limitation of Rust that it is extremely difficult to
+    /// make this generic over all integer types. So this implementation just uses
+    /// `Vec<u32>`. If you need to append something larger, like a `u128`, you're
+    /// going to have to use a combination of [write_oid_arc] and
+    /// [RELATIVE_OID::from_x690_encoding].
     fn try_from(value: Vec<u32>) -> Result<Self, Self::Error> {
         RELATIVE_OID::try_from(value.as_slice())
     }
@@ -234,6 +341,8 @@ impl TryFrom<Vec<u32>> for RELATIVE_OID {
 impl TryFrom<&[u32]> for RELATIVE_OID {
     type Error = ASN1Error;
 
+    /// Create an `OBJECT IDENTIFIER` from arcs
+    ///
     /// It is an unfortunate limitation of Rust that it is extremely difficult to
     /// make this generic over all integer types. So this implementation just uses
     /// u32 slices. If you need to append something larger, like a u128, you're
@@ -273,6 +382,13 @@ impl TryFrom<&[u32]> for RELATIVE_OID {
 impl TryFrom<Vec<i8>> for RELATIVE_OID {
     type Error = ASN1Error;
 
+    /// Create an `RELATIVE-OID` from arcs, with the arcs represented as
+    /// `i8`s.
+    ///
+    /// This is a performance optimizing-hack: as long as an i8 representing an
+    /// arc is not negative, it can be written directly into the internal
+    /// buffer and still produce an valid encoding (except for the first two
+    /// arcs).
     fn try_from(value: Vec<i8>) -> Result<Self, Self::Error> {
         RELATIVE_OID::try_from(value.as_slice())
     }
@@ -282,9 +398,13 @@ impl TryFrom<Vec<i8>> for RELATIVE_OID {
 impl TryFrom<&[i8]> for RELATIVE_OID {
     type Error = ASN1Error;
 
+    /// Create an `RELATIVE-OID` from arcs, with the arcs represented as
+    /// `i8`s.
+    ///
     /// This is a performance optimizing-hack: as long as an i8 representing an
     /// arc is not negative, it can be written directly into the internal
-    /// buffer and still produce an invalid encoding.
+    /// buffer and still produce an valid encoding (except for the first two
+    /// arcs).
     fn try_from(value: &[i8]) -> Result<Self, Self::Error> {
         if value.iter().any(|b| *b < 0) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_oid_arc));
@@ -316,11 +436,14 @@ impl TryFrom<&[i8]> for RELATIVE_OID {
 
 impl RelOidArcs<'_> {
 
+    /// Fast-forward to the end of the iterator, consuming all of it.
     #[inline]
     pub fn end (&mut self) {
         self.i = self.encoded.len().try_into().unwrap_or(usize::MAX);
     }
 
+    /// Skip over one arc. This is like calling [RelOidArcs::next], but it does
+    /// not decode the arc or return it.
     pub fn skip_one (&mut self) {
         if unlikely(
             self.encoded.len() == 0
@@ -345,6 +468,8 @@ impl RelOidArcs<'_> {
         }
     }
 
+    /// Skip backwards one arc. This is like calling [RelOidArcs::next_back],
+    /// but it does not decode the arc or return it.
     pub fn skip_one_back (&mut self) {
         if unlikely(self.i as usize >= self.encoded.len()) {
             return;
@@ -421,6 +546,9 @@ impl Iterator for RelOidArcs<'_> {
 }
 
 impl Display for RELATIVE_OID {
+
+    /// Display the `RELATIVE-OID` as a dot-delimited string, such as
+    /// `6.1.4.1.56940`.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(
             self.0
@@ -435,6 +563,8 @@ impl Display for RELATIVE_OID {
 
 impl X690KnownSize for RELATIVE_OID {
 
+    /// Returns the size of the content octets of the X.690-encoded
+    /// value.
     fn x690_size (&self) -> usize {
         self.0.len()
     }
@@ -443,6 +573,8 @@ impl X690KnownSize for RELATIVE_OID {
 
 impl X690Validate for RELATIVE_OID {
 
+    /// Validate the X.690 encoding (BER, CER, or DER) for a `RELATIVE-OID` value.
+    /// This takes the content octets ("value") of the X.690 Tag-Length-Value.
     fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         let mut previous_byte_was_end_of_arc: bool = true;
         for byte in content_octets {
@@ -482,6 +614,7 @@ impl std::iter::DoubleEndedIterator for RelOidArcs<'_> {
         Some(current_node)
     }
 
+    /// Non-default implementation that does not decode arcs that are skipped
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
         let mut iter_debt = n;
         while iter_debt > 0 {
@@ -494,6 +627,13 @@ impl std::iter::DoubleEndedIterator for RelOidArcs<'_> {
 
 }
 
+/// Convenience macro for creating object identifiers
+///
+/// #### Example
+///
+/// ```rust
+/// let roid1 = asn1::roid!(3,60,4,50);
+/// ```
 #[macro_export]
 macro_rules! roid {
     () => {

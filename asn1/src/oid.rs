@@ -583,6 +583,7 @@ impl TryFrom<&[i8]> for OBJECT_IDENTIFIER {
 
 impl OidArcs<'_> {
 
+    /// Fast-forward to the end of the iterator, consuming all of it.
     #[inline]
     pub fn end (&mut self) {
         self.i = self.encoded.len().try_into().unwrap_or(u32::MAX);
@@ -590,6 +591,8 @@ impl OidArcs<'_> {
         self.second_arc_read = true;
     }
 
+    /// Skip over one arc. This is like calling [OidArcs::next], but it does
+    /// not decode the arc or return it.
     pub fn skip_one (&mut self) {
         if unlikely(
             self.encoded.len() == 0
@@ -638,6 +641,8 @@ impl OidArcs<'_> {
         }
     }
 
+    /// Skip backwards one arc. This is like calling [OidArcs::next_back],
+    /// but it does not decode the arc or return it.
     pub fn skip_one_back (&mut self) {
         if unlikely(self.i as usize >= self.encoded.len()) {
             return;
@@ -840,6 +845,7 @@ impl std::iter::DoubleEndedIterator for OidArcs<'_> {
         Some(current_node)
     }
 
+    /// Non-default implementation that does not decode arcs that are skipped
     fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
         let mut iter_debt = n;
         while iter_debt > 0 {
@@ -853,6 +859,9 @@ impl std::iter::DoubleEndedIterator for OidArcs<'_> {
 }
 
 impl Display for OBJECT_IDENTIFIER {
+
+    /// Display the `OBJECT IDENTIFIER` as a dot-delimited string, such as
+    /// `1.3.6.1.4.1.56940`.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if unlikely(self.0.len() == 0) {
             return Ok(());
@@ -877,6 +886,8 @@ impl Display for OBJECT_IDENTIFIER {
 
 impl X690KnownSize for OBJECT_IDENTIFIER {
 
+    /// Returns the size of the content octets of the X.690-encoded
+    /// value.
     fn x690_size (&self) -> usize {
         self.0.len() // The inner value is just DER-encoded
     }
@@ -885,6 +896,9 @@ impl X690KnownSize for OBJECT_IDENTIFIER {
 
 impl X690Validate for OBJECT_IDENTIFIER {
 
+    /// Validate the X.690 encoding (BER, CER, or DER) for an
+    /// `OBJECT IDENTIFIER` value. This takes the content octets ("value") of
+    /// the X.690 Tag-Length-Value.
     fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
@@ -904,6 +918,13 @@ impl X690Validate for OBJECT_IDENTIFIER {
 
 }
 
+/// Convenience macro for creating object identifiers
+///
+/// #### Example
+///
+/// ```rust
+/// let oid1 = asn1::oid!(1,3,6,4,1);
+/// ```
 #[macro_export]
 macro_rules! oid {
     ( $( $x:expr ),+ ) => {
@@ -919,7 +940,7 @@ mod tests {
 
     use std::str::FromStr;
 
-    use crate::OBJECT_IDENTIFIER;
+    use crate::{OBJECT_IDENTIFIER, OID_ARC};
 
     #[test]
     fn test_oid_parsing () {
