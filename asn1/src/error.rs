@@ -5,6 +5,8 @@ use std::io::{Error, ErrorKind};
 use std::ops::Deref;
 use std::str::Utf8Error;
 
+const VALUE_PREVIEW_SIZE: usize = 32;
+
 /// The overall ASN.1 error type
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ASN1ErrorCode {
@@ -222,20 +224,9 @@ impl std::error::Error for ASN1Error {
     }
 }
 
-// TODO: Fill in more variants here.
 impl fmt::Display for ASN1ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::invalid_construction => write!(f, "invalid_construction"),
-            Self::prohibited_character(c, i) => {
-                write!(f, "prohibited_character (char={}, index={})", *c, *i)
-            }
-            Self::int_padding => write!(f, "int_padding"),
-            Self::der_boolean_not_0x00_or_0xFF => write!(f, "der_boolean_not_0x00_or_0xFF"),
-            Self::oid_padding => write!(f, "oid_padding"),
-            Self::x690_long_form_unnecessary => write!(f, "x690_long_form_unnecessary"),
-            _ => write!(f, "other"),
-        }
+        write!(f, "{:?}", self)
     }
 }
 
@@ -260,8 +251,13 @@ impl ASN1Error {
     /// Relate an ASN.1 value to this error code.
     #[inline]
     pub fn relate_value (&mut self, value: &ASN1Value) {
-        // FIXME: Limit the size of the preview.
-        self.value_preview = Some(value.to_string());
+        // We truncate the value string to prevent Denial-of-Service by flooding
+        // logs with gigantic strings
+        self.value_preview = Some(value
+            .to_string() // TODO: to_preview() instead?
+            .chars()
+            .take(VALUE_PREVIEW_SIZE)
+            .collect());
     }
 
     /// Relate a Tag to this error code
