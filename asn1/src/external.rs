@@ -1,4 +1,5 @@
 use crate::display::write_int;
+use crate::TagClass;
 use crate::{
     types::{
         ContextNegotiation, ExternalEncoding, ExternalIdentification, IdentificationSyntaxes,
@@ -6,6 +7,7 @@ use crate::{
     },
     write_hex, ObjectDescriptor, CHARACTER_STRING, EMBEDDED_PDV, EXTERNAL, OCTET_STRING, OPTIONAL,
 };
+use crate::construction::{ComponentSpec, TagSelector};
 use std::fmt::Display;
 
 impl EXTERNAL {
@@ -196,4 +198,36 @@ impl Display for CHARACTER_STRING {
     }
 }
 
-// TODO: Define component specs for this.
+/// The RootComponentTypeList #1 Components for `EXTERNAL`
+pub const _rctl1_components_for_EXTERNAL: &[ComponentSpec; 3] = &[
+    ComponentSpec::req("identification", TagSelector::tag((TagClass::CONTEXT, 0))),
+    ComponentSpec::opt("data-value-descriptor", TagSelector::tag((TagClass::CONTEXT, 1))),
+    ComponentSpec::req("data-value", TagSelector::tag((TagClass::CONTEXT, 2))),
+];
+
+/// The RootComponentTypeList #2 Components for `EXTERNAL`
+pub const _rctl2_components_for_EXTERNAL: &[ComponentSpec; 0] = &[];
+
+/// The ExtensionAdditionList Components for `EXTERNAL`
+pub const _eal_components_for_EXTERNAL: &[ComponentSpec; 0] = &[];
+
+/// The RootComponentTypeList #1 Components for `EMBEDDED PDV`
+pub const _rctl1_components_for_EMBEDDED_PDV: &[ComponentSpec; 3] = _rctl1_components_for_EXTERNAL;
+
+/// The RootComponentTypeList #2 Components for `EMBEDDED PDV`
+pub const _rctl2_components_for_EMBEDDED_PDV: &[ComponentSpec; 0] = _rctl2_components_for_EXTERNAL;
+
+/// The ExtensionAdditionList Components for `EMBEDDED PDV`
+pub const _eal_components_for_EMBEDDED_PDV: &[ComponentSpec; 0] = _eal_components_for_EXTERNAL;
+
+/// The RootComponentTypeList #1 Components for `CharacterString`
+pub const _rctl1_components_for_CharacterString: &[ComponentSpec; 2] = &[
+    ComponentSpec::req("identification", TagSelector::tag((TagClass::CONTEXT, 0))),
+    ComponentSpec::req("string-value", TagSelector::tag((TagClass::CONTEXT, 2))),
+];
+
+/// The RootComponentTypeList #2 Components for `CharacterString`
+pub const _rctl2_components_for_CharacterString: &[ComponentSpec; 0] = &[];
+
+/// The ExtensionAdditionList Components for `CharacterString`
+pub const _eal_components_for_CharacterString: &[ComponentSpec; 0] = &[];
