@@ -279,13 +279,24 @@ impl X690Validate for DATE {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         let s = unsafe { std::str::from_utf8_unchecked(&content_octets) };
-        // TODO: atoi_simd
-        let year = u16::from_str(&s[0..4])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
-        let month = u8::from_str(&s[4..6])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
-        let day = u8::from_str(&s[6..])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+        let year: u16;
+        let month: u8;
+        let day: u8;
+        if cfg!(feature = "atoi_simd") {
+            year = atoi_simd::parse_pos::<u16>(&content_octets[0..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            month = atoi_simd::parse_pos::<u8>(&content_octets[4..6])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+            day = atoi_simd::parse_pos::<u8>(&content_octets[6..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
+        } else {
+            year = u16::from_str(&s[0..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
+            month = u8::from_str(&s[4..6])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+            day = u8::from_str(&s[6..])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+        }
         if month > 12 || month == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
