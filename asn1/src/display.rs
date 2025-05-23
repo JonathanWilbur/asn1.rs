@@ -1,5 +1,5 @@
 //! Implementations of `Display` and functions for displaying / printing
-use crate::types::{ASN1Value, INTEGER};
+use crate::{ASN1Value, INTEGER};
 use crate::utils::{read_i64, likely};
 use crate::FractionalPart;
 use std::fmt::{Display, Write};

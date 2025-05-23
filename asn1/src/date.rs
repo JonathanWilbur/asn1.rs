@@ -14,12 +14,22 @@
 //! assert!(d3 > d2);
 //! ```
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, X690KnownSize, X690Validate};
+use crate::{X690KnownSize, X690Validate};
 use crate::utils::{get_days_in_month, unlikely};
+use crate::datetime::DATE_TIME;
+use crate::gentime::GeneralizedTime;
+use crate::utctime::UTCTime;
 use crate::ASN1Result;
 use std::fmt::Display;
 use std::str::FromStr;
 
+/// ASN.1 `DATE`
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
+pub struct DATE {
+    pub year: u16,
+    pub month: u8,
+    pub day: u8,
+}
 
 impl DATE {
 

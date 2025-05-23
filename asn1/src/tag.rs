@@ -1,6 +1,35 @@
 //! ASN.1 tags
-use crate::types::{Tag, TagClass, TagNumber};
+use crate::ASN1Value;
 use std::fmt;
+use std::sync::Arc;
+
+/// ASN.1 tag number
+///
+/// Based on an analysis of thousands of ASN.1 modules, no tag number ever
+/// exceeds this maximum. The largest tag number found in any ASN.1 specification
+/// is 12787. This fits within 14 bits, which means that, for X.690 encodings,
+/// it would be acceptable to only tolerate two bytes of long-length tag numbers.
+pub type TagNumber = u16;
+
+/// ASN.1 tag class
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord)]
+pub enum TagClass {
+    UNIVERSAL,
+    APPLICATION,
+    CONTEXT,
+    PRIVATE,
+}
+
+/// ASN.1 tag
+#[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
+pub struct Tag {
+
+    /// Tag class
+    pub tag_class: TagClass,
+
+    /// Tag number
+    pub tag_number: TagNumber,
+}
 
 impl PartialOrd for TagClass {
 
@@ -94,6 +123,39 @@ impl PartialOrd for Tag {
             return Some(std::cmp::Ordering::Less);
         } else {
             return Some(std::cmp::Ordering::Greater);
+        }
+    }
+}
+
+// TODO: Make generic?
+/// Tagged ASN.1 Value
+#[derive(Debug, Clone, PartialEq)]
+pub struct TaggedASN1Value {
+
+    /// The tag
+    pub tag: Tag,
+
+    /// `true` if tagged `EXPLICIT`, or `false` if `IMPLICIT`
+    pub explicit: bool,
+
+    /// The tagged value itself
+    pub value: Arc<ASN1Value>,
+}
+
+impl TaggedASN1Value {
+
+    /// Construct a new [TaggedASN1Value]
+    #[inline]
+    pub const fn new(
+        tag_class: TagClass,
+        tag_number: TagNumber,
+        explicit: bool,
+        value: Arc<ASN1Value>,
+    ) -> Self {
+        TaggedASN1Value {
+            tag: Tag::new(tag_class, tag_number),
+            explicit,
+            value,
         }
     }
 }

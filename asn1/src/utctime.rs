@@ -15,11 +15,54 @@
 //! of the `UTCTime` struct into a time library-specific data structure for
 //! equation and ordering.
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
+use crate::{UTCOffset, ISO8601Timestampable};
+use crate::gentime::GeneralizedTime;
 use crate::utils::{get_days_in_month, unlikely};
 use crate::utils::macros::parse_uint;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
+
+/// ASN.1 `UTCTime`
+///
+/// ## Omitted Seconds Handling
+///
+/// Technically, seconds is optional, and it therefore may have been desirable
+/// in the abstract to define this with `Option<u8>` being the value of the
+/// seconds field, however, by making this field a simple `u8` instead, the
+/// `UTCTime` type now fits in 8 bytes, meaning that it can be copied very
+/// quickly in a single CPU instruction. _Since UTCTime should not be used in
+/// general_, and since, where it is used, the seconds-level precision probably
+/// does not matter too much anyways, this is a trade-off we accept.
+///
+/// When parsed, and the seconds component is omitted from the UTC timestamp,
+/// the seconds time is set to 0. This aligns with the expected behavior
+/// uTCTimeMatch X.500 directory equality matching rule defined in ITU-T
+/// Recommendation X.520.
+///
+/// If this is a problem for your use case, let me know and I will figure out
+/// something clever or just undo this and make `second` an `Option<u8>`, but I
+/// think the much better performance is worth this trade-off.
+///
+/// ## Conversion to and from `DATE`, `TIME`, and `DATE-TIME`
+///
+/// `DATE`, `TIME`, and `DATE-TIME` are all defined in ITU-T Recommendation
+/// X.680 as using local time, which means that it is unclear how to translate
+/// a `UTCTime` value to a correct value of those other types and vice-versa.
+/// Hence, there is intentionally no implementation of `From` for those types in
+/// either direction; it is to prevent you from doing something wrong and
+/// potentially insecure. This is true for `GeneralizedTime` as well.
+///
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+pub struct UTCTime {
+    /// Yes, `u8`, not `u16`: it is left to the application to determine which century the two-digit year identifies.
+    pub year: u8,
+    pub month: u8,
+    pub day: u8,
+    pub hour: u8,
+    pub minute: u8,
+    pub second: u8,
+    pub utc_offset: UTCOffset,
+}
 
 impl UTCTime {
 

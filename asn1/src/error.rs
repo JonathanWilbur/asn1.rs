@@ -1,9 +1,8 @@
 //! The `ASN1Error` error type
 use crate::{ASN1Value, ComponentSpec};
-use crate::types::Tag;
+use crate::tag::Tag;
 use std::fmt;
 use std::io::{Error, ErrorKind};
-use std::ops::Deref;
 use std::str::Utf8Error;
 
 const VALUE_PREVIEW_SIZE: usize = 32;

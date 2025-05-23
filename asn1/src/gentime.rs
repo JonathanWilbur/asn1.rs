@@ -9,12 +9,52 @@
 //! assert_eq!(t1.to_string(), "20210203040607.32895292-0503");
 //! ```
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
+use crate::{UTCOffset, ISO8601Timestampable};
 use crate::utils::{get_days_in_month, unlikely};
 use crate::utils::macros::parse_uint;
+use crate::utctime::UTCTime;
+use crate::date::DATE;
 use std::cmp::min;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
+
+/// ASN.1 `GeneralizedTime`
+///
+/// ## Conversion to and from `DATE`, `TIME`, and `DATE-TIME`
+///
+/// `DATE`, `TIME`, and `DATE-TIME` are all defined in ITU-T Recommendation
+/// X.680 as using local time, which means that it is unclear how to translate
+/// a `GeneralizedTime` value to a correct value of those other types and vice-versa.
+/// Hence, there is intentionally no implementation of `From` for those types in
+/// either direction; it is to prevent you from doing something wrong and
+/// potentially insecure. This is true for `UTCTime` as well.
+///
+/// There is, however, an exception for converting `DATE` into
+/// `GeneralizedTime`: when `From<DATE>` is used, the `GeneralizedTime` is made
+/// into a local-item `GeneralizedTime` with the hours set to 0 and minutes and
+/// seconds set to `None`. This is not incorrect: we are setting one local time
+/// to another.
+///
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+pub struct GeneralizedTime {
+    pub date: DATE,
+    /// `None` = Local time
+    /// `Some`, where the offset is zero: UTC time
+    /// `Some`, where the offset is non-zero: UTC difference
+    pub utc_offset: Option<UTCOffset>,
+    pub hour: u8,
+
+    // Not only does this enforce correctness, but it also makes the struct
+    // 24 bytes instead of 28, meaning that it can be read or copied more
+    // efficiently on 64-bit systems.
+    pub min_and_sec: Option<(u8, Option<u8>)>,
+
+    /// The least significant four bits are the precision, in terms of decimal
+    /// digits, of the fraction. This value will be 0 if there were no
+    /// fractional digits.
+    pub flags: u8,
+    pub fraction: u32,
+}
 
 impl GeneralizedTime {
 

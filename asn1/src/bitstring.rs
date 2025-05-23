@@ -18,10 +18,26 @@
 //! assert_eq!(join_bit_strings(&[ bs1, bs2 ]), bs1); // Both are empty.
 //! ```
 use smallvec::{SmallVec, smallvec};
-use crate::{types::{BIT_STRING}};
 use std::{convert::TryInto, fmt::{Display, Write}};
 use crate::utils::unlikely;
 use std::hash::{Hash, Hasher};
+
+/// An ASN.1 `BIT STRING`
+#[cfg(not(feature = "smallvec"))]
+#[derive(Debug, Eq, Clone)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub struct BIT_STRING {
+    pub(crate) bytes: Vec<u8>,
+    pub(crate) trailing_bits: u8,
+}
+
+/// An ASN.1 `BIT STRING`
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Eq, Clone)]
+pub struct BIT_STRING {
+    pub(crate) bytes: SmallVec<[u8; 16]>,
+    pub(crate) trailing_bits: u8,
+}
 
 /// Combine `BIT STRING`s into one bigger `BIT STRING`
 pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
@@ -519,7 +535,7 @@ mod tests {
     use smallvec::smallvec;
     use std::usize;
 
-    use crate::{bitstring::join_bit_strings, types::BIT_STRING};
+    use crate::{bitstring::{join_bit_strings, BIT_STRING}};
 
     #[test]
     fn test_bit_string_compare_1() {

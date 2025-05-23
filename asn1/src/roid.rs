@@ -11,14 +11,33 @@
 //! assert!(roid1.starts_with(&roid!(1,3,6,1)));
 //! assert!(roid1.ends_with(&roid!(6,4,1)));
 //! ```
-use crate::{RelOidArcs, X690Validate, RELATIVE_OID};
-use crate::types::X690KnownSize;
+use crate::X690Validate;
+use crate::X690KnownSize;
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::utils::{write_oid_arc, unlikely};
 use std::{fmt::Display, str::FromStr};
 use smallvec::SmallVec;
 use std::cmp::Ordering;
 use std::fmt::Write;
+
+/// An ASN.1 `RELATIVE-OID`
+#[cfg(not(feature = "smallvec"))]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
+pub struct RELATIVE_OID (pub(crate) Vec<u8>);
+
+/// An ASN.1 `RELATIVE-OID`
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
+pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 16]>);
+
+/// Iterator over the arcs of a `RELATIVE-OID`
+#[derive(Debug, Clone, Copy)]
+pub struct RelOidArcs<'a> {
+    /// The full DER-encoding
+    pub(crate) encoded: &'a [u8],
+    /// Index into the encoded OID.
+    pub(crate) i: usize,
+}
 
 impl RELATIVE_OID {
 

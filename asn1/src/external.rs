@@ -2,14 +2,143 @@
 use crate::display::write_int;
 use crate::TagClass;
 use crate::{
-    types::{
-        ContextNegotiation, ExternalEncoding, ExternalIdentification, IdentificationSyntaxes,
-        PresentationContextSwitchingTypeIdentification, INSTANCE_OF,
-    },
+    INSTANCE_OF, INTEGER, ASN1Value,
     write_hex, ObjectDescriptor, CHARACTER_STRING, EMBEDDED_PDV, EXTERNAL, OCTET_STRING, OPTIONAL,
 };
+use crate::oid::OBJECT_IDENTIFIER;
+use crate::bitstring::BIT_STRING;
 use crate::construction::{ComponentSpec, TagSelector};
 use std::fmt::Display;
+use std::sync::Arc;
+
+/// A pair of syntaxes: an abstract and a transfer (concrete) syntax. Used for
+/// ASN.1 context-switching types.
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+pub struct IdentificationSyntaxes {
+    pub r#abstract: OBJECT_IDENTIFIER,
+    pub transfer: OBJECT_IDENTIFIER,
+}
+
+impl IdentificationSyntaxes {
+
+    /// Create a new syntaxes pair
+    #[inline]
+    pub const fn new(r#abstract: OBJECT_IDENTIFIER, transfer: OBJECT_IDENTIFIER) -> Self {
+        IdentificationSyntaxes {
+            r#abstract,
+            transfer,
+        }
+    }
+}
+
+/// An association between a presentation context identifier and a transfer
+/// syntax.
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+pub struct ContextNegotiation {
+    pub presentation_context_id: INTEGER,
+    pub transfer_syntax: OBJECT_IDENTIFIER,
+}
+
+impl ContextNegotiation {
+
+    /// Construct a new [ContextNegotiation]
+    #[inline]
+    pub const fn new(presentation_context_id: INTEGER, transfer_syntax: OBJECT_IDENTIFIER) -> Self {
+        ContextNegotiation {
+            presentation_context_id,
+            transfer_syntax,
+        }
+    }
+}
+
+/// Presentation syntax identification for an `EXTERNAL` value.
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+pub enum ExternalIdentification {
+    // syntaxes                (IdentificationSyntaxes),
+    syntax(OBJECT_IDENTIFIER),
+    presentation_context_id(INTEGER),
+    context_negotiation(ContextNegotiation),
+    // transfer_syntax         (OBJECT_IDENTIFIER),
+    // fixed,
+}
+
+/// Presentation value within an `EXTERNAL` value.
+/// See ITU Recommendation X.690, Section 8.18.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ExternalEncoding<Asn1Type: Sized = Arc<ASN1Value>> {
+    single_ASN1_type(Asn1Type),
+    octet_aligned(OCTET_STRING),
+    arbitrary(BIT_STRING),
+}
+
+/// ASN.1 `EXTERNAL` value
+#[derive(Debug, Clone, PartialEq)]
+pub struct External<Asn1Type: Sized = Arc<ASN1Value>> {
+
+    /// Identifies the type of encoding used in `data_value`
+    pub identification: ExternalIdentification,
+
+    /// A human-readable description of the encoding used in `data_value`
+    pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
+
+    /// The presentation data value itself
+    pub data_value: ExternalEncoding<Asn1Type>,
+}
+
+/// Presentation syntax identification for an `EMBEDDED PDV` or
+/// `CharacterString` value
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+pub enum PresentationContextSwitchingTypeIdentification {
+    syntaxes(IdentificationSyntaxes),
+    syntax(OBJECT_IDENTIFIER),
+    presentation_context_id(INTEGER),
+    context_negotiation(ContextNegotiation),
+    transfer_syntax(OBJECT_IDENTIFIER),
+    fixed,
+}
+
+/// An ASN.1 `EMBEDDED PDV` value
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+pub struct EmbeddedPDV {
+
+    /// Identifies the type of encoding used in `data_value`
+    pub identification: PresentationContextSwitchingTypeIdentification,
+
+    // pub data_value_descriptor: ObjectDescriptor: required to be ABSENT via constraints
+
+    /// The presentation data value itself
+    pub data_value: OCTET_STRING,
+}
+
+/// An ASN.1 `CharacterString` value
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+pub struct CharacterString {
+
+    /// Identifies the type of encoding used in `string_value`
+    pub identification: PresentationContextSwitchingTypeIdentification,
+
+    /// A human-readable description of the encoding used in `string_value`
+    pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
+
+    /// The presentation data value itself
+    pub string_value: OCTET_STRING,
+}
+
+/// ASN.1 `INSTANCE OF` value
+#[derive(Debug, Clone, PartialEq)]
+pub struct InstanceOf<Asn1Type: Sized = Arc<ASN1Value>> {
+    pub type_id: OBJECT_IDENTIFIER,
+    pub value: Asn1Type,
+}
+
+impl <Asn1Type> InstanceOf<Asn1Type> where Asn1Type: Sized {
+
+    /// Construct a new `INSTANCE OF` value
+    #[inline]
+    pub const fn new(type_id: OBJECT_IDENTIFIER, value: Asn1Type) -> Self {
+        InstanceOf { type_id, value }
+    }
+}
 
 impl EXTERNAL {
 

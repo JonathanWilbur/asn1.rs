@@ -6,7 +6,7 @@
 //! assert_eq!(read_i64(&[ 0x01, 0x05 ]), Some(256 + 5))
 //! assert_eq!(read_i128(&[ 0x01, 0x05 ]), Some(256 + 5))
 //! ```
-use crate::types::ByteSlice;
+use crate::ByteSlice;
 
 /// Attempt to read a variable-length big-endian signed integer (encoded as
 /// two's complement) from a byte slice (`&[u8]`) into an `i64`. This is

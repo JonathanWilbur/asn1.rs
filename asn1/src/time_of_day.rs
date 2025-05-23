@@ -14,11 +14,22 @@
 //! assert!(t3 > t2);
 //! ```
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY, X690KnownSize};
+use crate::X690KnownSize;
+use crate::utctime::UTCTime;
+use crate::datetime::DATE_TIME;
+use crate::gentime::GeneralizedTime;
 use crate::utils::unlikely;
 use crate::X690Validate;
 use std::fmt::Display;
 use std::str::FromStr;
+
+/// ASN.1 `TIME-OF-DAY`
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
+pub struct TIME_OF_DAY {
+    pub hour: u8,
+    pub minute: u8,
+    pub second: u8,
+}
 
 impl TIME_OF_DAY {
 

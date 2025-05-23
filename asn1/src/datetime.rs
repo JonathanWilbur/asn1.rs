@@ -18,12 +18,22 @@
 //! assert!(d4 > d2);
 //! ```
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use crate::types::{ISO8601Timestampable, X690KnownSize};
+use crate::{ISO8601Timestampable, X690KnownSize};
 use crate::utils::unlikely;
 use crate::X690Validate;
 use std::fmt::Display;
 use std::str::FromStr;
-use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, TIME_OF_DAY};
+use crate::utctime::UTCTime;
+use crate::gentime::GeneralizedTime;
+use crate::date::DATE;
+use crate::time_of_day::TIME_OF_DAY;
+
+/// ASN.1 `DATE-TIME`
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
+pub struct DATE_TIME {
+    pub date: DATE,
+    pub time: TIME_OF_DAY,
+}
 
 impl DATE_TIME {
 

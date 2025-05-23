@@ -15,7 +15,7 @@
 //! assert_eq!(dur.to_string(), "P5Y6M1W23DT25H65M222.00505S");
 //! ```
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{FractionalPart, X690KnownSize};
+use crate::{FractionalPart, X690KnownSize};
 use core::str;
 use std::fmt::Write;
 use std::{fmt::Display, str::FromStr, time::Duration};

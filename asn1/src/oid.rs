@@ -14,8 +14,59 @@
 //! assert!(oid1.ends_with(&roid!(6,4,1)));
 //! ```
 use smallvec::{SmallVec, smallvec};
-use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, X690Validate, OID_ARC, RELATIVE_OID};
+use crate::{unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, X690KnownSize, X690Validate, OID_ARC, RELATIVE_OID};
 use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, io::Write as IoWrite, str::FromStr, u32};
+
+/// An ASN.1 `OBJECT IDENTIFIER`
+#[cfg(not(feature = "smallvec"))]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
+pub struct OBJECT_IDENTIFIER (
+    /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
+    /// Recommendation X.690. This implementation favors faster comparison and
+    /// hashing and lower memory footprint at the expense of slower parsing and
+    /// printing.
+    ///
+    /// Intentionally not exported to library users so as to avoid dependency
+    /// on the underlying storage of arcs.
+    pub(crate) Vec<u8>
+);
+
+/// An ASN.1 `OBJECT IDENTIFIER`
+#[cfg(feature = "smallvec")]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
+pub struct OBJECT_IDENTIFIER (
+    /// This contains the DER-encoding of the `OBJECT IDENTIFIER``, per ITU-T
+    /// Recommendation X.690. This implementation favors faster comparison and
+    /// hashing and lower memory footprint at the expense of slower parsing and
+    /// printing.
+    ///
+    /// The 16-byte inline vector was chosen because it is more than enough to
+    /// accommodate the 12 bytes needed for an object identifier like
+    /// 1.3.6.1.4.1.56490.5.4.13000. The vast majority of all object identifiers
+    /// will fit without needing _any_ allocation on the heap.
+    ///
+    /// Intentionally not exported to library users so as to avoid dependency
+    /// on the underlying storage of arcs.
+    pub(crate) smallvec::SmallVec<[u8; 16]>
+);
+
+/// Iterator over the arcs of an `OBJECT IDENTIFIER`
+#[derive(Debug, Clone, Copy)]
+pub struct OidArcs<'a> {
+    /// The full DER-encoding, but optionally with a hack where a single root
+    /// arc is stored as a single byte with the most significant bit set.
+    pub(crate) encoded: &'a [u8],
+    /// Index into the encoded OID. u32 instead of usize so this struct would
+    /// still be 24 bytes instead of 32.
+    pub(crate) i: u32,
+    /// Whether the iterator already handled the first arc. We need this because
+    /// both the first and second arcs could be encoded in the first byte, and
+    /// i alone would be insufficient to tell us if we iterated over the first
+    /// arc already.
+    pub(crate) first_arc_read: bool,
+    /// This is just used for reverse iteration.
+    pub(crate) second_arc_read: bool,
+}
 
 impl OBJECT_IDENTIFIER {
 
