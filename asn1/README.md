@@ -295,7 +295,8 @@ somewhat battle-tested.
 
 ## To Do
 
-- [ ] `roid.rs` documentation
-- [ ] `types.rs` documentation
+- [x] `roid.rs` documentation
+- [x] `types.rs` documentation
 - [ ] Benchmarking
 - [ ] Update dependencies one last time
+- [x] Crate-level documentation
