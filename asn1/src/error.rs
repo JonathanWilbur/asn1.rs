@@ -186,6 +186,7 @@ pub enum ASN1ErrorCode {
     invalid_oid_arc,
 }
 
+/// An ASN.1-related error
 #[derive(Debug)]
 pub struct ASN1Error {
 
@@ -367,4 +368,5 @@ impl fmt::Display for ASN1Error {
     }
 }
 
+/// An ASN.1-related result
 pub type ASN1Result<T> = Result<T, ASN1Error>;

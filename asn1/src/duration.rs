@@ -38,12 +38,19 @@ const SECONDS_PER_YEAR: u64 = 31_556_952;
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum DurationPart {
+    /// Years
     Years,
+    /// Months
     Months,
+    /// Weeks
     Weeks,
+    /// Days
     Days,
+    /// Hours
     Hours,
+    /// Minutes
     Minutes,
+    /// Seconds
     Seconds
 }
 
@@ -70,13 +77,21 @@ impl Into<char> for DurationPart {
 #[derive(Debug, Eq, Clone, Copy)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct DURATION_EQUIVALENT {
+    /// Number of years
     pub years: u32,
+    /// Number of months
     pub months: u32,
+    /// Number of weeks
     pub weeks: u32,
+    /// Number of days
     pub days: u32,
+    /// Number of hours
     pub hours: u32,
+    /// Number of minutes
     pub minutes: u32,
+    /// Number of seconds
     pub seconds: u32,
+    /// Fractional part, and the part of the duration to which it applies
     pub fractional_part: Option<(DurationPart, FractionalPart)>,
 }
 

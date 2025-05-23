@@ -2,7 +2,6 @@
 #![allow(non_camel_case_types)]
 // #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![warn(missing_docs)]
 
 pub mod bitstring;
 pub mod constants;
@@ -40,7 +39,10 @@ pub use time_of_day::*;
 pub use utctime::*;
 pub use utils::*;
 
+/// Alias to make `true` look like ASN.1
 pub const TRUE: bool = true;
+
+/// Alias to make `false` look like ASN.1
 pub const FALSE: bool = false;
 
 
@@ -56,7 +58,10 @@ pub type OPTIONAL<T> = Option<T>;
 /// Coordinated Universal Time (UTC) Offset
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCOffset {
+    /// The hour offset from Coordinated Universal Time (UTC)
+    /// This may be between -15 to +15 inclusively.
     pub hour: i8,
+    /// The minute offset from Coordinated Universal Time (UTC)
     pub minute: u8,
 }
 
@@ -95,7 +100,12 @@ impl Default for UTCOffset {
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct FractionalPart {
+    /// Number of digits of precision
     pub number_of_digits: u8,
+
+    /// The fractional value that is to be converted to a decimal string and
+    /// left padded with zeroes until it is `number_of_digits` digits long to
+    /// produce the fractional part.
     pub fractional_value: u32,
 }
 
@@ -216,6 +226,7 @@ pub type INSTANCE_OF = crate::external::InstanceOf;
 
 /// ASN.1 `TYPE-IDENTIFIER`
 pub struct TYPE_IDENTIFIER {
+    /// The `type-id` field.
     pub id: OBJECT_IDENTIFIER,
 }
 
@@ -276,44 +287,85 @@ pub enum ASN1Value {
     UnknownBytes(std::sync::Arc<Bytes>),
 }
 
+/// The `UNIVERSAL` tag number for `END-OF-CONTENT`
 pub const UNIV_TAG_END_OF_CONTENT: TagNumber = 0;
+/// The `UNIVERSAL` tag number for `BOOLEAN`
 pub const UNIV_TAG_BOOLEAN: TagNumber = 1;
+/// The `UNIVERSAL` tag number for `INTEGER`
 pub const UNIV_TAG_INTEGER: TagNumber = 2;
+/// The `UNIVERSAL` tag number for `BIT STRING`
 pub const UNIV_TAG_BIT_STRING: TagNumber = 3;
+/// The `UNIVERSAL` tag number for `OCTET STRING`
 pub const UNIV_TAG_OCTET_STRING: TagNumber = 4;
+/// The `UNIVERSAL` tag number for `NULL`
 pub const UNIV_TAG_NULL: TagNumber = 5;
+/// The `UNIVERSAL` tag number for `OBJECT IDENTIFIER`
 pub const UNIV_TAG_OBJECT_IDENTIFIER: TagNumber = 6;
+/// The `UNIVERSAL` tag number for `ObjectDescriptor`
 pub const UNIV_TAG_OBJECT_DESCRIPTOR: TagNumber = 7;
+/// The `UNIVERSAL` tag number for `EXTERNAL`
 pub const UNIV_TAG_EXTERNAL: TagNumber = 8;
+/// The `UNIVERSAL` tag number for `INSTANCE OF`
+pub const UNIV_TAG_INSTANCE_OF: TagNumber = UNIV_TAG_EXTERNAL;
+/// The `UNIVERSAL` tag number for `REAL`
 pub const UNIV_TAG_REAL: TagNumber = 9;
+/// The `UNIVERSAL` tag number for `ENUMERATED`
 pub const UNIV_TAG_ENUMERATED: TagNumber = 10;
+/// The `UNIVERSAL` tag number for `EMBEDDED PDV`
 pub const UNIV_TAG_EMBEDDED_PDV: TagNumber = 11;
+/// The `UNIVERSAL` tag number for `UTF8String`
 pub const UNIV_TAG_UTF8_STRING: TagNumber = 12;
+/// The `UNIVERSAL` tag number for `RELATIVE-OID`
 pub const UNIV_TAG_RELATIVE_OID: TagNumber = 13;
+/// The `UNIVERSAL` tag number for `TIME`
 pub const UNIV_TAG_TIME: TagNumber = 14;
+/// The reserved `UNIVERSAL` tag number 15
 pub const UNIV_TAG_RESERVED_15: TagNumber = 15;
+/// The `UNIVERSAL` tag number for `SEQUENCE`
 pub const UNIV_TAG_SEQUENCE: TagNumber = 16;
-pub const UNIV_TAG_SEQUENCE_OF: TagNumber = 16;
+/// The `UNIVERSAL` tag number for `SEQUENCE OF`
+pub const UNIV_TAG_SEQUENCE_OF: TagNumber = UNIV_TAG_SEQUENCE;
+/// The `UNIVERSAL` tag number for `SET`
 pub const UNIV_TAG_SET: TagNumber = 17;
-pub const UNIV_TAG_SET_OF: TagNumber = 17;
+/// The `UNIVERSAL` tag number for `SET OF`
+pub const UNIV_TAG_SET_OF: TagNumber = UNIV_TAG_SET;
+/// The `UNIVERSAL` tag number for `NumericString`
 pub const UNIV_TAG_NUMERIC_STRING: TagNumber = 18;
+/// The `UNIVERSAL` tag number for `PrintableString`
 pub const UNIV_TAG_PRINTABLE_STRING: TagNumber = 19;
+/// The `UNIVERSAL` tag number for `T61String` / `TeletexString`
 pub const UNIV_TAG_T61_STRING: TagNumber = 20;
+/// The `UNIVERSAL` tag number for `VideotexString`
 pub const UNIV_TAG_VIDEOTEX_STRING: TagNumber = 21;
+/// The `UNIVERSAL` tag number for `IA5String`
 pub const UNIV_TAG_IA5_STRING: TagNumber = 22;
+/// The `UNIVERSAL` tag number for `UTCTime`
 pub const UNIV_TAG_UTC_TIME: TagNumber = 23;
+/// The `UNIVERSAL` tag number for `GeneralizedTime`
 pub const UNIV_TAG_GENERALIZED_TIME: TagNumber = 24;
+/// The `UNIVERSAL` tag number for `GraphicString`
 pub const UNIV_TAG_GRAPHIC_STRING: TagNumber = 25;
+/// The `UNIVERSAL` tag number for `VisibleString`
 pub const UNIV_TAG_VISIBLE_STRING: TagNumber = 26;
+/// The `UNIVERSAL` tag number for `GeneralString`
 pub const UNIV_TAG_GENERAL_STRING: TagNumber = 27;
+/// The `UNIVERSAL` tag number for `UniversalString`
 pub const UNIV_TAG_UNIVERSAL_STRING: TagNumber = 28;
+/// The `UNIVERSAL` tag number for `CharacterString`
 pub const UNIV_TAG_CHARACTER_STRING: TagNumber = 29;
+/// The `UNIVERSAL` tag number for `BMPString`
 pub const UNIV_TAG_BMP_STRING: TagNumber = 30;
+/// The `UNIVERSAL` tag number for `DATE`
 pub const UNIV_TAG_DATE: TagNumber = 31;
+/// The `UNIVERSAL` tag number for `TIME-OF-DAY`
 pub const UNIV_TAG_TIME_OF_DAY: TagNumber = 32;
+/// The `UNIVERSAL` tag number for `DATE-TIME`
 pub const UNIV_TAG_DATE_TIME: TagNumber = 33;
+/// The `UNIVERSAL` tag number for `DURATION`
 pub const UNIV_TAG_DURATION: TagNumber = 34;
+/// The `UNIVERSAL` tag number for `OID-IRI`
 pub const UNIV_TAG_OID_IRI: TagNumber = 35;
+/// The `UNIVERSAL` tag number for `RELATIVE-OID-IRI`
 pub const UNIV_TAG_RELATIVE_OID_IRI: TagNumber = 36;
 
 /// An ASN.1 Codec
@@ -360,7 +412,11 @@ pub trait X690Validate {
 /// `SET` or `SEQUENCE`
 #[derive(Debug, Clone)]
 pub struct NamedType <'a, Type = ASN1Value> {
+
+    /// The identifier, such as `subjectPublicKeyInfo`
     pub identifier: &'a str,
+
+    /// The value
     pub value: Type,
 }
 

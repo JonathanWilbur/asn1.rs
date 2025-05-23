@@ -58,13 +58,20 @@ use std::str::FromStr;
 ///
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCTime {
+    /// The year
     /// Yes, `u8`, not `u16`: it is left to the application to determine which century the two-digit year identifies.
     pub year: u8,
+    /// The month, where 1 = January
     pub month: u8,
+    /// The day, where 1 = the first day of the month
     pub day: u8,
+    /// The hour
     pub hour: u8,
+    /// The minute
     pub minute: u8,
+    /// The second
     pub second: u8,
+    /// The Coordinated Universal Time (UTC) Offset
     pub utc_offset: UTCOffset,
 }
 

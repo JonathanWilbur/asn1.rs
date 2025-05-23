@@ -15,7 +15,10 @@ use std::sync::Arc;
 /// ASN.1 context-switching types.
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct IdentificationSyntaxes {
+    /// The abstract syntax identifier
     pub r#abstract: OBJECT_IDENTIFIER,
+
+    /// The transfer syntax identifier
     pub transfer: OBJECT_IDENTIFIER,
 }
 
@@ -35,7 +38,9 @@ impl IdentificationSyntaxes {
 /// syntax.
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct ContextNegotiation {
+    /// The presentation context identifier. See ITU-T Recommendation X.226.
     pub presentation_context_id: INTEGER,
+    /// The transfer syntax identifier
     pub transfer_syntax: OBJECT_IDENTIFIER,
 }
 
@@ -55,8 +60,14 @@ impl ContextNegotiation {
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum ExternalIdentification {
     // syntaxes                (IdentificationSyntaxes),
+
+    /// A single transfer syntax
     syntax(OBJECT_IDENTIFIER),
+
+    /// A context ID negotiated at the presentation layer
     presentation_context_id(INTEGER),
+
+    /// A binding between a context ID and a transfer syntax
     context_negotiation(ContextNegotiation),
     // transfer_syntax         (OBJECT_IDENTIFIER),
     // fixed,
@@ -66,8 +77,14 @@ pub enum ExternalIdentification {
 /// See ITU Recommendation X.690, Section 8.18.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExternalEncoding<Asn1Type: Sized = Arc<ASN1Value>> {
+
+    /// Any ASN.1 value
     single_ASN1_type(Asn1Type),
+
+    /// A byte-aligned value
     octet_aligned(OCTET_STRING),
+
+    /// A non-byte-aligned value
     arbitrary(BIT_STRING),
 }
 
@@ -89,11 +106,17 @@ pub struct External<Asn1Type: Sized = Arc<ASN1Value>> {
 /// `CharacterString` value
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum PresentationContextSwitchingTypeIdentification {
+    /// An abstract syntax identifier and a transfer syntax identifier
     syntaxes(IdentificationSyntaxes),
+    /// A single transfer syntax identifier
     syntax(OBJECT_IDENTIFIER),
+    /// A context ID negotiated at the presentation layer
     presentation_context_id(INTEGER),
+    /// A binding between a context ID and a transfer syntax
     context_negotiation(ContextNegotiation),
+    /// A single transfer syntax identifier
     transfer_syntax(OBJECT_IDENTIFIER),
+    /// A contextually-fixed syntax
     fixed,
 }
 
@@ -127,7 +150,9 @@ pub struct CharacterString {
 /// ASN.1 `INSTANCE OF` value
 #[derive(Debug, Clone, PartialEq)]
 pub struct InstanceOf<Asn1Type: Sized = Arc<ASN1Value>> {
+    /// The `type-id` field
     pub type_id: OBJECT_IDENTIFIER,
+    /// The `value` field
     pub value: Asn1Type,
 }
 

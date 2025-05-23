@@ -41,22 +41,29 @@ use std::str::FromStr;
 ///
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct GeneralizedTime {
+    /// The date portion of the `GeneralizedTime`
     pub date: DATE,
     /// `None` = Local time
     /// `Some`, where the offset is zero: UTC time
     /// `Some`, where the offset is non-zero: UTC difference
     pub utc_offset: Option<UTCOffset>,
+
+    /// The hour
     pub hour: u8,
 
-    // Not only does this enforce correctness, but it also makes the struct
-    // 24 bytes instead of 28, meaning that it can be read or copied more
-    // efficiently on 64-bit systems.
+    /// The minute and second
+    /// Not only does this enforce correctness, but it also makes the struct
+    /// 24 bytes instead of 28, meaning that it can be read or copied more
+    /// efficiently on 64-bit systems.
     pub min_and_sec: Option<(u8, Option<u8>)>,
 
     /// The least significant four bits are the precision, in terms of decimal
     /// digits, of the fraction. This value will be 0 if there were no
     /// fractional digits.
     pub flags: u8,
+
+    /// The fraction value. The digits of precision is stored in the `flags`
+    /// field.
     pub fraction: u32,
 }
 

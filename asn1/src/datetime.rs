@@ -34,7 +34,9 @@ use crate::time_of_day::TIME_OF_DAY;
 /// ASN.1 `DATE-TIME`
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
 pub struct DATE_TIME {
+    /// The date portion of the `DATE-TIME`
     pub date: DATE,
+    /// The time-of-day portion of the `DATE-TIME`
     pub time: TIME_OF_DAY,
 }
 

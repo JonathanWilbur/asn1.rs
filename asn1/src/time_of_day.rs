@@ -29,8 +29,11 @@ use std::str::FromStr;
 /// ASN.1 `TIME-OF-DAY`
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct TIME_OF_DAY {
+    /// The Hour
     pub hour: u8,
+    /// The minute
     pub minute: u8,
+    /// The second
     pub second: u8,
 }
 

@@ -14,9 +14,13 @@ pub type TagNumber = u16;
 /// ASN.1 tag class
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord)]
 pub enum TagClass {
+    /// `UNIVERSAL`
     UNIVERSAL,
+    /// `APPLICATION`
     APPLICATION,
+    /// Context-specific
     CONTEXT,
+    /// `PRIVATE`
     PRIVATE,
 }
 

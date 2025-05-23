@@ -29,8 +29,11 @@ use std::str::FromStr;
 /// ASN.1 `DATE`
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct DATE {
+    /// The Year
     pub year: u16,
+    /// The Month
     pub month: u8,
+    /// The Day
     pub day: u8,
 }
 
