@@ -5,6 +5,7 @@ use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, io::Write as 
 
 impl OBJECT_IDENTIFIER {
 
+    /// Iterate over the arcs of the `OBJECT IDENTIFIER`
     #[inline]
     pub fn arcs(&self) -> OidArcs<'_> {
         OidArcs{
@@ -15,8 +16,10 @@ impl OBJECT_IDENTIFIER {
         }
     }
 
+    /// Convert to an ASN.1 `OBJECT IDENTIFIER` string, such as:
+    /// `{ 1 3 6 1 4 1 56940 }`.
     pub fn to_asn1_string(&self) -> String {
-        let mut out = String::with_capacity(self.0.len() << 2 + 4);
+        let mut out = String::with_capacity(self.0.len() << 3 + 4);
         out.write_str("{ ").unwrap();
         for arc in self.arcs() {
             if cfg!(feature = "itoa") {
@@ -31,8 +34,10 @@ impl OBJECT_IDENTIFIER {
         out
     }
 
+    /// Convert to an ASN.1 OID Internationalized Resource Identifier (OID-IRI)
+    /// string, such as: `/1/3/6/1/4/1/56940`.
     pub fn to_iri_string(&self) -> String {
-        let mut out = String::with_capacity(self.0.len() << 2);
+        let mut out = String::with_capacity(self.0.len() << 3);
         for arc in self.arcs() {
             out.write_char('/').unwrap();
             if cfg!(feature = "itoa") {
@@ -45,11 +50,14 @@ impl OBJECT_IDENTIFIER {
         out
     }
 
+    /// Convert to a dot-delimited string, such as `1.3.6.1.4.1.56940`.
     #[inline]
     pub fn to_dot_delim_string(&self) -> String {
         self.to_string()
     }
 
+    /// Validate that the supplied `content_octets` are a valid X.690 encoding
+    /// of an `OBJECT IDENTIFIER`.
     pub fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
@@ -67,6 +75,8 @@ impl OBJECT_IDENTIFIER {
         Ok(())
     }
 
+    /// Create an `OBJECT IDENTIFIER` directly from a `SmallVec`.
+    ///
     /// This is defined so that you can define OIDs as compile-time constants.
     #[cfg(feature = "smallvec")]
     #[inline]
@@ -74,6 +84,18 @@ impl OBJECT_IDENTIFIER {
         OBJECT_IDENTIFIER(enc)
     }
 
+    /// Create an `OBJECT IDENTIFIER` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV) without checking
+    /// for validity. (Other codecs use this encoding as well.)
+    ///
+    /// This is marked `unsafe` because of the potential to provide an invalid
+    /// encoding. Wrong encodings should _never_ panic or read or write
+    /// out-of-bounds, but their behavior is _undefined_. In all likelihood,
+    /// supplying a wrongly-encoded OID will result in arcs you didn't expect,
+    /// aberrant printing, incorrect comparison and ordering, etc.
+    ///
+    /// If you want to validate the encoding, consider using the safer
+    /// [OBJECT_IDENTIFIER::from_x690_encoding_slice] instead.
     #[inline]
     pub unsafe fn from_x690_encoding_slice_unchecked (enc: &[u8]) -> Self {
         #[cfg(feature = "smallvec")]
@@ -86,6 +108,18 @@ impl OBJECT_IDENTIFIER {
         }
     }
 
+    /// Create an `OBJECT IDENTIFIER` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV) without checking
+    /// for validity. (Other codecs use this encoding as well.)
+    ///
+    /// This is marked `unsafe` because of the potential to provide an invalid
+    /// encoding. Wrong encodings should _never_ panic or read or write
+    /// out-of-bounds, but their behavior is _undefined_. In all likelihood,
+    /// supplying a wrongly-encoded OID will result in arcs you didn't expect,
+    /// aberrant printing, incorrect comparison and ordering, etc.
+    ///
+    /// If you want to validate the encoding, consider using the safer
+    /// [OBJECT_IDENTIFIER::from_x690_encoding] instead.
     #[inline]
     pub unsafe fn from_x690_encoding_unchecked (enc: Vec<u8>) -> Self {
         #[cfg(feature = "smallvec")]
@@ -98,23 +132,40 @@ impl OBJECT_IDENTIFIER {
         }
     }
 
+    /// Create an `OBJECT IDENTIFIER` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV). (Other codecs use
+    /// this encoding as well.)
+    ///
+    /// This method validates the encoded data. If you are certain that you do
+    /// not need to validate the encoding, consider using the `unsafe`
+    /// [OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked] instead.
     pub fn from_x690_encoding_slice (enc: &[u8]) -> ASN1Result<Self> {
         OBJECT_IDENTIFIER::validate_x690_encoding(enc)?;
         unsafe { Ok(OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked(enc)) }
     }
 
+    /// Create an `OBJECT IDENTIFIER` directly from the content octets ("value")
+    /// of a BER, CER, or DER-encoded Tag-Length-Value (TLV). (Other codecs use
+    /// this encoding as well.)
+    ///
+    /// This method validates the encoded data. If you are certain that you do
+    /// not need to validate the encoding, consider using the `unsafe`
+    /// [OBJECT_IDENTIFIER::from_x690_encoding_unchecked] instead.
     pub fn from_x690_encoding (enc: Vec<u8>) -> ASN1Result<Self> {
         OBJECT_IDENTIFIER::validate_x690_encoding(enc.as_slice())?;
         unsafe { Ok(OBJECT_IDENTIFIER::from_x690_encoding_unchecked(enc)) }
     }
 
+    /// Create a new `OBJECT IDENTIFIER` from another `OBJECT IDENTIFIER` as a
+    /// prefix and a single `arc` to append to it. This is an elegant way to
+    /// code the ASN.1 equivalent of something like `{ id-at 5 }`.
     pub fn from_prefix_and_arc (mut prefix: OBJECT_IDENTIFIER, arc: OID_ARC) -> ASN1Result<Self> {
         if unlikely(prefix.len() == 0) {
             return OBJECT_IDENTIFIER::try_from([ arc ].as_slice());
         }
         // Handle the single-arc OID case.
         if prefix.0.len() == 1 && prefix.0[0] >= 0b1000_0000 {
-            let arc1 = min(prefix.0[0] & 0b0111_1111, 2) as u32 * 40;
+            let arc1 = min(prefix.0[0] & 0b0111_1111, 2) as OID_ARC * 40;
             let first_component = arc1.checked_add(arc)
                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
             #[cfg(feature = "smallvec")]
@@ -134,9 +185,9 @@ impl OBJECT_IDENTIFIER {
         Ok(prefix)
     }
 
-    // TODO: Change to just modify the underlying OID
-    // TODO: Rename to extend from slice and make it use self
-    pub fn from_prefix_and_suffix (mut prefix: OBJECT_IDENTIFIER, suffix: &[u32]) -> ASN1Result<Self> {
+    /// Create an `OBJECT IDENTIFIER` from another `OBJECT IDENTIFIER` and a
+    /// suffix. This is useful for encoding something like `{ id-at 5 1 }`.
+    pub fn from_prefix_and_suffix (mut prefix: OBJECT_IDENTIFIER, suffix: &[OID_ARC]) -> ASN1Result<Self> {
         if unlikely(suffix.len() == 0) {
             return Ok(prefix);
         }
@@ -145,7 +196,7 @@ impl OBJECT_IDENTIFIER {
         }
         // Handle the single-arc OID case.
         if prefix.0.len() == 1 && prefix.0[0] >= 0b1000_0000 {
-            let arc1 = min(prefix.0[0] & 0b0111_1111, 2) as u32 * 40;
+            let arc1 = min(prefix.0[0] & 0b0111_1111, 2) as OID_ARC * 40;
             let first_component = arc1.checked_add(suffix[0])
                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
             let roid = RELATIVE_OID::try_from(&suffix[1..])?;
@@ -158,7 +209,7 @@ impl OBJECT_IDENTIFIER {
             }
             #[cfg(not(feature = "smallvec"))]
             {
-                let mut inner: Vec<u8> = Vec::with_capacity(16); // TODO: Ensure vec always uses capacity
+                let mut inner: Vec<u8> = Vec::with_capacity(16); // Just guess that we'll use more bytes.
                 write_oid_arc(&mut inner, first_component as u128)?;
                 inner.write(roid.0.as_slice())?;
                 return OBJECT_IDENTIFIER(inner)
@@ -169,30 +220,51 @@ impl OBJECT_IDENTIFIER {
         Ok(prefix)
     }
 
-    // TODO: from prefix and roid
+    /// Create an `OBJECT IDENTIFIER` from another `OBJECT IDENTIFIER` and a
+    /// `RELATIVE-OID` that is assumed to be relative to the `prefix`,
+    /// essentially by concatenating the two.
+    pub fn from_prefix_and_roid (mut prefix: OBJECT_IDENTIFIER, roid: &RELATIVE_OID) -> ASN1Result<Self> {
+        if unlikely(roid.len() == 0) {
+            return Ok(prefix);
+        }
+        // Handle the single-arc OID case.
+        if prefix.0.len() == 1 && prefix.0[0] >= 0b1000_0000 {
+            let mut roid = roid.clone();
+            roid.0[0] += (prefix.0[0] & 0b11) * 40;
+            prefix.0.write(roid.0.as_slice())?;
+            return Ok(prefix);
+        }
+        prefix.0.write(roid.0.as_slice())?;
+        Ok(prefix)
+    }
 
-    /// Returns the number of arcs in this OID
+    /// Returns the number of arcs in this `OBJECT IDENTIFIER`
     #[inline]
     pub fn len(&self) -> usize {
         self.arcs().count()
     }
 
+    /// Returns the X.690 encoding of this `OBJECT IDENTIFIER`
     #[inline]
     pub fn as_x690_slice(&self) -> &[u8] {
         &self.0
     }
 
+    /// Produces an X.690 encoding of this `OBJECT IDENTIFIER`
     #[inline]
     pub fn to_x690_vec(self) -> Vec<u8> {
         self.0.to_vec()
     }
 
+    /// Produces an X.690 encoding of this `OBJECT IDENTIFIER` in a `SmallVec`
     #[cfg(feature = "smallvec")]
     #[inline]
     pub fn to_x690_smallvec(self) -> SmallVec<[u8; 16]> {
         self.0
     }
 
+    /// Determine if this `OBJECT IDENTIFIER` starts with the `other`, and is
+    /// therefore a prefix of the latter.
     pub fn starts_with(&self, other: &OBJECT_IDENTIFIER) -> bool {
         match (self.0.len(), other.0.len()) {
             // If either is encoded on 1 byte, we iterate over all arcs to
@@ -214,10 +286,12 @@ impl OBJECT_IDENTIFIER {
         }
     }
 
+    /// Determine if this `OBJECT IDENTIFIER` ends with the `RELATIVE-OID`
+    /// `roid`.
     #[inline]
-    pub fn ends_with(&self, other: &RELATIVE_OID) -> bool {
+    pub fn ends_with(&self, roid: &RELATIVE_OID) -> bool {
         let mut my_arcs = self.arcs();
-        for other_arc in other.arcs().rev() {
+        for other_arc in roid.arcs().rev() {
             if let Some(my_arc) = my_arcs.next_back() {
                 if my_arc != other_arc {
                     return false;
@@ -247,6 +321,25 @@ impl PartialOrd for OBJECT_IDENTIFIER {
     /// 1.3.6.1.6
     /// 1.3.6.1.6.8
     /// ```
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// let oid1 = asn1::oid!(1,3,6,1);
+    /// let oid2 = asn1::oid!(1,3,6,1,5);
+    /// let oid3 = asn1::oid!(1,3,6,1,6);
+    /// let oid4 = asn1::oid!(1,3,6,1,6,8);
+    ///
+    /// let mut unordered = Vec::from([
+    ///     oid4.clone(),
+    ///     oid2.clone(),
+    ///     oid1.clone(),
+    ///     oid3.clone(),
+    /// ].as_slice());
+    /// unordered.sort();
+    /// assert_eq!(unordered.as_slice(), [ oid1, oid2, oid3, oid4 ].as_slice());
+    /// ```
+    ///
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -267,6 +360,25 @@ impl Ord for OBJECT_IDENTIFIER {
     /// 1.3.6.1.6
     /// 1.3.6.1.6.8
     /// ```
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// let oid1 = asn1::oid!(1,3,6,1);
+    /// let oid2 = asn1::oid!(1,3,6,1,5);
+    /// let oid3 = asn1::oid!(1,3,6,1,6);
+    /// let oid4 = asn1::oid!(1,3,6,1,6,8);
+    ///
+    /// let mut unordered = Vec::from([
+    ///     oid4.clone(),
+    ///     oid2.clone(),
+    ///     oid1.clone(),
+    ///     oid3.clone(),
+    /// ].as_slice());
+    /// unordered.sort();
+    /// assert_eq!(unordered.as_slice(), [ oid1, oid2, oid3, oid4 ].as_slice());
+    /// ```
+    ///
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let mut iter1 = self.arcs();
         let mut iter2 = other.arcs();
@@ -291,46 +403,56 @@ impl Ord for OBJECT_IDENTIFIER {
 impl FromStr for OBJECT_IDENTIFIER {
     type Err = ();
 
+    /// Parse an `OBJECT IDENTIFIER` from a dot-delimited string, such as `2.5.4.3`
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut nodes: Vec<u32> = Vec::with_capacity(s.len());
         for arc_string in s.split(".") {
             if cfg!(feature = "atoi_simd") {
-                let arc = atoi_simd::parse_pos::<u32>(arc_string.as_bytes()).map_err(|_| ())?;
+                let arc = atoi_simd::parse_pos::<OID_ARC>(arc_string.as_bytes()).map_err(|_| ())?;
                 nodes.push(arc);
             } else {
-                nodes.push(arc_string.parse::<u32>().map_err(|_| ())?);
+                nodes.push(arc_string.parse::<OID_ARC>().map_err(|_| ())?);
             }
         }
         OBJECT_IDENTIFIER::try_from(nodes).map_err(|_| ())
     }
 }
 
-impl TryFrom<Vec<u32>> for OBJECT_IDENTIFIER {
+impl TryFrom<Vec<OID_ARC>> for OBJECT_IDENTIFIER {
     type Error = ASN1Error;
 
-    fn try_from(value: Vec<u32>) -> Result<Self, Self::Error> {
+    /// Create an `OBJECT IDENTIFIER` from arcs
+    ///
+    /// It is an unfortunate limitation of Rust that it is extremely difficult to
+    /// make this generic over all integer types. So this implementation just uses
+    /// `Vec<u32>`. If you need to append something larger, like a `u128`, you're
+    /// going to have to use a combination of [write_oid_arc] and
+    /// [OBJECT_IDENTIFIER::from_x690_encoding].
+    fn try_from(value: Vec<OID_ARC>) -> Result<Self, Self::Error> {
         OBJECT_IDENTIFIER::try_from(value.as_slice())
     }
 
 }
 
-impl TryFrom<&[u32]> for OBJECT_IDENTIFIER {
+impl TryFrom<&[OID_ARC]> for OBJECT_IDENTIFIER {
     type Error = ASN1Error;
 
+    /// Create an `OBJECT IDENTIFIER` from arcs
+    ///
     /// It is an unfortunate limitation of Rust that it is extremely difficult to
     /// make this generic over all integer types. So this implementation just uses
-    /// u32 slices. If you need to append something larger, like a u128, you're
+    /// u32 slices. If you need to append something larger, like a `u128`, you're
     /// going to have to use a combination of [write_oid_arc] and
     /// [OBJECT_IDENTIFIER::from_x690_encoding].
-    fn try_from(value: &[u32]) -> Result<Self, Self::Error> {
+    fn try_from(value: &[OID_ARC]) -> Result<Self, Self::Error> {
         if value.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
         if value[0] > 2 || (value[0] < 2 && value.get(1).is_some_and(|second_arc| *second_arc > 39)) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_oid_arc));
         }
-        let node0: u32 = value[0] * 40; // Checking not needed.
-        let node1: u32 = value.get(1).cloned().unwrap_or(0);
+        let node0: OID_ARC = value[0] * 40; // Checking not needed.
+        let node1: OID_ARC = value.get(1).cloned().unwrap_or(0);
         let first_component = node0.checked_add(node1)
             .ok_or(std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
 
@@ -381,6 +503,13 @@ impl TryFrom<&[u32]> for OBJECT_IDENTIFIER {
 impl TryFrom<Vec<i8>> for OBJECT_IDENTIFIER {
     type Error = ASN1Error;
 
+    /// Create an `OBJECT IDENTIFIER` from arcs, with the arcs represented as
+    /// `i8`s.
+    ///
+    /// This is a performance optimizing-hack: as long as an i8 representing an
+    /// arc is not negative, it can be written directly into the internal
+    /// buffer and still produce an valid encoding (except for the first two
+    /// arcs).
     fn try_from(value: Vec<i8>) -> Result<Self, Self::Error> {
         OBJECT_IDENTIFIER::try_from(value.as_slice())
     }
@@ -390,9 +519,12 @@ impl TryFrom<Vec<i8>> for OBJECT_IDENTIFIER {
 impl TryFrom<&[i8]> for OBJECT_IDENTIFIER {
     type Error = ASN1Error;
 
+    /// Create an `OBJECT IDENTIFIER` from arcs, with the arcs represented as
+    /// `i8`s.
+    ///
     /// This is a performance optimizing-hack: as long as an i8 representing an
     /// arc is not negative, it can be written directly into the internal
-    /// buffer and still produce an invalid encoding (except for the first two
+    /// buffer and still produce an valid encoding (except for the first two
     /// arcs).
     fn try_from(value: &[i8]) -> Result<Self, Self::Error> {
         if value.len() == 0 {
@@ -401,8 +533,8 @@ impl TryFrom<&[i8]> for OBJECT_IDENTIFIER {
         if value[0] > 2 || (value[0] < 2 && value.get(1).is_some_and(|second_arc| *second_arc > 39)) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_oid_arc));
         }
-        let node0: u32 = (value[0] * 40) as u32; // Checking not needed.
-        let node1: u32 = value.get(1).cloned().unwrap_or(0) as u32;
+        let node0: OID_ARC = (value[0] * 40) as OID_ARC; // Checking not needed.
+        let node1: OID_ARC = value.get(1).cloned().unwrap_or(0) as OID_ARC;
         let first_component = node0.checked_add(node1)
             .ok_or(std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
 
@@ -490,7 +622,7 @@ impl OidArcs<'_> {
         if unlikely(self.i == 0) {
             if self.first_arc_read {
                 self.second_arc_read = true;
-                self.i = match self.i.checked_add(arc_len as u32) {
+                self.i = match self.i.checked_add(arc_len as OID_ARC) {
                     Some(x) => x,
                     None => return self.end(),
                 };
@@ -499,7 +631,7 @@ impl OidArcs<'_> {
             }
             return;
         }
-        if let Some(x) = self.i.checked_add(arc_len as u32) {
+        if let Some(x) = self.i.checked_add(arc_len as OID_ARC) {
             self.i = x;
         } else {
             self.end();
@@ -812,7 +944,7 @@ mod tests {
     #[test]
     fn test_single_arc_oid() {
         // Test the "hack" case for single root arc
-        let in_arcs: Vec<u32> = vec![2]; // 2 with high bit set
+        let in_arcs: Vec<OID_ARC> = vec![2]; // 2 with high bit set
         let oid = OBJECT_IDENTIFIER::try_from(in_arcs).unwrap();
 
         let mut arcs = oid.arcs();
