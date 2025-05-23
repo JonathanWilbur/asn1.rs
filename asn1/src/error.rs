@@ -1,3 +1,4 @@
+//! The `ASN1Error` error type
 use crate::{ASN1Value, ComponentSpec};
 use crate::types::Tag;
 use std::fmt;

@@ -1,3 +1,4 @@
+//! The `DATE-TIME` type
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::types::{ISO8601Timestampable, X690KnownSize};
 use crate::utils::unlikely;

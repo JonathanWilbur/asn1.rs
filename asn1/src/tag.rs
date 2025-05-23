@@ -1,3 +1,4 @@
+//! ASN.1 tags
 use crate::types::{Tag, TagClass, TagNumber};
 use std::fmt;
 

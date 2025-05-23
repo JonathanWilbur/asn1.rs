@@ -1,3 +1,4 @@
+//! The `DATE` type
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, X690KnownSize, X690Validate};
 use crate::utils::{get_days_in_month, unlikely};

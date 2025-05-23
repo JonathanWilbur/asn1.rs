@@ -1,3 +1,4 @@
+//! Encoding, decoding, and validation of constructed types such as `SET` or `SEQUENCE`
 use crate::types::{TagClass, TagNumber};
 
 /// A selector for an ASN.1 tag.

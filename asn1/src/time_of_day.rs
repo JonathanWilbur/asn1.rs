@@ -1,3 +1,4 @@
+//! The `TIME-OF-DAY` type
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY, X690KnownSize};
 use crate::utils::unlikely;

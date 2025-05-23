@@ -1,3 +1,4 @@
+//! The `RELATIVE-OID` type
 use crate::{RelOidArcs, X690Validate, RELATIVE_OID};
 use crate::types::X690KnownSize;
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
@@ -627,7 +628,7 @@ impl std::iter::DoubleEndedIterator for RelOidArcs<'_> {
 
 }
 
-/// Convenience macro for creating object identifiers
+/// Convenience macro for creating relative object identifiers (ROIDs)
 ///
 /// #### Example
 ///

@@ -218,9 +218,11 @@ pub struct ASN1Error {
     pub value_preview: Option<String>,
     pub bytes_read: Option<usize>, // The number of bytes into the IO read stream where this error appeared.
     pub values_read: Option<usize>, // The number of ASN.1 values into the IO read stream where this error appeared.
-    pub io_error: Option<Error>,
+    pub err_source: Option<Box<dyn std::error::Error + 'static>>,
 }
 ```
+
+Of course, they implement `std::error::Error`.
 
 ### ASN.1 Types and Values
 

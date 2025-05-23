@@ -1,3 +1,4 @@
+//! The `BIT STRING` type
 use smallvec::{SmallVec, smallvec};
 use crate::{types::{BIT_STRING}};
 use std::{convert::TryInto, fmt::{Display, Write}};

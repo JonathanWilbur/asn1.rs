@@ -1,3 +1,4 @@
+//! The `GeneralizedTime` type
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
 use crate::utils::{get_days_in_month, unlikely};

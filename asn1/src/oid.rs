@@ -1,5 +1,5 @@
+//! The `OBJECT IDENTIFIER` type
 use smallvec::{SmallVec, smallvec};
-
 use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, X690Validate, OID_ARC, RELATIVE_OID};
 use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, io::Write as IoWrite, str::FromStr, u32};
 

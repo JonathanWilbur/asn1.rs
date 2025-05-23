@@ -1,3 +1,4 @@
+//! Context-switching types: `EXTERNAL`, `EMBEDDED PDV`, and `CharacterString`
 use crate::display::write_int;
 use crate::TagClass;
 use crate::{
@@ -52,6 +53,7 @@ impl CHARACTER_STRING {
     ) -> CHARACTER_STRING {
         CHARACTER_STRING {
             identification,
+            data_value_descriptor: None,
             string_value,
         }
     }

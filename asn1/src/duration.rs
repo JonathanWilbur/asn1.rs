@@ -1,3 +1,4 @@
+//! The `DURATION` type
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{FractionalPart, DURATION_EQUIVALENT, DurationPart, X690KnownSize};
 use core::str;
