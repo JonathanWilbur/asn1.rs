@@ -1,12 +1,18 @@
+//! Types
 use std::{fmt::Debug, sync::Arc, vec::Vec};
 use smallvec::SmallVec;
-
 use crate::error::ASN1Result;
 
+/// How this library represents owned "bytes"
 pub type Bytes = Vec<u8>;
+
+/// How this library represents borrowed "bytes"
 pub type ByteSlice<'a> = &'a [u8];
+
+/// An alias to make `Option<>` look more like ASN.1.
 pub type OPTIONAL<T> = Option<T>;
 
+/// ASN.1 tag class
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord)]
 pub enum TagClass {
     UNIVERSAL,
@@ -15,12 +21,16 @@ pub enum TagClass {
     PRIVATE,
 }
 
-// Based on an analysis of thousands of ASN.1 modules, no tag number ever
-// exceeds this maximum. The largest tag number found in any ASN.1 specification
-// is 12787. This fits within 14 bits, which means that, for X.690 encodings,
-// it would be acceptable to only tolerate two bytes of long-length tag numbers.
+/// ASN.1 tag number
+///
+/// Based on an analysis of thousands of ASN.1 modules, no tag number ever
+/// exceeds this maximum. The largest tag number found in any ASN.1 specification
+/// is 12787. This fits within 14 bits, which means that, for X.690 encodings,
+/// it would be acceptable to only tolerate two bytes of long-length tag numbers.
 pub type TagNumber = u16;
 
+/// A pair of syntaxes: an abstract and a transfer (concrete) syntax. Used for
+/// ASN.1 context-switching types.
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct IdentificationSyntaxes {
     pub r#abstract: OBJECT_IDENTIFIER,
@@ -28,6 +38,8 @@ pub struct IdentificationSyntaxes {
 }
 
 impl IdentificationSyntaxes {
+
+    /// Create a new syntaxes pair
     #[inline]
     pub const fn new(r#abstract: OBJECT_IDENTIFIER, transfer: OBJECT_IDENTIFIER) -> Self {
         IdentificationSyntaxes {
@@ -37,6 +49,8 @@ impl IdentificationSyntaxes {
     }
 }
 
+/// An association between a presentation context identifier and a transfer
+/// syntax.
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct ContextNegotiation {
     pub presentation_context_id: INTEGER,
@@ -44,6 +58,8 @@ pub struct ContextNegotiation {
 }
 
 impl ContextNegotiation {
+
+    /// Construct a new [ContextNegotiation]
     #[inline]
     pub const fn new(presentation_context_id: INTEGER, transfer_syntax: OBJECT_IDENTIFIER) -> Self {
         ContextNegotiation {
@@ -53,6 +69,7 @@ impl ContextNegotiation {
     }
 }
 
+/// Presentation syntax identification for an `EXTERNAL` value.
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum ExternalIdentification {
     // syntaxes                (IdentificationSyntaxes),
@@ -63,21 +80,31 @@ pub enum ExternalIdentification {
     // fixed,
 }
 
+/// Presentation value within an `EXTERNAL` value.
+/// See ITU Recommendation X.690, Section 8.18.
 #[derive(Debug, Clone, PartialEq)]
-// See ITU Recommendation X.690, Section 8.18.
 pub enum ExternalEncoding<Asn1Type: Sized = Arc<ASN1Value>> {
     single_ASN1_type(Asn1Type),
     octet_aligned(OCTET_STRING),
     arbitrary(BIT_STRING),
 }
 
+/// ASN.1 `EXTERNAL` value
 #[derive(Debug, Clone, PartialEq)]
 pub struct External<Asn1Type: Sized = Arc<ASN1Value>> {
+
+    /// Identifies the type of encoding used in `data_value`
     pub identification: ExternalIdentification,
+
+    /// A human-readable description of the encoding used in `data_value`
     pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
+
+    /// The presentation data value itself
     pub data_value: ExternalEncoding<Asn1Type>,
 }
 
+/// Presentation syntax identification for an `EMBEDDED PDV` or
+/// `CharacterString` value
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub enum PresentationContextSwitchingTypeIdentification {
     syntaxes(IdentificationSyntaxes),
@@ -88,33 +115,50 @@ pub enum PresentationContextSwitchingTypeIdentification {
     fixed,
 }
 
+/// An ASN.1 `EMBEDDED PDV` value
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct EmbeddedPDV {
+
+    /// Identifies the type of encoding used in `data_value`
     pub identification: PresentationContextSwitchingTypeIdentification,
-    // pub data_value_descriptor: ObjectDescriptor,
+
+    // pub data_value_descriptor: ObjectDescriptor: required to be ABSENT via constraints
+
+    /// The presentation data value itself
     pub data_value: OCTET_STRING,
 }
 
+/// An ASN.1 `CharacterString` value
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct CharacterString {
+
+    /// Identifies the type of encoding used in `string_value`
     pub identification: PresentationContextSwitchingTypeIdentification,
-    // pub data_value_descriptor: ObjectDescriptor,
+
+    /// A human-readable description of the encoding used in `string_value`
+    pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
+
+    /// The presentation data value itself
     pub string_value: OCTET_STRING,
 }
 
+/// ASN.1 `INSTANCE OF` value
 #[derive(Debug, Clone, PartialEq)]
-pub struct InstanceOf {
+pub struct InstanceOf<Asn1Type: Sized = Arc<ASN1Value>> {
     pub type_id: OBJECT_IDENTIFIER,
-    pub value: Arc<ASN1Value>,
+    pub value: Asn1Type,
 }
 
-impl InstanceOf {
+impl <Asn1Type> InstanceOf<Asn1Type> where Asn1Type: Sized {
+
+    /// Construct a new `INSTANCE OF` value
     #[inline]
-    pub const fn new(type_id: OBJECT_IDENTIFIER, value: Arc<ASN1Value>) -> Self {
+    pub const fn new(type_id: OBJECT_IDENTIFIER, value: Asn1Type) -> Self {
         InstanceOf { type_id, value }
     }
 }
 
+/// Coordinated Universal Time (UTC) Offset
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub struct UTCOffset {
     pub hour: i8,
@@ -122,16 +166,21 @@ pub struct UTCOffset {
 }
 
 impl UTCOffset {
+
+    /// Construct a new Coordinated Universal Time (UTC) Offset
     #[inline]
     pub const fn new(hour: i8, minute: u8) -> Self {
         UTCOffset { hour, minute }
     }
 
+    /// Returns `true` if the Construct a new Coordinated Universal Time (UTC)
+    /// Offset is 0 hours and 0 minutes.
     #[inline]
     pub const fn is_zero(&self) -> bool {
         self.hour == 0 && self.minute == 0
     }
 
+    /// Construct a new zeroed Coordinated Universal Time (UTC) Offset
     #[inline]
     pub const fn utc() -> Self {
         UTCOffset{ hour: 0, minute: 0 }
@@ -139,12 +188,15 @@ impl UTCOffset {
 }
 
 impl Default for UTCOffset {
+
+    /// Construct a new zeroed Coordinated Universal Time (UTC) Offset
     #[inline]
     fn default() -> Self {
         UTCOffset::utc()
     }
 }
 
+/// Decimal digits fractional part
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct FractionalPart {
@@ -153,6 +205,8 @@ pub struct FractionalPart {
 }
 
 impl FractionalPart {
+
+    /// Construct a new [FractionalPart]
     #[inline]
     pub const fn new(number_of_digits: u8, fractional_value: u32) -> Self {
         FractionalPart {
@@ -162,6 +216,8 @@ impl FractionalPart {
     }
 }
 
+/// A unit of time found in an ASN.1 `DURATION` value (which itself is an
+/// ISO 8601 duration)
 #[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum DurationPart {
@@ -176,6 +232,8 @@ pub enum DurationPart {
 
 impl Into<char> for DurationPart {
 
+    /// Convert the duration unit into its ISO 8601 character. For example,
+    /// `Years` would be converted to `Y`.
     fn into(self) -> char {
         match self {
             DurationPart::Years => 'Y',
@@ -190,6 +248,7 @@ impl Into<char> for DurationPart {
 
 }
 
+/// ASN.1 `DURATION` value (which itself is an ISO 8601 duration)
 /// Defined in ITU-T Recommendation X.680, Section 38.4.4.2.
 #[derive(Debug, Eq, Clone, Copy)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
@@ -205,11 +264,14 @@ pub struct DURATION_EQUIVALENT {
 }
 
 // type END_OF_CONTENT = None;
+
+/// ASN.1 `BOOLEAN`
 pub type BOOLEAN = bool;
+
+/// ASN.1 `INTEGER`
 pub type INTEGER = Bytes;
-pub type BIT = usize;
 
-
+/// An ASN.1 `BIT STRING`
 #[cfg(not(feature = "smallvec"))]
 #[derive(Debug, Eq, Clone)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
@@ -218,6 +280,7 @@ pub struct BIT_STRING {
     pub(crate) trailing_bits: u8,
 }
 
+/// An ASN.1 `BIT STRING`
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Eq, Clone)]
 pub struct BIT_STRING {
@@ -225,10 +288,16 @@ pub struct BIT_STRING {
     pub(crate) trailing_bits: u8,
 }
 
+/// An ASN.1 `OCTET STRING`
 pub type OCTET_STRING = Bytes;
-// type NULL = None;
+
+/// An ASN.1 `NULL` value
+type NULL = ();
+
+// An arc within an ASN.1 `OBJECT IDENTIFIER` or `RELATIVE-OID`
 pub type OID_ARC = u32;
 
+/// An ASN.1 `OBJECT IDENTIFIER`
 #[cfg(not(feature = "smallvec"))]
 #[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub struct OBJECT_IDENTIFIER (
@@ -242,6 +311,7 @@ pub struct OBJECT_IDENTIFIER (
     pub(crate) Vec<u8>
 );
 
+/// An ASN.1 `OBJECT IDENTIFIER`
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub struct OBJECT_IDENTIFIER (
@@ -260,6 +330,7 @@ pub struct OBJECT_IDENTIFIER (
     pub(crate) smallvec::SmallVec<[u8; 16]>
 );
 
+/// Iterator over the arcs of an `OBJECT IDENTIFIER`
 #[derive(Debug, Clone, Copy)]
 pub struct OidArcs<'a> {
     /// The full DER-encoding, but optionally with a hack where a single root
@@ -277,14 +348,17 @@ pub struct OidArcs<'a> {
     pub(crate) second_arc_read: bool,
 }
 
+/// An ASN.1 `RELATIVE-OID`
 #[cfg(not(feature = "smallvec"))]
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
 pub struct RELATIVE_OID (pub(crate) Vec<u8>);
 
+/// An ASN.1 `RELATIVE-OID`
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
 pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 16]>);
 
+/// Iterator over the arcs of a `RELATIVE-OID`
 #[derive(Debug, Clone, Copy)]
 pub struct RelOidArcs<'a> {
     /// The full DER-encoding
@@ -293,25 +367,65 @@ pub struct RelOidArcs<'a> {
     pub(crate) i: usize,
 }
 
-pub type ObjectDescriptor = GraphicString; // ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
+/// ASN.1 `ObjectDescriptor`, which is defined as
+///
+/// ```asn1
+/// ObjectDescriptor ::= [UNIVERSAL 7] IMPLICIT GraphicString
+/// ```
+///
+pub type ObjectDescriptor = GraphicString;
+
+/// ASN.1 `EXTERNAL`
 pub type EXTERNAL = External;
+
+/// ASN.1 `REAL`
 pub type REAL = f64;
+
+/// ASN.1 `ENUMERATED`
 pub type ENUMERATED = i64;
+
+/// ASN.1 `EMBEDDED PDV`
 pub type EMBEDDED_PDV = EmbeddedPDV;
+
+/// ASN.1 `UTF8String`
 pub type UTF8String = String;
+
+/// ASN.1 `TIME`
 pub type TIME = String;
 // type Reserved15 = None;
+
+/// ASN.1 `SEQUENCE`
 pub type SEQUENCE = Vec<ASN1Value>;
+
+/// ASN.1 `SEQUENCE OF`
 pub type SEQUENCE_OF<T> = Vec<T>;
+
+/// ASN.1 `SET`
 pub type SET = Vec<ASN1Value>;
+
+/// ASN.1 `SET OF`
 pub type SET_OF<T> = Vec<T>;
+
+/// ASN.1 `NumericString`
 pub type NumericString = String;
+
+/// ASN.1 `PrintableString`
 pub type PrintableString = String;
+
+/// ASN.1 `T61String` / `TeletexString`
 pub type T61String = Bytes;
+
+/// ASN.1 `T61String` / `TeletexString`
 pub type TeletexString = T61String;
+
+/// ASN.1 `VideotexString`
 pub type VideotexString = Bytes;
+
+/// ASN.1 `IA5String`
 pub type IA5String = String;
 
+/// ASN.1 `UTCTime`
+///
 /// ## Omitted Seconds Handling
 ///
 /// Technically, seconds is optional, and it therefore may have been desirable
@@ -352,6 +466,8 @@ pub struct UTCTime {
     pub utc_offset: UTCOffset,
 }
 
+/// ASN.1 `GeneralizedTime`
+///
 /// ## Conversion to and from `DATE`, `TIME`, and `DATE-TIME`
 ///
 /// `DATE`, `TIME`, and `DATE-TIME` are all defined in ITU-T Recommendation
@@ -387,14 +503,26 @@ pub struct GeneralizedTime {
     pub flags: u8,
     pub fraction: u32,
 }
-pub type GraphicString = String;
-pub type VisibleString = String;
-pub type GeneralString = String;
-pub type UniversalString = String;
-pub type CHARACTER_STRING = CharacterString;
-pub type BMPString = String;
-pub type NULL = ();
 
+/// ASN.1 `GraphicString`
+pub type GraphicString = String;
+
+/// ASN.1 `VisibleString`
+pub type VisibleString = String;
+
+/// ASN.1 `GeneralString`
+pub type GeneralString = String;
+
+/// ASN.1 `UniversalString`
+pub type UniversalString = String;
+
+/// ASN.1 `CharacterString`
+pub type CHARACTER_STRING = CharacterString;
+
+/// ASN.1 `BMPString`
+pub type BMPString = String;
+
+/// ASN.1 `DATE`
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct DATE {
     pub year: u16,
@@ -402,6 +530,7 @@ pub struct DATE {
     pub day: u8,
 }
 
+/// ASN.1 `TIME-OF-DAY`
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy)]
 pub struct TIME_OF_DAY {
     pub hour: u8,
@@ -409,31 +538,53 @@ pub struct TIME_OF_DAY {
     pub second: u8,
 }
 
+/// ASN.1 `DATE-TIME`
 #[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
 pub struct DATE_TIME {
     pub date: DATE,
     pub time: TIME_OF_DAY,
 }
 
+/// ASN.1 `DURATION`
 pub type DURATION = DURATION_EQUIVALENT;
+
+/// ASN.1 `OBJECT IDENTIFIER` Internationalized Resource Identifier (OID-IRI)
 pub type OID_IRI = String;
+/// ASN.1 `RELATIVE-OID` Internationalized Resource Identifier (Relative-OID-IRI)
 pub type RELATIVE_OID_IRI = String;
+
+/// ASN.1 `INSTANCE OF`
 pub type INSTANCE_OF = InstanceOf;
 
+/// ASN.1 tag
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
 pub struct Tag {
+
+    /// Tag class
     pub tag_class: TagClass,
+
+    /// Tag number
     pub tag_number: TagNumber,
 }
 
+// TODO: Make generic?
+/// Tagged ASN.1 Value
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaggedASN1Value {
+
+    /// The tag
     pub tag: Tag,
+
+    /// `true` if tagged `EXPLICIT`, or `false` if `IMPLICIT`
     pub explicit: bool,
+
+    /// The tagged value itself
     pub value: Arc<ASN1Value>,
 }
 
 impl TaggedASN1Value {
+
+    /// Construct a new [TaggedASN1Value]
     #[inline]
     pub const fn new(
         tag_class: TagClass,
@@ -449,10 +600,12 @@ impl TaggedASN1Value {
     }
 }
 
+/// ASN.1 `TYPE-IDENTIFIER`
 pub struct TYPE_IDENTIFIER {
     pub id: OBJECT_IDENTIFIER,
 }
 
+/// ASN.1 value
 #[derive(Debug, Clone, PartialEq)]
 pub enum ASN1Value {
     // BuiltInValue
@@ -549,32 +702,23 @@ pub const ASN1_UNIVERSAL_TAG_NUMBER_DURATION: TagNumber = 34;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI: TagNumber = 35;
 pub const ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI: TagNumber = 36;
 
-pub const MAX_IA5_STRING_CHAR_CODE: u8 = 0x0000_007F;
-
-pub trait ObjectIdentifierIntoDescriptor {
-
-    fn get_oid_descriptor (&self, oid: &OBJECT_IDENTIFIER) -> Option<String>;
-
-}
-
-pub trait ObjectIdentifierFromDescriptor {
-
-    fn get_oid (&self, desc: &str) -> Option<OBJECT_IDENTIFIER>;
-
-}
-
+/// An ASN.1 Codec
 pub trait ASN1Codec {
 
+    /// Get an `OBJECT IDENTIFIER` representing this codec as a transfer syntax
     fn transfer_syntax_oid (&self) -> OBJECT_IDENTIFIER;
 
+    /// Get an OID-IRI representing this codec as a transfer syntax
     fn transfer_syntax_oid_iri (&self) -> Option<OID_IRI> {
         None
     }
 
 }
 
+/// Something that can be converted into an ISO 8601 Timestamp
 pub trait ISO8601Timestampable {
 
+    /// Convert this into an ISO 8601 Timestamp
     fn to_iso_8601_string (&self) -> String;
 
 }
@@ -590,10 +734,14 @@ pub trait ISO8601Timestampable {
 /// Encoding Rules (PER) or the Octet Encoding Rules (OER).
 pub trait X690Validate {
 
+    /// Validate that the `content_octets` are a valid X.690 encoding of this
+    /// data type.
     fn validate_x690_encoding (content_octets: &[u8]) -> ASN1Result<()>;
 
 }
 
+/// A Named Type, such as would appear in the component type lists in a
+/// `SET` or `SEQUENCE`
 #[derive(Debug, Clone)]
 pub struct NamedType <'a, Type = ASN1Value> {
     pub identifier: &'a str,
@@ -623,7 +771,9 @@ pub trait X690KnownSize {
 
 }
 
-// This is really just an alias for vec![], but it is defined for future-proofing.
+/// Create an `OCTET STRING`
+///
+/// This is really just an alias for vec![], but it is defined for future-proofing.
 #[macro_export]
 macro_rules! octs {
     () => {
