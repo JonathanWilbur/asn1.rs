@@ -1,11 +1,17 @@
 # Abstract Syntax Notation 1 (ASN.1) Library
 
-This library contains types and functions for using ASN.1 values. This library
+This crate contains types and functions for using ASN.1 values. This library
 has little to do with encoding or decoding such values according to
 the Basic, Canonical, Distinguished, Packed, Octet, XML, JSON, General String,
 or BACNet Encoding Rules. This library is purposely abstracted from any
 particular encoding so that ASN.1 values can be translated between different
-encodings.
+encodings. Other crates will use this library as a dependency to implement
+encoding and decoding for the types defined in this crate.
+
+This crate is intended to be high-performance and opines toward _more code_ in
+exchange for _better performance_, notably using a lot of SIMD and other
+optimizations. This is **not** a lightweight crate; it is intended to be a fast,
+feature-complete, meticulous, and well-tested ASN.1 crate.
 
 ## Showcase
 
@@ -191,6 +197,12 @@ whether it is `OPTIONAL`.
 This library defines `EXTERNAL`, `EMBEDDED_PDV`, and `CHARACTER_STRING`. All of
 them can be printed.
 
+### Display
+
+All types defined in this crate implement `Display`, and when printed, they are
+printed according to their ASN.1 _abstract_ syntax (which may differ from how
+they are encoded).
+
 ### Detailed Errors
 
 `ASN1Error`s are very detailed, printable, and you should be able to figure out
@@ -240,10 +252,20 @@ This library is not ideal for embedded use cases. It is intended to be complete
 and compliant, not lightweight. Every valid ASN.1 requirement and capability is
 expected to be supported correctly, and if it is not, please report it as a bug.
 
+This library is not `no-std` and probably never will be, because so many things
+in this library rely on `std`, and so few things outside of that are useful.
+
 In embedded environments, it might be better for you to use encoding-specific,
 simpler libraries that do the bare minimum.
 [This](https://crates.io/crates/asn1_der) might be a suitable library for you
-in this case.
+in this case. Also consider that, since this library is licensed under an FLOSS
+license, you could just copy whatever code you need into your embedded project.
+
+## `serde` Integration
+
+I don't think this crate will support integration with `serde`, unless this is
+requested. Its intended design is for dependent crates to implement most of the
+encoding-specific logic.
 
 ## Fuzz Testing
 
@@ -273,12 +295,7 @@ somewhat battle-tested.
 
 ## To Do
 
-- [x] Fuzz testing for OIDs and ROIDs
+- [ ] `roid.rs` documentation
+- [ ] `types.rs` documentation
 - [ ] Benchmarking
-  - Actually, I don't know precisely what I want to benchmark. Deferring
-- [x] `const fn`
-- [ ] `no-std` and other feature flags
-- [x] Documentation comments
-- [ ] `README.md` documentation
-- [ ] Debug assertions / debug logging?
-- [ ] Hard-coded OID arc strings for 0 and 1
+- [ ] Update dependencies one last time
