@@ -4,6 +4,10 @@
 //! them to ISO 8601 timestamps:
 //!
 //! ```rust
+//! use asn1::gentime::GeneralizedTime;
+//! use asn1::ISO8601Timestampable;
+//! use std::str::FromStr;
+//!
 //! let t1 = GeneralizedTime::from_str("20210203040607.32895292-0503").unwrap();
 //! assert_eq!(t1.to_iso_8601_string(), "2021-02-03T04:06:07.32895292-0503");
 //! assert_eq!(t1.to_string(), "20210203040607.32895292-0503");

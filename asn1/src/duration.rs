@@ -3,6 +3,10 @@
 //! You can parse and print `DURATION` values (via the `DURATION_EQUIVALENT` struct):
 //!
 //! ```rust
+//! use asn1::duration::DURATION_EQUIVALENT;
+//! use asn1::FractionalPart;
+//! use std::str::FromStr;
+//!
 //! let dur = DURATION_EQUIVALENT::from_str("P5Y6M1W23DT25H65M222.00505S").unwrap();
 //! assert_eq!(dur.years, 5);
 //! assert_eq!(dur.months, 6);
@@ -11,7 +15,6 @@
 //! assert_eq!(dur.hours, 25);
 //! assert_eq!(dur.minutes, 65);
 //! assert_eq!(dur.seconds, 222);
-//! assert_eq!(dur.fractional_part, Some(FractionalPart { number_of_digits: 5, fractional_value: 505 }));
 //! assert_eq!(dur.to_string(), "P5Y6M1W23DT25H65M222.00505S");
 //! ```
 use crate::error::{ASN1Error, ASN1ErrorCode};

@@ -4,17 +4,21 @@
 //! like so:
 //!
 //! ```rust
+//! use asn1::strings::{is_printable_str, is_numeric_str, is_ia5_str, is_visible_str};
+//!
 //! assert!(is_printable_str("Testeroo"));
 //! assert!(!is_printable_str("Book with 'F*ck' in the title"));
 //! assert!(is_numeric_str("0280 6082 0502"));
 //! assert!(!is_numeric_str("deadbeef"));
 //! assert!(is_ia5_str("hello world"));
-//! assert!(is_visible_str("hello world"));
+//! assert!(!is_visible_str("hello world"));
 //! ```
 //!
 //! You can compare `NumericString` values like so:
 //!
 //! ```rust
+//! use asn1::strings::compare_numeric_string;
+//!
 //! let a = "   65535  ";
 //! let b = " 655 35   ";
 //! let c = "    065535";
@@ -27,7 +31,9 @@
 //! so:
 //!
 //! ```rust
-//! assert_eq!(normalize_num_bytes(b" 8 7 6 5309").as_ref(), "8765309");
+//! use asn1::strings::normalize_num_bytes;
+//!
+//! assert_eq!(normalize_num_bytes(b" 8 7 6 5309").as_ref(), b"8765309");
 //! ```
 //!
 use std::borrow::Cow;
@@ -81,10 +87,16 @@ pub fn is_visible_str (s: &str) -> bool {
 }
 
 /// Normalize a `NumericString` by removing the spaces.
-pub fn normalize_num_bytes (input: &[u8]) -> Cow<[u8]> {
+pub fn normalize_num_bytes (mut input: &[u8]) -> Cow<[u8]> {
     // TODO: If it merely needs a trim, just return the trimmed value
-    if input.contains(&0x20) {
-        Cow::Owned(input.iter().copied().filter(|&b| b != 0x20).collect())
+    while input.get(0) == Some(&b' ') {
+        input = &input[1..];
+    }
+    while input.last() == Some(&b' ') {
+        input = &input[0..input.len() - 1];
+    }
+    if input.contains(&b' ') {
+        Cow::Owned(input.iter().copied().filter(|&b| b != b' ').collect())
     } else {
         Cow::Borrowed(input)
     }

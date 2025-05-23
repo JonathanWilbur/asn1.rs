@@ -3,6 +3,9 @@
 //! You can parse, print, compare, and sort `DATE` values:
 //!
 //! ```rust
+//! use asn1::date::DATE;
+//! use std::str::FromStr;
+//!
 //! let d1 = DATE::from_str("2022-04-23").unwrap();
 //! let d2 = DATE::new(2022, 04, 23);
 //! let d3 = DATE::new(2022, 04, 24);

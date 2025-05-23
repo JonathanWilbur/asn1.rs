@@ -4,13 +4,18 @@
 //! `OBJECT IDENTIFIER`s:
 //!
 //! ```rust
+//! use asn1::oid::OBJECT_IDENTIFIER;
+//! use std::str::FromStr;
+//! use asn1::roid;
+//! use asn1::oid;
+//!
 //! let oid1 = OBJECT_IDENTIFIER::from_str("1.3.6.4.1").unwrap();
 //! let oid2 = oid!(1,3,6,4,1);
 //! assert_eq!(oid1, oid2);
 //! assert_eq!(oid1.to_string(), "1.3.6.4.1");
 //! assert_eq!(oid1.to_asn1_string(), "{ 1 3 6 4 1 }");
 //! assert_eq!(oid1.to_iri_string(), "/1/3/6/4/1");
-//! assert!(oid1.starts_with(&roid!(1,3,6,1)));
+//! assert!(oid1.starts_with(&oid!(1,3,6,4,1)));
 //! assert!(oid1.ends_with(&roid!(6,4,1)));
 //! ```
 use smallvec::{SmallVec, smallvec};

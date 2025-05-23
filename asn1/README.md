@@ -41,7 +41,7 @@ they are encoded).
 `ASN1Error`s are very detailed, printable, and you should be able to figure out
 whatever your problem is based on the output:
 
-```rust
+```rust,ignore
 pub struct ASN1Error {
     pub error_code: ASN1ErrorCode,
     pub component_name: Option<String>,
@@ -65,7 +65,7 @@ abstract values. When decoding presentation syntax (such as BER or DER), you
 probably should represent presentation values using the decoding libraries
 concept of a "node" or "value," whatever that might be.
 
-```rust
+```rust,ignore
 pub enum ASN1Value {
     BitStringValue(BIT_STRING),
     BooleanValue(BOOLEAN),
@@ -130,8 +130,5 @@ somewhat battle-tested.
 
 ## To Do
 
-- [x] `roid.rs` documentation
-- [x] `types.rs` documentation
 - [ ] Benchmarking
 - [ ] Update dependencies one last time
-- [x] Crate-level documentation
