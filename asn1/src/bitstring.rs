@@ -27,7 +27,6 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
     #[cfg(not(feature = "smallvec"))]
     ret.bytes.extend(&strs[0].bytes);
 
-    // let bit_debt: usize = strs[0].trailing_bits as usize;
     let mut bit_index: usize = (strs[0].bytes.len() << 3).saturating_sub((strs[0].trailing_bits % 8) as usize);
     for bs in strs[1..].iter() {
         // This check prevents a panic at 7dbfa994-2139-44a4-a94a-14b0fc9c3470
@@ -40,7 +39,7 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
             ret.bytes.extend_from_slice(&bs.bytes);
             #[cfg(not(feature = "smallvec"))]
             ret.bytes.extend(&bs.bytes);
-            bit_index += (bs.bytes.len() << 3) - bs.trailing_bits as usize;
+            bit_index = bit_index.saturating_add(bs.len_in_bits());
         } else {
             // Otherwise, we have to account for the bit shift. Sad!
             let len = bs.bytes.len();
@@ -71,7 +70,7 @@ pub fn join_bit_strings(strs: &[BIT_STRING]) -> BIT_STRING {
                         .0,
                 );
             }
-            bit_index += (bs.bytes.len() << 3) - bs.trailing_bits as usize;
+            bit_index = bit_index.saturating_add(bs.len_in_bits());
         }
     }
     ret.trailing_bits = ((8 - (bit_index % 8)) % 8) as u8;
