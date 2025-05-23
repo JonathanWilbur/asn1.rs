@@ -264,7 +264,7 @@ pub fn _encode_Payload14(value_: &Payload14) -> ASN1Result<X690Element> {
     components_.push(BER.encode_octet_string(&value_.dhPublicKey)?);
     components_.push(BER.encode_octet_string(&value_.nonce)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -453,7 +453,7 @@ pub fn _encode_Payload23(value_: &Payload23) -> ASN1Result<X690Element> {
     components_.push(BER.encode_octet_string(&value_.dhPublicKey)?);
     components_.push(BER.encode_octet_string(&value_.nonce)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -642,7 +642,7 @@ pub fn _encode_Payload28(value_: &Payload28) -> ASN1Result<X690Element> {
     components_.push(BER.encode_octet_string(&value_.dhPublicKey)?);
     components_.push(BER.encode_octet_string(&value_.nonce)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),

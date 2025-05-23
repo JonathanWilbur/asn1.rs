@@ -495,7 +495,7 @@ pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X69
                                 children.push(_encode_ProtocolInformation(&v)?);
                             }
                             Ok(X690Element::new(
-                                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
                                 X690Value::Constructed(Arc::new(children)),
                             ))
                         }(&v_1)?,
@@ -511,7 +511,7 @@ pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X69
         ))
     }(&value_.agreementID)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -780,7 +780,7 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
                                 children.push(_encode_ProtocolInformation(&v)?);
                             }
                             Ok(X690Element::new(
-                                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
                                 X690Value::Constructed(Arc::new(children)),
                             ))
                         }(&v_1)?,
@@ -814,7 +814,7 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1192,7 +1192,7 @@ pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result
                                 children.push(_encode_ProtocolInformation(&v)?);
                             }
                             Ok(X690Element::new(
-                                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
                                 X690Value::Constructed(Arc::new(children)),
                             ))
                         }(&v_1)?,
@@ -1210,14 +1210,14 @@ pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result
                     children.push(_encode_AccessPoint(&v)?);
                 }
                 Ok(X690Element::new(
-                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
                     X690Value::Constructed(Arc::new(children)),
                 ))
             }(&v_1)?),
         ))
     }(&value_.consumers)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1468,7 +1468,7 @@ pub mod masterAndShadowAccessPointsMatch {
             children.push(_encode_Name(&v)?);
         }
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
             X690Value::Constructed(Arc::new(children)),
         ))
     }
@@ -1812,7 +1812,7 @@ pub fn _encode_supplierOrConsumerInformationMatch_AssertionType(
         ))
     }(&value_.agreement_identifier)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

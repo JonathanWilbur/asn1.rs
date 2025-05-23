@@ -1,9 +1,9 @@
 
 use asn1::types::{
-    ASN1Value, TagClass, ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE, OBJECT_IDENTIFIER,
-    ASN1_UNIVERSAL_TAG_NUMBER_SET,
+    ASN1Value, TagClass, UNIV_TAG_NULL,
+    UNIV_TAG_OBJECT_IDENTIFIER,
+    UNIV_TAG_SEQUENCE, OBJECT_IDENTIFIER,
+    UNIV_TAG_SET,
     Tag,
 };
 use std::sync::Arc;
@@ -26,7 +26,7 @@ const _rctl1_components_for_AlgorithmIdentifier: &[ComponentSpec; 3] = &[
         false,
         TagSelector::tag((
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+            UNIV_TAG_OBJECT_IDENTIFIER,
         )),
         None,
         None,
@@ -199,14 +199,14 @@ fn decode_AlgorithmIdentifier5(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
 
 fn decode_algorithm_identifier1() {
     let root: X690Element = X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(vec![
             X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
                 X690Value::Primitive(Bytes::from(vec![0x55, 0x04, 0x03])),
             ),
             X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
                 X690Value::Primitive(Bytes::from(vec![])),
             ),
         ])),
@@ -224,14 +224,14 @@ fn decode_algorithm_identifier1() {
 
 fn decode_algorithm_identifier2() {
     let root: X690Element = X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(vec![
             X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
                 X690Value::Primitive(Bytes::from(vec![0x55, 0x04, 0x03])),
             ),
             X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
                 X690Value::Primitive(Bytes::from(vec![])),
             ),
         ])),
@@ -251,14 +251,14 @@ fn decode_algorithm_identifier2() {
 testing SET decoding. */
 fn decode_algorithm_identifier3() {
     let root: X690Element = X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
         X690Value::Constructed(Arc::new(vec![
             X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
                 X690Value::Primitive(Bytes::from(vec![0x55, 0x04, 0x03])),
             ),
             X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
                 X690Value::Primitive(Bytes::from(vec![])),
             ),
         ])),

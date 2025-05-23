@@ -829,7 +829,7 @@ pub fn _encode_PwdAlphabet(value_: &PwdAlphabet) -> ASN1Result<X690Element> {
         children.push(BER.encode_utf8_string(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -2106,7 +2106,7 @@ pub fn _encode_UserPwd_encrypted(value_: &UserPwd_encrypted) -> ASN1Result<X690E
     components_.push(_encode_AlgorithmIdentifier(&value_.algorithmIdentifier)?);
     components_.push(BER.encode_octet_string(&value_.encryptedString)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),

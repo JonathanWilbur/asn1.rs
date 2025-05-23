@@ -51,7 +51,7 @@ mod tests {
     use super::DirectoryAbstractService::{DirectoryBindArgument, _encode_DirectoryBindArgument};
     use super::DirectoryIDMProtocols::id_idm_dap;
     use super::IDMProtocolSpecification::{IdmBind, _encode_IDM_PDU, IDM_PDU};
-    use asn1::{ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE};
+    use asn1::{UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE};
     use x690::{write_x690_node, X690_TAG_CLASS_CONTEXT};
 
     #[test]
@@ -77,9 +77,9 @@ mod tests {
             | 0,
             0x0B, // Length = 1
             0b0010_0000 // Constructed
-            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            | UNIV_TAG_SEQUENCE as u8,
             0x09, // Length = 9
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER as u8,
+            UNIV_TAG_OBJECT_IDENTIFIER as u8,
             0x03, // Length = 3
             0x55,
             0x21,

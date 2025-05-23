@@ -128,7 +128,7 @@ pub fn _encode_UserNotice(value_: &UserNotice) -> ASN1Result<X690Element> {
         components_.push(_encode_DisplayText(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -270,12 +270,12 @@ pub fn _encode_NoticeReference(value_: &NoticeReference) -> ASN1Result<X690Eleme
             children.push(BER.encode_integer(&v)?);
         }
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
             X690Value::Constructed(Arc::new(children)),
         ))
     }(&value_.noticeNumbers)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

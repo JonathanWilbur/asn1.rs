@@ -276,7 +276,7 @@ pub fn _encode_URIs(value_: &URIs) -> ASN1Result<X690Element> {
         children.push(_encode_URI(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -452,7 +452,7 @@ pub fn _encode_HashPointer(value_: &HashPointer) -> ASN1Result<X690Element> {
         components_.push(_encode_Pointers(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -513,7 +513,7 @@ pub fn _encode_Pointers(value_: &Pointers) -> ASN1Result<X690Element> {
         children.push(_encode_Pointer(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -816,7 +816,7 @@ pub fn _encode_TimeStamped(value_: &TimeStamped) -> ASN1Result<X690Element> {
         components_.push(_encode_URI(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -979,7 +979,7 @@ pub fn _encode_Sidechains(value_: &Sidechains) -> ASN1Result<X690Element> {
         children.push(_encode_Sidechain(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }

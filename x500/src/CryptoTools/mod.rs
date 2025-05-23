@@ -86,7 +86,7 @@ pub fn _encode_MultipleSignaturesAlgo(value_: &MultipleSignaturesAlgo) -> ASN1Re
         children.push(_encode_AlgorithmIdentifier(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -180,7 +180,7 @@ pub fn _encode_MultipleSymmetricKeyAlgo(
         children.push(_encode_AlgorithmIdentifier(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -271,7 +271,7 @@ pub fn _encode_MultiplePublicKeyAlgo(value_: &MultiplePublicKeyAlgo) -> ASN1Resu
         children.push(_encode_AlgorithmIdentifier(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -361,7 +361,7 @@ pub fn _encode_MultipleHashAlgo(value_: &MultipleHashAlgo) -> ASN1Result<X690Ele
         children.push(_encode_AlgorithmIdentifier(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -454,7 +454,7 @@ pub fn _encode_MultipleAuthenEncryptAlgo(
         children.push(_encode_AlgorithmIdentifier(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -543,7 +543,7 @@ pub fn _encode_MultipleIcvAlgo(value_: &MultipleIcvAlgo) -> ASN1Result<X690Eleme
         children.push(_encode_AlgorithmIdentifier(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -704,13 +704,13 @@ pub fn _encode_MULTY_SIGNED<ToBeSigned>(
                 children.push(_encode_MULTY_SIGNED_parmeters_sign(&v)?);
             }
             Ok(X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
                 X690Value::Constructed(Arc::new(children)),
             ))
         }(&value_.parmeters)?,
     );
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -866,7 +866,7 @@ pub fn _encode_Signed<ToBeSigned>(
         components_.push(BER.encode_bit_string(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1056,7 +1056,7 @@ pub fn _encode_ICV_Total<ToBeProtected>(
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1220,7 +1220,7 @@ pub fn _encode_ICV_Invoke<ToBeProtected>(
     }
     components_.push(BER.encode_bit_string(&value_.icv)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1397,7 +1397,7 @@ pub fn _encode_AUTHEN_ENCRYPT<ToBeAuth, ToBeEnciphered>(
         Ok(el_1)
     }(&value_.encr)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1619,7 +1619,7 @@ pub fn _encode_MULTY_SIGNED_parmeters_sign(
     components_.push(_encode_AlgorithmIdentifier(&value_.algo)?);
     components_.push(BER.encode_bit_string(&value_.signature)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),

@@ -465,7 +465,7 @@ pub fn _encode_RC2CBCParameter(value_: &RC2CBCParameter) -> ASN1Result<X690Eleme
     components_.push(BER.encode_integer(&value_.rc2ParameterVersion)?);
     components_.push(BER.encode_octet_string(&value_.iv)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -780,7 +780,7 @@ pub fn _encode_PBKDF2_params(value_: &PBKDF2_params) -> ASN1Result<X690Element> 
         }
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

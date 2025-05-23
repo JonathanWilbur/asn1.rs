@@ -288,7 +288,7 @@ pub fn _encode_RSAPublicKey(value_: &RSAPublicKey) -> ASN1Result<X690Element> {
     components_.push(BER.encode_integer(&value_.modulus)?);
     components_.push(BER.encode_integer(&value_.publicExponent)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -489,7 +489,7 @@ pub fn _encode_DSA_Params(value_: &DSA_Params) -> ASN1Result<X690Element> {
     components_.push(BER.encode_integer(&value_.q)?);
     components_.push(BER.encode_integer(&value_.g)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -754,7 +754,7 @@ pub fn _encode_DomainParameters(value_: &DomainParameters) -> ASN1Result<X690Ele
         components_.push(_encode_ValidationParams(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -889,7 +889,7 @@ pub fn _encode_ValidationParams(value_: &ValidationParams) -> ASN1Result<X690Ele
     components_.push(BER.encode_bit_string(&value_.seed)?);
     components_.push(BER.encode_integer(&value_.pgenCounter)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -2313,7 +2313,7 @@ pub fn _encode_DSA_Sig_Value(value_: &DSA_Sig_Value) -> ASN1Result<X690Element> 
     components_.push(BER.encode_integer(&value_.r)?);
     components_.push(BER.encode_integer(&value_.s)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -2439,7 +2439,7 @@ pub fn _encode_ECDSA_Sig_Value(value_: &ECDSA_Sig_Value) -> ASN1Result<X690Eleme
     components_.push(BER.encode_integer(&value_.r)?);
     components_.push(BER.encode_integer(&value_.s)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

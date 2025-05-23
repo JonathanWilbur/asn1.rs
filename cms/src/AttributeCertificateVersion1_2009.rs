@@ -200,7 +200,7 @@ pub fn _encode_AttributeCertificateInfoV1 (value_: &AttributeCertificateInfoV1) 
 	for v in value_ {
 		children.push(_encode_Attribute(&v)?);
 	}
-	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
 }(&value_.attributes)?);
 	if let Some(v_) = &value_.issuerUniqueID {
 		components_.push(_encode_UniqueIdentifier(&v_)?);
@@ -209,7 +209,7 @@ pub fn _encode_AttributeCertificateInfoV1 (value_: &AttributeCertificateInfoV1) 
 		components_.push(_encode_Extensions(&v_)?);
 	}
 	Ok(X690Element::new(
-		Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+		Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
 		X690Value::Constructed(Arc::new(components_)),
 	))
 

@@ -74,42 +74,42 @@ use asn1::types::{
     SET,
     TIME,
     TIME_OF_DAY,
-    ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT,
-    ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
-    ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
-    ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR,
-    ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-    ASN1_UNIVERSAL_TAG_NUMBER_REAL,
-    ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED,
-    ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV,
-    ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID,
-    ASN1_UNIVERSAL_TAG_NUMBER_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-    ASN1_UNIVERSAL_TAG_NUMBER_SET,
-    ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_DATE,
-    ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY,
-    ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
-    ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI,
+    UNIV_TAG_END_OF_CONTENT,
+    UNIV_TAG_BOOLEAN,
+    UNIV_TAG_INTEGER,
+    UNIV_TAG_BIT_STRING,
+    UNIV_TAG_OCTET_STRING,
+    UNIV_TAG_NULL,
+    UNIV_TAG_OBJECT_IDENTIFIER,
+    UNIV_TAG_OBJECT_DESCRIPTOR,
+    UNIV_TAG_EXTERNAL,
+    UNIV_TAG_REAL,
+    UNIV_TAG_ENUMERATED,
+    UNIV_TAG_EMBEDDED_PDV,
+    UNIV_TAG_UTF8_STRING,
+    UNIV_TAG_RELATIVE_OID,
+    UNIV_TAG_TIME,
+    UNIV_TAG_SEQUENCE,
+    UNIV_TAG_SET,
+    UNIV_TAG_NUMERIC_STRING,
+    UNIV_TAG_PRINTABLE_STRING,
+    UNIV_TAG_T61_STRING,
+    UNIV_TAG_VIDEOTEX_STRING,
+    UNIV_TAG_IA5_STRING,
+    UNIV_TAG_UTC_TIME,
+    UNIV_TAG_GENERALIZED_TIME,
+    UNIV_TAG_GRAPHIC_STRING,
+    UNIV_TAG_VISIBLE_STRING,
+    UNIV_TAG_GENERAL_STRING,
+    UNIV_TAG_UNIVERSAL_STRING,
+    UNIV_TAG_CHARACTER_STRING,
+    UNIV_TAG_BMP_STRING,
+    UNIV_TAG_DATE,
+    UNIV_TAG_TIME_OF_DAY,
+    UNIV_TAG_DATE_TIME,
+    UNIV_TAG_DURATION,
+    UNIV_TAG_OID_IRI,
+    UNIV_TAG_RELATIVE_OID_IRI,
     ContextNegotiation,
     ExternalEncoding,
     ExternalIdentification,
@@ -578,7 +578,7 @@ pub trait X690Codec {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
         }
         if elements[0].tag.tag_class != TagClass::UNIVERSAL
-            || elements[0].tag.tag_number != ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER
+            || elements[0].tag.tag_number != UNIV_TAG_OBJECT_IDENTIFIER
             || elements[1].tag.tag_class != TagClass::CONTEXT
             || elements[1].tag.tag_number != 0
         {
@@ -706,7 +706,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(1).writer();
         x690_write_boolean_value(&mut out, value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BOOLEAN),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -714,7 +714,7 @@ pub trait X690Codec {
         let mut out = BytesMut::new().writer();
         x690_write_integer_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -722,7 +722,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(2).writer(); // Most enums are small.
         x690_write_enum_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_ENUMERATED),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -730,7 +730,7 @@ pub trait X690Codec {
     fn encode_octet_string(&self, value: &OCTET_STRING) -> ASN1Result<X690Element>;
     fn encode_null(&self, _value: &NULL) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
             X690Value::Primitive(Bytes::new()),
         ))
     }
@@ -738,14 +738,14 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(value.as_x690_slice().len()).writer();
         x690_write_object_identifier_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
     fn encode_external(&self, value: &EXTERNAL) -> ASN1Result<X690Element> {
         let components = x690_encode_external_components(value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_EXTERNAL),
             X690Value::Constructed(Arc::new(components)),
         ))
     }
@@ -757,7 +757,7 @@ pub trait X690Codec {
         };
         let components = x690_encode_external_components(&external)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_EXTERNAL),
             X690Value::Constructed(Arc::new(components)),
         ))
     }
@@ -765,14 +765,14 @@ pub trait X690Codec {
     fn encode_embedded_pdv(&self, value: &EMBEDDED_PDV) -> ASN1Result<X690Element> {
         let components = x690_encode_embedded_pdv_components(value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_EMBEDDED_PDV),
             X690Value::Constructed(Arc::new(components)),
         ))
     }
     fn encode_character_string(&self, value: &CHARACTER_STRING) -> ASN1Result<X690Element> {
         let components = x690_encode_character_string_components(value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_CHARACTER_STRING),
             X690Value::Constructed(Arc::new(components)),
         ))
     }
@@ -780,7 +780,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(value.as_x690_slice().len()).writer();
         x690_write_relative_oid_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_RELATIVE_OID),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -820,7 +820,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(10).writer(); // YYYY-MM-DD
         x690_write_date_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_DATE),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_DATE),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -828,7 +828,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(8).writer(); // HH:MM:SS
         x690_write_time_of_day_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_TIME_OF_DAY),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -836,7 +836,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(19).writer(); // 1951-10-14T15:30:00
         x690_write_date_time_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_DATE_TIME),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -845,7 +845,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OID_IRI),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -853,7 +853,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_RELATIVE_OID_IRI),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -861,7 +861,7 @@ pub trait X690Codec {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_time_value(&mut out, &value)?;
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_TIME),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_TIME),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
@@ -1101,18 +1101,18 @@ pub trait X690Codec {
             }
             if
                 s == 0
-                && component.tag.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER {
+                && component.tag.tag_number == UNIV_TAG_OBJECT_IDENTIFIER {
                 self.validate_object_identifier(component)?;
             }
             else if s <= 1
                 && !int_seen
-                && component.tag.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_INTEGER {
+                && component.tag.tag_number == UNIV_TAG_INTEGER {
                 self.validate_integer(component)?;
                 int_seen = true;
             }
             else if s <= 2
                 && !desc_seen
-                && component.tag.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR {
+                && component.tag.tag_number == UNIV_TAG_OBJECT_DESCRIPTOR {
                 self.validate_object_descriptor(component)?;
                 desc_seen = true;
             }
@@ -1215,22 +1215,22 @@ pub trait X690Codec {
             };
         }
         match el.tag.tag_number {
-            ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => self.validate_null(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => self.validate_boolean(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_INTEGER => self.validate_integer(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING => self.validate_bit_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING => self.validate_octet_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_NULL => self.validate_null(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER => self.validate_object_identifier(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR => self.validate_object_descriptor(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => self.validate_external(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_REAL => self.validate_real(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => self.validate_enumerated(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => self.validate_embedded_pdv(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING => self.validate_utf8_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID => self.validate_relative_object_identifier(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_TIME => self.validate_time(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE | ASN1_UNIVERSAL_TAG_NUMBER_SET => {
+            UNIV_TAG_END_OF_CONTENT => self.validate_null(el),
+            UNIV_TAG_BOOLEAN => self.validate_boolean(el),
+            UNIV_TAG_INTEGER => self.validate_integer(el),
+            UNIV_TAG_BIT_STRING => self.validate_bit_string(el),
+            UNIV_TAG_OCTET_STRING => self.validate_octet_string(el),
+            UNIV_TAG_NULL => self.validate_null(el),
+            UNIV_TAG_OBJECT_IDENTIFIER => self.validate_object_identifier(el),
+            UNIV_TAG_OBJECT_DESCRIPTOR => self.validate_object_descriptor(el),
+            UNIV_TAG_EXTERNAL => self.validate_external(el),
+            UNIV_TAG_REAL => self.validate_real(el),
+            UNIV_TAG_ENUMERATED => self.validate_enumerated(el),
+            UNIV_TAG_EMBEDDED_PDV => self.validate_embedded_pdv(el),
+            UNIV_TAG_UTF8_STRING => self.validate_utf8_string(el),
+            UNIV_TAG_RELATIVE_OID => self.validate_relative_object_identifier(el),
+            UNIV_TAG_TIME => self.validate_time(el),
+            UNIV_TAG_SEQUENCE | UNIV_TAG_SET => {
                 // NOTE: You can't check for duplicate tags in a SET because it could actually be a SET OF.
                 match &el.value {
                     X690Value::Constructed(subs) => {
@@ -1242,25 +1242,25 @@ pub trait X690Codec {
                     _ => return Err(invalid_cons()),
                 }
             },
-            ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING => self.validate_numeric_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING => self.validate_printable_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING => self.validate_t61_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING => self.validate_videotex_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING => self.validate_ia5_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME => self.validate_utc_time(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME => self.validate_generalized_time(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING => self.validate_graphic_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING => self.validate_visible_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING => self.validate_general_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING => self.validate_universal_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => self.validate_character_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING => self.validate_bmp_string(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_DATE => self.validate_date(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY => self.validate_time_of_day(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME => self.validate_date_time(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_DURATION => self.validate_duration(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI => self.validate_oid_iri(el),
-            ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI => self.validate_relative_oid_iri(el),
+            UNIV_TAG_NUMERIC_STRING => self.validate_numeric_string(el),
+            UNIV_TAG_PRINTABLE_STRING => self.validate_printable_string(el),
+            UNIV_TAG_T61_STRING => self.validate_t61_string(el),
+            UNIV_TAG_VIDEOTEX_STRING => self.validate_videotex_string(el),
+            UNIV_TAG_IA5_STRING => self.validate_ia5_string(el),
+            UNIV_TAG_UTC_TIME => self.validate_utc_time(el),
+            UNIV_TAG_GENERALIZED_TIME => self.validate_generalized_time(el),
+            UNIV_TAG_GRAPHIC_STRING => self.validate_graphic_string(el),
+            UNIV_TAG_VISIBLE_STRING => self.validate_visible_string(el),
+            UNIV_TAG_GENERAL_STRING => self.validate_general_string(el),
+            UNIV_TAG_UNIVERSAL_STRING => self.validate_universal_string(el),
+            UNIV_TAG_CHARACTER_STRING => self.validate_character_string(el),
+            UNIV_TAG_BMP_STRING => self.validate_bmp_string(el),
+            UNIV_TAG_DATE => self.validate_date(el),
+            UNIV_TAG_TIME_OF_DAY => self.validate_time_of_day(el),
+            UNIV_TAG_DATE_TIME => self.validate_date_time(el),
+            UNIV_TAG_DURATION => self.validate_duration(el),
+            UNIV_TAG_OID_IRI => self.validate_oid_iri(el),
+            UNIV_TAG_RELATIVE_OID_IRI => self.validate_relative_oid_iri(el),
             _ => Ok(()), // It's hard to say what to do here. Accepting is future-proof, but the value could be invalid.
         }
     }
@@ -1406,7 +1406,7 @@ pub trait X690Codec {
         let mut content = BytesMut::with_capacity(1);
         content.put_i8(value);
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
             X690Value::Primitive(content.into()),
         ))
     }
@@ -1457,7 +1457,7 @@ pub trait X690Codec {
                 let mut content = BytesMut::with_capacity(2);
                 content.put_i16(value);
                 Ok(X690Element::new(
-                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
                     X690Value::Primitive(content.into()),
                 ))
             },
@@ -1514,14 +1514,14 @@ pub trait X690Codec {
                     let mut content = BytesMut::with_capacity(3);
                     content.put_slice(&octets[1..]);
                     Ok(X690Element::new(
-                        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
                         X690Value::Primitive(content.into()),
                     ))
                 } else {
                     let mut content = BytesMut::with_capacity(4);
                     content.put_i32(value);
                     Ok(X690Element::new(
-                        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
                         X690Value::Primitive(content.into()),
                     ))
                 }
@@ -1588,7 +1588,7 @@ pub trait X690Codec {
         }
         content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i64>()]));
         return Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
             X690Value::Primitive(content.into()),
         ));
     }
@@ -1628,7 +1628,7 @@ pub trait X690Codec {
         }
         content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i64>()]));
         return Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
             X690Value::Primitive(content.into()),
         ));
     }
@@ -1671,7 +1671,7 @@ pub trait X690Codec {
         }
         content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i128>()]));
         return Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
             X690Value::Primitive(content.into()),
         ));
     }
@@ -1710,7 +1710,7 @@ pub trait X690Codec {
         }
         content.put_slice(&(bytes[number_of_padding_bytes..size_of::<i128>()]));
         return Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
             X690Value::Primitive(content.into()),
         ));
     }

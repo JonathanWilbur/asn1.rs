@@ -238,7 +238,7 @@ pub fn _encode_InitializationReq(value_: &InitializationReq) -> ASN1Result<X690E
     let mut components_: Vec<X690Element> = Vec::with_capacity(11);
     components_.push(_encode_Version(&value_.version)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -354,7 +354,7 @@ pub fn _encode_InitializationAcc(value_: &InitializationAcc) -> ASN1Result<X690E
     let mut components_: Vec<X690Element> = Vec::with_capacity(11);
     components_.push(_encode_Version(&value_.version)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -472,7 +472,7 @@ pub fn _encode_InitializationRej(value_: &InitializationRej) -> ASN1Result<X690E
     let mut components_: Vec<X690Element> = Vec::with_capacity(11);
     components_.push(_encode_InitializationRej_diag(&value_.diag)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -591,7 +591,7 @@ pub fn _encode_InitializationAbort(value_: &InitializationAbort) -> ASN1Result<X
     let mut components_: Vec<X690Element> = Vec::with_capacity(11);
     components_.push(_encode_InitializationAbort_diag(&value_.diag)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -917,7 +917,7 @@ pub fn _encode_TBOK(value_: &TBOK) -> ASN1Result<X690Element> {
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1088,7 +1088,7 @@ pub fn _encode_TBerror(value_: &TBerror) -> ASN1Result<X690Element> {
         components_.push(BER.encode_utf8_string(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),

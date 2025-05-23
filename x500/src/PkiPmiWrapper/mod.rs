@@ -206,7 +206,7 @@ pub fn _encode_TBSPDU_wrapper(value_: &TBSPDU_wrapper) -> ASN1Result<X690Element
     }
     components_.push(_encode_TBSPDU_wrapper_conf(&value_.conf)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -299,7 +299,7 @@ pub fn _encode_SignedAttributes(value_: &SignedAttributes) -> ASN1Result<X690Ele
         children.push(_encode_Attribute(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -418,7 +418,7 @@ pub fn _encode_WrappedPDUInfo(value_: &WrappedPDUInfo) -> ASN1Result<X690Element
     components_.push(BER.encode_object_identifier(&value_.pduType)?);
     components_.push(x690_identity(&value_.pduInfo)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -560,7 +560,7 @@ pub fn _encode_EncryptedInfo(value_: &EncryptedInfo) -> ASN1Result<X690Element> 
     components_.push(_encode_KeyAgreement(&value_.keyAgreement)?);
     components_.push(_encode_EncryptedPduInfo(&value_.encryptedPduInfo)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -705,7 +705,7 @@ pub fn _encode_KeyAgreement(value_: &KeyAgreement) -> ASN1Result<X690Element> {
         &value_.keyEncryptionAlgorithm,
     )?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -945,7 +945,7 @@ pub fn _encode_SenderStaticInfo(value_: &SenderStaticInfo) -> ASN1Result<X690Ele
     components_.push(_encode_CertificateSerialNumber(&value_.serialNumber)?);
     components_.push(_encode_UserKeyingMaterial(&value_.partyAinfo)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1083,7 +1083,7 @@ pub fn _encode_SenderDhPublicKey(value_: &SenderDhPublicKey) -> ASN1Result<X690E
     components_.push(_encode_AlgorithmIdentifier(&value_.algorithm)?);
     components_.push(BER.encode_bit_string(&value_.publicKey)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1299,7 +1299,7 @@ pub fn _encode_EncryptedPduInfo(value_: &EncryptedPduInfo) -> ASN1Result<X690Ele
         ))
     }(&value_.encryptedPdu)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1471,12 +1471,12 @@ pub mod contentType {
 }
 
 /// ### ASN.1 Definition:
-/// 
+///
 /// ```asn1
 /// id-contentType OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9) 3 }
 /// ```
-/// 
-/// 
+///
+///
 #[inline]
 pub fn id_contentType () -> OBJECT_IDENTIFIER {
 	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549,/* pkcs */ 1,/* pkcs9 */ 9,3) // OID_GETTER
@@ -1528,12 +1528,12 @@ pub mod messageDigest {
 }
 
 /// ### ASN.1 Definition:
-/// 
+///
 /// ```asn1
 /// id-messageDigest OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9) 4 }
 /// ```
-/// 
-/// 
+///
+///
 #[inline]
 pub fn id_messageDigest () -> OBJECT_IDENTIFIER {
 	oid!(/* iso */ 1,/* member-body */ 2,/* us */ 840,/* rsadsi */ 113549,/* pkcs */ 1,/* pkcs9 */ 9,4) // OID_GETTER
@@ -1782,7 +1782,7 @@ pub fn _encode_KeyAgreement_keyEncryptionAlgorithm(
     components_.push(BER.encode_object_identifier(&value_.algorithm)?);
     components_.push(x690_identity(&value_.parameters)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1913,7 +1913,7 @@ pub fn _encode_EncryptedPduInfo_pduEncryptionAlgorithm(
     components_.push(BER.encode_object_identifier(&value_.algorithm)?);
     components_.push(x690_identity(&value_.parameter)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

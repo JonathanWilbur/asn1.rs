@@ -2060,7 +2060,7 @@ pub fn _encode_DSS_Parms(value_: &DSS_Parms) -> ASN1Result<X690Element> {
     components_.push(BER.encode_integer(&value_.q)?);
     components_.push(BER.encode_integer(&value_.g)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -2391,7 +2391,7 @@ pub fn _encode_DomainParameters(value_: &DomainParameters) -> ASN1Result<X690Ele
         components_.push(_encode_ValidationParms(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -2529,7 +2529,7 @@ pub fn _encode_ValidationParms(value_: &ValidationParms) -> ASN1Result<X690Eleme
     components_.push(BER.encode_bit_string(&value_.seed)?);
     components_.push(BER.encode_integer(&value_.pgenCounter)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -3193,7 +3193,7 @@ pub fn _encode_rSASSA_PSS_Type(value_: &rSASSA_PSS_Type) -> ASN1Result<X690Eleme
         }
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

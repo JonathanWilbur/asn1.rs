@@ -54,7 +54,7 @@ pub fn _encode_Accessors(value_: &Accessors) -> ASN1Result<X690Element> {
         children.push(_encode_Name(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -336,7 +336,7 @@ pub fn _encode_DirectoryInformationServiceElement(
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -696,7 +696,7 @@ pub fn _encode_RemoteDSAList(value_: &RemoteDSAList) -> ASN1Result<X690Element> 
         children.push(_encode_AccessPoint(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -823,7 +823,7 @@ pub fn _encode_SecondaryShadows(value_: &SecondaryShadows) -> ASN1Result<X690Ele
         children.push(_encode_SupplierAndConsumers(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -913,7 +913,7 @@ pub fn _encode_SubSchemaSyntax(value_: &SubSchemaSyntax) -> ASN1Result<X690Eleme
         children.push(_encode_SubSchemaSyntax_Item(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -964,7 +964,7 @@ pub fn _encode_SupportedApplicationContexts(
         children.push(BER.encode_object_identifier(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -4260,7 +4260,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
                             children.push(_encode_DITStructureRuleDescription(&v)?);
                         }
                         Ok(X690Element::new(
-                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
                             X690Value::Constructed(Arc::new(children)),
                         ))
                     }(&v_1)?),
@@ -4282,7 +4282,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
                             children.push(_encode_DITContentRuleDescription(&v)?);
                         }
                         Ok(X690Element::new(
-                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
                             X690Value::Constructed(Arc::new(children)),
                         ))
                     }(&v_1)?),
@@ -4295,7 +4295,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
 	for v in value_ {
 		children.push(_encode_MatchingRuleDescription(&v)?);
 	}
-	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
 }(&v_1)?))) }(&v_)?);
     }
     if let Some(v_) = &value_.attributeTypes {
@@ -4303,7 +4303,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
 	for v in value_ {
 		children.push(_encode_AttributeTypeDescription(&v)?);
 	}
-	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
 }(&v_1)?))) }(&v_)?);
     }
     if let Some(v_) = &value_.objectClasses {
@@ -4311,7 +4311,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
 	for v in value_ {
 		children.push(_encode_ObjectClassDescription(&v)?);
 	}
-	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
+	Ok(X690Element::new(Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF), X690Value::Constructed(Arc::new(children))))
 }(&v_1)?))) }(&v_)?);
     }
     if let Some(v_) = &value_.nameForms {
@@ -4328,7 +4328,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
                             Ok(X690Element::new(
                                 Tag::new(
                                     TagClass::UNIVERSAL,
-                                    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF,
+                                    UNIV_TAG_SEQUENCE_OF,
                                 ),
                                 X690Value::Constructed(Arc::new(children)),
                             ))
@@ -4352,7 +4352,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
                             children.push(_encode_MatchingRuleUseDescription(&v)?);
                         }
                         Ok(X690Element::new(
-                            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
                             X690Value::Constructed(Arc::new(children)),
                         ))
                     }(&v_1)?),
@@ -4361,7 +4361,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
         );
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -4659,7 +4659,7 @@ pub fn _encode_SubSchemaSyntax_Item(value_: &SubSchemaSyntax_Item) -> ASN1Result
         }(&value_.subSchema)?,
     );
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

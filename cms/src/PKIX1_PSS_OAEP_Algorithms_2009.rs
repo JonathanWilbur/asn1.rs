@@ -1122,7 +1122,7 @@ pub fn _encode_RSASSA_PSS_params(value_: &RSASSA_PSS_params) -> ASN1Result<X690E
         }
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -1364,7 +1364,7 @@ pub fn _encode_RSAES_OAEP_params(value_: &RSAES_OAEP_params) -> ASN1Result<X690E
         }
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

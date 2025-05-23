@@ -9,26 +9,26 @@ use asn1::types::{
     ASN1Value, ByteSlice, CharacterString, EmbeddedPDV, ExternalEncoding,
     ExternalIdentification, GeneralizedTime, ObjectDescriptor,
     PresentationContextSwitchingTypeIdentification, Tag, TagClass, TagNumber, TaggedASN1Value,
-    UTCTime, UniversalString, ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
-    ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING, ASN1_UNIVERSAL_TAG_NUMBER_DATE,
-    ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME, ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
-    ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV, ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT,
-    ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED, ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL,
-    ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME, ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING, ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_INTEGER, ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-    ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR,
-    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER, ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI, ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_REAL, ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-    ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF, ASN1_UNIVERSAL_TAG_NUMBER_SET,
-    ASN1_UNIVERSAL_TAG_NUMBER_SET_OF, ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_TIME, ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY,
-    ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING, ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING, ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING, BIT_STRING, BOOLEAN, DATE, DATE_TIME,
+    UTCTime, UniversalString, UNIV_TAG_BIT_STRING,
+    UNIV_TAG_BMP_STRING, UNIV_TAG_BOOLEAN,
+    UNIV_TAG_CHARACTER_STRING, UNIV_TAG_DATE,
+    UNIV_TAG_DATE_TIME, UNIV_TAG_DURATION,
+    UNIV_TAG_EMBEDDED_PDV, UNIV_TAG_END_OF_CONTENT,
+    UNIV_TAG_ENUMERATED, UNIV_TAG_EXTERNAL,
+    UNIV_TAG_GENERALIZED_TIME, UNIV_TAG_GENERAL_STRING,
+    UNIV_TAG_GRAPHIC_STRING, UNIV_TAG_IA5_STRING,
+    UNIV_TAG_INTEGER, UNIV_TAG_NULL,
+    UNIV_TAG_NUMERIC_STRING, UNIV_TAG_OBJECT_DESCRIPTOR,
+    UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_OCTET_STRING,
+    UNIV_TAG_OID_IRI, UNIV_TAG_PRINTABLE_STRING,
+    UNIV_TAG_REAL, UNIV_TAG_RELATIVE_OID,
+    UNIV_TAG_RELATIVE_OID_IRI, UNIV_TAG_SEQUENCE,
+    UNIV_TAG_SEQUENCE_OF, UNIV_TAG_SET,
+    UNIV_TAG_SET_OF, UNIV_TAG_T61_STRING,
+    UNIV_TAG_TIME, UNIV_TAG_TIME_OF_DAY,
+    UNIV_TAG_UNIVERSAL_STRING, UNIV_TAG_UTC_TIME,
+    UNIV_TAG_UTF8_STRING, UNIV_TAG_VIDEOTEX_STRING,
+    UNIV_TAG_VISIBLE_STRING, BIT_STRING, BOOLEAN, DATE, DATE_TIME,
     DURATION_EQUIVALENT, EXTERNAL, INTEGER, MAX_IA5_STRING_CHAR_CODE, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
 };
@@ -487,7 +487,7 @@ pub fn x690_encode_external_components (value: &EXTERNAL) -> Result<Vec<X690Elem
             let mut bytes = BytesMut::new().writer();
             x690_write_object_identifier_value(&mut bytes, &oid)?;
             let element = X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
                 X690Value::Primitive(bytes.into_inner().into()),
             );
             inner_elements.push(element);
@@ -496,7 +496,7 @@ pub fn x690_encode_external_components (value: &EXTERNAL) -> Result<Vec<X690Elem
             let mut bytes = BytesMut::new().writer();
             x690_write_integer_value(&mut bytes, pci)?;
             let element = X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
                 X690Value::Primitive(bytes.into_inner().into()),
             );
             inner_elements.push(element);
@@ -505,14 +505,14 @@ pub fn x690_encode_external_components (value: &EXTERNAL) -> Result<Vec<X690Elem
             let mut direct_ref_bytes = BytesMut::new().writer();
             x690_write_object_identifier_value(&mut direct_ref_bytes, &cn.transfer_syntax)?;
             let direct_ref_element = X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
                 X690Value::Primitive(direct_ref_bytes.into_inner().into()),
             );
             inner_elements.push(direct_ref_element);
             let mut indirect_ref_bytes = BytesMut::new().writer();
             x690_write_integer_value(&mut indirect_ref_bytes, &cn.presentation_context_id)?;
             let indirect_ref_element = X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
                 X690Value::Primitive(indirect_ref_bytes.into_inner().into()),
             );
             inner_elements.push(indirect_ref_element);
@@ -523,7 +523,7 @@ pub fn x690_encode_external_components (value: &EXTERNAL) -> Result<Vec<X690Elem
             let mut bytes = BytesMut::new().writer();
             x690_write_object_descriptor_value(&mut bytes, &dvd)?;
             let element = X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_DESCRIPTOR),
                 X690Value::Primitive(bytes.into_inner().into()),
             );
             inner_elements.push(element);
@@ -934,81 +934,81 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             }
         }
         ASN1Value::BooleanValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN;
+            tag_number = UNIV_TAG_BOOLEAN;
             encoded_value = X690Value::Primitive(Bytes::copy_from_slice(&[ if *v { 0xFF } else { 0x00 } ]));
         }
         // TODO: Handle a BIGINT type
         ASN1Value::IntegerValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_INTEGER;
+            tag_number = UNIV_TAG_INTEGER;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_integer_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::BitStringValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING;
+            tag_number = UNIV_TAG_BIT_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len_in_bytes() + 1).writer();
             x690_write_bit_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::OctetStringValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING;
+            tag_number = UNIV_TAG_OCTET_STRING;
             encoded_value = X690Value::Primitive(Bytes::copy_from_slice(v));
         }
         ASN1Value::NullValue => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_NULL;
+            tag_number = UNIV_TAG_NULL;
             encoded_value = X690Value::Primitive(Bytes::new());
         }
         ASN1Value::ObjectIdentifierValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER;
+            tag_number = UNIV_TAG_OBJECT_IDENTIFIER;
             let mut value_bytes = BytesMut::with_capacity(v.as_x690_slice().len()).writer();
             x690_write_object_identifier_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::ExternalValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL;
+            tag_number = UNIV_TAG_EXTERNAL;
             let mut value_bytes = BytesMut::new().writer();
             x690_write_external_value(&mut value_bytes, v)?;
             // FIXME:
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::RealValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_REAL;
+            tag_number = UNIV_TAG_REAL;
             let mut value_bytes = BytesMut::new().writer();
             x690_write_real_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::EnumeratedValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED;
+            tag_number = UNIV_TAG_ENUMERATED;
             let mut value_bytes = BytesMut::with_capacity(8).writer();
             x690_write_enum_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::EmbeddedPDVValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV;
+            tag_number = UNIV_TAG_EMBEDDED_PDV;
             let mut value_bytes = BytesMut::new().writer();
             x690_write_embedded_pdv_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::UTF8String(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING;
+            tag_number = UNIV_TAG_UTF8_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_utf8_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::RelativeOIDValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID;
+            tag_number = UNIV_TAG_RELATIVE_OID;
             let mut value_bytes = BytesMut::with_capacity(v.as_x690_slice().len()).writer();
             x690_write_relative_oid_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::TimeValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_TIME;
+            tag_number = UNIV_TAG_TIME;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_time_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::SequenceValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE;
+            tag_number = UNIV_TAG_SEQUENCE;
             let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
                 let inner_node = create_x690_cst_node(inner_value)?;
@@ -1017,7 +1017,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             encoded_value = X690Value::Constructed(Arc::new(inner_values));
         }
         ASN1Value::SequenceOfValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF;
+            tag_number = UNIV_TAG_SEQUENCE_OF;
             let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
                 let inner_node = create_x690_cst_node(inner_value)?;
@@ -1026,7 +1026,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             encoded_value = X690Value::Constructed(Arc::new(inner_values));
         }
         ASN1Value::SetValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SET;
+            tag_number = UNIV_TAG_SET;
             let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
                 let inner_node = create_x690_cst_node(inner_value)?;
@@ -1035,7 +1035,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             encoded_value = X690Value::Constructed(Arc::new(inner_values));
         }
         ASN1Value::SetOfValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_SET_OF;
+            tag_number = UNIV_TAG_SET_OF;
             let mut inner_values: Vec<X690Element> = Vec::with_capacity(v.len());
             for inner_value in v {
                 let inner_node = create_x690_cst_node(inner_value)?;
@@ -1044,37 +1044,37 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             encoded_value = X690Value::Constructed(Arc::new(inner_values));
         }
         ASN1Value::UTCTime(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME;
+            tag_number = UNIV_TAG_UTC_TIME;
             let mut value_bytes = BytesMut::with_capacity(17).writer(); // This is the max length of a UTCTime.
             x690_write_utc_time_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::GeneralizedTime(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME;
+            tag_number = UNIV_TAG_GENERALIZED_TIME;
             let mut value_bytes = BytesMut::with_capacity(32).writer(); // This should cover most values.
             x690_write_generalized_time_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::UniversalString(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING;
+            tag_number = UNIV_TAG_UNIVERSAL_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len() << 2).writer();
             x690_write_universal_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::UnrestrictedCharacterStringValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING;
+            tag_number = UNIV_TAG_CHARACTER_STRING;
             let mut value_bytes = BytesMut::new().writer();
             x690_write_character_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::BMPString(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING;
+            tag_number = UNIV_TAG_BMP_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len() << 1).writer();
             x690_write_bmp_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::InstanceOfValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL;
+            tag_number = UNIV_TAG_EXTERNAL;
             let type_id = ASN1Value::ObjectIdentifierValue(v.type_id.clone());
             let val = TaggedASN1Value {
                 tag: Tag::new(TagClass::CONTEXT, 0),
@@ -1096,13 +1096,13 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             ]));
         }
         ASN1Value::IRIValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI;
+            tag_number = UNIV_TAG_OID_IRI;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::RelativeIRIValue(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI;
+            tag_number = UNIV_TAG_RELATIVE_OID_IRI;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1112,7 +1112,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 // GeneralString must be below or at 0x7F.
                 return Err(Error::from(ErrorKind::InvalidData));
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING;
+            tag_number = UNIV_TAG_GENERAL_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1123,7 +1123,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING;
+            tag_number = UNIV_TAG_IA5_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1134,7 +1134,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING;
+            tag_number = UNIV_TAG_GRAPHIC_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1150,7 +1150,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING;
+            tag_number = UNIV_TAG_VISIBLE_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1166,7 +1166,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING;
+            tag_number = UNIV_TAG_VISIBLE_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1178,7 +1178,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING;
+            tag_number = UNIV_TAG_NUMERIC_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1196,43 +1196,43 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 }
                 return Err(Error::from(ErrorKind::InvalidData));
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING;
+            tag_number = UNIV_TAG_PRINTABLE_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::TeletexString(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING;
+            tag_number = UNIV_TAG_T61_STRING;
             encoded_value = X690Value::Primitive(Bytes::copy_from_slice(v));
         }
         ASN1Value::T61String(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING;
+            tag_number = UNIV_TAG_T61_STRING;
             encoded_value = X690Value::Primitive(Bytes::copy_from_slice(v));
         }
         ASN1Value::VideotexString(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING;
+            tag_number = UNIV_TAG_VIDEOTEX_STRING;
             encoded_value = X690Value::Primitive(Bytes::copy_from_slice(v));
         }
         ASN1Value::DATE(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DATE;
+            tag_number = UNIV_TAG_DATE;
             let mut value_bytes = BytesMut::with_capacity(10).writer();
             x690_write_date_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::TIME_OF_DAY(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY;
+            tag_number = UNIV_TAG_TIME_OF_DAY;
             let mut value_bytes = BytesMut::with_capacity(8).writer();
             x690_write_time_of_day_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::DATE_TIME(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME;
+            tag_number = UNIV_TAG_DATE_TIME;
             let mut value_bytes = BytesMut::with_capacity(19).writer(); // 1951-10-14T15:30:00
             x690_write_date_time_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::DURATION(v) => {
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_DURATION;
+            tag_number = UNIV_TAG_DURATION;
             // There is no guaranteed size, but 16 is a reasonable pre-allocation.
             let mut value_bytes = BytesMut::with_capacity(16).writer();
             x690_write_duration_value(&mut value_bytes, v)?;
@@ -1244,7 +1244,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
-            tag_number = ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING;
+            tag_number = UNIV_TAG_GRAPHIC_STRING;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
             x690_write_string_value(&mut value_bytes, v)?;
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
@@ -1377,7 +1377,7 @@ pub fn ber_cst (bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
                         }
                         value_bytes_read += el_len;
                         if el.tag.tag_class == TagClass::UNIVERSAL
-                            && (el.tag.tag_number == ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT)
+                            && (el.tag.tag_number == UNIV_TAG_END_OF_CONTENT)
                         {
                             // We do NOT append the EOC element. It is treated like it does not exist.
                             break;
@@ -1407,7 +1407,7 @@ pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
                 /* Just to be clear, this is 100% intentional. In ITU X.690, it says that the substrings of a string
                 type are to have OCTET STRING tags and it even has examples where it confirms this visually. */
                 if child.tag.tag_class != TagClass::UNIVERSAL
-                    || child.tag.tag_number != ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING
+                    || child.tag.tag_number != UNIV_TAG_OCTET_STRING
                 {
                     let mut err =
                         ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
@@ -1507,7 +1507,7 @@ pub const _RCTL1_FOR_EXTERNAL: &[ComponentSpec; 4] = &[
         true,
         TagSelector::tag((
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+            UNIV_TAG_OBJECT_IDENTIFIER,
         )),
         None,
         None,
@@ -1515,7 +1515,7 @@ pub const _RCTL1_FOR_EXTERNAL: &[ComponentSpec; 4] = &[
     ComponentSpec::new(
         "indirect-reference",
         true,
-        TagSelector::tag((TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER)),
+        TagSelector::tag((TagClass::UNIVERSAL, UNIV_TAG_INTEGER)),
         None,
         None,
     ),
@@ -1524,7 +1524,7 @@ pub const _RCTL1_FOR_EXTERNAL: &[ComponentSpec; 4] = &[
         true,
         TagSelector::tag((
             TagClass::UNIVERSAL,
-            ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR,
+            UNIV_TAG_OBJECT_DESCRIPTOR,
         )),
         None,
         None,
@@ -1667,7 +1667,7 @@ mod tests {
     //         | 0b0010_0000 // Constructed
     //         | 7,
     //         0x03, // Length = 3
-    //         ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN as u8,
+    //         UNIV_TAG_BOOLEAN as u8,
     //         0x01, // Length = 1
     //         0x00, // FALSE
     //     ]));
@@ -1703,14 +1703,14 @@ mod tests {
     #[test]
     fn test_constructed_encoding() {
         let asn1_data = X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
             crate::X690Value::Constructed(Arc::new(vec![
                 X690Element::new(
-                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN),
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BOOLEAN),
                     crate::X690Value::Primitive(Bytes::copy_from_slice(&[ 0xFF ])),
                 ),
                 X690Element::new(
-                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER),
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER),
                     crate::X690Value::Primitive(Bytes::copy_from_slice(&[ 0x01, 0x03 ])),
                 ),
             ])),
@@ -1725,7 +1725,7 @@ mod tests {
         assert!(output.starts_with(&[
             X690_TAG_CLASS_UNIVERSAL
             | 0b0010_0000 // Constructed
-            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            | UNIV_TAG_SEQUENCE as u8,
             0x07,
             0x01,
             0x01,
@@ -1753,7 +1753,7 @@ mod tests {
     //     assert!(output.starts_with(&[
     //         X690_TAG_CLASS_UNIVERSAL
     //         | 0b0010_0000 // Constructed
-    //         | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+    //         | UNIV_TAG_SEQUENCE as u8,
     //         0x06,
     //         0x01,
     //         0x01,
@@ -1769,7 +1769,7 @@ mod tests {
         let encoded_data: Vec<u8> = vec![
             X690_TAG_CLASS_UNIVERSAL
             | 0b0010_0000 // Constructed
-            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            | UNIV_TAG_SEQUENCE as u8,
             0x06,
             0x01,
             0x01,
@@ -1782,13 +1782,13 @@ mod tests {
             Ok((bytes_read, el)) => {
                 assert_eq!(bytes_read, 8);
                 assert_eq!(el.tag.tag_class, TagClass::UNIVERSAL);
-                assert_eq!(el.tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE);
+                assert_eq!(el.tag.tag_number, UNIV_TAG_SEQUENCE);
                 if let X690Value::Constructed(children) = el.value {
                     assert_eq!(children.len(), 2);
                     assert_eq!(children[0].tag.tag_class, TagClass::UNIVERSAL);
                     assert_eq!(children[1].tag.tag_class, TagClass::UNIVERSAL);
-                    assert_eq!(children[0].tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN);
-                    assert_eq!(children[1].tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER);
+                    assert_eq!(children[0].tag.tag_number, UNIV_TAG_BOOLEAN);
+                    assert_eq!(children[1].tag.tag_number, UNIV_TAG_INTEGER);
                 } else {
                     panic!("Decoded non-constructed.");
                 }
@@ -1802,7 +1802,7 @@ mod tests {
         let encoded_data: Vec<u8> = vec![
             X690_TAG_CLASS_UNIVERSAL
             | 0b0010_0000 // Constructed
-            | ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE as u8,
+            | UNIV_TAG_SEQUENCE as u8,
             0x80, // Indefinite length
             0x01,
             0x01,
@@ -1817,13 +1817,13 @@ mod tests {
             Ok((bytes_read, el)) => {
                 assert_eq!(bytes_read, 10);
                 assert_eq!(el.tag.tag_class, TagClass::UNIVERSAL);
-                assert_eq!(el.tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE);
+                assert_eq!(el.tag.tag_number, UNIV_TAG_SEQUENCE);
                 if let X690Value::Constructed(children) = el.value {
                     assert_eq!(children.len(), 2);
                     assert_eq!(children[0].tag.tag_class, TagClass::UNIVERSAL);
                     assert_eq!(children[1].tag.tag_class, TagClass::UNIVERSAL);
-                    assert_eq!(children[0].tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN);
-                    assert_eq!(children[1].tag.tag_number, ASN1_UNIVERSAL_TAG_NUMBER_INTEGER);
+                    assert_eq!(children[0].tag.tag_number, UNIV_TAG_BOOLEAN);
+                    assert_eq!(children[1].tag.tag_number, UNIV_TAG_INTEGER);
                 } else {
                     panic!("Decoded non-constructed.");
                 }

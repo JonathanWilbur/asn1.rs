@@ -194,13 +194,13 @@ pub fn _encode_ExtensionAttribute(value_: &ExtensionAttribute) -> ASN1Result<X69
                 children.push(_encode_ExtensionAttribute_value_Item(&v)?);
             }
             Ok(X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
                 X690Value::Constructed(Arc::new(children)),
             ))
         }(&value_.value)?,
     );
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1855,7 +1855,7 @@ pub fn _encode_ExtensionAttribute_value_Item(
         ))
     }(&value_.ext)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),

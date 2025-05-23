@@ -741,9 +741,9 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 
 //     use crate::*;
 //     use asn1::types::{
-//         ASN1Value, TagClass, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING, ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-//         ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE,
-//         ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING, OBJECT_IDENTIFIER,
+//         ASN1Value, TagClass, UNIV_TAG_BMP_STRING, UNIV_TAG_NULL,
+//         UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE,
+//         UNIV_TAG_UTF8_STRING, OBJECT_IDENTIFIER,
 //     };
 //     use std::sync::Arc;
 
@@ -764,7 +764,7 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 //             false,
 //             TagSelector::tag((
 //                 TagClass::UNIVERSAL,
-//                 ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+//                 UNIV_TAG_OBJECT_IDENTIFIER,
 //             )),
 //             None,
 //             None,
@@ -814,11 +814,11 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 
 //     fn decode_DirectoryString(el: &X690Element) -> ASN1Result<DirectoryString> {
 //         match (el.tag.tag_class, el.tag.tag_number) {
-//             (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING) => {
+//             (TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING) => {
 //                 let v = ber_decode_utf8_string(&el)?;
 //                 return Ok(DirectoryString::UTF8String(v));
 //             }
-//             (TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING) => {
+//             (TagClass::UNIVERSAL, UNIV_TAG_BMP_STRING) => {
 //                 let v = ber_decode_bmp_string(&el)?;
 //                 return Ok(DirectoryString::BMPString(v));
 //             }
@@ -838,7 +838,7 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 //                 false,
 //                 TagSelector::tag((
 //                     TagClass::UNIVERSAL,
-//                     ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
+//                     UNIV_TAG_OBJECT_IDENTIFIER,
 //                 )),
 //                 None,
 //                 None,
@@ -849,14 +849,14 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 //         let rctl2: Vec<ComponentSpec> = vec![];
 
 //         let root: X690Element = X690Element::new(
-//             Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+//             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
 //             X690Value::Constructed(Arc::new(vec![
 //                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
 //                     X690Value::Primitive(Bytes::copy_from_slice(&[0x55, 0x04, 0x03])),
 //                 ),
 //                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
 //                     X690Value::Primitive(Bytes::copy_from_slice(&[])),
 //                 ),
 //             ])),
@@ -901,14 +901,14 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 //     #[test]
 //     fn test_decode_algorithm_identifier() {
 //         let root: X690Element = X690Element::new(
-//             Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+//             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
 //             X690Value::Constructed(Arc::new(vec![
 //                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER),
+//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
 //                     X690Value::Primitive(Bytes::copy_from_slice(&[0x55, 0x04, 0x03])),
 //                 ),
 //                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_NULL),
+//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
 //                     X690Value::Primitive(Bytes::copy_from_slice(&[])),
 //                 ),
 //             ])),
@@ -937,7 +937,7 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 //     #[test]
 //     fn test_decode_directory_string() {
 //         let root: X690Element = X690Element::new(
-//             Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING),
+//             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
 //             X690Value::Primitive(Bytes::from("Better Call Saul!")),
 //         );
 //         let ds = decode_DirectoryString(&root).unwrap();

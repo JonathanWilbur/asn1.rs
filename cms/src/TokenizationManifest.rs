@@ -180,7 +180,7 @@ pub fn _encode_XPathTokensSet(value_: &XPathTokensSet) -> ASN1Result<X690Element
     }
     components_.push(_encode_XPathSet(&value_.xPathSet)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -281,7 +281,7 @@ pub fn _encode_XPathSet(value_: &XPathSet) -> ASN1Result<X690Element> {
         children.push(_encode_XPath(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -461,7 +461,7 @@ pub fn _encode_Tokenized(value_: &Tokenized) -> ASN1Result<X690Element> {
         components_.push(x690_identity(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }

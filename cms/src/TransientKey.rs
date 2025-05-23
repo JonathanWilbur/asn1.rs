@@ -208,7 +208,7 @@ pub fn _encode_TransientKeySignedTST(value_: &TransientKeySignedTST) -> ASN1Resu
     }
     components_.push(_encode_Signature(&value_.signature)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -373,7 +373,7 @@ pub fn _encode_TSTAndInterval(value_: &TSTAndInterval) -> ASN1Result<X690Element
     components_.push(_encode_TSTInfo(&value_.tstInfo)?);
     components_.push(_encode_IntervalInfo(&value_.intervalInfo)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -537,7 +537,7 @@ pub fn _encode_IntervalInfo(value_: &IntervalInfo) -> ASN1Result<X690Element> {
         components_.push(_encode_UriList(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -708,7 +708,7 @@ pub fn _encode_SignedIntervalSpec(value_: &SignedIntervalSpec) -> ASN1Result<X69
     components_.push(_encode_Signature(&value_.signature)?);
     components_.push(_encode_IdentitySignature(&value_.identitySignature)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -916,7 +916,7 @@ pub fn _encode_IntervalSpec(value_: &IntervalSpec) -> ASN1Result<X690Element> {
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -1115,7 +1115,7 @@ pub fn _encode_ChainSpec(value_: &ChainSpec) -> ASN1Result<X690Element> {
         components_.push(_encode_Uri(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -1322,7 +1322,7 @@ pub fn _encode_IdentitySignature(value_: &IdentitySignature) -> ASN1Result<X690E
         components_.push(_encode_EncodedCertificate(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -1472,7 +1472,7 @@ pub fn _encode_ArchiveTree(value_: &ArchiveTree) -> ASN1Result<X690Element> {
         components_.push(_encode_ArchiveTreeList(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -1535,7 +1535,7 @@ pub fn _encode_ArchiveTreeList(value_: &ArchiveTreeList) -> ASN1Result<X690Eleme
         children.push(_encode_ArchiveTree(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -1577,7 +1577,7 @@ pub fn _encode_UriList(value_: &UriList) -> ASN1Result<X690Element> {
         children.push(_encode_Uri(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }

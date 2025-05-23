@@ -5,34 +5,34 @@ use crate::CertificateExtensions::GeneralName;
 use asn1::{
     ASN1Error,
     TagClass,
-    ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN,
-    ASN1_UNIVERSAL_TAG_NUMBER_INTEGER,
-    ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_NULL,
-    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER,
-    ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR,
-    ASN1_UNIVERSAL_TAG_NUMBER_REAL,
-    ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED,
-    ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID,
-    ASN1_UNIVERSAL_TAG_NUMBER_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING,
-    ASN1_UNIVERSAL_TAG_NUMBER_DATE,
-    ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY,
-    ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME,
-    ASN1_UNIVERSAL_TAG_NUMBER_DURATION,
-    ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI,
-    ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI, OBJECT_IDENTIFIER,
+    UNIV_TAG_BOOLEAN,
+    UNIV_TAG_INTEGER,
+    UNIV_TAG_BIT_STRING,
+    UNIV_TAG_OCTET_STRING,
+    UNIV_TAG_NULL,
+    UNIV_TAG_OBJECT_IDENTIFIER,
+    UNIV_TAG_OBJECT_DESCRIPTOR,
+    UNIV_TAG_REAL,
+    UNIV_TAG_ENUMERATED,
+    UNIV_TAG_UTF8_STRING,
+    UNIV_TAG_RELATIVE_OID,
+    UNIV_TAG_TIME,
+    UNIV_TAG_NUMERIC_STRING,
+    UNIV_TAG_PRINTABLE_STRING,
+    UNIV_TAG_IA5_STRING,
+    UNIV_TAG_UTC_TIME,
+    UNIV_TAG_GENERALIZED_TIME,
+    UNIV_TAG_GRAPHIC_STRING,
+    UNIV_TAG_VISIBLE_STRING,
+    UNIV_TAG_GENERAL_STRING,
+    UNIV_TAG_UNIVERSAL_STRING,
+    UNIV_TAG_BMP_STRING,
+    UNIV_TAG_DATE,
+    UNIV_TAG_TIME_OF_DAY,
+    UNIV_TAG_DATE_TIME,
+    UNIV_TAG_DURATION,
+    UNIV_TAG_OID_IRI,
+    UNIV_TAG_RELATIVE_OID_IRI, OBJECT_IDENTIFIER,
 };
 use x690::{
     X690Element,
@@ -475,8 +475,8 @@ pub fn value_to_string <E, K> (
         return Ok(None);
     }
     match value.tag.tag_number {
-        // ASN1_UNIVERSAL_TAG_NUMBER_END_OF_CONTENT => {},
-        ASN1_UNIVERSAL_TAG_NUMBER_BOOLEAN => {
+        // UNIV_TAG_END_OF_CONTENT => {},
+        UNIV_TAG_BOOLEAN => {
             let v = BER.decode_boolean(value)?;
             if v {
                 Ok(Some(String::from("TRUE")))
@@ -484,7 +484,7 @@ pub fn value_to_string <E, K> (
                 Ok(Some(String::from("FALSE")))
             }
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_INTEGER => {
+        UNIV_TAG_INTEGER => {
             let integ = BER.decode_integer(value)?;
             if let Ok(i) = read_i64(&integ) {
                 return Ok(Some(format!("{}", i).to_string()));
@@ -492,105 +492,105 @@ pub fn value_to_string <E, K> (
                 return Ok(None);
             }
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_BIT_STRING => {
+        UNIV_TAG_BIT_STRING => {
             let v = BER.decode_bit_string(value)?;
             Ok(Some(format!("{}", v).to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_OCTET_STRING => {
+        UNIV_TAG_OCTET_STRING => {
             let v = BER.decode_octet_string(value)?;
             // NOTE: This is not the LDAP syntax. The LDAP syntax is just the raw octets.
             Ok(Some(hex::encode(v)))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_NULL => {
+        UNIV_TAG_NULL => {
             Ok(Some(String::from("NULL")))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_IDENTIFIER => {
+        UNIV_TAG_OBJECT_IDENTIFIER => {
             let v = BER.decode_object_identifier(value)?;
             Ok(Some(v.to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_OBJECT_DESCRIPTOR => {
+        UNIV_TAG_OBJECT_DESCRIPTOR => {
             let v = BER.decode_object_descriptor(value)?;
             Ok(Some(v))
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_EXTERNAL => {},
-        ASN1_UNIVERSAL_TAG_NUMBER_REAL => {
+        // UNIV_TAG_EXTERNAL => {},
+        UNIV_TAG_REAL => {
             let v = BER.decode_real(value)?;
             Ok(Some(v.to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_ENUMERATED => {
+        UNIV_TAG_ENUMERATED => {
             let v = BER.decode_enumerated(value)?;
             Ok(Some(v.to_string()))
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_EMBEDDED_PDV => {},
-        ASN1_UNIVERSAL_TAG_NUMBER_UTF8_STRING => {
+        // UNIV_TAG_EMBEDDED_PDV => {},
+        UNIV_TAG_UTF8_STRING => {
             let v = BER.decode_utf8_string(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID => {
+        UNIV_TAG_RELATIVE_OID => {
             let v = BER.decode_relative_oid(value)?;
             Ok(Some(v.to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_TIME => {
+        UNIV_TAG_TIME => {
             let v = BER.decode_time(value)?;
             Ok(Some(v))
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_RESERVED_15 => {},
-        // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE => {},
-        // ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF => {},
-        // ASN1_UNIVERSAL_TAG_NUMBER_SET => {},
-        // ASN1_UNIVERSAL_TAG_NUMBER_SET_OF => {},
-        ASN1_UNIVERSAL_TAG_NUMBER_NUMERIC_STRING => {
+        // UNIV_TAG_RESERVED_15 => {},
+        // UNIV_TAG_SEQUENCE => {},
+        // UNIV_TAG_SEQUENCE_OF => {},
+        // UNIV_TAG_SET => {},
+        // UNIV_TAG_SET_OF => {},
+        UNIV_TAG_NUMERIC_STRING => {
             let v = BER.decode_numeric_string(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_PRINTABLE_STRING => {
+        UNIV_TAG_PRINTABLE_STRING => {
             let v = BER.decode_printable_string(value)?;
             Ok(Some(v))
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_T61_STRING => {},
-        // ASN1_UNIVERSAL_TAG_NUMBER_VIDEOTEX_STRING => {},
-        ASN1_UNIVERSAL_TAG_NUMBER_IA5_STRING => {
+        // UNIV_TAG_T61_STRING => {},
+        // UNIV_TAG_VIDEOTEX_STRING => {},
+        UNIV_TAG_IA5_STRING => {
             let v = BER.decode_ia5_string(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_UTC_TIME => {
+        UNIV_TAG_UTC_TIME => {
             let v = BER.decode_utc_time(value)?;
             Ok(Some(v.to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_GENERALIZED_TIME => {
+        UNIV_TAG_GENERALIZED_TIME => {
             let v = BER.decode_generalized_time(value)?;
             Ok(Some(v.to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_GRAPHIC_STRING => {
+        UNIV_TAG_GRAPHIC_STRING => {
             let v = BER.decode_graphic_string(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_VISIBLE_STRING => {
+        UNIV_TAG_VISIBLE_STRING => {
             let v = BER.decode_visible_string(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_GENERAL_STRING => {
+        UNIV_TAG_GENERAL_STRING => {
             let v = BER.decode_general_string(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_UNIVERSAL_STRING => {
+        UNIV_TAG_UNIVERSAL_STRING => {
             let v = BER.decode_universal_string(value)?;
             Ok(Some(v))
         },
-        // ASN1_UNIVERSAL_TAG_NUMBER_CHARACTER_STRING => {},
-        ASN1_UNIVERSAL_TAG_NUMBER_BMP_STRING => {
+        // UNIV_TAG_CHARACTER_STRING => {},
+        UNIV_TAG_BMP_STRING => {
             let v = BER.decode_bmp_string(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_DATE => {
+        UNIV_TAG_DATE => {
             let v = BER.decode_date(value)?;
             Ok(Some(format!("{}-{}-{}", v.year, v.month, v.day).to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_TIME_OF_DAY => {
+        UNIV_TAG_TIME_OF_DAY => {
             let v = BER.decode_time_of_day(value)?;
             Ok(Some(format!("{}:{}:{}", v.hour, v.minute, v.second).to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_DATE_TIME => {
+        UNIV_TAG_DATE_TIME => {
             let v = BER.decode_date_time(value)?;
             Ok(Some(format!("{}-{}-{}T{}:{}:{}",
                 v.date.year,
@@ -601,15 +601,15 @@ pub fn value_to_string <E, K> (
                 v.time.second
             ).to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_DURATION => {
+        UNIV_TAG_DURATION => {
             let v = BER.decode_duration(value)?;
             Ok(Some(v.to_string()))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_OID_IRI => {
+        UNIV_TAG_OID_IRI => {
             let v = BER.decode_oid_iri(value)?;
             Ok(Some(v))
         },
-        ASN1_UNIVERSAL_TAG_NUMBER_RELATIVE_OID_IRI => {
+        UNIV_TAG_RELATIVE_OID_IRI => {
             let v = BER.decode_relative_oid_iri(value)?;
             Ok(Some(v))
         },

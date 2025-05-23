@@ -237,7 +237,7 @@ pub fn _encode_AlgorithmWithInvoke(value_: &AlgorithmWithInvoke) -> ASN1Result<X
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -385,7 +385,7 @@ pub fn _encode_AlgorithmIdentifier(value_: &AlgorithmIdentifier) -> ASN1Result<X
         components_.push(x690_identity(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -538,7 +538,7 @@ pub fn _encode_HASH(value_: &HASH) -> ASN1Result<X690Element> {
     components_.push(_encode_AlgorithmIdentifier(&value_.algorithmIdentifier)?);
     components_.push(BER.encode_bit_string(&value_.hashValue)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -756,7 +756,7 @@ pub fn _encode_SIGNED<ToBeSigned>(
         components_.push(BER.encode_bit_string(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -891,7 +891,7 @@ pub fn _encode_FingerPrint(value_: &FingerPrint) -> ASN1Result<X690Element> {
     components_.push(_encode_AlgorithmIdentifier(&value_.algorithmIdentifier)?);
     components_.push(BER.encode_bit_string(&value_.fingerprint)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -950,7 +950,7 @@ pub fn _encode_PkiPath(value_: &PkiPath) -> ASN1Result<X690Element> {
         children.push(_encode_Certificate(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -1243,7 +1243,7 @@ pub fn _encode_TBSCertificate(value_: &TBSCertificate) -> ASN1Result<X690Element
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1442,7 +1442,7 @@ pub fn _encode_Validity(value_: &Validity) -> ASN1Result<X690Element> {
     components_.push(_encode_Time(&value_.notBefore)?);
     components_.push(_encode_Time(&value_.notAfter)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1575,7 +1575,7 @@ pub fn _encode_SubjectPublicKeyInfo(value_: &SubjectPublicKeyInfo) -> ASN1Result
     components_.push(_encode_AlgorithmIdentifier(&value_.algorithm)?);
     components_.push(_encode_PublicKey(&value_.subjectPublicKey)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -1729,7 +1729,7 @@ pub fn _encode_Extensions(value_: &Extensions) -> ASN1Result<X690Element> {
         children.push(_encode_Extension(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -1865,7 +1865,7 @@ pub fn _encode_Extension(value_: &Extension) -> ASN1Result<X690Element> {
     }
     components_.push(BER.encode_octet_string(&value_.extnValue)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -2014,7 +2014,7 @@ pub fn _encode_RDNSequence(value_: &RDNSequence) -> ASN1Result<X690Element> {
         children.push(_encode_RelativeDistinguishedName(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -2065,7 +2065,7 @@ pub fn _encode_RelativeDistinguishedName(
         children.push(_encode_AttributeTypeAndValue(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -2203,7 +2203,7 @@ pub fn _encode_AttributeTypeAndValue(value_: &AttributeTypeAndValue) -> ASN1Resu
     components_.push(BER.encode_object_identifier(&value_.type_)?);
     components_.push(BER.encode_utf8_string(&value_.value)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -2385,12 +2385,12 @@ pub fn _encode_Attribute(value_: &Attribute) -> ASN1Result<X690Element> {
             children.push(BER.encode_utf8_string(&v)?);
         }
         Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SET_OF),
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
             X690Value::Constructed(Arc::new(children)),
         ))
     }(&value_.values)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -2686,7 +2686,7 @@ pub fn _encode_TBSAttributeCertificate(
                 children.push(_encode_Attribute(&v)?);
             }
             Ok(X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
                 X690Value::Constructed(Arc::new(children)),
             ))
         }(&value_.attributes)?,
@@ -2698,7 +2698,7 @@ pub fn _encode_TBSAttributeCertificate(
         components_.push(_encode_Extensions(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -2926,7 +2926,7 @@ pub fn _encode_Holder(value_: &Holder) -> ASN1Result<X690Element> {
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
     ))
 }
@@ -3094,7 +3094,7 @@ pub fn _encode_IssuerSerial(value_: &IssuerSerial) -> ASN1Result<X690Element> {
         components_.push(_encode_UniqueIdentifier(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -3267,7 +3267,7 @@ pub fn _encode_ObjectDigestInfo(value_: &ObjectDigestInfo) -> ASN1Result<X690Ele
     components_.push(_encode_AlgorithmIdentifier(&value_.digestAlgorithm)?);
     components_.push(BER.encode_bit_string(&value_.objectDigest)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -3467,7 +3467,7 @@ pub fn _encode_AttCertIssuer(value_: &AttCertIssuer) -> ASN1Result<X690Element> 
                     }(&v_)?);
                 }
                 Ok(X690Element::new(
-                    Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
                     X690Value::Constructed(Arc::new(
                         [components_, value_._unrecognized.clone()].concat(),
                     )),
@@ -3631,7 +3631,7 @@ pub fn _encode_AttCertValidityPeriod(value_: &AttCertValidityPeriod) -> ASN1Resu
     components_.push(BER.encode_generalized_time(&value_.notBeforeTime)?);
     components_.push(BER.encode_generalized_time(&value_.notAfterTime)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -3694,7 +3694,7 @@ pub fn _encode_GeneralNames(value_: &GeneralNames) -> ASN1Result<X690Element> {
         children.push(_encode_GeneralName(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -4118,7 +4118,7 @@ pub fn _encode_TBSCertAVL(value_: &TBSCertAVL) -> ASN1Result<X690Element> {
                 children.push(_encode_TBSCertAVL_entries_Item(&v)?);
             }
             Ok(X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
                 X690Value::Constructed(Arc::new(children)),
             ))
         }(&value_.entries)?,
@@ -4127,7 +4127,7 @@ pub fn _encode_TBSCertAVL(value_: &TBSCertAVL) -> ASN1Result<X690Element> {
         components_.push(_encode_Extensions(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -4372,7 +4372,7 @@ pub fn _encode_IssuerSerialNumber(value_: &IssuerSerialNumber) -> ASN1Result<X69
     components_.push(_encode_Name(&value_.issuer)?);
     components_.push(_encode_CertificateSerialNumber(&value_.serialNumber)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -4590,7 +4590,7 @@ pub fn _encode_ScopeRestrictions(value_: &ScopeRestrictions) -> ASN1Result<X690E
         children.push(_encode_ScopeRestriction(&v)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE_OF),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
         X690Value::Constructed(Arc::new(children)),
     ))
 }
@@ -4702,7 +4702,7 @@ pub fn _encode_ScopeRestriction(value_: &ScopeRestriction) -> ASN1Result<X690Ele
     components_.push(BER.encode_object_identifier(&value_.id)?);
     components_.push(x690_identity(&value_.restriction)?);
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
@@ -4861,7 +4861,7 @@ pub fn _encode_TBSCertAVL_entries_Item(
         }(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),

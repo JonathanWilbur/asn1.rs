@@ -502,7 +502,7 @@ pub fn _encode_LdapSyntaxDescription(value_: &LdapSyntaxDescription) -> ASN1Resu
         components_.push(_encode_UnboundedDirectoryString(&v_)?);
     }
     Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, ASN1_UNIVERSAL_TAG_NUMBER_SEQUENCE),
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
             [components_, value_._unrecognized.clone()].concat(),
         )),
