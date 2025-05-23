@@ -1,4 +1,35 @@
 //! Functions for comparing, normalizing, and validating string types
+//!
+//! You can validate strings to be of type `PrintableString` or `NumericString`
+//! like so:
+//!
+//! ```rust
+//! assert!(is_printable_str("Testeroo"));
+//! assert!(!is_printable_str("Book with 'F*ck' in the title"));
+//! assert!(is_numeric_str("0280 6082 0502"));
+//! assert!(!is_numeric_str("deadbeef"));
+//! assert!(is_ia5_str("hello world"));
+//! assert!(is_visible_str("hello world"));
+//! ```
+//!
+//! You can compare `NumericString` values like so:
+//!
+//! ```rust
+//! let a = "   65535  ";
+//! let b = " 655 35   ";
+//! let c = "    065535";
+//! assert!(compare_numeric_string(a, b));
+//! assert!(compare_numeric_string(b, a));
+//! assert!(!compare_numeric_string(a, c));
+//! ```
+//!
+//! You can also normalize `NumericString` to remove any space characters like
+//! so:
+//!
+//! ```rust
+//! assert_eq!(normalize_num_bytes(b" 8 7 6 5309").as_ref(), "8765309");
+//! ```
+//!
 use std::borrow::Cow;
 
 /// Return `true` if the character `b` is "printable" per the ASN.1 definition
@@ -51,6 +82,7 @@ pub fn is_visible_str (s: &str) -> bool {
 
 /// Normalize a `NumericString` by removing the spaces.
 pub fn normalize_num_bytes (input: &[u8]) -> Cow<[u8]> {
+    // TODO: If it merely needs a trim, just return the trimmed value
     if input.contains(&0x20) {
         Cow::Owned(input.iter().copied().filter(|&b| b != 0x20).collect())
     } else {

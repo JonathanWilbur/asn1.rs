@@ -1,4 +1,18 @@
 //! The `OBJECT IDENTIFIER` type
+//!
+//! You can create, parse, print, compare, check prefixes and suffixes of
+//! `OBJECT IDENTIFIER`s:
+//!
+//! ```rust
+//! let oid1 = OBJECT_IDENTIFIER::from_str("1.3.6.4.1").unwrap();
+//! let oid2 = oid!(1,3,6,4,1);
+//! assert_eq!(oid1, oid2);
+//! assert_eq!(oid1.to_string(), "1.3.6.4.1");
+//! assert_eq!(oid1.to_asn1_string(), "{ 1 3 6 4 1 }");
+//! assert_eq!(oid1.to_iri_string(), "/1/3/6/4/1");
+//! assert!(oid1.starts_with(&roid!(1,3,6,1)));
+//! assert!(oid1.ends_with(&roid!(6,4,1)));
+//! ```
 use smallvec::{SmallVec, smallvec};
 use crate::{types::OBJECT_IDENTIFIER, unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, OidArcs, X690KnownSize, X690Validate, OID_ARC, RELATIVE_OID};
 use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, io::Write as IoWrite, str::FromStr, u32};

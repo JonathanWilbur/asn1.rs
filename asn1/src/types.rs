@@ -216,53 +216,6 @@ impl FractionalPart {
     }
 }
 
-/// A unit of time found in an ASN.1 `DURATION` value (which itself is an
-/// ISO 8601 duration)
-#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-pub enum DurationPart {
-    Years,
-    Months,
-    Weeks,
-    Days,
-    Hours,
-    Minutes,
-    Seconds
-}
-
-impl Into<char> for DurationPart {
-
-    /// Convert the duration unit into its ISO 8601 character. For example,
-    /// `Years` would be converted to `Y`.
-    fn into(self) -> char {
-        match self {
-            DurationPart::Years => 'Y',
-            DurationPart::Months => 'M',
-            DurationPart::Weeks => 'W',
-            DurationPart::Days => 'D',
-            DurationPart::Hours => 'H',
-            DurationPart::Minutes => 'M',
-            DurationPart::Seconds => 'S',
-        }
-    }
-
-}
-
-/// ASN.1 `DURATION` value (which itself is an ISO 8601 duration)
-/// Defined in ITU-T Recommendation X.680, Section 38.4.4.2.
-#[derive(Debug, Eq, Clone, Copy)]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-pub struct DURATION_EQUIVALENT {
-    pub years: u32,
-    pub months: u32,
-    pub weeks: u32,
-    pub days: u32,
-    pub hours: u32,
-    pub minutes: u32,
-    pub seconds: u32,
-    pub fractional_part: Option<(DurationPart, FractionalPart)>,
-}
-
 // type END_OF_CONTENT = None;
 
 /// ASN.1 `BOOLEAN`
@@ -546,7 +499,7 @@ pub struct DATE_TIME {
 }
 
 /// ASN.1 `DURATION`
-pub type DURATION = DURATION_EQUIVALENT;
+pub type DURATION = crate::duration::DURATION_EQUIVALENT;
 
 /// ASN.1 `OBJECT IDENTIFIER` Internationalized Resource Identifier (OID-IRI)
 pub type OID_IRI = String;

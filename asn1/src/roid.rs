@@ -1,4 +1,16 @@
 //! The `RELATIVE-OID` type
+//!
+//! The features for `RELATIVE-OID` are nearly the same as those for
+//! `OBJECT IDENTIFIER`:
+//!
+//! ```rust
+//! let roid1 = RELATIVE_OID::from_str("1.3.6.4.1").unwrap();
+//! let roid2 = roid!(1,3,6,4,1);
+//! assert_eq!(roid1, roid2);
+//! assert_eq!(roid1.to_string(), "1.3.6.4.1");
+//! assert!(roid1.starts_with(&roid!(1,3,6,1)));
+//! assert!(roid1.ends_with(&roid!(6,4,1)));
+//! ```
 use crate::{RelOidArcs, X690Validate, RELATIVE_OID};
 use crate::types::X690KnownSize;
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};

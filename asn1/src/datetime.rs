@@ -1,4 +1,22 @@
 //! The `DATE-TIME` type
+//!
+//! You can parse, print, compare, and sort `DATE-TIME` values:
+//!
+//! ```rust
+//! let d1 = DATE_TIME::from_str("2022-04-23T20:19:18").unwrap();
+//! let d2 = DATE_TIME::new(2022, 04, 23, 20, 19, 18);
+//! let d3 = DATE_TIME::new(2022, 04, 24, 20, 19, 18);
+//! let d4 = DATE_TIME::new(2022, 04, 23, 20, 19, 19);
+//! assert_eq!(d1.date.year, 2022);
+//! assert_eq!(d1.date.month, 4);
+//! assert_eq!(d1.date.day, 23);
+//! assert_eq!(d1.time.hour, 20);
+//! assert_eq!(d1.time.minute, 19);
+//! assert_eq!(d1.time.second, 18);
+//! assert_eq!(d1, d2);
+//! assert!(d3 > d2);
+//! assert!(d4 > d2);
+//! ```
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::types::{ISO8601Timestampable, X690KnownSize};
 use crate::utils::unlikely;

@@ -1,4 +1,13 @@
 //! The `GeneralizedTime` type
+//!
+//! You can parse values of `UTCTime` and print them back as strings or convert
+//! them to ISO 8601 timestamps:
+//!
+//! ```rust
+//! let t1 = GeneralizedTime::from_str("20210203040607.32895292-0503").unwrap();
+//! assert_eq!(t1.to_iso_8601_string(), "2021-02-03T04:06:07.32895292-0503");
+//! assert_eq!(t1.to_string(), "20210203040607.32895292-0503");
+//! ```
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable, DATE};
 use crate::utils::{get_days_in_month, unlikely};

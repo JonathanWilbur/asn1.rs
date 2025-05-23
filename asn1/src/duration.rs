@@ -1,6 +1,21 @@
 //! The `DURATION` type
+//!
+//! You can parse and print `DURATION` values (via the `DURATION_EQUIVALENT` struct):
+//!
+//! ```rust
+//! let dur = DURATION_EQUIVALENT::from_str("P5Y6M1W23DT25H65M222.00505S").unwrap();
+//! assert_eq!(dur.years, 5);
+//! assert_eq!(dur.months, 6);
+//! assert_eq!(dur.weeks, 1);
+//! assert_eq!(dur.days, 23);
+//! assert_eq!(dur.hours, 25);
+//! assert_eq!(dur.minutes, 65);
+//! assert_eq!(dur.seconds, 222);
+//! assert_eq!(dur.fractional_part, Some(FractionalPart { number_of_digits: 5, fractional_value: 505 }));
+//! assert_eq!(dur.to_string(), "P5Y6M1W23DT25H65M222.00505S");
+//! ```
 use crate::error::{ASN1Error, ASN1ErrorCode};
-use crate::types::{FractionalPart, DURATION_EQUIVALENT, DurationPart, X690KnownSize};
+use crate::types::{FractionalPart, X690KnownSize};
 use core::str;
 use std::fmt::Write;
 use std::{fmt::Display, str::FromStr, time::Duration};
@@ -14,6 +29,53 @@ const SECONDS_PER_WEEK: u64 = 7 * SECONDS_PER_DAY;
 const SECONDS_PER_MONTH: u64 = 2_629_746;
 // Average year length including leap years (365.24 days)
 const SECONDS_PER_YEAR: u64 = 31_556_952;
+
+/// A unit of time found in an ASN.1 `DURATION` value (which itself is an
+/// ISO 8601 duration)
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum DurationPart {
+    Years,
+    Months,
+    Weeks,
+    Days,
+    Hours,
+    Minutes,
+    Seconds
+}
+
+impl Into<char> for DurationPart {
+
+    /// Convert the duration unit into its ISO 8601 character. For example,
+    /// `Years` would be converted to `Y`.
+    fn into(self) -> char {
+        match self {
+            DurationPart::Years => 'Y',
+            DurationPart::Months => 'M',
+            DurationPart::Weeks => 'W',
+            DurationPart::Days => 'D',
+            DurationPart::Hours => 'H',
+            DurationPart::Minutes => 'M',
+            DurationPart::Seconds => 'S',
+        }
+    }
+
+}
+
+/// ASN.1 `DURATION` value (which itself is an ISO 8601 duration)
+/// Defined in ITU-T Recommendation X.680, Section 38.4.4.2.
+#[derive(Debug, Eq, Clone, Copy)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub struct DURATION_EQUIVALENT {
+    pub years: u32,
+    pub months: u32,
+    pub weeks: u32,
+    pub days: u32,
+    pub hours: u32,
+    pub minutes: u32,
+    pub seconds: u32,
+    pub fractional_part: Option<(DurationPart, FractionalPart)>,
+}
 
 impl TryFrom<char> for DurationPart {
     type Error = ();

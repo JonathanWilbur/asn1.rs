@@ -1,4 +1,18 @@
 //! The `DATE` type
+//!
+//! You can parse, print, compare, and sort `DATE` values:
+//!
+//! ```rust
+//! let d1 = DATE::from_str("2022-04-23").unwrap();
+//! let d2 = DATE::new(2022, 04, 23);
+//! let d3 = DATE::new(2022, 04, 24);
+//! assert_eq!(d1.year, 2022);
+//! assert_eq!(d1.month, 4);
+//! assert_eq!(d1.day, 23);
+//! assert_eq!(d1.to_string(), "2022-04-23");
+//! assert_eq!(d1, d2);
+//! assert!(d3 > d2);
+//! ```
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCTime, DATE, DATE_TIME, X690KnownSize, X690Validate};
 use crate::utils::{get_days_in_month, unlikely};

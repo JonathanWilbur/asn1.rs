@@ -1,4 +1,9 @@
 //! Encoding, decoding, and validation of constructed types such as `SET` or `SEQUENCE`
+//!
+//! This is not a complete solution, but this library provides `TagSelector` for
+//! defining sequences of rules for matching components in a `SEQUENCE` or `SET`
+//! data types, and `ComponentSpec` for more data, such as the component's name
+//! and whether it is `OPTIONAL`.
 use crate::types::{TagClass, TagNumber};
 
 /// A selector for an ASN.1 tag.

@@ -1,4 +1,19 @@
 //! The `UTCTime` type
+//!
+//! You can parse values of `UTCTime` and print them back as strings or convert them
+//! to ISO 8601 timestamps:
+//!
+//! ```rust
+//! let t1 = UTCTime::from_str("010203040506+0415").unwrap();
+//! assert_eq!(t1.to_iso_8601_string(), "2001-02-03T04:05:06+0415");
+//! assert_eq!(t1.to_string(), "010203040506+0415");
+//! ```
+//!
+//! There are no functions for comparison or ordering defined in this library,
+//! because this is not a time library, and I intentionally want to keep this very
+//! core library very slim in terms of dependencies. You can easily pass the fields
+//! of the `UTCTime` struct into a time library-specific data structure for
+//! equation and ordering.
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::types::{GeneralizedTime, UTCOffset, UTCTime, ISO8601Timestampable};
 use crate::utils::{get_days_in_month, unlikely};

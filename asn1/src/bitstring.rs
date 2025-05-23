@@ -1,4 +1,22 @@
 //! The `BIT STRING` type
+//!
+//! You can create new `BIT STRING`s using multiple techniques, get and set bits,
+//! get the length, print as strings, and join `BIT STRINGS`:
+//!
+//! ```rust
+//! let bs1 = BIT_STRING::new();
+//! let bs2 = BIT_STRING::with_capacity(8); // Units in bits
+//! let bs3 = BIT_STRING::from_bin("100111010101");
+//! let bs4 = BIT_STRING::from_bits(&[ 0b1110_1101, 0b1010_0101 ]);
+//! let bs5 = BIT_STRING::from_bytes(vec![ 1, 7 ]); // Produces 0b0000_0001 0b0000_0111
+//! let bs6 = BIT_STRING::with_bits_set(&[ 1, 3, 5, 7 ]); // Produces 0b0101_0101
+//! assert_eq!(bs6.get(0), Some(false));
+//! bs6.set(0, true); // Returns true if the bit string was extended. Produces 0b1101_0101.
+//! assert_eq!(bs6.get(0), Some(true));
+//! assert_eq!(bs6.len(), 8);
+//! assert_eq!(bs6.to_string(), "'11010101'B"); // This is the ASN.1 notation.
+//! assert_eq!(join_bit_strings(&[ bs1, bs2 ]), bs1); // Both are empty.
+//! ```
 use smallvec::{SmallVec, smallvec};
 use crate::{types::{BIT_STRING}};
 use std::{convert::TryInto, fmt::{Display, Write}};

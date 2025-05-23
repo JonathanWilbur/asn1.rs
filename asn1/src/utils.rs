@@ -1,4 +1,11 @@
 //! Various utilities
+//!
+//! Decode variable-length integers, which are used in multiple different encodings:
+//!
+//! ```rust
+//! assert_eq!(read_i64(&[ 0x01, 0x05 ]), Some(256 + 5))
+//! assert_eq!(read_i128(&[ 0x01, 0x05 ]), Some(256 + 5))
+//! ```
 use crate::types::ByteSlice;
 
 /// Attempt to read a variable-length big-endian signed integer (encoded as

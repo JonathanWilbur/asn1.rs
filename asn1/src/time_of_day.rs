@@ -1,4 +1,18 @@
 //! The `TIME-OF-DAY` type
+//!
+//! You can parse, print, compare, and sort `TIME-OF-DAY` values:
+//!
+//! ```rust
+//! let t1 = TIME_OF_DAY::from_str("20:19:18").unwrap();
+//! let t2 = TIME_OF_DAY::new(20, 19, 18);
+//! let t3 = TIME_OF_DAY::new(20, 19, 19);
+//! assert_eq!(t1.hour, 20);
+//! assert_eq!(t1.minute, 19);
+//! assert_eq!(t1.second, 18);
+//! assert_eq!(t1.to_string(), "20:19:18");
+//! assert_eq!(t1, t2);
+//! assert!(t3 > t2);
+//! ```
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use crate::types::{GeneralizedTime, UTCTime, DATE_TIME, TIME_OF_DAY, X690KnownSize};
 use crate::utils::unlikely;
