@@ -18,8 +18,10 @@
 use crate::X690Validate;
 use crate::X690KnownSize;
 use crate::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use crate::utils::{write_oid_arc, unlikely};
+use crate::utils::unlikely;
 use std::{fmt::Display, str::FromStr};
+use crate::utils::macros::write_oid_arc;
+#[cfg(feature = "smallvec")]
 use smallvec::SmallVec;
 use std::cmp::Ordering;
 use std::fmt::Write;
@@ -32,7 +34,7 @@ pub struct RELATIVE_OID (pub(crate) Vec<u8>);
 /// An ASN.1 `RELATIVE-OID`
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
-pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 16]>);
+pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 14]>);
 
 /// Iterator over the arcs of a `RELATIVE-OID`
 #[derive(Debug, Clone, Copy)]
@@ -56,13 +58,17 @@ impl RELATIVE_OID {
 
     /// Convert to an ASN.1 `RELATIVE-OID`` string, such as: `{ 6 1 4 1 56940 }`.
     pub fn to_asn1_string(&self) -> String {
+        #[cfg(feature = "itoa")]
+        let mut buf = itoa::Buffer::new();
         let mut out = String::with_capacity(self.0.len() << 3 + 4);
         out.write_str("{ ").unwrap();
         for arc in self.arcs() {
-            if cfg!(feature = "itoa") {
-                let mut buf = itoa::Buffer::new();
+            #[cfg(feature = "itoa")]
+            {
                 out.write_str(buf.format(arc)).unwrap();
-            } else {
+            }
+            #[cfg(not(feature = "itoa"))]
+            {
                 out.write_str(arc.to_string().as_str()).unwrap();
             }
             out.write_char(' ').unwrap();
@@ -74,6 +80,8 @@ impl RELATIVE_OID {
     /// Convert to an ASN.1 Relative OID Internationalized Resource Identifier
     /// (OID-IRI) string, such as: `6/1/4/1/56940`.
     pub fn to_iri_string(&self) -> String {
+        #[cfg(feature = "itoa")]
+        let mut buf = itoa::Buffer::new();
         let mut out = String::with_capacity(self.0.len() << 3);
         let mut first = true;
         for arc in self.arcs() {
@@ -82,10 +90,12 @@ impl RELATIVE_OID {
             } else {
                 out.write_char('/').unwrap();
             }
-            if cfg!(feature = "itoa") {
-                let mut buf = itoa::Buffer::new();
+            #[cfg(feature = "itoa")]
+            {
                 out.write_str(buf.format(arc)).unwrap();
-            } else {
+            }
+            #[cfg(not(feature = "itoa"))]
+            {
                 out.write_str(arc.to_string().as_str()).unwrap();
             }
         }
@@ -114,7 +124,7 @@ impl RELATIVE_OID {
     /// This is defined so that you can define OIDs as compile-time constants.
     #[cfg(feature = "smallvec")]
     #[inline]
-    pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 16]>) -> Self {
+    pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 14]>) -> Self {
         RELATIVE_OID(enc)
     }
 
@@ -138,7 +148,7 @@ impl RELATIVE_OID {
         }
         #[cfg(not(feature = "smallvec"))]
         {
-            RELATIVE_OID(value.to_owned())
+            RELATIVE_OID(enc.to_owned())
         }
     }
 
@@ -229,7 +239,7 @@ impl RELATIVE_OID {
     /// Produces an X.690 encoding of this `RELATIVE-OID` in a `SmallVec`
     #[cfg(feature = "smallvec")]
     #[inline]
-    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 16]> {
+    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 14]> {
         self.0
     }
 
@@ -347,10 +357,13 @@ impl FromStr for RELATIVE_OID {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut nodes: Vec<u32> = Vec::with_capacity(s.len());
         for arc_string in s.split(".") {
-            if cfg!(feature = "atoi_simd") {
+            #[cfg(feature = "atoi_simd")]
+            {
                 let arc = atoi_simd::parse_pos::<u32>(arc_string.as_bytes()).map_err(|_| ())?;
                 nodes.push(arc);
-            } else {
+            }
+            #[cfg(not(feature = "atoi_simd"))]
+            {
                 nodes.push(arc_string.parse::<u32>().map_err(|_| ())?);
             }
         }
@@ -387,9 +400,9 @@ impl TryFrom<&[u32]> for RELATIVE_OID {
     fn try_from(value: &[u32]) -> Result<Self, Self::Error> {
         #[cfg(feature = "smallvec")]
         {
-            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
+            let mut inner: SmallVec<[u8; 14]> = SmallVec::new();
             for arc in value.iter() {
-                write_oid_arc(&mut inner, *arc as u128)?;
+                write_oid_arc!(inner, *arc);
             }
             Ok(RELATIVE_OID(inner))
         }
@@ -398,16 +411,16 @@ impl TryFrom<&[u32]> for RELATIVE_OID {
         {
             let pre_alloc_size: usize = value
                 .iter()
-                .map(|arc| match *arc < 128 {
+                .map(|arc| match *arc {
                     0..=127 => 1,
                     128..=16383 => 2, // Approximate, just in case I have an error
                     _ => 5,
                 })
                 .reduce(|total, size| total + size)
                 .unwrap();
-            let inner: Vec<u8> = Vec::with_capacity(pre_alloc_size);
+            let mut inner: Vec<u8> = Vec::with_capacity(pre_alloc_size);
             for arc in value[2..].iter() {
-                write_oid_arc(&mut inner, *arc as u128)?;
+                write_oid_arc!(inner, *arc);
             }
             Ok(RELATIVE_OID(inner))
         }
@@ -456,13 +469,13 @@ impl TryFrom<&[i8]> for RELATIVE_OID {
 
         #[cfg(feature = "smallvec")]
         {
-            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
+            let mut inner: SmallVec<[u8; 14]> = SmallVec::new();
             inner.extend_from_slice(&unsigned);
             Ok(RELATIVE_OID(inner))
         }
         #[cfg(not(feature = "smallvec"))]
         {
-            let inner: Vec<u8> = Vec::with_capacity(value.len());
+            let mut inner: Vec<u8> = Vec::with_capacity(value.len());
             inner.extend_from_slice(&unsigned);
             Ok(RELATIVE_OID(inner))
         }

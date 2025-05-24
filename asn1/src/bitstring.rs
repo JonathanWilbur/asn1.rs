@@ -20,6 +20,7 @@
 //! assert_eq!(bs6.to_string(), "'11010101'B"); // This is the ASN.1 notation.
 //! assert_eq!(join_bit_strings(&[ bs1.clone(), bs2 ]), bs1); // Both are empty.
 //! ```
+#[cfg(feature = "smallvec")]
 use smallvec::{SmallVec, smallvec};
 use std::{convert::TryInto, fmt::{Display, Write}};
 use crate::utils::unlikely;
@@ -38,7 +39,7 @@ pub struct BIT_STRING {
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Eq, Clone)]
 pub struct BIT_STRING {
-    pub(crate) bytes: SmallVec<[u8; 16]>,
+    pub(crate) bytes: SmallVec<[u8; 14]>,
     pub(crate) trailing_bits: u8,
 }
 

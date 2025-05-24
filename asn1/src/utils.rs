@@ -77,30 +77,6 @@ pub fn read_i128(bytes: ByteSlice) -> Option<i128> {
     }
 }
 
-/// Write a single `OBJECT IDENTIFIER` arc, using the Variable-Length Quantity
-/// (VLQ) serialization that is used to encode arcs in X.690 encodings and
-/// others, to a writeable output, returning the number of bytes written within
-/// an [std::io::Result].
-pub fn write_oid_arc<W>(output: &mut W, mut num: u128) -> std::io::Result<usize>
-where
-    W: std::io::Write
-{
-    if likely(num < 128) {
-        return output.write(&[num as u8]);
-    }
-
-    // A u128 can take up to 19 bytes. We do 20 just for safety.
-    let mut encoded: [u8; 20] = [0; 20];
-    let mut byte_count: usize = 0;
-    while num > 0b0111_1111 {
-        encoded[byte_count] = (num & 0b0111_1111) as u8 | 0b1000_0000;
-        byte_count += 1;
-        num >>= 7;
-    }
-    encoded[byte_count] = num as u8;
-    output.write(&encoded[0..byte_count+1])
-}
-
 /// This is not a time library.
 #[inline]
 pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
@@ -113,35 +89,71 @@ pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
 }
 
 pub(crate) mod macros {
+
+    #[cfg(feature = "atoi_simd")]
     macro_rules! parse_uint {
         ( $inttype:ty, $bytes:expr, $string:expr, $errcode:expr ) => {
-            if cfg!(feature = "atoi_simd") {
-                atoi_simd::parse_pos::<$inttype>($bytes)
-                    .map_err(|_| ASN1Error::new($errcode))?
-            } else {
-                <$inttype>::from_str($string)
-                    .map_err(|_| ASN1Error::new($errcode))?
-            }
+            atoi_simd::parse_pos::<$inttype>($bytes)
+                .map_err(|_| ASN1Error::new($errcode))?
+        };
+    }
+
+    #[cfg(not(feature = "atoi_simd"))]
+    macro_rules! parse_uint {
+        ( $inttype:ty, $bytes:expr, $string:expr, $errcode:expr ) => {
+            <$inttype>::from_str($string)
+                .map_err(|_| ASN1Error::new($errcode))?
         };
     }
 
     pub(crate) use parse_uint;
+
+    /// This is implemented as a macro so that the <128 case is effectively
+    /// "inlined" _and_ has access to `push()`. If we just called
+    /// `write_big_oid_arc`
+    macro_rules! write_oid_arc {
+        ( $oid:expr, $arc:expr ) => {
+            if $crate::likely($arc < 128) {
+                $oid.push($arc as u8);
+            } else {
+                // A u128 can take up to 19 bytes. We do 20 just for safety.
+                let mut num = $arc;
+                let mut encoded: [u8; 20] = [0; 20];
+                let mut byte_count: usize = 0;
+                while num > 0b0111_1111 {
+                    encoded[byte_count] = (num & 0b0111_1111) as u8 | 0b1000_0000;
+                    byte_count += 1;
+                    num >>= 7;
+                }
+                encoded[byte_count] = num as u8;
+                $oid.extend_from_slice(&encoded[0..byte_count+1])
+            }
+        };
+    }
+
+    pub(crate) use write_oid_arc;
 }
 
+#[cfg(feature = "likely_stable")]
 #[inline]
 pub(crate) fn likely (expr: bool) -> bool {
-    if cfg!(feature = "likely_stable") {
-        likely_stable::likely(expr)
-    } else {
-        expr
-    }
+    likely_stable::likely(expr)
 }
 
+#[cfg(feature = "likely_stable")]
 #[inline]
 pub(crate) fn unlikely (expr: bool) -> bool {
-    if cfg!(feature = "likely_stable") {
-        likely_stable::unlikely(expr)
-    } else {
-        expr
-    }
+    likely_stable::unlikely(expr)
+}
+
+#[cfg(not(feature = "likely_stable"))]
+#[inline]
+pub(crate) fn likely (expr: bool) -> bool {
+    expr
+}
+
+#[cfg(not(feature = "likely_stable"))]
+#[inline]
+pub(crate) fn unlikely (expr: bool) -> bool {
+    expr
 }

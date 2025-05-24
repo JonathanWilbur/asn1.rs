@@ -66,32 +66,14 @@ impl DATE_TIME {
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
     pub fn to_num_str(&self) -> String {
-        if cfg!(feature = "itoa") {
-            let mut buf1 = itoa::Buffer::new();
-            let mut buf2 = itoa::Buffer::new();
-            let mut buf3 = itoa::Buffer::new();
-            let mut buf4 = itoa::Buffer::new();
-            let mut buf5 = itoa::Buffer::new();
-            let mut buf6 = itoa::Buffer::new();
-            // TODO: Could you optimize encoding of single-digit values?
-            format!("{:0>4}{:0>2}{:0>2}{:0>2}{:0>2}{:0>2}",
-                buf1.format(self.date.year % 10000),
-                buf2.format(self.date.month % 100),
-                buf3.format(self.date.day % 100),
-                buf4.format(self.time.hour % 100),
-                buf5.format(self.time.minute % 100),
-                buf6.format(self.time.second % 100),
-            )
-        } else {
-            format!("{:04}{:02}{:02}{:02}{:02}{:02}",
-                self.date.year % 10000,
-                self.date.month % 100,
-                self.date.day % 100,
-                self.time.hour % 100,
-                self.time.minute % 100,
-                self.time.second % 100,
-            )
-        }
+        format!("{:04}{:02}{:02}{:02}{:02}{:02}",
+            self.date.year,
+            self.date.month,
+            self.date.day,
+            self.time.hour,
+            self.time.minute,
+            self.time.second,
+        )
     }
 
     /// Convert from a string of decimal digits only.

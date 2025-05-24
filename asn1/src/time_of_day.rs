@@ -63,18 +63,7 @@ impl TIME_OF_DAY {
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
     pub fn to_num_str(&self) -> String {
-        if cfg!(feature = "itoa") {
-            let mut buf1 = itoa::Buffer::new();
-            let mut buf2 = itoa::Buffer::new();
-            let mut buf3 = itoa::Buffer::new();
-            format!("{:0>2}{:0>2}{:0>2}",
-                buf1.format(self.hour % 24),
-                buf2.format(self.minute % 60),
-                buf3.format(self.second % 60)
-            )
-        } else {
-            format!("{:02}{:02}{:02}", self.hour % 24, self.minute % 60, self.second % 60)
-        }
+        format!("{:02}{:02}{:02}", self.hour, self.minute, self.second)
     }
 
     /// Convert from a string of decimal digits only.
@@ -94,14 +83,17 @@ impl TIME_OF_DAY {
         let hour: u8;
         let minute: u8;
         let second: u8;
-        if cfg!(feature = "atoi_simd") {
+        #[cfg(feature = "atoi_simd")]
+        {
             hour = atoi_simd::parse_pos::<u8>(&b[0..2])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
             minute = atoi_simd::parse_pos::<u8>(&b[2..4])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
             second = atoi_simd::parse_pos::<u8>(&b[4..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
-        } else {
+        }
+        #[cfg(not(feature = "atoi_simd"))]
+        {
             hour = u8::from_str(&s[0..2])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
             minute = u8::from_str(&s[2..4])
@@ -177,14 +169,17 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
         let hour: u8;
         let minute: u8;
         let second: u8;
-        if cfg!(feature = "atoi_simd") {
+        #[cfg(feature = "atoi_simd")]
+        {
             hour = atoi_simd::parse_pos::<u8>(&value_bytes[0..2])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             minute = atoi_simd::parse_pos::<u8>(&value_bytes[3..5])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             second = atoi_simd::parse_pos::<u8>(&value_bytes[6..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        } else {
+        }
+        #[cfg(not(feature = "atoi_simd"))]
+        {
             let str_ = std::str::from_utf8(&value_bytes)
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             hour = u8::from_str(&str_[0..2])
@@ -277,18 +272,7 @@ impl Display for TIME_OF_DAY {
     /// encoding BER, CER, or DER-encoded `TIME-OF-DAY` values. Use
     /// [TIME_OF_DAY::to_num_str] instead for X.690 encoding.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if cfg!(feature = "itoa") {
-            let mut buf1 = itoa::Buffer::new();
-            let mut buf2 = itoa::Buffer::new();
-            let mut buf3 = itoa::Buffer::new();
-            write!(f, "{:0>2}:{:0>2}:{:0>2}",
-                buf1.format(self.hour),
-                buf2.format(self.minute),
-                buf3.format(self.second)
-            )
-        } else {
-            write!(f, "{:02}:{:02}:{:02}", self.hour, self.minute, self.second)
-        }
+        write!(f, "{:02}:{:02}:{:02}", self.hour, self.minute, self.second)
     }
 }
 

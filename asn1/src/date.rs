@@ -60,18 +60,7 @@ impl DATE {
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
     pub fn to_num_str(&self) -> String {
-        if cfg!(feature = "itoa") {
-            let mut buf1 = itoa::Buffer::new();
-            let mut buf2 = itoa::Buffer::new();
-            let mut buf3 = itoa::Buffer::new();
-            format!("{:0>4}{:0>2}{:0>2}",
-                buf1.format(self.year % 10000),
-                buf2.format(self.month % 100),
-                buf3.format(self.day % 100)
-            )
-        } else {
-            format!("{:04}{:02}{:02}", self.year % 10000, self.month, self.day)
-        }
+        format!("{:04}{:02}{:02}", self.year % 10000, self.month, self.day)
     }
 
     /// Convert from a string of decimal digits only.
@@ -91,31 +80,22 @@ impl DATE {
         let year: u16;
         let month: u8;
         let day: u8;
-        if cfg!(feature = "atoi_simd") {
+        #[cfg(feature = "atoi_simd")]
+        {
             year = atoi_simd::parse_pos::<u16>(&b[0..4])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
             month = atoi_simd::parse_pos::<u8>(&b[4..6])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
             day = atoi_simd::parse_pos::<u8>(&b[6..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
-        } else {
-            /* This is a performance hack: since most timestamps are probably
-            going to be from the same decade, we just try a year starting with
-            "202" first. In ten years, I'll change this. */
-            year = if b[0..3] == *(b"202") {
-                let last_digit = b[3] - 0x30;
-                if unlikely(last_digit > 9) {
-                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_year));
-                }
-                2020 + last_digit as u16
-            } else {
-                u16::from_str(&s[0..4])
-                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?
-            };
-
-            month = u8::from_str(&s[5..7])
+        }
+        #[cfg(not(feature = "atoi_simd"))]
+        {
+            year = u16::from_str(&s[0..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
+            month = u8::from_str(&s[4..6])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
-            day = u8::from_str(&s[8..])
+            day = u8::from_str(&s[6..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
         }
         Ok(DATE { year, month, day })
@@ -215,34 +195,24 @@ impl TryFrom<&[u8]> for DATE {
         let year: u16;
         let month: u8;
         let day: u8;
-        if cfg!(feature = "atoi_simd") {
+        #[cfg(feature = "atoi_simd")]
+        {
             year = atoi_simd::parse_pos::<u16>(&value_bytes[0..4])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             month = atoi_simd::parse_pos::<u8>(&value_bytes[5..7])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             day = atoi_simd::parse_pos::<u8>(&value_bytes[8..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        } else {
+        }
+        #[cfg(not(feature = "atoi_simd"))]
+        {
             if unlikely(!value_bytes.is_ascii()) {
                 return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
             }
             // We already checked for ASCII above.
             let str_ = unsafe { std::str::from_utf8_unchecked(&value_bytes) };
-
-            /* This is a performance hack: since most timestamps are probably
-            going to be from the same decade, we just try a year starting with
-            "202" first. In ten years, I'll change this. */
-            year = if value_bytes[0..3] == *(b"202") {
-                let last_digit = value_bytes[3] - 0x30;
-                if unlikely(last_digit > 9) {
-                    return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-                }
-                2020 + last_digit as u16
-            } else {
-                u16::from_str(&str_[0..4])
-                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?
-            };
-
+            year = u16::from_str(&str_[0..4])
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             month = u8::from_str(&str_[5..7])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             day = u8::from_str(&str_[8..])
@@ -283,18 +253,7 @@ impl Display for DATE {
     /// encoding BER, CER, or DER-encoded `DATE` values. Use [DATE::to_num_str]
     /// instead for X.690 encoding.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if cfg!(feature = "itoa") {
-            let mut buf1 = itoa::Buffer::new();
-            let mut buf2 = itoa::Buffer::new();
-            let mut buf3 = itoa::Buffer::new();
-            write!(f, "{:0>4}-{:0>2}-{:0>2}",
-                buf1.format(self.year % 10000),
-                buf2.format(self.month),
-                buf3.format(self.day)
-            )
-        } else {
-            write!(f, "{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day)
-        }
+        write!(f, "{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day)
     }
 }
 
@@ -313,14 +272,17 @@ impl X690Validate for DATE {
         let year: u16;
         let month: u8;
         let day: u8;
-        if cfg!(feature = "atoi_simd") {
+        #[cfg(feature = "atoi_simd")]
+        {
             year = atoi_simd::parse_pos::<u16>(&content_octets[0..4])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             month = atoi_simd::parse_pos::<u8>(&content_octets[4..6])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
             day = atoi_simd::parse_pos::<u8>(&content_octets[6..])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-        } else {
+        }
+        #[cfg(not(feature = "atoi_simd"))]
+        {
             year = u16::from_str(&s[0..4])
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
             month = u8::from_str(&s[4..6])

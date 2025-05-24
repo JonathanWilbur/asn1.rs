@@ -88,7 +88,6 @@ pub fn is_visible_str (s: &str) -> bool {
 
 /// Normalize a `NumericString` by removing the spaces.
 pub fn normalize_num_bytes (mut input: &[u8]) -> Cow<[u8]> {
-    // TODO: If it merely needs a trim, just return the trimmed value
     while input.get(0) == Some(&b' ') {
         input = &input[1..];
     }
@@ -153,7 +152,7 @@ pub const fn compare_numeric_string (a: &str, b: &str) -> bool {
 #[cfg(test)]
 mod tests {
 
-    use super::compare_numeric_string;
+    use super::{compare_numeric_string, normalize_num_bytes};
 
     #[test]
     fn compare_numeric_string_empty_1 () {
@@ -305,6 +304,21 @@ mod tests {
         let b = String::from("65535");
         assert!(!compare_numeric_string(&a, &b));
         assert!(!compare_numeric_string(&b, &a));
+    }
+
+    #[test]
+    fn test_normalize_num_bytes_1 () {
+        assert_eq!(normalize_num_bytes(b" 876 5309   ").as_ref(), b"8765309");
+    }
+
+    #[test]
+    fn test_normalize_num_bytes_2 () {
+        assert_eq!(normalize_num_bytes(b" ").as_ref(), b"");
+    }
+
+    #[test]
+    fn test_normalize_num_bytes_3 () {
+        assert_eq!(normalize_num_bytes(b" \x00 \x10 ").as_ref(), b"\x00\x10");
     }
 
 }

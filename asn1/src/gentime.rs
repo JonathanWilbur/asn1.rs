@@ -146,17 +146,7 @@ impl ISO8601Timestampable for GeneralizedTime {
     /// Fractional seconds will only be displayed if the original
     /// GeneralizedTime used fractional seconds (not fractional hours or
     /// minutes).
-    #[cfg(feature = "itoa")]
     fn to_iso_8601_string (&self) -> String {
-        let mut buf_year = itoa::Buffer::new();
-        let mut buf_month = itoa::Buffer::new();
-        let mut buf_day = itoa::Buffer::new();
-        let mut buf_hour = itoa::Buffer::new();
-        let mut buf_minute = itoa::Buffer::new();
-        let mut buf_second = itoa::Buffer::new();
-        let mut buf_frac = itoa::Buffer::new();
-        let mut buf_offset_m = itoa::Buffer::new();
-
         let mut fraction_string: Option<String> = None;
         let (mut minute, mut second) = self.min_and_sec.unwrap_or((0, None));
         let frac_precision = self.get_fraction_precision_digits();
@@ -164,75 +154,6 @@ impl ISO8601Timestampable for GeneralizedTime {
             let num: f64 = self.fraction.into();
             let denom: f64 = 10.0f64.powi(frac_precision as i32);
             if unlikely(self.min_and_sec.is_none()) {
-                // Fractional hours
-                let secondsf = (num / denom) * 3600.0;
-                minute = (secondsf / 60.0).floor() as u8;
-                second = Some((secondsf.round() % 60.0) as u8 );
-            } else if unlikely(second.is_none()) {
-                // Fractional minutes
-                let secondsf = (num / denom) * 60.0;
-                second = Some(secondsf.round() as u8);
-            } else {
-                // Fractional seconds
-                fraction_string = Some(format!(".{:0>width$}",
-                    buf_frac.format(self.fraction),
-                    width = frac_precision as usize
-                ));
-            }
-        }
-
-        if self.is_utc() {
-            return format!(
-                "{:0>4}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:{:0>2}{}Z",
-                buf_year.format(self.date.year),
-                buf_month.format(self.date.month),
-                buf_day.format(self.date.day),
-                buf_hour.format(self.hour),
-                buf_minute.format(minute),
-                buf_second.format(second.unwrap_or(0)),
-                fraction_string.unwrap_or(String::new()),
-            );
-        }
-        if let Some(offset) = &self.utc_offset {
-            return format!(
-                "{:0>4}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:{:0>2}{}{:+03}{:0>2}",
-                buf_year.format(self.date.year),
-                buf_month.format(self.date.month),
-                buf_day.format(self.date.day),
-                buf_hour.format(self.hour),
-                buf_minute.format(minute),
-                buf_second.format(second.unwrap_or(0)),
-                fraction_string.unwrap_or(String::new()),
-                offset.hour,
-                buf_offset_m.format(offset.minute),
-            );
-        }
-        return format!(
-            "{:0>4}-{:0>2}-{:0>2}T{:0>2}:{:0>2}:{:0>2}{}",
-            buf_year.format(self.date.year),
-            buf_month.format(self.date.month),
-            buf_day.format(self.date.day),
-            buf_hour.format(self.hour),
-            buf_minute.format(minute),
-            buf_second.format(second.unwrap_or(0)),
-            fraction_string.unwrap_or(String::new()),
-        );
-    }
-
-    /// Convert this `GeneralizedTime` string to an ISO 8601 String.
-    ///
-    /// Fractional seconds will only be displayed if the original
-    /// GeneralizedTime used fractional seconds (not fractional hours or
-    /// minutes).
-    #[cfg(not(feature = "itoa"))]
-    fn to_iso_8601_string (&self) -> String {
-        let mut fraction_string: Option<String> = None;
-        let (mut minute, mut second) = self.minute.unwrap_or((0, None));
-        let frac_precision = self.get_fraction_precision_digits();
-        if frac_precision > 0 {
-            let num: f64 = self.fraction.into();
-            let denom: f64 = 10.0f64.powi(frac_precision as i32);
-            if unlikely(self.minute.is_none()) {
                 // Fractional hours
                 let secondsf = (num / denom) * 3600.0;
                 minute = (secondsf / 60.0).floor() as u8;
@@ -431,12 +352,17 @@ impl TryFrom<&[u8]> for GeneralizedTime {
         if unlikely((len != (i + 3)) && (len != (i + 5))) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
-        let offset_hour = if cfg!(feature = "atoi_simd") {
-            atoi_simd::parse_skipped(&b[i..i + 3])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
-        } else {
-            i8::from_str(&s[i..i + 3])
-                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+        let offset_hour: i8 = {
+            #[cfg(feature = "atoi_simd")]
+            {
+                atoi_simd::parse_skipped(&b[i..i + 3])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+            }
+            #[cfg(not(feature = "atoi_simd"))]
+            {
+                i8::from_str(&s[i..i + 3])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_time_offset))?
+            }
         };
         // I believe ISO 8601 allows hours up to 15.
         if unlikely(offset_hour.abs() > 15) {
@@ -477,52 +403,6 @@ impl FromStr for GeneralizedTime {
 impl Display for GeneralizedTime {
 
     /// Prints a `GeneralizedTime`
-    #[cfg(feature = "itoa")]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut buf_year = itoa::Buffer::new();
-        let mut buf_month = itoa::Buffer::new();
-        let mut buf_day = itoa::Buffer::new();
-        let mut buf_hour = itoa::Buffer::new();
-        let mut buf_minute = itoa::Buffer::new();
-        let mut buf_second = itoa::Buffer::new();
-        let mut buf_frac = itoa::Buffer::new();
-        let mut buf_offset_m = itoa::Buffer::new();
-
-        write!(f, "{:0>4}{:0>2}{:0>2}{:0>2}",
-            buf_year.format(self.date.year % 10000),
-            buf_month.format(self.date.month),
-            buf_day.format(self.date.day),
-            buf_hour.format(self.hour),
-        )?;
-        if let Some((min, maybe_sec)) = &self.min_and_sec {
-            write!(f, "{:0>2}", buf_minute.format(*min))?;
-            if let Some(sec) = &maybe_sec {
-                write!(f, "{:0>2}", buf_second.format(*sec))?;
-            }
-        }
-
-        let frac_digits = self.get_fraction_precision_digits();
-        if frac_digits > 0 {
-            write!(f, ".{:0>width$}",
-                buf_frac.format(self.fraction),
-                width = frac_digits as usize
-            )?;
-        }
-        match &self.utc_offset {
-            Some(offset) => if offset.is_zero() {
-                f.write_char('Z')
-            } else {
-                write!(f, "{:+03}{:0>2}",
-                    offset.hour,
-                    buf_offset_m.format(offset.minute),
-                )
-            },
-            None => f.write_char('Z')
-        }
-    }
-
-    /// Prints a `GeneralizedTime`
-    #[cfg(not(feature = "itoa"))]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:04}{:02}{:02}{:02}",
             self.date.year % 10000,
@@ -530,7 +410,7 @@ impl Display for GeneralizedTime {
             self.date.day,
             self.hour,
         )?;
-        if let Some((min, maybe_sec)) = &self.minute {
+        if let Some((min, maybe_sec)) = &self.min_and_sec {
             write!(f, "{:02}", min)?;
             if let Some(sec) = &maybe_sec {
                 write!(f, "{:02}", sec)?;
@@ -539,10 +419,7 @@ impl Display for GeneralizedTime {
 
         let frac_digits = self.get_fraction_precision_digits();
         if frac_digits > 0 {
-            write!(f, ".{:0>width$}",
-                self.fraction,
-                width = frac_digits as usize
-            )?;
+            write!(f, ".{:0>width$}", self.fraction, width = frac_digits as usize)?;
         }
         match &self.utc_offset {
             Some(offset) => write!(f, "{:+03}{:02}", offset.hour, offset.minute),

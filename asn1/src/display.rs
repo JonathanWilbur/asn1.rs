@@ -5,9 +5,12 @@ use crate::FractionalPart;
 use std::fmt::{Display, Write};
 
 pub(crate) fn write_hex(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    if cfg!(feature = "faster-hex") {
+    #[cfg(feature = "faster-hex")]
+    {
         f.write_str(faster_hex::hex_string(v).as_str())
-    } else {
+    }
+    #[cfg(not(feature = "faster-hex"))]
+    {
         for b in v {
             write!(f, "{:02x}", b)?;
         }
@@ -21,10 +24,13 @@ pub(crate) fn write_hex(v: &[u8], f: &mut std::fmt::Formatter<'_>) -> std::fmt::
 pub fn write_int(int: &INTEGER, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match read_i64(int) {
         Some(v) => {
-            if cfg!(feature = "itoa") {
+            #[cfg(feature = "itoa")]
+            {
                 let mut buf = itoa::Buffer::new();
                 f.write_str(buf.format(v))
-            } else {
+            }
+            #[cfg(not(feature = "itoa"))]
+            {
                 write!(f, "{}", v)
             }
         },
@@ -231,18 +237,10 @@ impl Display for FractionalPart {
         if self.number_of_digits == 0 {
             return Ok(());
         }
-        if cfg!(feature = "itoa") {
-            let mut buf = itoa::Buffer::new();
-            write!(f, ".{:0>width$}",
-                buf.format(self.fractional_value),
-                width = self.number_of_digits as usize
-            )
-        } else {
-            write!(f, ".{:0>width$}",
-                self.fractional_value,
-                width = self.number_of_digits as usize
-            )
-        }
+        write!(f, ".{:0>width$}",
+            self.fractional_value,
+            width = self.number_of_digits as usize
+        )
     }
 
 }

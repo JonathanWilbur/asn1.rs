@@ -423,13 +423,18 @@ impl TryFrom<&[u8]> for DURATION_EQUIVALENT {
                 i
             };
 
-            let component_value: u32 = if cfg!(feature = "atoi_simd") {
-                atoi_simd::parse_pos::<u32>(&value_bytes[start_of_last_digit..end_index])
-                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
-            } else {
-                let component_str = std::str::from_utf8(&value_bytes[start_of_last_digit..end_index])?;
-                u32::from_str(&component_str)
-                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
+            let component_value: u32 = {
+                #[cfg(feature = "atoi_simd")]
+                {
+                    atoi_simd::parse_pos::<u32>(&value_bytes[start_of_last_digit..end_index])
+                        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
+                }
+                #[cfg(not(feature = "atoi_simd"))]
+                {
+                    let component_str = std::str::from_utf8(&value_bytes[start_of_last_digit..end_index])?;
+                    u32::from_str(&component_str)
+                        .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_duration_component(c)))?
+                }
             };
 
             start_of_last_digit = i + 1;
@@ -487,10 +492,13 @@ impl FromStr for DURATION_EQUIVALENT {
 
 macro_rules! print_uint {
     ($f:ident, $x:expr) => {
-        if cfg!(feature = "itoa") {
+        #[cfg(feature = "itoa")]
+        {
             let mut buf = itoa::Buffer::new();
             $f.write_str(buf.format($x))?;
-        } else {
+        }
+        #[cfg(not(feature = "itoa"))]
+        {
             $f.write_str($x.to_string().as_str())?;
         }
     };

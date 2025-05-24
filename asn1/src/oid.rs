@@ -18,9 +18,11 @@
 //! assert!(oid1.starts_with(&oid!(1,3,6,4,1)));
 //! assert!(oid1.ends_with(&roid!(6,4,1)));
 //! ```
+#[cfg(feature = "smallvec")]
 use smallvec::{SmallVec, smallvec};
-use crate::{unlikely, write_oid_arc, ASN1Error, ASN1ErrorCode, ASN1Result, X690KnownSize, X690Validate, OID_ARC, RELATIVE_OID};
-use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, io::Write as IoWrite, str::FromStr, u32};
+use crate::{unlikely, ASN1Error, ASN1ErrorCode, ASN1Result, X690KnownSize, X690Validate, OID_ARC, RELATIVE_OID};
+use std::{cmp::{min, Ordering}, fmt::{Display, Write as FmtWrite}, str::FromStr, u32};
+use crate::utils::macros::write_oid_arc;
 
 /// An ASN.1 `OBJECT IDENTIFIER`
 #[cfg(not(feature = "smallvec"))]
@@ -52,7 +54,7 @@ pub struct OBJECT_IDENTIFIER (
     ///
     /// Intentionally not exported to library users so as to avoid dependency
     /// on the underlying storage of arcs.
-    pub(crate) smallvec::SmallVec<[u8; 16]>
+    pub(crate) smallvec::SmallVec<[u8; 14]>
 );
 
 /// Iterator over the arcs of an `OBJECT IDENTIFIER`
@@ -89,13 +91,17 @@ impl OBJECT_IDENTIFIER {
     /// Convert to an ASN.1 `OBJECT IDENTIFIER` string, such as:
     /// `{ 1 3 6 1 4 1 56940 }`.
     pub fn to_asn1_string(&self) -> String {
+        #[cfg(feature = "itoa")]
+        let mut buf = itoa::Buffer::new();
         let mut out = String::with_capacity(self.0.len() << 3 + 4);
         out.write_str("{ ").unwrap();
         for arc in self.arcs() {
-            if cfg!(feature = "itoa") {
-                let mut buf = itoa::Buffer::new();
+            #[cfg(feature = "itoa")]
+            {
                 out.write_str(buf.format(arc)).unwrap();
-            } else {
+            }
+            #[cfg(not(feature = "itoa"))]
+            {
                 out.write_str(arc.to_string().as_str()).unwrap();
             }
             out.write_char(' ').unwrap();
@@ -107,13 +113,17 @@ impl OBJECT_IDENTIFIER {
     /// Convert to an ASN.1 OID Internationalized Resource Identifier (OID-IRI)
     /// string, such as: `/1/3/6/1/4/1/56940`.
     pub fn to_iri_string(&self) -> String {
+        #[cfg(feature = "itoa")]
+        let mut buf = itoa::Buffer::new();
         let mut out = String::with_capacity(self.0.len() << 3);
         for arc in self.arcs() {
             out.write_char('/').unwrap();
-            if cfg!(feature = "itoa") {
-                let mut buf = itoa::Buffer::new();
+            #[cfg(feature = "itoa")]
+            {
                 out.write_str(buf.format(arc)).unwrap();
-            } else {
+            }
+            #[cfg(not(feature = "itoa"))]
+            {
                 out.write_str(arc.to_string().as_str()).unwrap();
             }
         }
@@ -150,7 +160,7 @@ impl OBJECT_IDENTIFIER {
     /// This is defined so that you can define OIDs as compile-time constants.
     #[cfg(feature = "smallvec")]
     #[inline]
-    pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 16]>) -> Self {
+    pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 14]>) -> Self {
         OBJECT_IDENTIFIER(enc)
     }
 
@@ -174,7 +184,7 @@ impl OBJECT_IDENTIFIER {
         }
         #[cfg(not(feature = "smallvec"))]
         {
-            OBJECT_IDENTIFIER(value.to_owned())
+            OBJECT_IDENTIFIER(enc.to_owned())
         }
     }
 
@@ -240,18 +250,18 @@ impl OBJECT_IDENTIFIER {
                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
             #[cfg(feature = "smallvec")]
             {
-                let mut inner: SmallVec<[u8; 16]> = smallvec![];
-                write_oid_arc(&mut inner, first_component as u128)?;
+                let mut inner: SmallVec<[u8; 14]> = smallvec![];
+                write_oid_arc!(inner, first_component);
                 return Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner));
             }
             #[cfg(not(feature = "smallvec"))]
             {
                 let mut inner: Vec<u8> = Vec::with_capacity(16); // Just guess that we'll use more bytes.
-                write_oid_arc(&mut inner, first_component as u128)?;
-                return OBJECT_IDENTIFIER(inner)
+                write_oid_arc!(inner, first_component);
+                return Ok(OBJECT_IDENTIFIER(inner))
             }
         }
-        write_oid_arc(&mut prefix.0, arc as u128)?;
+        write_oid_arc!(prefix.0, arc);
         Ok(prefix)
     }
 
@@ -272,21 +282,21 @@ impl OBJECT_IDENTIFIER {
             let roid = RELATIVE_OID::try_from(&suffix[1..])?;
             #[cfg(feature = "smallvec")]
             {
-                let mut inner: SmallVec<[u8; 16]> = smallvec![];
-                write_oid_arc(&mut inner, first_component as u128)?;
-                inner.write(roid.0.as_slice())?;
+                let mut inner: SmallVec<[u8; 14]> = smallvec![];
+                write_oid_arc!(inner, first_component);
+                inner.extend_from_slice(roid.0.as_slice());
                 return Ok(OBJECT_IDENTIFIER::from_smallvec_unchecked(inner));
             }
             #[cfg(not(feature = "smallvec"))]
             {
                 let mut inner: Vec<u8> = Vec::with_capacity(16); // Just guess that we'll use more bytes.
-                write_oid_arc(&mut inner, first_component as u128)?;
-                inner.write(roid.0.as_slice())?;
-                return OBJECT_IDENTIFIER(inner)
+                write_oid_arc!(inner, first_component);
+                inner.extend_from_slice(roid.0.as_slice());
+                return Ok(OBJECT_IDENTIFIER(inner))
             }
         }
         let roid = RELATIVE_OID::try_from(suffix)?;
-        prefix.0.write(roid.0.as_slice())?;
+        prefix.0.extend_from_slice(roid.0.as_slice());
         Ok(prefix)
     }
 
@@ -301,10 +311,10 @@ impl OBJECT_IDENTIFIER {
         if prefix.0.len() == 1 && prefix.0[0] >= 0b1000_0000 {
             let mut roid = roid.clone();
             roid.0[0] += (prefix.0[0] & 0b11) * 40;
-            prefix.0.write(roid.0.as_slice())?;
+            prefix.0.extend_from_slice(roid.0.as_slice());
             return Ok(prefix);
         }
-        prefix.0.write(roid.0.as_slice())?;
+        prefix.0.extend_from_slice(roid.0.as_slice());
         Ok(prefix)
     }
 
@@ -329,7 +339,7 @@ impl OBJECT_IDENTIFIER {
     /// Produces an X.690 encoding of this `OBJECT IDENTIFIER` in a `SmallVec`
     #[cfg(feature = "smallvec")]
     #[inline]
-    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 16]> {
+    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 14]> {
         self.0
     }
 
@@ -477,10 +487,13 @@ impl FromStr for OBJECT_IDENTIFIER {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut nodes: Vec<u32> = Vec::with_capacity(s.len());
         for arc_string in s.split(".") {
-            if cfg!(feature = "atoi_simd") {
+            #[cfg(feature = "atoi_simd")]
+            {
                 let arc = atoi_simd::parse_pos::<OID_ARC>(arc_string.as_bytes()).map_err(|_| ())?;
                 nodes.push(arc);
-            } else {
+            }
+            #[cfg(not(feature = "atoi_simd"))]
+            {
                 nodes.push(arc_string.parse::<OID_ARC>().map_err(|_| ())?);
             }
         }
@@ -528,16 +541,16 @@ impl TryFrom<&[OID_ARC]> for OBJECT_IDENTIFIER {
 
         #[cfg(feature = "smallvec")]
         {
-            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
+            let mut inner: SmallVec<[u8; 14]> = SmallVec::new();
             if value.len() == 1 {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
                 inner.push(min(value[0], 2) as u8 | 0b1000_0000);
                 return Ok(OBJECT_IDENTIFIER(inner));
             }
-            write_oid_arc(&mut inner, first_component as u128)?;
+            write_oid_arc!(inner, first_component);
             for arc in value[2..].iter() {
-                write_oid_arc(&mut inner, *arc as u128)?;
+                write_oid_arc!(inner, *arc);
             }
             Ok(OBJECT_IDENTIFIER(inner))
         }
@@ -546,23 +559,23 @@ impl TryFrom<&[OID_ARC]> for OBJECT_IDENTIFIER {
         {
             let pre_alloc_size: usize = 1 + value[1..]
                 .iter()
-                .map(|arc| match *arc < 128 {
+                .map(|arc| match *arc {
                     0..=127 => 1,
                     128..=16383 => 2, // Approximate, just in case I have an error
                     _ => 5,
                 })
                 .reduce(|total, size| total + size)
                 .unwrap();
-            let inner: Vec<u8> = Vec::with_capacity(pre_alloc_size);
+            let mut inner: Vec<u8> = Vec::with_capacity(pre_alloc_size);
             if value.len() == 1 {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
                 inner.push(min(value[0], 2) as u8 | 0b1000_0000);
                 return Ok(OBJECT_IDENTIFIER(inner));
             }
-            write_oid_arc(&mut inner, first_component as u128)?;
+            write_oid_arc!(inner, first_component);
             for arc in value[2..].iter() {
-                write_oid_arc(&mut inner, *arc as u128)?;
+                write_oid_arc!(inner, *arc);
             }
             Ok(OBJECT_IDENTIFIER(inner))
         }
@@ -622,28 +635,28 @@ impl TryFrom<&[i8]> for OBJECT_IDENTIFIER {
 
         #[cfg(feature = "smallvec")]
         {
-            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
+            let mut inner: SmallVec<[u8; 14]> = SmallVec::new();
             if value.len() == 1 {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
                 inner.push(min(value[0], 2) as u8 | 0b1000_0000);
                 return Ok(OBJECT_IDENTIFIER(inner));
             }
-            write_oid_arc(&mut inner, first_component as u128)?;
+            write_oid_arc!(inner, first_component);
             inner.extend_from_slice(&unsigned[2..]);
             Ok(OBJECT_IDENTIFIER(inner))
         }
 
         #[cfg(not(feature = "smallvec"))]
         {
-            let inner: Vec<u8> = Vec::with_capacity(value.len());
+            let mut inner: Vec<u8> = Vec::with_capacity(value.len());
             if value.len() == 1 {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
                 inner.push(min(value[0], 2) as u8 | 0b1000_0000);
                 return Ok(OBJECT_IDENTIFIER(inner));
             }
-            write_oid_arc(&mut inner, first_component as u128)?;
+            write_oid_arc!(inner, first_component);
             inner.extend_from_slice(&unsigned[2..]);
             Ok(OBJECT_IDENTIFIER(inner))
         }
@@ -936,6 +949,8 @@ impl Display for OBJECT_IDENTIFIER {
         if unlikely(self.0.len() == 0) {
             return Ok(());
         }
+        #[cfg(feature = "itoa")]
+        let mut buf1 = itoa::Buffer::new();
         let mut wrote_first: bool = false;
         for arc in self.arcs() {
             if wrote_first {
@@ -943,10 +958,12 @@ impl Display for OBJECT_IDENTIFIER {
             } else {
                 wrote_first = true;
             }
-            if cfg!(feature = "itoa") {
-                let mut buf1 = itoa::Buffer::new();
+            #[cfg(feature = "itoa")]
+            {
                 f.write_str(buf1.format(arc))?;
-            } else {
+            }
+            #[cfg(not(feature = "itoa"))]
+            {
                 f.write_str(arc.to_string().as_str())?;
             }
         }

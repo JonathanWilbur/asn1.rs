@@ -130,5 +130,7 @@ somewhat battle-tested.
 
 ## To Do
 
+- [ ] Document feature flags
+  - [ ] Document that `smallvec` is disabled by default, because it _never_ outperformed a normal `Vec`.
 - [ ] Benchmarking
 - [ ] Update dependencies one last time
