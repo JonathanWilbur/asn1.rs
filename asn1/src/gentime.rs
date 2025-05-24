@@ -422,8 +422,12 @@ impl Display for GeneralizedTime {
             write!(f, ".{:0>width$}", self.fraction, width = frac_digits as usize)?;
         }
         match &self.utc_offset {
-            Some(offset) => write!(f, "{:+03}{:02}", offset.hour, offset.minute),
-            None => f.write_char('Z')
+            Some(offset) => if offset.is_zero() {
+                f.write_char('Z')
+            } else {
+                write!(f, "{:+03}{:02}", offset.hour, offset.minute)
+            },
+            None => Ok(())
         }
     }
 }
