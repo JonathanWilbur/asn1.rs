@@ -110,18 +110,15 @@ impl ISO8601Timestampable for UTCTime {
     /// Convert the `UTCTime` to an ISO 8601 Timestamp string
     fn to_iso_8601_string(&self) -> String {
         if !self.utc_offset.is_zero() {
-            // TODO: Use better formatting technique
-            let sign = if self.utc_offset.hour >= 0 { '+' } else { '-' };
             return format!(
-                "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}{:02}{:02}",
+                "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{:+03}{:02}",
                 if self.year >= 50 { self.year as u16 + 1900 } else { self.year as u16 + 2000 },
                 self.month,
                 self.day,
                 self.hour,
                 self.minute,
                 self.second,
-                sign,
-                self.utc_offset.hour.abs(),
+                self.utc_offset.hour,
                 self.utc_offset.minute,
             );
         }

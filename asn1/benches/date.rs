@@ -4,7 +4,7 @@ use asn1::DATE;
 
 fn date_from_str() {
     let d1 = DATE::from_str(black_box("2022-04-11")).unwrap();
-    let d2 = DATE::from_num_str(black_box("20220411")).unwrap(); // TODO: Rename from_num_str
+    let d2 = DATE::from_num_str(black_box("20220411")).unwrap();
     assert_eq!(d1, d2);
 }
 

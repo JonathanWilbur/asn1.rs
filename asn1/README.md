@@ -138,7 +138,3 @@ until `1.0.0` is released, after which I will adhere to semantic versioning.
 
 However, I have successfully built applications using this library, so it is
 somewhat battle-tested.
-
-## To Do
-
-- [ ] Update dependencies one last time
