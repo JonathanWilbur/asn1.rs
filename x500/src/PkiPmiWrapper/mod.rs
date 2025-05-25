@@ -23,7 +23,7 @@ use crate::AttributeCertificateDefinitions::*;
 use crate::AuthenticationFramework::*;
 use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
 

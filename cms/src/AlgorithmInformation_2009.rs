@@ -19,7 +19,7 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x500::CertificateExtensions::KeyUsage;
 use x690::*;

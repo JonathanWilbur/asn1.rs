@@ -4,8 +4,8 @@
 //! them to ISO 8601 timestamps:
 //!
 //! ```rust
-//! use asn1::gentime::GeneralizedTime;
-//! use asn1::ISO8601Timestampable;
+//! use wildboar_asn1::gentime::GeneralizedTime;
+//! use wildboar_asn1::ISO8601Timestampable;
 //! use std::str::FromStr;
 //!
 //! let t1 = GeneralizedTime::from_str("20210203040607.32895292-0503").unwrap();

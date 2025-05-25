@@ -21,7 +21,7 @@
 //!
 use crate::PKI_Stub::*;
 use crate::Wrapper::{Version, _decode_Version, _encode_Version, _validate_Version};
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
 

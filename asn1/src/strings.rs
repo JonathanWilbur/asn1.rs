@@ -4,7 +4,7 @@
 //! like so:
 //!
 //! ```rust
-//! use asn1::strings::{is_printable_str, is_numeric_str, is_ia5_str, is_visible_str};
+//! use wildboar_asn1::strings::{is_printable_str, is_numeric_str, is_ia5_str, is_visible_str};
 //!
 //! assert!(is_printable_str("Testeroo"));
 //! assert!(!is_printable_str("Book with 'F*ck' in the title"));
@@ -17,7 +17,7 @@
 //! You can compare `NumericString` values like so:
 //!
 //! ```rust
-//! use asn1::strings::compare_numeric_string;
+//! use wildboar_asn1::strings::compare_numeric_string;
 //!
 //! let a = "   65535  ";
 //! let b = " 655 35   ";
@@ -31,7 +31,7 @@
 //! so:
 //!
 //! ```rust
-//! use asn1::strings::normalize_num_bytes;
+//! use wildboar_asn1::strings::normalize_num_bytes;
 //!
 //! assert_eq!(normalize_num_bytes(b" 8 7 6 5309").as_ref(), b"8765309");
 //! ```

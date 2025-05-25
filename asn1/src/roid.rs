@@ -4,9 +4,9 @@
 //! `OBJECT IDENTIFIER`:
 //!
 //! ```rust
-//! use asn1::roid::RELATIVE_OID;
+//! use wildboar_asn1::roid::RELATIVE_OID;
 //! use std::str::FromStr;
-//! use asn1::roid;
+//! use wildboar_asn1::roid;
 //!
 //! let roid1 = RELATIVE_OID::from_str("1.3.6.4.1").unwrap();
 //! let roid2 = roid!(1,3,6,4,1);
@@ -275,10 +275,10 @@ impl PartialOrd for RELATIVE_OID {
     /// ## Example
     ///
     /// ```rust
-    /// let oid1 = asn1::roid!(1,3,6,1);
-    /// let oid2 = asn1::roid!(1,3,6,1,5);
-    /// let oid3 = asn1::roid!(1,3,6,1,6);
-    /// let oid4 = asn1::roid!(1,3,6,1,6,8);
+    /// let oid1 = wildboar_asn1::roid!(1,3,6,1);
+    /// let oid2 = wildboar_asn1::roid!(1,3,6,1,5);
+    /// let oid3 = wildboar_asn1::roid!(1,3,6,1,6);
+    /// let oid4 = wildboar_asn1::roid!(1,3,6,1,6,8);
     ///
     /// let mut unordered = Vec::from([
     ///     oid4.clone(),
@@ -314,10 +314,10 @@ impl Ord for RELATIVE_OID {
     /// ## Example
     ///
     /// ```rust
-    /// let oid1 = asn1::roid!(1,3,6,1);
-    /// let oid2 = asn1::roid!(1,3,6,1,5);
-    /// let oid3 = asn1::roid!(1,3,6,1,6);
-    /// let oid4 = asn1::roid!(1,3,6,1,6,8);
+    /// let oid1 = wildboar_asn1::roid!(1,3,6,1);
+    /// let oid2 = wildboar_asn1::roid!(1,3,6,1,5);
+    /// let oid3 = wildboar_asn1::roid!(1,3,6,1,6);
+    /// let oid4 = wildboar_asn1::roid!(1,3,6,1,6,8);
     ///
     /// let mut unordered = Vec::from([
     ///     oid4.clone(),
@@ -681,7 +681,7 @@ impl std::iter::DoubleEndedIterator for RelOidArcs<'_> {
 /// #### Example
 ///
 /// ```rust
-/// let roid1 = asn1::roid!(3,60,4,50);
+/// let roid1 = wildboar_asn1::roid!(3,60,4,50);
 /// ```
 #[macro_export]
 macro_rules! roid {

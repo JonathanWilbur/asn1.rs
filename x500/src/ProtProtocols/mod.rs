@@ -24,7 +24,7 @@ use crate::CaSubscription::*;
 use crate::PKI_Stub::*;
 use crate::TrustBroker::*;
 use crate::Wrapper::*;
-use asn1::*;
+use wildboar_asn1::*;
 use x690::*;
 
 /// ### ASN.1 Definition:

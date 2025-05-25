@@ -3,7 +3,7 @@
 //! You can parse, print, compare, and sort `TIME-OF-DAY` values:
 //!
 //! ```rust
-//! use asn1::time_of_day::TIME_OF_DAY;
+//! use wildboar_asn1::time_of_day::TIME_OF_DAY;
 //! use std::str::FromStr;
 //!
 //! let t1 = TIME_OF_DAY::from_str("20:19:18").unwrap();

@@ -10,7 +10,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 
-[dependencies.asn1]
+[dependencies.wildboar-asn1]
 path = "../asn1"
 features = ["arbitrary"]
 

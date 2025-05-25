@@ -15,7 +15,7 @@ use serde_wasm_bindgen::{to_value, from_value};
 use crate::ipc::invoke;
 use wasm_bindgen_futures::spawn_local;
 use log::{info, error};
-use asn1::OBJECT_IDENTIFIER;
+use wildboar_asn1::OBJECT_IDENTIFIER;
 use crate::components::AttributeValueNode::AttributeValueNode;
 use crate::components::IconButton::IconButton;
 use crate::components::ContextMenu::{ContextMenu, ContextMenuOption};

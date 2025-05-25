@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use asn1::{GeneralizedTime, OCTET_STRING};
+use wildboar_asn1::{GeneralizedTime, OCTET_STRING};
 use gser::{
     parse_BitStringValue, parse_GeneralizedTimeValue, parse_GserValue, parse_IntegerValue,
     parse_ObjectIdentifierValue, parse_OctetStringValue, parse_RelativeDistinguishedNameValue,
@@ -844,7 +844,7 @@ pub fn parse_CertificateListAssertion(s: &str) -> IResult<&str, CertificateListA
 #[cfg(test)]
 mod tests {
     use super::*;
-    use asn1::oid;
+    use wildboar_asn1::oid;
 
     const TEST_CERT_ASSERTION_01: &str = "{ \
 serialNumber 12345, \

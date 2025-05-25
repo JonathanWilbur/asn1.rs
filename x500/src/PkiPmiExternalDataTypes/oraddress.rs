@@ -31,7 +31,7 @@ use crate::SelectedAttributeTypes::{
     _encode_owned_UnboundedDirectoryString, commonName, countryCode3n, generationQualifier,
     givenName, initials, organizationName, streetAddress, surname, PostalAddress, _decode_UnboundedDirectoryString,
 };
-use asn1::{
+use wildboar_asn1::{
     compare_numeric_string, is_numeric_str, is_printable_str, oid, ASN1Error, ASN1ErrorCode,
     NumericString,
 };

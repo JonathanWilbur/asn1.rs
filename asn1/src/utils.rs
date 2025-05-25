@@ -3,7 +3,7 @@
 //! Decode variable-length integers, which are used in multiple different encodings:
 //!
 //! ```rust
-//! use asn1::utils::{read_i64, read_i128};
+//! use wildboar_asn1::utils::{read_i64, read_i128};
 //! assert_eq!{read_i64(&[ 0x01, 0x05 ]), Some(256 + 5)}
 //! assert_eq!{read_i128(&[ 0x01, 0x05 ]), Some(256 + 5)}
 //! ```

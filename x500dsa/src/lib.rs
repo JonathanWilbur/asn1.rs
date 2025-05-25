@@ -1,4 +1,4 @@
-use asn1::{OBJECT_IDENTIFIER, ASN1Error, OPTIONAL, UTF8String, BOOLEAN, ASN1Result, SEQUENCE_OF};
+use wildboar_asn1::{OBJECT_IDENTIFIER, ASN1Error, OPTIONAL, UTF8String, BOOLEAN, ASN1Result, SEQUENCE_OF};
 use x500::{InformationFramework::{
     ObjectClassKind,
     AttributeUsage,

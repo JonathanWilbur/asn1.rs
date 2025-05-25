@@ -1,7 +1,7 @@
 // #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-use asn1::{ASN1Value, INSTANCE_OF};
+use wildboar_asn1::{ASN1Value, INSTANCE_OF};
 use x690::ber_encode;
 use crate::types::{
     DefaultX500ValueDisplayer,

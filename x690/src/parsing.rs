@@ -3,10 +3,10 @@
 #![allow(soft_unstable)]
 
 use crate::{X690Element, X690Value};
-use asn1::TagClass;
-use asn1::construction::{ComponentSpec, TagSelector};
-use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use asn1::types::Tag;
+use wildboar_asn1::TagClass;
+use wildboar_asn1::construction::{ComponentSpec, TagSelector};
+use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
+use wildboar_asn1::types::Tag;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -740,7 +740,7 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 // mod tests {
 
 //     use crate::*;
-//     use asn1::types::{
+//     use wildboar_asn1::types::{
 //         ASN1Value, TagClass, UNIV_TAG_BMP_STRING, UNIV_TAG_NULL,
 //         UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE,
 //         UNIV_TAG_UTF8_STRING, OBJECT_IDENTIFIER,

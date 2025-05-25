@@ -1,5 +1,5 @@
 //! ASN.1 Aper Encoder module.
-use asn1::OBJECT_IDENTIFIER;
+use wildboar_asn1::OBJECT_IDENTIFIER;
 use bitvec::prelude::*;
 
 use crate::per::PerCodecData;

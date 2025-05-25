@@ -1,6 +1,6 @@
 use std::{hint::black_box, str::FromStr};
 use criterion::{criterion_group, criterion_main, Criterion};
-use asn1::oid::OBJECT_IDENTIFIER;
+use wildboar_asn1::oid::OBJECT_IDENTIFIER;
 use smallvec::SmallVec;
 
 fn create_oid(n: u32) -> OBJECT_IDENTIFIER {

@@ -23,7 +23,7 @@ use crate::InformationFramework::*;
 use crate::LdapSystemSchema::*;
 use crate::SelectedAttributeTypes::*;
 use crate::UsefulDefinitions::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
 

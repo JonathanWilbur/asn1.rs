@@ -22,7 +22,7 @@
 use crate::AlgorithmInformation_2009::*;
 use crate::PKIXAlgs_2009::*;
 use crate::SecureMimeMessageV3dot1_2009::cap_RC2CBC;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x500::AuthenticationFramework::{
     AlgorithmIdentifier, _decode_AlgorithmIdentifier, _encode_AlgorithmIdentifier,

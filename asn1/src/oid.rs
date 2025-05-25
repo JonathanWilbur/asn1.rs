@@ -4,10 +4,10 @@
 //! `OBJECT IDENTIFIER`s:
 //!
 //! ```rust
-//! use asn1::oid::OBJECT_IDENTIFIER;
+//! use wildboar_asn1::oid::OBJECT_IDENTIFIER;
 //! use std::str::FromStr;
-//! use asn1::roid;
-//! use asn1::oid;
+//! use wildboar_asn1::roid;
+//! use wildboar_asn1::oid;
 //!
 //! let oid1 = OBJECT_IDENTIFIER::from_str("1.3.6.4.1").unwrap();
 //! let oid2 = oid!(1,3,6,4,1);
@@ -405,10 +405,10 @@ impl PartialOrd for OBJECT_IDENTIFIER {
     /// ## Example
     ///
     /// ```rust
-    /// let oid1 = asn1::oid!(1,3,6,1);
-    /// let oid2 = asn1::oid!(1,3,6,1,5);
-    /// let oid3 = asn1::oid!(1,3,6,1,6);
-    /// let oid4 = asn1::oid!(1,3,6,1,6,8);
+    /// let oid1 = wildboar_asn1::oid!(1,3,6,1);
+    /// let oid2 = wildboar_asn1::oid!(1,3,6,1,5);
+    /// let oid3 = wildboar_asn1::oid!(1,3,6,1,6);
+    /// let oid4 = wildboar_asn1::oid!(1,3,6,1,6,8);
     ///
     /// let mut unordered = Vec::from([
     ///     oid4.clone(),
@@ -444,10 +444,10 @@ impl Ord for OBJECT_IDENTIFIER {
     /// ## Example
     ///
     /// ```rust
-    /// let oid1 = asn1::oid!(1,3,6,1);
-    /// let oid2 = asn1::oid!(1,3,6,1,5);
-    /// let oid3 = asn1::oid!(1,3,6,1,6);
-    /// let oid4 = asn1::oid!(1,3,6,1,6,8);
+    /// let oid1 = wildboar_asn1::oid!(1,3,6,1);
+    /// let oid2 = wildboar_asn1::oid!(1,3,6,1,5);
+    /// let oid3 = wildboar_asn1::oid!(1,3,6,1,6);
+    /// let oid4 = wildboar_asn1::oid!(1,3,6,1,6,8);
     ///
     /// let mut unordered = Vec::from([
     ///     oid4.clone(),
@@ -1011,7 +1011,7 @@ impl X690Validate for OBJECT_IDENTIFIER {
 /// #### Example
 ///
 /// ```rust
-/// let oid1 = asn1::oid!(1,3,6,4,1);
+/// let oid1 = wildboar_asn1::oid!(1,3,6,4,1);
 /// ```
 #[macro_export]
 macro_rules! oid {

@@ -4,8 +4,8 @@ pub mod parsing;
 pub use crate::ber::*;
 pub use crate::codec::*;
 pub use crate::parsing::*;
-use asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use asn1::types::{
+use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
+use wildboar_asn1::types::{
     ASN1Value, ByteSlice, CharacterString, EmbeddedPDV, ExternalEncoding,
     ExternalIdentification, GeneralizedTime, ObjectDescriptor,
     PresentationContextSwitchingTypeIdentification, Tag, TagClass, TagNumber, TaggedASN1Value,
@@ -32,7 +32,7 @@ use asn1::types::{
     DURATION_EQUIVALENT, EXTERNAL, INTEGER, MAX_IA5_STRING_CHAR_CODE, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
 };
-use asn1::{ENUMERATED, read_i64, DURATION, ComponentSpec, TagSelector};
+use wildboar_asn1::{ENUMERATED, read_i64, DURATION, ComponentSpec, TagSelector};
 use std::borrow::Cow;
 use std::io::{Error, ErrorKind, Result, Write};
 use std::mem::size_of;
@@ -1598,7 +1598,7 @@ mod tests {
     #[test]
     fn test_x690_write_object_identifier_value() {
         let mut output = BytesMut::new().writer();
-        let oid = asn1::types::OBJECT_IDENTIFIER::try_from(vec![2u32, 5, 4, 3]).unwrap();
+        let oid = wildboar_asn1::types::OBJECT_IDENTIFIER::try_from(vec![2u32, 5, 4, 3]).unwrap();
         crate::x690_write_object_identifier_value(&mut output, &oid).unwrap();
         let output: Bytes = output.into_inner().into();
         assert_eq!(output.len(), 3);

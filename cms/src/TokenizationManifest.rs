@@ -20,7 +20,7 @@
 //! types.
 //!
 use crate::CMSObjectIdentifiers::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x500::InformationFramework::ATTRIBUTE;
 use x690::*;

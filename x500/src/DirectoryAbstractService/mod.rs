@@ -35,7 +35,7 @@ use crate::SpkmGssTokens::{
     _validate_SPKM_REQ, SPKM_ERROR, SPKM_REP_TI, SPKM_REQ,
 };
 use crate::UsefulDefinitions::*;
-use asn1::*;
+use wildboar_asn1::*;
 use ldap::{LDAPMessage, _decode_LDAPMessage, _encode_LDAPMessage, _validate_LDAPMessage};
 use std::sync::Arc;
 use x690::*;

@@ -3,7 +3,7 @@
 //! You can parse, print, compare, and sort `DATE-TIME` values:
 //!
 //! ```rust
-//! use asn1::datetime::DATE_TIME;
+//! use wildboar_asn1::datetime::DATE_TIME;
 //! use std::str::FromStr;
 //!
 //! let d1 = DATE_TIME::from_str("2022-04-23T20:19:18").unwrap();

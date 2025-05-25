@@ -21,7 +21,7 @@
 //!
 use crate::AlgorithmInformation_2009::*;
 use crate::PKIXAlgs_2009::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x500::AuthenticationFramework::{
     AlgorithmIdentifier, _decode_AlgorithmIdentifier, _encode_AlgorithmIdentifier,

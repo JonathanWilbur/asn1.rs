@@ -21,7 +21,7 @@
 //!
 use crate::CommonProtocolSpecification::*;
 use crate::InformationFramework::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
 

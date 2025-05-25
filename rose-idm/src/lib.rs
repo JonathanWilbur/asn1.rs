@@ -1,6 +1,6 @@
 #![allow(non_upper_case_globals)]
 
-use asn1::ENUMERATED;
+use wildboar_asn1::ENUMERATED;
 use async_trait::async_trait;
 use idm::IdmStream;
 use rose::{

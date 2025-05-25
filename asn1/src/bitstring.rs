@@ -4,8 +4,8 @@
 //! get the length, print as strings, and join `BIT STRINGS`:
 //!
 //! ```rust
-//! use asn1::bitstring::{BIT_STRING, join_bit_strings};
-//! use asn1::bits;
+//! use wildboar_asn1::bitstring::{BIT_STRING, join_bit_strings};
+//! use wildboar_asn1::bits;
 //!
 //! let bs1 = BIT_STRING::new();
 //! let bs2 = BIT_STRING::with_capacity(8); // Units in bits
@@ -518,7 +518,7 @@ impl Hash for BIT_STRING {
 /// 0s at the macro level, rather than evaluating them at run-time.
 ///
 /// ```rust
-/// let bs1 = asn1::bits!(1,0,1,0,0,1,0,1,1,1,1);
+/// let bs1 = wildboar_asn1::bits!(1,0,1,0,0,1,0,1,1,1,1);
 /// assert_eq!(bs1.to_string().as_str(), "'10100101111'B");
 /// ```
 ///

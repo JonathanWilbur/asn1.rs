@@ -1,4 +1,4 @@
-use asn1::{TRUE, FALSE, OBJECT_IDENTIFIER};
+use wildboar_asn1::{TRUE, FALSE, OBJECT_IDENTIFIER};
 use x500::InformationFramework::AttributeType;
 use x500::DistributedOperations::{
     ReferenceType,

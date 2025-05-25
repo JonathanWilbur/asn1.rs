@@ -12,7 +12,7 @@ wasm-bindgen = { version = "0.2.82", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4.32"
 web-sys = { version = "0.3.59", "features" = ["Navigator", "Clipboard", "CssStyleDeclaration", "HtmlStyleElement"] }
 yew = { version="0.20.0", features = ["csr"] }
-asn1 = { path = "../asn1" }
+wildboar-asn1 = { path = "../asn1" }
 x500 = { path = "../x500" }
 x690 = { path = "../x690" }
 serde_json = "1.0.96"

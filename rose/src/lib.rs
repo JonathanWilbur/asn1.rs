@@ -1,4 +1,4 @@
-use asn1::{ASN1Value, INTEGER, OBJECT_IDENTIFIER};
+use wildboar_asn1::{ASN1Value, INTEGER, OBJECT_IDENTIFIER};
 use async_trait::async_trait;
 use std::io::{Error, ErrorKind, Result};
 use x500::CertificateExtensions::GeneralName;

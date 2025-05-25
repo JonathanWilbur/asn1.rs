@@ -17,5 +17,5 @@ categories = ["cryptography"]
 
 [dependencies]
 x500 = { path = "../x500" }
-asn1 = { path = "../asn1" }
+wildboar-asn1 = { path = "../asn1" }
 x690 = { path = "../x690" }

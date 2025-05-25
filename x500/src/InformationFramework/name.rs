@@ -7,7 +7,7 @@ use crate::InformationFramework::{
     AttributeTypeAndValue,
 };
 use crate::SelectedAttributeTypes::{dc, oidC};
-use asn1::*;
+use wildboar_asn1::*;
 use x690::*;
 use x690::X690Codec;
 

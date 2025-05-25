@@ -22,7 +22,7 @@
 use crate::AlgorithmInformation_2009::*;
 use crate::CryptographicMessageSyntax::*;
 use crate::CryptographicMessageSyntaxAlgorithms_2009::*;
-use asn1::*;
+use wildboar_asn1::*;
 use x500::InformationFramework::ATTRIBUTE;
 use x690::*;
 

@@ -3,7 +3,7 @@
 use bitvec::prelude::*;
 
 use crate::per::{PerCodecData, PerCodecError};
-use asn1::OBJECT_IDENTIFIER;
+use wildboar_asn1::OBJECT_IDENTIFIER;
 use x690::x690_write_object_identifier_value;
 
 mod encode_internal;

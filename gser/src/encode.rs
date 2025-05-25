@@ -2,7 +2,7 @@
 #![allow(non_snake_case)]
 // #![allow(non_upper_case_globals)]
 use cow_utils::CowUtils;
-use asn1::{
+use wildboar_asn1::{
     ASN1Value,
     BOOLEAN,
     BIT_STRING,

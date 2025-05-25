@@ -1,6 +1,6 @@
 use std::{hint::black_box, str::FromStr};
 use criterion::{criterion_group, criterion_main, Criterion};
-use asn1::DATE;
+use wildboar_asn1::DATE;
 
 fn date_from_str() {
     let d1 = DATE::from_str(black_box("2022-04-11")).unwrap();

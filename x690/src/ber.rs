@@ -1,4 +1,4 @@
-use asn1::{
+use wildboar_asn1::{
     join_bit_strings, ASN1Error, ASN1ErrorCode, ASN1Result, Tag, TagNumber, X690Validate, DATE, OBJECT_IDENTIFIER, RELATIVE_OID, TIME_OF_DAY
 };
 use crate::codec::{BasicEncodingRules, X690Codec};
@@ -28,7 +28,7 @@ use crate::{
     x690_write_universal_string_value,
     x690_write_bmp_string_value,
 };
-use asn1::types::{
+use wildboar_asn1::types::{
     TagClass,
     ASN1Value,
     BMPString,
@@ -290,7 +290,7 @@ pub fn ber_read_var_length_u64(bytes: ByteSlice) -> u64 {
 
 impl X690Codec for BasicEncodingRules {
 
-    fn decode_from_slice(&self, bytes: asn1::ByteSlice) -> ASN1Result<(usize, X690Element)> {
+    fn decode_from_slice(&self, bytes: wildboar_asn1::ByteSlice) -> ASN1Result<(usize, X690Element)> {
         let (len, tag, constructed) = ber_decode_tag(bytes)?;
         let mut bytes_read: usize = len;
         let value_length;

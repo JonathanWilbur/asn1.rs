@@ -14,7 +14,7 @@ use nom::multi::{separated_list0, separated_list1, many1};
 use nom::Err as NomErr;
 use nom::error::Error as NomError;
 use nom::error::ErrorKind as NomErrorKind;
-use asn1::{
+use wildboar_asn1::{
     BIT_STRING,
     OCTET_STRING, BOOLEAN,
     GeneralizedTime,
@@ -455,7 +455,7 @@ pub fn parse_GserValue (s: &str) -> IResult<&str, GserValue> {
 #[cfg(test)]
 mod tests {
 
-    use asn1::OBJECT_IDENTIFIER;
+    use wildboar_asn1::OBJECT_IDENTIFIER;
     use crate::{parse_GserValue, GserValue, GserIntegerValue, GserRealValue};
 
     #[test]

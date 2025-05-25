@@ -4,9 +4,9 @@
 //! to ISO 8601 timestamps:
 //!
 //! ```rust
-//! use asn1::utctime::UTCTime;
+//! use wildboar_asn1::utctime::UTCTime;
 //! use std::str::FromStr;
-//! use asn1::ISO8601Timestampable;
+//! use wildboar_asn1::ISO8601Timestampable;
 //!
 //! let t1 = UTCTime::from_str("010203040506+0415").unwrap();
 //! assert_eq!(t1.to_iso_8601_string(), "2001-02-03T04:05:06+0415");

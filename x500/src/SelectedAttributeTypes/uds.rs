@@ -2,7 +2,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 #![allow(unused_variables)]
-use asn1::*;
+use wildboar_asn1::*;
 use x690::*;
 use std::str::FromStr;
 

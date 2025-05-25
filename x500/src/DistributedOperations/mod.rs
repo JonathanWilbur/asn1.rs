@@ -26,7 +26,7 @@ use crate::EnhancedSecurity::*;
 use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
 use crate::ServiceAdministration::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
 

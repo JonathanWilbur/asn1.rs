@@ -21,7 +21,7 @@
 //!
 use crate::AlgorithmInformation_2009::*;
 use crate::PKIX1_PSS_OAEP_Algorithms_2009::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x500::CertificateExtensions::{
     KeyUsage_cRLSign, KeyUsage_dataEncipherment, KeyUsage_decipherOnly, KeyUsage_digitalSignature,

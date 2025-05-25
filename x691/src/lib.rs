@@ -15,7 +15,7 @@ pub use per::aper;
 #[doc(inline)]
 pub use per::uper;
 
-use asn1::{BOOLEAN, INTEGER, read_i64};
+use wildboar_asn1::{BOOLEAN, INTEGER, read_i64};
 use bitvec::prelude::*;
 use std::io::{Result, ErrorKind, Error};
 

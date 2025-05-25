@@ -23,7 +23,7 @@ use crate::DirectoryAbstractService::*;
 use crate::SelectedAttributeTypes::*;
 use crate::ServiceAdministration::*;
 use crate::UsefulDefinitions::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
 mod name;

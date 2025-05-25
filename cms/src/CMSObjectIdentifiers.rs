@@ -19,7 +19,7 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use asn1::*;
+use wildboar_asn1::*;
 use x690::*;
 
 /// ### ASN.1 Definition:

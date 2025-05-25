@@ -14,7 +14,7 @@ use nom::{
 };
 use nom::branch::alt;
 use std::borrow::Cow;
-use asn1::OBJECT_IDENTIFIER;
+use wildboar_asn1::OBJECT_IDENTIFIER;
 
 fn is_ldh (c: char) -> bool {
     char::is_ascii_alphanumeric(&c) || c == '-'
@@ -939,7 +939,7 @@ impl FromStr for LdapNameFormDescription {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use asn1::oid;
+    use wildboar_asn1::oid;
 
     #[test]
     fn parsing_oc_works() {

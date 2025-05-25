@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::InformationFramework::{AttributeType, DistinguishedName, Name, RelativeDistinguishedName};
 use crate::CertificateExtensions::GeneralName;
-use asn1::{
+use wildboar_asn1::{
     ASN1Error,
     TagClass,
     UNIV_TAG_BOOLEAN,
@@ -41,7 +41,7 @@ use x690::{
     BER,
     X690Codec,
 };
-use asn1::utils::read_i64;
+use wildboar_asn1::utils::read_i64;
 use crate::SelectedAttributeTypes::{
     id_at_businessCategory,
     id_at_collectiveFacsimileTelephoneNumber,

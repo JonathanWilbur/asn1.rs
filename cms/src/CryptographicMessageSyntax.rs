@@ -38,7 +38,7 @@ use crate::AttributeCertificateVersion1_2009::{
     _encode_AttributeCertificateV1,
     _validate_AttributeCertificateV1,
 };
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x500::AttributeCertificateDefinitions::{
     AttributeCertificate, _decode_AttributeCertificate, _encode_AttributeCertificate,

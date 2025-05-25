@@ -3,8 +3,8 @@
 //! You can parse and print `DURATION` values (via the `DURATION_EQUIVALENT` struct):
 //!
 //! ```rust
-//! use asn1::duration::DURATION_EQUIVALENT;
-//! use asn1::FractionalPart;
+//! use wildboar_asn1::duration::DURATION_EQUIVALENT;
+//! use wildboar_asn1::FractionalPart;
 //! use std::str::FromStr;
 //!
 //! let dur = DURATION_EQUIVALENT::from_str("P5Y6M1W23DT25H65M222.00505S").unwrap();

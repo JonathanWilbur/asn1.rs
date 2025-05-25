@@ -51,7 +51,7 @@ mod tests {
     use super::DirectoryAbstractService::{DirectoryBindArgument, _encode_DirectoryBindArgument};
     use super::DirectoryIDMProtocols::id_idm_dap;
     use super::IDMProtocolSpecification::{IdmBind, _encode_IDM_PDU, IDM_PDU};
-    use asn1::{UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE};
+    use wildboar_asn1::{UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE};
     use x690::{write_x690_node, X690_TAG_CLASS_CONTEXT};
 
     #[test]

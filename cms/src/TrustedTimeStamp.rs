@@ -21,7 +21,7 @@
 //!
 use crate::CryptographicMessageSyntax::*;
 use crate::TransientKey::*;
-use asn1::*;
+use wildboar_asn1::*;
 use std::sync::Arc;
 use x500::AuthenticationFramework::*;
 use x500::CertificateExtensions::*;

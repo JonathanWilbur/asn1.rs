@@ -20,7 +20,7 @@
 //! types.
 //!
 use std::sync::Arc;
-use asn1::*;
+use wildboar_asn1::*;
 use x690::*;
 use x500::AuthenticationFramework::*;
 use x500::AttributeCertificateDefinitions::*;

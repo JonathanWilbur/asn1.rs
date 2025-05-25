@@ -9,7 +9,7 @@ use x500::types::{
     value_to_string,
 };
 use x690::{X690Element, write_x690_node};
-use asn1::{ObjectIdentifierIntoDescriptor, ObjectIdentifierFromDescriptor};
+use wildboar_asn1::{ObjectIdentifierIntoDescriptor, ObjectIdentifierFromDescriptor};
 use std::sync::Arc;
 use tauri::async_runtime::Mutex;
 
@@ -37,7 +37,7 @@ impl ParseX500Value<X690Element> for ServerSideState {
 
 impl ObjectIdentifierIntoDescriptor for ServerSideState {
 
-    fn get_oid_descriptor (&self, oid: &asn1::OBJECT_IDENTIFIER) -> Option<String> {
+    fn get_oid_descriptor (&self, oid: &wildboar_asn1::OBJECT_IDENTIFIER) -> Option<String> {
         // TODO:
         None
     }
@@ -46,7 +46,7 @@ impl ObjectIdentifierIntoDescriptor for ServerSideState {
 
 impl ObjectIdentifierFromDescriptor for ServerSideState {
 
-    fn get_oid (&self, desc: &str) -> Option<asn1::OBJECT_IDENTIFIER> {
+    fn get_oid (&self, desc: &str) -> Option<wildboar_asn1::OBJECT_IDENTIFIER> {
         // TODO:
         None
     }
@@ -57,7 +57,7 @@ impl DisplayX500AttributeType for ServerSideState {  }
 
 impl DisplayX500Value<X690Element> for ServerSideState {
 
-    fn value_to_string (self: &Self, attr_type: &x500::InformationFramework::AttributeType, value: &X690Element) -> Result<Option<String>, asn1::ASN1Error> {
+    fn value_to_string (self: &Self, attr_type: &x500::InformationFramework::AttributeType, value: &X690Element) -> Result<Option<String>, wildboar_asn1::ASN1Error> {
         value_to_string(self, attr_type, value)
     }
 

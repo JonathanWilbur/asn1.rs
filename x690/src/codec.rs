@@ -18,7 +18,7 @@ use crate::{
     x690_encode_character_string_components,
     x690_encode_embedded_pdv_components,
 };
-use asn1::{
+use wildboar_asn1::{
     ASN1Result,
     ASN1Error,
     ASN1ErrorCode,
@@ -33,7 +33,7 @@ use crate::{
     _EAL_FOR_EXTERNAL,
     _RCTL2_FOR_EXTERNAL,
 };
-use asn1::types::{
+use wildboar_asn1::types::{
     TagClass,
     ASN1Codec,
     ASN1Value,
@@ -1775,7 +1775,7 @@ impl ASN1Codec for BasicEncodingRules {
         OBJECT_IDENTIFIER::try_from([2u32, 1, 1].as_slice()).unwrap()
     }
 
-    fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {
+    fn transfer_syntax_oid_iri(&self) -> Option<wildboar_asn1::OID_IRI> {
         Some("/ASN.1/Basic-Encoding".into())
     }
 }
@@ -1785,7 +1785,7 @@ impl ASN1Codec for CanonicalEncodingRules {
         OBJECT_IDENTIFIER::try_from([2u32, 1, 2, 0].as_slice()).unwrap()
     }
 
-    fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {
+    fn transfer_syntax_oid_iri(&self) -> Option<wildboar_asn1::OID_IRI> {
         Some("/ASN.1/BER-Derived/Canonical-Encoding".into())
     }
 }
@@ -1795,7 +1795,7 @@ impl ASN1Codec for DistinguishedEncodingRules {
         OBJECT_IDENTIFIER::try_from([2u32, 1, 2, 1].as_slice()).unwrap()
     }
 
-    fn transfer_syntax_oid_iri(&self) -> Option<asn1::OID_IRI> {
+    fn transfer_syntax_oid_iri(&self) -> Option<wildboar_asn1::OID_IRI> {
         Some("/ASN.1/BER-Derived/Distinguished-Encoding".into())
     }
 }

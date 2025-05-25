@@ -13,7 +13,7 @@ use serde_wasm_bindgen::{to_value, from_value};
 use crate::ipc::invoke;
 use wasm_bindgen_futures::spawn_local;
 use log::{info, error};
-use asn1::OBJECT_IDENTIFIER;
+use wildboar_asn1::OBJECT_IDENTIFIER;
 use std::cell::RefCell;
 use crate::components::AttributeTypeNode::AttributeTypeNode;
 use crate::components::AttributeNode::AttributeNode;

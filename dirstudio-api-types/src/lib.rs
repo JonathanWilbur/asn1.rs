@@ -22,7 +22,7 @@ use x500::CertificateExtensions::{
     EDIPartyName,
 };
 use x500::SelectedAttributeTypes::UnboundedDirectoryString;
-use asn1::{OID_ARC, ObjectIdentifierIntoDescriptor, OBJECT_IDENTIFIER};
+use wildboar_asn1::{OID_ARC, ObjectIdentifierIntoDescriptor, OBJECT_IDENTIFIER};
 use std::fmt::Display;
 use std::net::{ToSocketAddrs, SocketAddr};
 use std::rc::Rc;

@@ -25,7 +25,7 @@ use crate::DistributedOperations::*;
 use crate::IDMProtocolSpecification::*;
 use crate::OperationalBindingManagement::*;
 use crate::UsefulDefinitions::*;
-use asn1::*;
+use wildboar_asn1::*;
 use x690::*;
 
 /// ### ASN.1 Definition:

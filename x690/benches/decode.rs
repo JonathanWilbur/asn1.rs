@@ -1,5 +1,5 @@
 
-use asn1::types::{
+use wildboar_asn1::types::{
     ASN1Value, TagClass, UNIV_TAG_NULL,
     UNIV_TAG_OBJECT_IDENTIFIER,
     UNIV_TAG_SEQUENCE, OBJECT_IDENTIFIER,
@@ -8,8 +8,8 @@ use asn1::types::{
 };
 use std::sync::Arc;
 use x690::{X690Codec, X690Element, X690Value, _parse_set, BER};
-use asn1::construction::{ComponentSpec, TagSelector};
-use asn1::error::ASN1Result;
+use wildboar_asn1::construction::{ComponentSpec, TagSelector};
+use wildboar_asn1::error::ASN1Result;
 use std::borrow::Borrow;
 use x690::{_parse_sequence, X690StructureIterator};
 use criterion::{criterion_group, criterion_main, Criterion};

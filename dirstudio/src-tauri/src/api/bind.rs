@@ -1,4 +1,4 @@
-use asn1::{BIT_STRING, read_i64};
+use wildboar_asn1::{BIT_STRING, read_i64};
 use dirstudio_api_types::{
     BindResult,
     DirectoryClientError,
