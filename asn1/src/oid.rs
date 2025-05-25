@@ -528,10 +528,11 @@ impl TryFrom<&[OID_ARC]> for OBJECT_IDENTIFIER {
     /// going to have to use a combination of [write_oid_arc] and
     /// [OBJECT_IDENTIFIER::from_x690_encoding].
     fn try_from(value: &[OID_ARC]) -> Result<Self, Self::Error> {
-        if value.len() == 0 {
+        let len = value.len();
+        if unlikely(value.len() == 0) {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
-        if value[0] > 2 || (value[0] < 2 && value.get(1).is_some_and(|second_arc| *second_arc > 39)) {
+        if unlikely(value[0] > 2 || (value[0] < 2 && value.get(1).is_some_and(|second_arc| *second_arc > 39))) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_oid_arc));
         }
         let node0: OID_ARC = value[0] * 40; // Checking not needed.
@@ -541,8 +542,8 @@ impl TryFrom<&[OID_ARC]> for OBJECT_IDENTIFIER {
 
         #[cfg(feature = "smallvec")]
         {
-            let mut inner: SmallVec<[u8; 16]> = SmallVec::with_capacity(12);
-            if unlikely(value.len() == 1) {
+            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
+            if unlikely(len == 1) {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
                 inner.push(min(value[0], 2) as u8 | 0b1000_0000);
@@ -567,7 +568,7 @@ impl TryFrom<&[OID_ARC]> for OBJECT_IDENTIFIER {
                 .reduce(|total, size| total + size)
                 .unwrap_or(16);
             let mut inner: Vec<u8> = Vec::with_capacity(pre_alloc_size);
-            if value.len() == 1 {
+            if unlikely(len == 1) {
                 // This is a hack: to represent a single root arc, we create an
                 // invalid OID with the first bit set and a length of 1.
                 inner.push(min(value[0], 2) as u8 | 0b1000_0000);
