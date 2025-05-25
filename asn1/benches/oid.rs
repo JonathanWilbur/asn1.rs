@@ -15,20 +15,15 @@ fn create_oid_2(n: u32) -> OBJECT_IDENTIFIER {
 
 fn vec_test() -> Vec<u8> {
     let mut v = Vec::with_capacity(16);
-    for i in 0..14 {
+    for i in 0..(v.capacity()-2) as u8 {
         v.push(i);
     }
     v
 }
 
-// TODO: Report or study this further
-/*
-It seems like a SmallVec of 14 bytes is about 3x faster than the normal Vec,
-but 15 bytes or more is 100x slower!
-*/
-fn smallvec_test() -> SmallVec<[u8; 16]>  {
+fn smallvec_test() -> SmallVec<[u8; 16]> {
     let mut v: SmallVec<[u8; 16]> = SmallVec::new();
-    for i in 0..14 {
+    for i in 0..(v.capacity()-2) as u8 {
         v.push(i);
     }
     v
