@@ -130,11 +130,3 @@ cargo fuzz run oid -- -max_len=24
 ```
 
 These will run forever, so you will want to kill them by pressing `Ctrl+C`.
-
-## Versioning
-
-This is currently in beta. Be prepared for potentially large breaking changes
-until `1.0.0` is released, after which I will adhere to semantic versioning.
-
-However, I have successfully built applications using this library, so it is
-somewhat battle-tested.
