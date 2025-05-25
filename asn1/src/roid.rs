@@ -34,7 +34,7 @@ pub struct RELATIVE_OID (pub(crate) Vec<u8>);
 /// An ASN.1 `RELATIVE-OID`
 #[cfg(feature = "smallvec")]
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Default)]
-pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 14]>);
+pub struct RELATIVE_OID (pub(crate) smallvec::SmallVec<[u8; 16]>);
 
 /// Iterator over the arcs of a `RELATIVE-OID`
 #[derive(Debug, Clone, Copy)]
@@ -124,7 +124,7 @@ impl RELATIVE_OID {
     /// This is defined so that you can define OIDs as compile-time constants.
     #[cfg(feature = "smallvec")]
     #[inline]
-    pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 14]>) -> Self {
+    pub const fn from_smallvec_unchecked (enc: SmallVec<[u8; 16]>) -> Self {
         RELATIVE_OID(enc)
     }
 
@@ -239,7 +239,7 @@ impl RELATIVE_OID {
     /// Produces an X.690 encoding of this `RELATIVE-OID` in a `SmallVec`
     #[cfg(feature = "smallvec")]
     #[inline]
-    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 14]> {
+    pub fn to_x690_smallvec(self) -> SmallVec<[u8; 16]> {
         self.0
     }
 
@@ -400,7 +400,7 @@ impl TryFrom<&[u32]> for RELATIVE_OID {
     fn try_from(value: &[u32]) -> Result<Self, Self::Error> {
         #[cfg(feature = "smallvec")]
         {
-            let mut inner: SmallVec<[u8; 14]> = SmallVec::new();
+            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
             for arc in value.iter() {
                 write_oid_arc!(inner, *arc);
             }
@@ -419,7 +419,7 @@ impl TryFrom<&[u32]> for RELATIVE_OID {
                 .reduce(|total, size| total + size)
                 .unwrap();
             let mut inner: Vec<u8> = Vec::with_capacity(pre_alloc_size);
-            for arc in value[2..].iter() {
+            for arc in value.iter() {
                 write_oid_arc!(inner, *arc);
             }
             Ok(RELATIVE_OID(inner))
@@ -469,7 +469,7 @@ impl TryFrom<&[i8]> for RELATIVE_OID {
 
         #[cfg(feature = "smallvec")]
         {
-            let mut inner: SmallVec<[u8; 14]> = SmallVec::new();
+            let mut inner: SmallVec<[u8; 16]> = SmallVec::new();
             inner.extend_from_slice(&unsigned);
             Ok(RELATIVE_OID(inner))
         }
