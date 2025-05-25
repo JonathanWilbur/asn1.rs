@@ -532,9 +532,9 @@ impl X690Codec for BasicEncodingRules {
                 // FIXME: Wrong formatting.
                 let format = value_bytes[0] & 0b0011_1111;
                 return match format {
-                    X690_REAL_NR1 => Ok(f64_value),
-                    X690_REAL_NR2 => Ok(f64_value),
-                    X690_REAL_NR3 => Ok(f64_value),
+                    crate::X690_REAL_NR1 => Ok(f64_value),
+                    crate::X690_REAL_NR2 => Ok(f64_value),
+                    crate::X690_REAL_NR3 => Ok(f64_value),
                     _ => {
                         return Err(ASN1Error::new(
                             ASN1ErrorCode::base_10_real_unrecognized_format(format),
@@ -562,15 +562,14 @@ impl X690Codec for BasicEncodingRules {
                 let mantissa: u64;
                 let exponent: i32;
                 match value_bytes[0] & X690_REAL_EXPONENT_FORMAT_MASK {
-                    // FIXME: This is not doing what you think!
-                    X690_REAL_EXPONENT_FORMAT_1_OCTET => {
+                    crate::X690_REAL_EXPONENT_FORMAT_1_OCTET => {
                         if value_bytes.len() < 3 {
                             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                         }
                         exponent = value_bytes[1] as i8 as i32;
                         mantissa = ber_read_var_length_u64(&value_bytes[2..])
                     }
-                    X690_REAL_EXPONENT_FORMAT_2_OCTET => {
+                    crate::X690_REAL_EXPONENT_FORMAT_2_OCTET => {
                         if value_bytes.len() < 4 {
                             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                         }
@@ -581,7 +580,7 @@ impl X690Codec for BasicEncodingRules {
                         exponent = i32::from_be_bytes([0, 0, value_bytes[1], value_bytes[2]]);
                         mantissa = ber_read_var_length_u64(&value_bytes[3..])
                     }
-                    X690_REAL_EXPONENT_FORMAT_3_OCTET => {
+                    crate::X690_REAL_EXPONENT_FORMAT_3_OCTET => {
                         if value_bytes.len() < 5 {
                             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                         }
@@ -593,7 +592,7 @@ impl X690Codec for BasicEncodingRules {
                             i32::from_be_bytes([0, value_bytes[1], value_bytes[2], value_bytes[3]]);
                         mantissa = ber_read_var_length_u64(&value_bytes[4..])
                     }
-                    X690_REAL_EXPONENT_FORMAT_VAR_OCTET => {
+                    crate::X690_REAL_EXPONENT_FORMAT_VAR_OCTET => {
                         if value_bytes.len() < 3 {
                             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                         }
@@ -615,7 +614,6 @@ impl X690Codec for BasicEncodingRules {
                             mantissa = ber_read_var_length_u64(&value_bytes[4..]);
                         }
                     }
-                    _ => return Err(ASN1Error::new(ASN1ErrorCode::nonsense)), // This should never happen.
                 }
                 let unsigned_value = (mantissa as f64)
                     * (2u8.pow(scale.into())) as f64
