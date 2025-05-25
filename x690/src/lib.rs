@@ -5,7 +5,7 @@ pub use crate::ber::*;
 pub use crate::codec::*;
 pub use crate::parsing::*;
 use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use wildboar_asn1::types::{
+use wildboar_asn1::{
     ASN1Value, ByteSlice, CharacterString, EmbeddedPDV, ExternalEncoding,
     ExternalIdentification, GeneralizedTime, ObjectDescriptor,
     PresentationContextSwitchingTypeIdentification, Tag, TagClass, TagNumber, TaggedASN1Value,
@@ -29,7 +29,7 @@ use wildboar_asn1::types::{
     UNIV_TAG_UNIVERSAL_STRING, UNIV_TAG_UTC_TIME,
     UNIV_TAG_UTF8_STRING, UNIV_TAG_VIDEOTEX_STRING,
     UNIV_TAG_VISIBLE_STRING, BIT_STRING, BOOLEAN, DATE, DATE_TIME,
-    DURATION_EQUIVALENT, EXTERNAL, INTEGER, MAX_IA5_STRING_CHAR_CODE, OBJECT_IDENTIFIER,
+    DURATION_EQUIVALENT, EXTERNAL, INTEGER, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
 };
 use wildboar_asn1::{ENUMERATED, read_i64, DURATION, ComponentSpec, TagSelector};
@@ -1119,7 +1119,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
         }
         ASN1Value::IA5String(v) => {
             for c in v.chars() {
-                if c > MAX_IA5_STRING_CHAR_CODE as char {
+                if c > 127 as char {
                     return Err(Error::from(ErrorKind::InvalidData));
                 }
             }
@@ -1445,8 +1445,8 @@ pub fn x690_read_integer_value(value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
 
 pub fn x690_read_i64_value(value_bytes: ByteSlice) -> ASN1Result<i64> {
     match read_i64(value_bytes) {
-        Ok(v) => Ok(v),
-        Err(_) => Err(ASN1Error::new(ASN1ErrorCode::value_too_big)),
+        Some(v) => Ok(v),
+        None => Err(ASN1Error::new(ASN1ErrorCode::value_too_big)),
     }
 }
 
@@ -1598,7 +1598,7 @@ mod tests {
     #[test]
     fn test_x690_write_object_identifier_value() {
         let mut output = BytesMut::new().writer();
-        let oid = wildboar_asn1::types::OBJECT_IDENTIFIER::try_from(vec![2u32, 5, 4, 3]).unwrap();
+        let oid = wildboar_asn1::OBJECT_IDENTIFIER::try_from(vec![2u32, 5, 4, 3]).unwrap();
         crate::x690_write_object_identifier_value(&mut output, &oid).unwrap();
         let output: Bytes = output.into_inner().into();
         assert_eq!(output.len(), 3);

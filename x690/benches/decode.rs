@@ -1,5 +1,5 @@
 
-use wildboar_asn1::types::{
+use wildboar_asn1::{
     ASN1Value, TagClass, UNIV_TAG_NULL,
     UNIV_TAG_OBJECT_IDENTIFIER,
     UNIV_TAG_SEQUENCE, OBJECT_IDENTIFIER,

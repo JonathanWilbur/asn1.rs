@@ -6,7 +6,7 @@ use crate::{X690Element, X690Value};
 use wildboar_asn1::TagClass;
 use wildboar_asn1::construction::{ComponentSpec, TagSelector};
 use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
-use wildboar_asn1::types::Tag;
+use wildboar_asn1::Tag;
 use std::collections::HashMap;
 use std::sync::Arc;
 

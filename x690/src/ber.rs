@@ -28,7 +28,7 @@ use crate::{
     x690_write_universal_string_value,
     x690_write_bmp_string_value,
 };
-use wildboar_asn1::types::{
+use wildboar_asn1::{
     TagClass,
     ASN1Value,
     BMPString,
@@ -94,7 +94,7 @@ use bytes::{Bytes, BytesMut, BufMut};
 use std::mem::size_of;
 use std::sync::Arc;
 use simdutf8::basic::from_utf8;
-use std::str::FromStr;
+use std::str::{FromStr, Utf8Error};
 
 pub const BER: BasicEncodingRules = BasicEncodingRules::new();
 
@@ -614,6 +614,7 @@ impl X690Codec for BasicEncodingRules {
                             mantissa = ber_read_var_length_u64(&value_bytes[4..]);
                         }
                     }
+                    _ => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)) // TODO: Define a variant for this error
                 }
                 let unsigned_value = (mantissa as f64)
                     * (2u8.pow(scale.into())) as f64
@@ -680,7 +681,7 @@ impl X690Codec for BasicEncodingRules {
     fn decode_utf8_string(&self, el: &X690Element) -> ASN1Result<UTF8String> {
         match String::from_utf8(deconstruct(el)?.into_owned()) {
             Ok(x) => Ok(x),
-            Err(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
+            Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(e.utf8_error()))),
         }
     }
 
@@ -1336,7 +1337,7 @@ impl X690Codec for BasicEncodingRules {
     fn validate_utf8_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         from_utf8(content_octets)
             .map(|_| ())
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8))
+            .map_err(|e| ASN1Error::new(ASN1ErrorCode::malformed_value)) // FIXME: Utf8Error
     }
 
     #[inline]
@@ -1425,7 +1426,8 @@ impl X690Codec for BasicEncodingRules {
                 bad_char_index,
             )));
         }
-        let s = from_utf8(&content_octets[0..10]).map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8))?;
+        let s = from_utf8(&content_octets[0..10])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?; // FIXME: Utf8Error
         let mut year = u16::from_str(&s[0..2])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
         if year > 75 { // I think this is specified in RFC 5280. I forgot where I saw it.
@@ -1606,7 +1608,7 @@ impl X690Codec for BasicEncodingRules {
     fn validate_generalized_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         let s = match from_utf8(content_octets) {
             Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8)),
+            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
         };
 
         // Check for basic length
