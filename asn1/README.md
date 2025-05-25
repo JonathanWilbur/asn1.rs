@@ -13,7 +13,18 @@ exchange for _better performance_, notably using a lot of SIMD and other
 optimizations. This is **not** a lightweight crate; it is intended to be a fast,
 feature-complete, meticulous, and well-tested ASN.1 crate.
 
-## Features
+## Feature Flags
+
+- `atoi_simd` - This will make integer parsing slightly faster, but only if you
+  enable SIMD features at compile-time. See this crate's documentation.
+- `faster-hex` - Faster hex compilation. Not tested to see if it's really faster.
+- `itoa` - Faster integer printing, only in a few select cases like OIDs and `DURATION` values
+- `likely_stable` - Helps branch prediction, thereby making the code generally a little faster
+- `smallvec` - Use `SmallVec<[u8; 16]>` to store `OBJECT IDENTIFIER`,
+  `RELATIVE-OID` and `BIT STRING`. Experimentation has shown this to be slower
+  for some strange reason, so it should probably stay turned off.
+
+## Capabilities
 
 All universal types are supported, including the newer `TIME` subtypes: `DATE`,
 `DATE-TIME`, `TIME-OF-DAY`, and `DURATION`.
@@ -130,7 +141,4 @@ somewhat battle-tested.
 
 ## To Do
 
-- [ ] Document feature flags
-  - [ ] Document that `smallvec` is disabled by default, because it _never_ outperformed a normal `Vec`.
-- [ ] Benchmarking
 - [ ] Update dependencies one last time
