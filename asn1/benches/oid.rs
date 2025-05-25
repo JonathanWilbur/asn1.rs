@@ -26,8 +26,8 @@ fn vec_test() -> Vec<u8> {
 It seems like a SmallVec of 14 bytes is about 3x faster than the normal Vec,
 but 15 bytes or more is 100x slower!
 */
-fn smallvec_test() -> SmallVec<[u8; 14]>  {
-    let mut v: SmallVec<[u8; 14]> = SmallVec::new();
+fn smallvec_test() -> SmallVec<[u8; 16]>  {
+    let mut v: SmallVec<[u8; 16]> = SmallVec::new();
     for i in 0..14 {
         v.push(i);
     }
