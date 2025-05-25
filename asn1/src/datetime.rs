@@ -82,13 +82,13 @@ impl DATE_TIME {
     /// abstract value from the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
-    pub fn try_from_num_str(s: &str) -> ASN1Result<Self> {
+    pub fn from_num_str(s: &str) -> ASN1Result<Self> {
         if unlikely(s.len() != 14) {
             // "YYYYMMDDHHMMSS".len()
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let date = DATE::try_from_num_str(&s[0..8])?;
-        let time = crate::TIME_OF_DAY::try_from_num_str(&s[8..])?;
+        let date = DATE::from_num_str(&s[0..8])?;
+        let time = crate::TIME_OF_DAY::from_num_str(&s[8..])?;
         return Ok(DATE_TIME { date, time });
     }
 
@@ -194,7 +194,7 @@ impl TryFrom<&[u8]> for DATE_TIME {
     ///
     /// X.690 encoding does _not_ use the dashes, colons, or "T". This is the
     /// wrong function for decoding BER, CER, or DER-encoded `DATE` values. Use
-    /// [DATE_TIME::try_from_num_str] instead for X.690 decoding.
+    /// [DATE_TIME::from_num_str] instead for X.690 decoding.
     #[inline]
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
         if unlikely(value_bytes.len() != 19) {
@@ -216,7 +216,7 @@ impl FromStr for DATE_TIME {
     ///
     /// X.690 encoding does _not_ use the dashes, colons, or "T". This is the
     /// wrong function for decoding BER, CER, or DER-encoded `DATE` values. Use
-    /// [DATE_TIME::try_from_num_str] instead for X.690 decoding.
+    /// [DATE_TIME::from_num_str] instead for X.690 decoding.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         DATE_TIME::try_from(s.as_bytes())
@@ -324,13 +324,13 @@ mod tests {
 
     #[test]
     fn test_date_to_and_from_str_1() {
-        let dt = DATE_TIME::try_from_num_str("20220304050607").unwrap();
+        let dt = DATE_TIME::from_num_str("20220304050607").unwrap();
         assert_eq!(dt.to_num_str(), "20220304050607");
     }
 
     #[test]
     fn test_date_to_and_from_str_2() {
-        let dt = DATE_TIME::try_from_num_str("02220304050607").unwrap();
+        let dt = DATE_TIME::from_num_str("02220304050607").unwrap();
         assert_eq!(dt.to_num_str(), "02220304050607");
     }
 

@@ -72,7 +72,7 @@ impl TIME_OF_DAY {
     /// abstract value from the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
-    pub fn try_from_num_str(s: &str) -> ASN1Result<Self> {
+    pub fn from_num_str(s: &str) -> ASN1Result<Self> {
         let b = s.as_bytes();
         if b.len() != 6 {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -157,7 +157,7 @@ impl TryFrom<&[u8]> for TIME_OF_DAY {
     ///
     /// X.690 encoding does _not_ use the colons. This is the wrong function for
     /// decoding BER, CER, or DER-encoded `TIME-OF-DAY` values. Use
-    /// [TIME_OF_DAY::try_from_num_str] instead for X.690 decoding.
+    /// [TIME_OF_DAY::from_num_str] instead for X.690 decoding.
     fn try_from(value_bytes: &[u8]) -> Result<Self, Self::Error> {
         if unlikely(value_bytes.len() != 8) {
             // "HH:MM:SS".len()
@@ -214,7 +214,7 @@ impl FromStr for TIME_OF_DAY {
     ///
     /// X.690 encoding does _not_ use the colons. This is the wrong function for
     /// decoding BER, CER, or DER-encoded `TIME-OF-DAY` values. Use
-    /// [TIME_OF_DAY::try_from_num_str] instead for X.690 decoding.
+    /// [TIME_OF_DAY::from_num_str] instead for X.690 decoding.
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         TIME_OF_DAY::try_from(s.as_bytes())
@@ -317,13 +317,13 @@ mod tests {
 
     #[test]
     fn test_time_of_day_to_and_from_str_1() {
-        let tod = TIME_OF_DAY::try_from_num_str("151317").unwrap();
+        let tod = TIME_OF_DAY::from_num_str("151317").unwrap();
         assert_eq!(tod.to_num_str(), "151317");
     }
 
     #[test]
     fn test_time_of_day_to_and_from_str_2() {
-        let tod = TIME_OF_DAY::try_from_num_str("050307").unwrap();
+        let tod = TIME_OF_DAY::from_num_str("050307").unwrap();
         assert_eq!(tod.to_num_str(), "050307");
     }
 
