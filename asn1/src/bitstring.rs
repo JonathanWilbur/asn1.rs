@@ -187,7 +187,7 @@ impl BIT_STRING {
             len = self.bytes.len();
         }
         if len > 0 && self.trailing_bits > 0 {
-            let zeroing_mask: u8 = 0xFFu8.unbounded_shl(self.trailing_bits as u32);
+            let zeroing_mask: u8 = 0xFFu8.wrapping_shl(self.trailing_bits as u32);
             self.bytes[len - 1] &= zeroing_mask;
         }
         if value {
