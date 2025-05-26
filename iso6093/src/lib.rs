@@ -328,165 +328,184 @@ pub fn parse_iso6093(input: &mut str) -> Result<ISO6093RealNumber, ISO6093Error>
 // TODO: print_nr3
 // TODO: print_iso6093
 
-#[cfg(all(test, feature = "alloc"))]
+// #[cfg(all(test, feature = "alloc"))]
+#[cfg(test)]
 mod tests {
     use super::*;
+
+    extern crate alloc;
+    use alloc::borrow::ToOwned;
+    use alloc::string::ToString;
+
+    #[cfg(feature = "alloc")]
+    macro_rules! s {
+        ($arg:expr) => {
+            $arg
+        }
+    }
+
+    #[cfg(not(feature = "alloc"))]
+    macro_rules! s {
+        ($arg:expr) => {
+            alloc::string::ToString::to_string($arg).as_mut_str()
+        };
+    }
 
     #[test]
     fn test_parse_nr1() {
         // Unsigned examples directly from ISO 6093
-        assert_eq!(parse_nr1("0004902"), Ok(4902.0));
-        assert_eq!(parse_nr1("  4902"), Ok(4902.0));
-        assert_eq!(parse_nr1("   4902"), Ok(4902.0));
-        assert_eq!(parse_nr1("0001234"), Ok(1234.0));
-        assert_eq!(parse_nr1("   1234"), Ok(1234.0));
-        assert_eq!(parse_nr1("0000000"), Ok(0.0));
-        assert_eq!(parse_nr1("      0"), Ok(0.0));
-        assert_eq!(parse_nr1("1234567"), Ok(1234567.0));
+        assert_eq!(parse_nr1(s!("0004902")), Ok(4902.0));
+        assert_eq!(parse_nr1(s!("  4902")), Ok(4902.0));
+        assert_eq!(parse_nr1(s!("   4902")), Ok(4902.0));
+        assert_eq!(parse_nr1(s!("0001234")), Ok(1234.0));
+        assert_eq!(parse_nr1(s!("   1234")), Ok(1234.0));
+        assert_eq!(parse_nr1(s!("0000000")), Ok(0.0));
+        assert_eq!(parse_nr1(s!("      0")), Ok(0.0));
+        assert_eq!(parse_nr1(s!("1234567")), Ok(1234567.0));
 
         // Signed examples directly from ISO 6093
-        assert_eq!(parse_nr1("+004902"), Ok(4902.0));
-        assert_eq!(parse_nr1(" +4902"), Ok(4902.0));
-        assert_eq!(parse_nr1("  +4902"), Ok(4902.0));
-        assert_eq!(parse_nr1("   4902"), Ok(4902.0));
-        assert_eq!(parse_nr1("+001234"), Ok(1234.0));
-        assert_eq!(parse_nr1("  +1234"), Ok(1234.0));
-        assert_eq!(parse_nr1("   1234"), Ok(1234.0));
-        assert_eq!(parse_nr1("-56780"), Ok(-56780.0));
-        assert_eq!(parse_nr1(" -56780"), Ok(-56780.0));
-        assert_eq!(parse_nr1("+000000"), Ok(0.0));
-        assert_eq!(parse_nr1("     +0"), Ok(0.0));
-        assert_eq!(parse_nr1("      0"), Ok(0.0));
+        assert_eq!(parse_nr1(s!("+004902")), Ok(4902.0));
+        assert_eq!(parse_nr1(s!(" +4902")), Ok(4902.0));
+        assert_eq!(parse_nr1(s!("  +4902")), Ok(4902.0));
+        assert_eq!(parse_nr1(s!("   4902")), Ok(4902.0));
+        assert_eq!(parse_nr1(s!("+001234")), Ok(1234.0));
+        assert_eq!(parse_nr1(s!("  +1234")), Ok(1234.0));
+        assert_eq!(parse_nr1(s!("   1234")), Ok(1234.0));
+        assert_eq!(parse_nr1(s!("-56780")), Ok(-56780.0));
+        assert_eq!(parse_nr1(s!(" -56780")), Ok(-56780.0));
+        assert_eq!(parse_nr1(s!("+000000")), Ok(0.0));
+        assert_eq!(parse_nr1(s!("     +0")), Ok(0.0));
+        assert_eq!(parse_nr1(s!("      0")), Ok(0.0));
 
         // Other tests
-        assert_eq!(parse_nr1("123"), Ok(123.0));
-        assert_eq!(parse_nr1("-456"), Ok(-456.0));
-        assert_eq!(parse_nr1("+789"), Ok(789.0));
-        assert_eq!(parse_nr1(""), Err(ISO6093Error::ParseError));
-        assert_eq!(parse_nr1("12.3"), Err(ISO6093Error::ParseError));
-        assert_eq!(parse_nr1("12E3"), Err(ISO6093Error::ParseError));
+        assert_eq!(parse_nr1(s!("123")), Ok(123.0));
+        assert_eq!(parse_nr1(s!("-456")), Ok(-456.0));
+        assert_eq!(parse_nr1(s!("+789")), Ok(789.0));
+        assert_eq!(parse_nr1(s!("")), Err(ISO6093Error::ParseError));
+        assert_eq!(parse_nr1(s!("12.3")), Err(ISO6093Error::ParseError));
+        assert_eq!(parse_nr1(s!("12E3")), Err(ISO6093Error::ParseError));
     }
 
     #[test]
     fn test_parse_nr2() {
         // Unsigned examples directly from ISO 6093
-        assert_eq!(parse_nr2("1327.000"), Ok(1327.0));
-        assert_eq!(parse_nr2("0001327."), Ok(1327.0));
-        assert_eq!(parse_nr2("   1327."), Ok(1327.0));
-        assert_eq!(parse_nr2("00123.45"), Ok(123.45));
-        assert_eq!(parse_nr2("  123.45"), Ok(123.45));
-        assert_eq!(parse_nr2("  1237.0"), Ok(1237.0));
-        assert_eq!(parse_nr2("00.00001"), Ok(0.00001));
-        assert_eq!(parse_nr2("1234,567"), Ok(1234.567));
-        assert_eq!(parse_nr2("000,0000"), Ok(0.0));
-        assert_eq!(parse_nr2("     0,0"), Ok(0.0));
+        assert_eq!(parse_nr2(s!("1327.000")), Ok(1327.0));
+        assert_eq!(parse_nr2(s!("0001327.")), Ok(1327.0));
+        assert_eq!(parse_nr2(s!("   1327.")), Ok(1327.0));
+        assert_eq!(parse_nr2(s!("00123.45")), Ok(123.45));
+        assert_eq!(parse_nr2(s!("  123.45")), Ok(123.45));
+        assert_eq!(parse_nr2(s!("  1237.0")), Ok(1237.0));
+        assert_eq!(parse_nr2(s!("00.00001")), Ok(0.00001));
+        assert_eq!(parse_nr2(s!("1234,567")), Ok(1234.567));
+        assert_eq!(parse_nr2(s!("000,0000")), Ok(0.0));
+        assert_eq!(parse_nr2(s!("     0,0")), Ok(0.0));
 
         // Signed examples directly from ISO 6093
-        assert_eq!(parse_nr2("+1327.00"), Ok(1327.00));
-        assert_eq!(parse_nr2("  +1327."), Ok(1327.0));
-        assert_eq!(parse_nr2("   1327."), Ok(1327.0));
-        assert_eq!(parse_nr2(" +123.45"), Ok(123.45));
-        assert_eq!(parse_nr2("  123,45"), Ok(123.45));
-        assert_eq!(parse_nr2(" +1237.0"), Ok(1237.0));
-        assert_eq!(parse_nr2("  1237,0"), Ok(1237.0));
-        assert_eq!(parse_nr2("+0.00001"), Ok(0.00001));
-        assert_eq!(parse_nr2("-5,67800"), Ok(-5.67800));
-        assert_eq!(parse_nr2("-05,6780"), Ok(-5.6780));
-        assert_eq!(parse_nr2("+0.00000"), Ok(0.0));
-        assert_eq!(parse_nr2("    +0,0"), Ok(0.0));
-        assert_eq!(parse_nr2("     0,0"), Ok(0.0));
-        assert_eq!(parse_nr2("      0,"), Ok(0.0));
+        assert_eq!(parse_nr2(s!("+1327.00")), Ok(1327.00));
+        assert_eq!(parse_nr2(s!("  +1327.")), Ok(1327.0));
+        assert_eq!(parse_nr2(s!("   1327.")), Ok(1327.0));
+        assert_eq!(parse_nr2(s!(" +123.45")), Ok(123.45));
+        assert_eq!(parse_nr2(s!("  123,45")), Ok(123.45));
+        assert_eq!(parse_nr2(s!(" +1237.0")), Ok(1237.0));
+        assert_eq!(parse_nr2(s!("  1237,0")), Ok(1237.0));
+        assert_eq!(parse_nr2(s!("+0.00001")), Ok(0.00001));
+        assert_eq!(parse_nr2(s!("-5,67800")), Ok(-5.67800));
+        assert_eq!(parse_nr2(s!("-05,6780")), Ok(-5.6780));
+        assert_eq!(parse_nr2(s!("+0.00000")), Ok(0.0));
+        assert_eq!(parse_nr2(s!("    +0,0")), Ok(0.0));
+        assert_eq!(parse_nr2(s!("     0,0")), Ok(0.0));
+        assert_eq!(parse_nr2(s!("      0,")), Ok(0.0));
 
         // Other tests
-        assert_eq!(parse_nr2("123.45"), Ok(123.45));
-        assert_eq!(parse_nr2("-67.89"), Ok(-67.89));
-        assert_eq!(parse_nr2("+0.123"), Ok(0.123));
-        assert_eq!(parse_nr2(""), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr2("123"), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr2("12E3"), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr2(s!("123.45")), Ok(123.45));
+        assert_eq!(parse_nr2(s!("-67.89")), Ok(-67.89));
+        assert_eq!(parse_nr2(s!("+0.123")), Ok(0.123));
+        assert_eq!(parse_nr2(s!("")), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr2(s!("123")), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr2(s!("12E3")), Err(ISO6093Error::InvalidFormat));
     }
 
     #[test]
     fn test_parse_nr3() {
         // Examples directly from ISO 6093
-        assert_eq!(parse_nr3("+0,56E+4"), Ok(5600.0));
-        assert_eq!(parse_nr3("+5.6e+03"), Ok(5600.0));
-        assert_eq!(parse_nr3("+0,3E-04"), Ok(0.00003));
-        assert_eq!(parse_nr3(" 0,3e-04"), Ok(0.00003));
-        assert_eq!(parse_nr3("-2,8E+00"), Ok(-2.8));
-        assert_eq!(parse_nr3("+0,0E+00"), Ok(0.0));
-        assert_eq!(parse_nr3("   0.e+0"), Ok(0.0));
+        assert_eq!(parse_nr3(s!("+0,56E+4")), Ok(5600.0));
+        assert_eq!(parse_nr3(s!("+5.6e+03")), Ok(5600.0));
+        assert_eq!(parse_nr3(s!("+0,3E-04")), Ok(0.00003));
+        assert_eq!(parse_nr3(s!(" 0,3e-04")), Ok(0.00003));
+        assert_eq!(parse_nr3(s!("-2,8E+00")), Ok(-2.8));
+        assert_eq!(parse_nr3(s!("+0,0E+00")), Ok(0.0));
+        assert_eq!(parse_nr3(s!("   0.e+0")), Ok(0.0));
 
         // Other tests
-        assert_eq!(parse_nr3("1.23E+45"), Ok(1.23E+45));
-        assert_eq!(parse_nr3("-6.78e-9"), Ok(-6.78e-9));
-        assert_eq!(parse_nr3("+1.0E2"), Ok(100.0));
-        assert_eq!(parse_nr3(""), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr3("123.45"), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr3("123"), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr3(s!("1.23E+45")), Ok(1.23E+45));
+        assert_eq!(parse_nr3(s!("-6.78e-9")), Ok(-6.78e-9));
+        assert_eq!(parse_nr3(s!("+1.0E2")), Ok(100.0));
+        assert_eq!(parse_nr3(s!("")), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr3(s!("123.45")), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr3(s!("123")), Err(ISO6093Error::InvalidFormat));
     }
 
     #[test]
     fn test_parse_iso6093() {
         // Unsigned examples directly from ISO 6093
-        assert_eq!(parse_iso6093("0004902"), Ok(ISO6093RealNumber::NR1(4902.0)));
-        assert_eq!(parse_iso6093("  4902"),  Ok(ISO6093RealNumber::NR1(4902.0)));
-        assert_eq!(parse_iso6093("   4902"), Ok(ISO6093RealNumber::NR1(4902.0)));
-        assert_eq!(parse_iso6093("0001234"), Ok(ISO6093RealNumber::NR1(1234.0)));
-        assert_eq!(parse_iso6093("   1234"), Ok(ISO6093RealNumber::NR1(1234.0)));
-        assert_eq!(parse_iso6093("0000000"), Ok(ISO6093RealNumber::NR1(0.0)));
-        assert_eq!(parse_iso6093("      0"), Ok(ISO6093RealNumber::NR1(0.0)));
-        assert_eq!(parse_iso6093("1234567"), Ok(ISO6093RealNumber::NR1(1234567.0)));
+        assert_eq!(parse_iso6093(s!("0004902")), Ok(ISO6093RealNumber::NR1(4902.0)));
+        assert_eq!(parse_iso6093(s!("  4902")),  Ok(ISO6093RealNumber::NR1(4902.0)));
+        assert_eq!(parse_iso6093(s!("   4902")), Ok(ISO6093RealNumber::NR1(4902.0)));
+        assert_eq!(parse_iso6093(s!("0001234")), Ok(ISO6093RealNumber::NR1(1234.0)));
+        assert_eq!(parse_iso6093(s!("   1234")), Ok(ISO6093RealNumber::NR1(1234.0)));
+        assert_eq!(parse_iso6093(s!("0000000")), Ok(ISO6093RealNumber::NR1(0.0)));
+        assert_eq!(parse_iso6093(s!("      0")), Ok(ISO6093RealNumber::NR1(0.0)));
+        assert_eq!(parse_iso6093(s!("1234567")), Ok(ISO6093RealNumber::NR1(1234567.0)));
 
         // Signed examples directly from ISO 6093
-        assert_eq!(parse_iso6093("+004902"), Ok(ISO6093RealNumber::NR1(4902.0)));
-        assert_eq!(parse_iso6093(" +4902"),  Ok(ISO6093RealNumber::NR1(4902.0)));
-        assert_eq!(parse_iso6093("  +4902"), Ok(ISO6093RealNumber::NR1(4902.0)));
-        assert_eq!(parse_iso6093("   4902"), Ok(ISO6093RealNumber::NR1(4902.0)));
-        assert_eq!(parse_iso6093("+001234"), Ok(ISO6093RealNumber::NR1(1234.0)));
-        assert_eq!(parse_iso6093("  +1234"), Ok(ISO6093RealNumber::NR1(1234.0)));
-        assert_eq!(parse_iso6093("   1234"), Ok(ISO6093RealNumber::NR1(1234.0)));
-        assert_eq!(parse_iso6093("-56780"),  Ok(ISO6093RealNumber::NR1(-56780.0)));
-        assert_eq!(parse_iso6093(" -56780"), Ok(ISO6093RealNumber::NR1(-56780.0)));
-        assert_eq!(parse_iso6093("+000000"), Ok(ISO6093RealNumber::NR1(0.0)));
-        assert_eq!(parse_iso6093("     +0"), Ok(ISO6093RealNumber::NR1(0.0)));
-        assert_eq!(parse_iso6093("      0"), Ok(ISO6093RealNumber::NR1(0.0)));
+        assert_eq!(parse_iso6093(s!("+004902")), Ok(ISO6093RealNumber::NR1(4902.0)));
+        assert_eq!(parse_iso6093(s!(" +4902")),  Ok(ISO6093RealNumber::NR1(4902.0)));
+        assert_eq!(parse_iso6093(s!("  +4902")), Ok(ISO6093RealNumber::NR1(4902.0)));
+        assert_eq!(parse_iso6093(s!("   4902")), Ok(ISO6093RealNumber::NR1(4902.0)));
+        assert_eq!(parse_iso6093(s!("+001234")), Ok(ISO6093RealNumber::NR1(1234.0)));
+        assert_eq!(parse_iso6093(s!("  +1234")), Ok(ISO6093RealNumber::NR1(1234.0)));
+        assert_eq!(parse_iso6093(s!("   1234")), Ok(ISO6093RealNumber::NR1(1234.0)));
+        assert_eq!(parse_iso6093(s!("-56780")),  Ok(ISO6093RealNumber::NR1(-56780.0)));
+        assert_eq!(parse_iso6093(s!(" -56780")), Ok(ISO6093RealNumber::NR1(-56780.0)));
+        assert_eq!(parse_iso6093(s!("+000000")), Ok(ISO6093RealNumber::NR1(0.0)));
+        assert_eq!(parse_iso6093(s!("     +0")), Ok(ISO6093RealNumber::NR1(0.0)));
+        assert_eq!(parse_iso6093(s!("      0")), Ok(ISO6093RealNumber::NR1(0.0)));
 
         // Unsigned examples directly from ISO 6093
-        assert_eq!(parse_iso6093("1327.000"), Ok(ISO6093RealNumber::NR2(1327.0)));
-        assert_eq!(parse_iso6093("0001327."), Ok(ISO6093RealNumber::NR2(1327.0)));
-        assert_eq!(parse_iso6093("   1327."), Ok(ISO6093RealNumber::NR2(1327.0)));
-        assert_eq!(parse_iso6093("00123.45"), Ok(ISO6093RealNumber::NR2(123.45)));
-        assert_eq!(parse_iso6093("  123.45"), Ok(ISO6093RealNumber::NR2(123.45)));
-        assert_eq!(parse_iso6093("  1237.0"), Ok(ISO6093RealNumber::NR2(1237.0)));
-        assert_eq!(parse_iso6093("00.00001"), Ok(ISO6093RealNumber::NR2(0.00001)));
-        assert_eq!(parse_iso6093("1234,567"), Ok(ISO6093RealNumber::NR2(1234.567)));
-        assert_eq!(parse_iso6093("000,0000"), Ok(ISO6093RealNumber::NR2(0.0)));
-        assert_eq!(parse_iso6093("     0,0"), Ok(ISO6093RealNumber::NR2(0.0)));
+        assert_eq!(parse_iso6093(s!("1327.000")), Ok(ISO6093RealNumber::NR2(1327.0)));
+        assert_eq!(parse_iso6093(s!("0001327.")), Ok(ISO6093RealNumber::NR2(1327.0)));
+        assert_eq!(parse_iso6093(s!("   1327.")), Ok(ISO6093RealNumber::NR2(1327.0)));
+        assert_eq!(parse_iso6093(s!("00123.45")), Ok(ISO6093RealNumber::NR2(123.45)));
+        assert_eq!(parse_iso6093(s!("  123.45")), Ok(ISO6093RealNumber::NR2(123.45)));
+        assert_eq!(parse_iso6093(s!("  1237.0")), Ok(ISO6093RealNumber::NR2(1237.0)));
+        assert_eq!(parse_iso6093(s!("00.00001")), Ok(ISO6093RealNumber::NR2(0.00001)));
+        assert_eq!(parse_iso6093(s!("1234,567")), Ok(ISO6093RealNumber::NR2(1234.567)));
+        assert_eq!(parse_iso6093(s!("000,0000")), Ok(ISO6093RealNumber::NR2(0.0)));
+        assert_eq!(parse_iso6093(s!("     0,0")), Ok(ISO6093RealNumber::NR2(0.0)));
 
         // Signed examples directly from ISO 6093
-        assert_eq!(parse_iso6093("+1327.00"), Ok(ISO6093RealNumber::NR2(1327.00)));
-        assert_eq!(parse_iso6093("  +1327."), Ok(ISO6093RealNumber::NR2(1327.0)));
-        assert_eq!(parse_iso6093("   1327."), Ok(ISO6093RealNumber::NR2(1327.0)));
-        assert_eq!(parse_iso6093(" +123.45"), Ok(ISO6093RealNumber::NR2(123.45)));
-        assert_eq!(parse_iso6093("  123,45"), Ok(ISO6093RealNumber::NR2(123.45)));
-        assert_eq!(parse_iso6093(" +1237.0"), Ok(ISO6093RealNumber::NR2(1237.0)));
-        assert_eq!(parse_iso6093("  1237,0"), Ok(ISO6093RealNumber::NR2(1237.0)));
-        assert_eq!(parse_iso6093("+0.00001"), Ok(ISO6093RealNumber::NR2(0.00001)));
-        assert_eq!(parse_iso6093("-5,67800"), Ok(ISO6093RealNumber::NR2(-5.67800)));
-        assert_eq!(parse_iso6093("-05,6780"), Ok(ISO6093RealNumber::NR2(-5.6780)));
-        assert_eq!(parse_iso6093("+0.00000"), Ok(ISO6093RealNumber::NR2(0.0)));
-        assert_eq!(parse_iso6093("    +0,0"), Ok(ISO6093RealNumber::NR2(0.0)));
-        assert_eq!(parse_iso6093("     0,0"), Ok(ISO6093RealNumber::NR2(0.0)));
-        assert_eq!(parse_iso6093("      0,"), Ok(ISO6093RealNumber::NR2(0.0)));
+        assert_eq!(parse_iso6093(s!("+1327.00")), Ok(ISO6093RealNumber::NR2(1327.00)));
+        assert_eq!(parse_iso6093(s!("  +1327.")), Ok(ISO6093RealNumber::NR2(1327.0)));
+        assert_eq!(parse_iso6093(s!("   1327.")), Ok(ISO6093RealNumber::NR2(1327.0)));
+        assert_eq!(parse_iso6093(s!(" +123.45")), Ok(ISO6093RealNumber::NR2(123.45)));
+        assert_eq!(parse_iso6093(s!("  123,45")), Ok(ISO6093RealNumber::NR2(123.45)));
+        assert_eq!(parse_iso6093(s!(" +1237.0")), Ok(ISO6093RealNumber::NR2(1237.0)));
+        assert_eq!(parse_iso6093(s!("  1237,0")), Ok(ISO6093RealNumber::NR2(1237.0)));
+        assert_eq!(parse_iso6093(s!("+0.00001")), Ok(ISO6093RealNumber::NR2(0.00001)));
+        assert_eq!(parse_iso6093(s!("-5,67800")), Ok(ISO6093RealNumber::NR2(-5.67800)));
+        assert_eq!(parse_iso6093(s!("-05,6780")), Ok(ISO6093RealNumber::NR2(-5.6780)));
+        assert_eq!(parse_iso6093(s!("+0.00000")), Ok(ISO6093RealNumber::NR2(0.0)));
+        assert_eq!(parse_iso6093(s!("    +0,0")), Ok(ISO6093RealNumber::NR2(0.0)));
+        assert_eq!(parse_iso6093(s!("     0,0")), Ok(ISO6093RealNumber::NR2(0.0)));
+        assert_eq!(parse_iso6093(s!("      0,")), Ok(ISO6093RealNumber::NR2(0.0)));
 
         // Examples directly from ISO 6093
-        assert_eq!(parse_iso6093("+0,56E+4"), Ok(ISO6093RealNumber::NR3(5600.0)));
-        assert_eq!(parse_iso6093("+5.6e+03"), Ok(ISO6093RealNumber::NR3(5600.0)));
-        assert_eq!(parse_iso6093("+0,3E-04"), Ok(ISO6093RealNumber::NR3(0.00003)));
-        assert_eq!(parse_iso6093(" 0,3e-04"), Ok(ISO6093RealNumber::NR3(0.00003)));
-        assert_eq!(parse_iso6093("-2,8E+00"), Ok(ISO6093RealNumber::NR3(-2.8)));
-        assert_eq!(parse_iso6093("+0,0E+00"), Ok(ISO6093RealNumber::NR3(0.0)));
-        assert_eq!(parse_iso6093("   0.e+0"), Ok(ISO6093RealNumber::NR3(0.0)));
+        assert_eq!(parse_iso6093(s!("+0,56E+4")), Ok(ISO6093RealNumber::NR3(5600.0)));
+        assert_eq!(parse_iso6093(s!("+5.6e+03")), Ok(ISO6093RealNumber::NR3(5600.0)));
+        assert_eq!(parse_iso6093(s!("+0,3E-04")), Ok(ISO6093RealNumber::NR3(0.00003)));
+        assert_eq!(parse_iso6093(s!(" 0,3e-04")), Ok(ISO6093RealNumber::NR3(0.00003)));
+        assert_eq!(parse_iso6093(s!("-2,8E+00")), Ok(ISO6093RealNumber::NR3(-2.8)));
+        assert_eq!(parse_iso6093(s!("+0,0E+00")), Ok(ISO6093RealNumber::NR3(0.0)));
+        assert_eq!(parse_iso6093(s!("   0.e+0")), Ok(ISO6093RealNumber::NR3(0.0)));
     }
 }
