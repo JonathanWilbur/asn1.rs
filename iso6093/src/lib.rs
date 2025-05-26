@@ -1,5 +1,13 @@
-// #![no_std]
+#![no_std]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+#[cfg(feature = "alloc")]
+use alloc::borrow::ToOwned;
+#[cfg(feature = "alloc")]
+use alloc::string::{String, ToString};
+
+// TODO: Simplify this error. We don't need all these variants.
 /// Error types that can occur while parsing ISO 6093 numbers
 #[derive(Debug, PartialEq)]
 pub enum ISO6093Error {
@@ -56,23 +64,26 @@ fn parse_nr2_ex(mut input: &str) -> Result<f64, ISO6093Error> {
             return Err(ISO6093Error::InvalidFormat);
         }
     }
-    let mut needs_replace = false;
     let mut has_decimal = false;
-    for c in input.chars() {
+    let mut maybe_comma_index: Option<usize> = None;
+    for (i, c) in input.char_indices() {
+        if !c.is_ascii() {
+            return Err(ISO6093Error::InvalidFormat);
+        }
         if c == ',' {
             if has_decimal {
                 return Err(ISO6093Error::InvalidFormat);
             }
             has_decimal = true;
-            needs_replace = true;
+            maybe_comma_index = Some(i);
         }
-        if c == '.' {
+        else if c == '.' {
             if has_decimal {
                 return Err(ISO6093Error::InvalidFormat);
             }
             has_decimal = true;
         }
-        if c.to_ascii_lowercase() == 'e' {
+        else if c.to_ascii_lowercase() == 'e' {
             return Err(ISO6093Error::InvalidFormat);
         }
     }
@@ -81,14 +92,24 @@ fn parse_nr2_ex(mut input: &str) -> Result<f64, ISO6093Error> {
         return Err(ISO6093Error::InvalidFormat);
     }
 
-    if !needs_replace {
+    if let Some(comma_index) = maybe_comma_index {
+        #[cfg(feature = "alloc")]
+        {
+            let mut normalized = input.to_owned();
+            unsafe {
+                normalized.as_bytes_mut()[comma_index] = b'.';
+            }
+            return normalized
+                .parse::<f64>()
+                .map_err(|_| ISO6093Error::ParseError);
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
+            unreachable!();
+        }
+    } else {
         return input.parse::<f64>().map_err(|_| ISO6093Error::ParseError);
     }
-
-    input
-        .replacen(',', ".", 1) // We already checked that there's only one.
-        .parse::<f64>()
-        .map_err(|_| ISO6093Error::ParseError)
 }
 
 /// Parse an ISO 6093 NR3 format number (scientific notation)
@@ -104,9 +125,12 @@ fn parse_nr2_ex(mut input: &str) -> Result<f64, ISO6093Error> {
 fn parse_nr3_ex(mut input: &str) -> Result<f64, ISO6093Error> {
     input = input.trim_start_matches(|c| c == ' ');
     let mut has_exponent = false;
-    let mut needs_replace = false;
+    let mut maybe_comma_index: Option<usize> = None;
     let mut has_decimal = false;
-    for c in input.chars() {
+    for (i, c) in input.char_indices() {
+        if !c.is_ascii() {
+            return Err(ISO6093Error::InvalidFormat);
+        }
         if c == '.' || c == ',' {
             if has_decimal { // duplicate
                 return Err(ISO6093Error::InvalidFormat);
@@ -115,9 +139,11 @@ fn parse_nr3_ex(mut input: &str) -> Result<f64, ISO6093Error> {
                 return Err(ISO6093Error::InvalidFormat);
             }
             has_decimal = true;
-            needs_replace = c == ',';
+            if c == ',' {
+                maybe_comma_index = Some(i);
+            }
         }
-        if c == 'E' || c == 'e' {
+        else if c == 'E' || c == 'e' {
             has_exponent = true;
         }
     }
@@ -126,14 +152,24 @@ fn parse_nr3_ex(mut input: &str) -> Result<f64, ISO6093Error> {
         return Err(ISO6093Error::InvalidFormat);
     }
 
-    if !needs_replace {
+    if let Some(comma_index) = maybe_comma_index {
+        #[cfg(feature = "alloc")]
+        {
+            let mut normalized = input.to_owned();
+            unsafe {
+                normalized.as_bytes_mut()[comma_index] = b'.';
+            }
+            return normalized
+                .parse::<f64>()
+                .map_err(|_| ISO6093Error::ParseError);
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
+            unreachable!();
+        }
+    } else {
         return input.parse::<f64>().map_err(|_| ISO6093Error::ParseError);
     }
-
-    input
-        .replacen(',', ".", 1) // We already checked that there's only one.
-        .parse::<f64>()
-        .map_err(|_| ISO6093Error::ParseError)
 }
 
 /// This implementation does not call [parse_nr3] or [parse_nr2] directly, but
@@ -154,9 +190,12 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
     }
 
     let mut has_exponent = false;
-    let mut needs_replace = false;
     let mut has_decimal = false;
-    for c in input.chars() {
+    let mut maybe_comma_index: Option<usize> = None;
+    for (i, c) in input.char_indices() {
+        if !c.is_ascii() {
+            return Err(ISO6093Error::InvalidFormat);
+        }
         if c == '.' || c == ',' {
             if has_decimal { // duplicate
                 return Err(ISO6093Error::InvalidFormat);
@@ -165,9 +204,11 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
                 return Err(ISO6093Error::InvalidFormat);
             }
             has_decimal = true;
-            needs_replace = c == ',';
+            if c == ',' {
+                maybe_comma_index = Some(i);
+            }
         }
-        if c == 'E' || c == 'e' {
+        else if c == 'E' || c == 'e' {
             has_exponent = true;
         }
     }
@@ -176,32 +217,36 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
         return parse_nr1(input).map(|v| ISO6093RealNumber::NR1(v));
     }
 
-    #[cfg(not(feature = "alloc"))]
-    {
-
-    }
-
-    #[cfg(feature = "alloc")]
-    {
-        // Replace the ',' with '.', but only if we need to.
-        let mut normstr = String::new();
-        let normalized = if needs_replace {
-            normstr = input.replacen(',', ".", 1);
-            normstr.as_str()
-        } else {
-            input
-        };
-
-        normalized
+    if let Some(comma_index) = maybe_comma_index {
+        #[cfg(feature = "alloc")]
+        {
+            let mut normalized = input.to_owned();
+            unsafe {
+                normalized.as_bytes_mut()[comma_index] = b'.';
+            }
+            return normalized
+                .parse::<f64>()
+                .map(|v| if has_exponent {
+                    ISO6093RealNumber::NR3(v)
+                } else {
+                    ISO6093RealNumber::NR2(v)
+                })
+                .map_err(|_| ISO6093Error::ParseError);
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
+            unreachable!();
+        }
+    } else {
+        return input
             .parse::<f64>()
             .map(|v| if has_exponent {
                 ISO6093RealNumber::NR3(v)
             } else {
                 ISO6093RealNumber::NR2(v)
             })
-            .map_err(|_| ISO6093Error::ParseError)
+            .map_err(|_| ISO6093Error::ParseError);
     }
-
 }
 
 #[cfg(feature = "alloc")]
@@ -222,22 +267,68 @@ pub fn parse_iso6093(input: &str) -> Result<ISO6093RealNumber, ISO6093Error> {
     parse_iso6093_ex(input)
 }
 
-// #[cfg(not(feature = "alloc"))]
-// pub fn parse_iso6093(input: &mut str) -> Result<ISO6093RealNumber, ISO6093Error> {
-//     for (i, c) in input.char_indices() {
-//         if c == ',' {
-//             input[i] = '.';
-//         }
-//     }
-//     parse_iso6093_ex(input)
-// }
+#[cfg(not(feature = "alloc"))]
+pub fn parse_nr2(input: &mut str) -> Result<f64, ISO6093Error> {
+    // This loop replaces just the first comma with a period.
+    for (i, c) in input.char_indices() {
+        if !c.is_ascii() {
+            return Err(ISO6093Error::InvalidFormat);
+        }
+        if c == ',' {
+            unsafe {
+                input.as_bytes_mut()[i] = b'.';
+            }
+            // In the "deeper" functions, we check for duplicate decimals, so
+            // we only need to replace one comma.
+            break;
+        }
+    }
+    parse_nr2_ex(input)
+}
+
+#[cfg(not(feature = "alloc"))]
+pub fn parse_nr3(input: &mut str) -> Result<f64, ISO6093Error> {
+    // This loop replaces just the first comma with a period.
+    for (i, c) in input.char_indices() {
+        if !c.is_ascii() {
+            return Err(ISO6093Error::InvalidFormat);
+        }
+        if c == ',' {
+            unsafe {
+                input.as_bytes_mut()[i] = b'.';
+            }
+            // In the "deeper" functions, we check for duplicate decimals, so
+            // we only need to replace one comma.
+            break;
+        }
+    }
+    parse_nr3_ex(input)
+}
+
+#[cfg(not(feature = "alloc"))]
+pub fn parse_iso6093(input: &mut str) -> Result<ISO6093RealNumber, ISO6093Error> {
+    for (i, c) in input.char_indices() {
+        if !c.is_ascii() {
+            return Err(ISO6093Error::InvalidFormat);
+        }
+        if c == ',' {
+            unsafe {
+                input.as_bytes_mut()[i] = b'.';
+            }
+            // In the "deeper" functions, we check for duplicate decimals, so
+            // we only need to replace one comma.
+            break;
+        }
+    }
+    parse_iso6093_ex(input)
+}
 
 // TODO: print_nr1
 // TODO: print_nr2
 // TODO: print_nr3
 // TODO: print_iso6093
 
-#[cfg(test)]
+#[cfg(all(test, feature = "alloc"))]
 mod tests {
     use super::*;
 
