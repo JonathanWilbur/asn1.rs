@@ -4,8 +4,6 @@
 extern crate alloc;
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 
 // TODO: Simplify this error. We don't need all these variants.
 /// Error types that can occur while parsing ISO 6093 numbers
@@ -25,8 +23,6 @@ pub enum ISO6093RealNumber {
     NR2(f64),
     NR3(f64),
 }
-
-// TODO: Print
 
 /// Parse an ISO 6093 NR1 format number (integer)
 ///
@@ -323,18 +319,49 @@ pub fn parse_iso6093(input: &mut str) -> Result<ISO6093RealNumber, ISO6093Error>
     parse_iso6093_ex(input)
 }
 
-// TODO: print_nr1
-// TODO: print_nr2
-// TODO: print_nr3
-// TODO: print_iso6093
+#[inline]
+pub fn fmt_nr1(num: f64, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let inum: i64 = num as i64;
+    write!(f, "{}", inum)
+}
 
-// #[cfg(all(test, feature = "alloc"))]
+/// This is marked as `unsafe` because floating point numbers can be printed
+/// using scientific notation (which is invalid NR2 form) if they are "too big"
+/// or "too small," and there is absolutely no way I can predict this or
+/// circumvent it. There is no way to force fixed-point notation in Rust.
+pub unsafe fn fmt_nr2(num: f64, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    /* Typically, you check if it is an integer by checking if .fract() == 0.0,
+    but fract() is not available in no-std crates. Further, it is already
+    accepted that this is an unsafe function that might not do what you expect. */
+    if num.is_finite() && (num == (num as i64 as f64)) {
+        let inum: i64 = num as i64;
+        return write!(f, "{}.", inum); // Format it with a guaranteed terminal decimal.
+    }
+    write!(f, "{}", num)
+}
+
+#[inline]
+pub fn fmt_nr3(num: f64, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    write!(f, "{:e}", num)
+}
+
+impl core::fmt::Display for ISO6093RealNumber {
+
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ISO6093RealNumber::NR1(v) => fmt_nr1(*v, f),
+            ISO6093RealNumber::NR2(v) => unsafe { fmt_nr2(*v, f) },
+            ISO6093RealNumber::NR3(v) => fmt_nr3(*v, f),
+        }
+    }
+
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     extern crate alloc;
-    use alloc::borrow::ToOwned;
     use alloc::string::ToString;
 
     #[cfg(feature = "alloc")]
@@ -507,5 +534,28 @@ mod tests {
         assert_eq!(parse_iso6093(s!("-2,8E+00")), Ok(ISO6093RealNumber::NR3(-2.8)));
         assert_eq!(parse_iso6093(s!("+0,0E+00")), Ok(ISO6093RealNumber::NR3(0.0)));
         assert_eq!(parse_iso6093(s!("   0.e+0")), Ok(ISO6093RealNumber::NR3(0.0)));
+    }
+
+    #[test]
+    fn test_print_nr1() {
+        assert_eq!(ISO6093RealNumber::NR1(123.0).to_string().as_str(), "123");
+        assert_eq!(ISO6093RealNumber::NR1(-123.0).to_string().as_str(), "-123");
+        assert_eq!(ISO6093RealNumber::NR1(123.5).to_string().as_str(), "123");
+    }
+
+    #[test]
+    fn test_print_nr2() {
+        assert_eq!(ISO6093RealNumber::NR2(123.0).to_string().as_str(), "123.");
+        assert_eq!(ISO6093RealNumber::NR2(-123.0).to_string().as_str(), "-123.");
+        assert_eq!(ISO6093RealNumber::NR2(123.5).to_string().as_str(), "123.5");
+        assert_eq!(ISO6093RealNumber::NR2(0.00123).to_string().as_str(), "0.00123");
+    }
+
+    #[test]
+    fn test_print_nr3() {
+        assert_eq!(ISO6093RealNumber::NR3(12300.0).to_string().as_str(), "1.23e4");
+        assert_eq!(ISO6093RealNumber::NR3(-12300.0).to_string().as_str(), "-1.23e4");
+        assert_eq!(ISO6093RealNumber::NR3(12300.5).to_string().as_str(), "1.23005e4");
+        assert_eq!(ISO6093RealNumber::NR3(0.00123).to_string().as_str(), "1.23e-3");
     }
 }
