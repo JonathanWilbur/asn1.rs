@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![no_std]
 
 #[cfg(feature = "alloc")]
@@ -5,15 +6,21 @@ extern crate alloc;
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
 
-// TODO: Simplify this error. We don't need all these variants.
-/// Error types that can occur while parsing ISO 6093 numbers
+/// An error that can occur while parsing ISO 6093 numbers
 #[derive(PartialEq, Eq, Debug)]
 pub struct ISO6093Error;
 
+// An ISO 6093 Real Number
 #[derive(Debug, PartialEq)]
 pub enum ISO6093RealNumber {
+    // NR1 Format
+    // This is only able to represent integer values
     NR1(f64),
+
+    // NR2 Format
     NR2(f64),
+
+    // NR3 Format
     NR3(f64),
 }
 
@@ -161,9 +168,14 @@ fn parse_nr3_ex(mut input: &str) -> Result<f64, ISO6093Error> {
     }
 }
 
+/// Parse any ISO 6093 Numerical Value
+///
 /// This implementation does not call [parse_nr3] or [parse_nr2] directly, but
 /// instead implements its own parsing logic that is mostly duplicate; the
-/// rationale for this is
+/// rationale for this is to avoid duplicate iteration over all the characters
+/// in the string. We need one pass over all characters to "categorize" the
+/// string as NR1, NR2, or NR3. In that first pass, we can also do everything
+/// that would have to do in [parse_nr3] or [parse_nr2] as well.
 fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> {
     input = input.trim_start_matches(|c| c == ' ');
     // .5 Allowed by Rust, but not by NR2.
@@ -238,24 +250,58 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
     }
 }
 
+/// Parse an ISO 6093 NR2 format number (decimal notation)
+///
+/// NR2 is a signed or unsigned fixed-point number:
+/// - Optional leading sign (+ or -)
+/// - Sequence of decimal digits with a decimal point
+/// - The decimal point must be present
+///
+/// Examples: "123.45", "-0.789", "+12.3"
 #[cfg(feature = "alloc")]
 #[inline(always)]
 pub fn parse_nr2(input: &str) -> Result<f64, ISO6093Error> {
     parse_nr2_ex(input)
 }
 
+/// Parse an ISO 6093 NR3 format number (scientific notation)
+///
+/// NR3 is a signed or unsigned number in scientific notation:
+/// - Optional leading sign (+ or -)
+/// - Sequence of decimal digits with a decimal point
+/// - The letter 'E' or 'e'
+/// - Optional sign for the exponent (+ or -)
+/// - Sequence of decimal digits for the exponent
+///
+/// Examples: "1.23E+45", "-6.78e-9", "+1.0E2"
 #[cfg(feature = "alloc")]
 #[inline(always)]
 pub fn parse_nr3(input: &str) -> Result<f64, ISO6093Error> {
     parse_nr3_ex(input)
 }
 
+/// Parse any ISO 6093 Numerical Value
+///
+/// This implementation does not call [parse_nr3] or [parse_nr2] directly, but
+/// instead implements its own parsing logic that is mostly duplicate; the
+/// rationale for this is to avoid duplicate iteration over all the characters
+/// in the string. We need one pass over all characters to "categorize" the
+/// string as NR1, NR2, or NR3. In that first pass, we can also do everything
+/// that would have to do in [parse_nr3] or [parse_nr2] as well.
 #[cfg(feature = "alloc")]
 #[inline(always)]
 pub fn parse_iso6093(input: &str) -> Result<ISO6093RealNumber, ISO6093Error> {
     parse_iso6093_ex(input)
 }
 
+/// Parse an ISO 6093 NR2 format number (decimal notation)
+///
+/// NR2 is a signed or unsigned fixed-point number:
+/// - Optional leading sign (+ or -)
+/// - Sequence of decimal digits with a decimal point
+/// - The decimal point must be present
+///
+/// Examples: "123.45", "-0.789", "+12.3"
 #[cfg(not(feature = "alloc"))]
 pub fn parse_nr2(input: &mut str) -> Result<f64, ISO6093Error> {
     // This loop replaces just the first comma with a period.
@@ -275,6 +321,16 @@ pub fn parse_nr2(input: &mut str) -> Result<f64, ISO6093Error> {
     parse_nr2_ex(input)
 }
 
+/// Parse an ISO 6093 NR3 format number (scientific notation)
+///
+/// NR3 is a signed or unsigned number in scientific notation:
+/// - Optional leading sign (+ or -)
+/// - Sequence of decimal digits with a decimal point
+/// - The letter 'E' or 'e'
+/// - Optional sign for the exponent (+ or -)
+/// - Sequence of decimal digits for the exponent
+///
+/// Examples: "1.23E+45", "-6.78e-9", "+1.0E2"
 #[cfg(not(feature = "alloc"))]
 pub fn parse_nr3(input: &mut str) -> Result<f64, ISO6093Error> {
     // This loop replaces just the first comma with a period.
@@ -294,6 +350,14 @@ pub fn parse_nr3(input: &mut str) -> Result<f64, ISO6093Error> {
     parse_nr3_ex(input)
 }
 
+/// Parse any ISO 6093 Numerical Value
+///
+/// This implementation does not call [parse_nr3] or [parse_nr2] directly, but
+/// instead implements its own parsing logic that is mostly duplicate; the
+/// rationale for this is to avoid duplicate iteration over all the characters
+/// in the string. We need one pass over all characters to "categorize" the
+/// string as NR1, NR2, or NR3. In that first pass, we can also do everything
+/// that would have to do in [parse_nr3] or [parse_nr2] as well.
 #[cfg(not(feature = "alloc"))]
 pub fn parse_iso6093(input: &mut str) -> Result<ISO6093RealNumber, ISO6093Error> {
     for (i, c) in input.char_indices() {
@@ -312,12 +376,15 @@ pub fn parse_iso6093(input: &mut str) -> Result<ISO6093RealNumber, ISO6093Error>
     parse_iso6093_ex(input)
 }
 
+/// Format a number using ISO 6093 First Numerical Representation (NR1)
 #[inline]
 pub fn fmt_nr1(num: f64, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     let inum: i64 = num as i64;
     write!(f, "{}", inum)
 }
 
+/// Format a number using ISO 6093 Second Numerical Representation (NR2)
+///
 /// This is marked as `unsafe` because floating point numbers can be printed
 /// using scientific notation (which is invalid NR2 form) if they are "too big"
 /// or "too small," and there is absolutely no way I can predict this or
@@ -333,6 +400,7 @@ pub unsafe fn fmt_nr2(num: f64, f: &mut core::fmt::Formatter<'_>) -> core::fmt::
     write!(f, "{}", num)
 }
 
+/// Format a number using ISO 6093 Third Numerical Representation (NR3)
 #[inline]
 pub fn fmt_nr3(num: f64, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(f, "{:e}", num)
@@ -340,6 +408,8 @@ pub fn fmt_nr3(num: f64, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result 
 
 impl core::fmt::Display for ISO6093RealNumber {
 
+    /// Note that NR2 may be printed like NR3. See the documentation on
+    /// [fmt_nr2].
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             ISO6093RealNumber::NR1(v) => fmt_nr1(*v, f),

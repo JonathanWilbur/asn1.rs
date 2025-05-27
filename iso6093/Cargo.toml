@@ -1,10 +1,18 @@
 [package]
 name = "iso6093"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
+description = "ISO 6093 numerical value parsing and printing"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/iso6093"
+license = "MIT"
+keywords = ["iso6093", "numeric", "number", "floating"]
+categories = ["encoding"]
 
 [features]
 default = ["alloc"]
 alloc = []
-
-[dependencies]
