@@ -77,7 +77,3 @@ to take a `&mut str` instead of a `&str`. The reason for this is that, to parse
 the numbers, the string has to be "normalized" to change commas into periods.
 With no way to allocate a new string, the only other option is to modify the
 original. These implementations do NOT change it back.
-
-## To Do
-
-- [ ] Format
