@@ -7,15 +7,8 @@ use alloc::borrow::ToOwned;
 
 // TODO: Simplify this error. We don't need all these variants.
 /// Error types that can occur while parsing ISO 6093 numbers
-#[derive(Debug, PartialEq)]
-pub enum ISO6093Error {
-    /// Input string was empty
-    EmptyString,
-    /// Input contains invalid characters for the format
-    InvalidFormat,
-    /// Failed to parse the number
-    ParseError,
-}
+#[derive(PartialEq, Eq, Debug)]
+pub struct ISO6093Error;
 
 #[derive(Debug, PartialEq)]
 pub enum ISO6093RealNumber {
@@ -36,7 +29,7 @@ pub fn parse_nr1(mut input: &str) -> Result<f64, ISO6093Error> {
     input = input.trim_start_matches(|c| c == ' ');
     input.parse::<i64>()
         .map(|v| v as f64)
-        .map_err(|_| ISO6093Error::ParseError)
+        .map_err(|_| ISO6093Error)
 }
 
 /// Parse an ISO 6093 NR2 format number (decimal notation)
@@ -51,41 +44,41 @@ fn parse_nr2_ex(mut input: &str) -> Result<f64, ISO6093Error> {
     input = input.trim_start_matches(|c| c == ' ');
     // .5 Allowed by Rust, but not by NR2.
     if input.chars().next().is_some_and(|c| c == '.') {
-        return Err(ISO6093Error::InvalidFormat);
+        return Err(ISO6093Error);
     }
     let mut chars = input.chars();
     // +.5 and -.5 Allowed by Rust, but not by NR2.
     if chars.next().is_some_and(|c| c == '+' || c == '-') {
         if chars.next().is_some_and(|c| c == '.') {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
     }
     let mut has_decimal = false;
     let mut maybe_comma_index: Option<usize> = None;
     for (i, c) in input.char_indices() {
         if !c.is_ascii() {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
         if c == ',' {
             if has_decimal {
-                return Err(ISO6093Error::InvalidFormat);
+                return Err(ISO6093Error);
             }
             has_decimal = true;
             maybe_comma_index = Some(i);
         }
         else if c == '.' {
             if has_decimal {
-                return Err(ISO6093Error::InvalidFormat);
+                return Err(ISO6093Error);
             }
             has_decimal = true;
         }
         else if c.to_ascii_lowercase() == 'e' {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
     }
 
     if !has_decimal {
-        return Err(ISO6093Error::InvalidFormat);
+        return Err(ISO6093Error);
     }
 
     if let Some(comma_index) = maybe_comma_index {
@@ -97,14 +90,14 @@ fn parse_nr2_ex(mut input: &str) -> Result<f64, ISO6093Error> {
             }
             return normalized
                 .parse::<f64>()
-                .map_err(|_| ISO6093Error::ParseError);
+                .map_err(|_| ISO6093Error);
         }
         #[cfg(not(feature = "alloc"))]
         {
             unreachable!();
         }
     } else {
-        return input.parse::<f64>().map_err(|_| ISO6093Error::ParseError);
+        return input.parse::<f64>().map_err(|_| ISO6093Error);
     }
 }
 
@@ -125,14 +118,14 @@ fn parse_nr3_ex(mut input: &str) -> Result<f64, ISO6093Error> {
     let mut has_decimal = false;
     for (i, c) in input.char_indices() {
         if !c.is_ascii() {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
         if c == '.' || c == ',' {
             if has_decimal { // duplicate
-                return Err(ISO6093Error::InvalidFormat);
+                return Err(ISO6093Error);
             }
             if has_exponent { // decimal after exponent
-                return Err(ISO6093Error::InvalidFormat);
+                return Err(ISO6093Error);
             }
             has_decimal = true;
             if c == ',' {
@@ -145,7 +138,7 @@ fn parse_nr3_ex(mut input: &str) -> Result<f64, ISO6093Error> {
     }
 
     if !has_exponent || !has_decimal {
-        return Err(ISO6093Error::InvalidFormat);
+        return Err(ISO6093Error);
     }
 
     if let Some(comma_index) = maybe_comma_index {
@@ -157,14 +150,14 @@ fn parse_nr3_ex(mut input: &str) -> Result<f64, ISO6093Error> {
             }
             return normalized
                 .parse::<f64>()
-                .map_err(|_| ISO6093Error::ParseError);
+                .map_err(|_| ISO6093Error);
         }
         #[cfg(not(feature = "alloc"))]
         {
             unreachable!();
         }
     } else {
-        return input.parse::<f64>().map_err(|_| ISO6093Error::ParseError);
+        return input.parse::<f64>().map_err(|_| ISO6093Error);
     }
 }
 
@@ -175,13 +168,13 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
     input = input.trim_start_matches(|c| c == ' ');
     // .5 Allowed by Rust, but not by NR2.
     if input.chars().next().is_some_and(|c| c == '.') {
-        return Err(ISO6093Error::InvalidFormat);
+        return Err(ISO6093Error);
     }
     let mut chars = input.chars();
     // +.5 and -.5 Allowed by Rust, but not by NR2.
     if chars.next().is_some_and(|c| c == '+' || c == '-') {
         if chars.next().is_some_and(|c| c == '.') {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
     }
 
@@ -190,14 +183,14 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
     let mut maybe_comma_index: Option<usize> = None;
     for (i, c) in input.char_indices() {
         if !c.is_ascii() {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
         if c == '.' || c == ',' {
             if has_decimal { // duplicate
-                return Err(ISO6093Error::InvalidFormat);
+                return Err(ISO6093Error);
             }
             if has_exponent { // decimal after exponent
-                return Err(ISO6093Error::InvalidFormat);
+                return Err(ISO6093Error);
             }
             has_decimal = true;
             if c == ',' {
@@ -227,7 +220,7 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
                 } else {
                     ISO6093RealNumber::NR2(v)
                 })
-                .map_err(|_| ISO6093Error::ParseError);
+                .map_err(|_| ISO6093Error);
         }
         #[cfg(not(feature = "alloc"))]
         {
@@ -241,7 +234,7 @@ fn parse_iso6093_ex(mut input: &str) -> Result<ISO6093RealNumber, ISO6093Error> 
             } else {
                 ISO6093RealNumber::NR2(v)
             })
-            .map_err(|_| ISO6093Error::ParseError);
+            .map_err(|_| ISO6093Error);
     }
 }
 
@@ -268,7 +261,7 @@ pub fn parse_nr2(input: &mut str) -> Result<f64, ISO6093Error> {
     // This loop replaces just the first comma with a period.
     for (i, c) in input.char_indices() {
         if !c.is_ascii() {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
         if c == ',' {
             unsafe {
@@ -287,7 +280,7 @@ pub fn parse_nr3(input: &mut str) -> Result<f64, ISO6093Error> {
     // This loop replaces just the first comma with a period.
     for (i, c) in input.char_indices() {
         if !c.is_ascii() {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
         if c == ',' {
             unsafe {
@@ -305,7 +298,7 @@ pub fn parse_nr3(input: &mut str) -> Result<f64, ISO6093Error> {
 pub fn parse_iso6093(input: &mut str) -> Result<ISO6093RealNumber, ISO6093Error> {
     for (i, c) in input.char_indices() {
         if !c.is_ascii() {
-            return Err(ISO6093Error::InvalidFormat);
+            return Err(ISO6093Error);
         }
         if c == ',' {
             unsafe {
@@ -408,9 +401,9 @@ mod tests {
         assert_eq!(parse_nr1(s!("123")), Ok(123.0));
         assert_eq!(parse_nr1(s!("-456")), Ok(-456.0));
         assert_eq!(parse_nr1(s!("+789")), Ok(789.0));
-        assert_eq!(parse_nr1(s!("")), Err(ISO6093Error::ParseError));
-        assert_eq!(parse_nr1(s!("12.3")), Err(ISO6093Error::ParseError));
-        assert_eq!(parse_nr1(s!("12E3")), Err(ISO6093Error::ParseError));
+        assert_eq!(parse_nr1(s!("")), Err(ISO6093Error));
+        assert_eq!(parse_nr1(s!("12.3")), Err(ISO6093Error));
+        assert_eq!(parse_nr1(s!("12E3")), Err(ISO6093Error));
     }
 
     #[test]
@@ -447,9 +440,9 @@ mod tests {
         assert_eq!(parse_nr2(s!("123.45")), Ok(123.45));
         assert_eq!(parse_nr2(s!("-67.89")), Ok(-67.89));
         assert_eq!(parse_nr2(s!("+0.123")), Ok(0.123));
-        assert_eq!(parse_nr2(s!("")), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr2(s!("123")), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr2(s!("12E3")), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr2(s!("")), Err(ISO6093Error));
+        assert_eq!(parse_nr2(s!("123")), Err(ISO6093Error));
+        assert_eq!(parse_nr2(s!("12E3")), Err(ISO6093Error));
     }
 
     #[test]
@@ -467,9 +460,9 @@ mod tests {
         assert_eq!(parse_nr3(s!("1.23E+45")), Ok(1.23E+45));
         assert_eq!(parse_nr3(s!("-6.78e-9")), Ok(-6.78e-9));
         assert_eq!(parse_nr3(s!("+1.0E2")), Ok(100.0));
-        assert_eq!(parse_nr3(s!("")), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr3(s!("123.45")), Err(ISO6093Error::InvalidFormat));
-        assert_eq!(parse_nr3(s!("123")), Err(ISO6093Error::InvalidFormat));
+        assert_eq!(parse_nr3(s!("")), Err(ISO6093Error));
+        assert_eq!(parse_nr3(s!("123.45")), Err(ISO6093Error));
+        assert_eq!(parse_nr3(s!("123")), Err(ISO6093Error));
     }
 
     #[test]
