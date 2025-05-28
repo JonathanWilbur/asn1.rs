@@ -17,6 +17,7 @@ use crate::{
     x690_encode_external_components,
     x690_encode_character_string_components,
     x690_encode_embedded_pdv_components,
+    X690StructureIterator,
 };
 use wildboar_asn1::{
     ASN1Result,
@@ -193,6 +194,58 @@ pub fn decode_presentation_context_switching_type_id(
             ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
         )),
     }
+}
+
+pub fn validate_presentation_context_switching_type_id<C: X690Codec + ?Sized>(
+    codec: &C,
+    id_el: &X690Element,
+) -> ASN1Result<()> {
+    let invalid_cons = || {
+        let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+        err.relate_tag(&id_el.tag);
+        err.constructed = Some(id_el.is_constructed());
+        err
+    };
+    match id_el.tag.tag_number {
+        0 => { // syntaxes
+            let subs = match &id_el.value {
+                X690Value::Constructed(s) => s,
+                _ => return Err(invalid_cons()),
+            };
+            if
+                subs.len() != 2
+                || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
+                || subs[0].tag.tag_number != 0
+                || subs[1].tag.tag_number != 1
+            {
+                return Err(invalid_cons());
+            }
+            for sub in subs.iter() {
+                codec.validate_object_identifier(sub)?;
+            }
+        },
+        1 | 4 => codec.validate_object_identifier(id_el)?, // syntax or transfer-syntax
+        2 => codec.validate_integer(id_el)?, // presentation-context-id
+        3 => { // context-negotiation
+            let subs = match &id_el.value {
+                X690Value::Constructed(s) => s,
+                _ => return Err(invalid_cons()),
+            };
+            if
+                subs.len() != 2
+                || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
+                || subs[0].tag.tag_number != 0
+                || subs[1].tag.tag_number != 1
+            {
+                return Err(invalid_cons());
+            }
+            codec.validate_integer(&subs[0])?;
+            codec.validate_object_identifier(&subs[1])?;
+        },
+        5 => codec.validate_null(id_el)?,
+        _ => return Err(invalid_cons()),
+    }
+    Ok(())
 }
 
 // Default implementations are defined where commonalities exist between BER, CER, and DER.
@@ -467,105 +520,69 @@ pub trait X690Codec {
             X690Value::Constructed(children) => children,
             _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         };
-        if elements.len() > 4 {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-        }
-        if elements.len() < 1 {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-        }
-        let el_refs = elements.iter().collect::<Vec<&X690Element>>();
-        let (components, unrecognized) = _parse_sequence(
-            el_refs.as_slice(),
+        let it = X690StructureIterator::new(
+            elements.as_slice(),
             _RCTL1_FOR_EXTERNAL.as_slice(),
             _EAL_FOR_EXTERNAL.as_slice(),
             _RCTL2_FOR_EXTERNAL.as_slice(),
-        )
-        .unwrap();
-        if unrecognized.len() > 0 {
-            return Err(ASN1Error::new(
-                ASN1ErrorCode::unrecognized_components_in_inextensible_type,
-            ));
-        }
-        let dir_ref: OPTIONAL<OBJECT_IDENTIFIER> = match components.get("direct-reference") {
-            Some(c) => match self.decode_object_identifier(c) {
-                Ok(v) => Some(v),
-                Err(e) => return Err(e),
-            },
-            None => None,
-        };
-        let indir_ref: OPTIONAL<INTEGER> = match components.get("indirect-reference") {
-            Some(c) => match self.decode_integer(c) {
-                Ok(v) => Some(v),
-                Err(e) => return Err(e),
-            },
-            None => None,
-        };
-        let dvd: OPTIONAL<ObjectDescriptor> = match components.get("data-value-descriptor") {
-            Some(c) => match self.decode_object_descriptor(c) {
-                Ok(v) => Some(v),
-                Err(e) => return Err(e),
-            },
-            None => None,
-        };
-        let encoding: ExternalEncoding = match components.get("encoding") {
-            Some(c) => {
-                if c.tag.tag_class != TagClass::CONTEXT {
-                    let mut err =
-                        ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-                    err.component_name = Some(String::from("encoding"));
-                    err.tag = Some(Tag::new(c.tag.tag_class, c.tag.tag_number));
-                    err.length = Some(c.len());
-                    err.constructed = Some(c.is_constructed());
+        );
+        let mut dir_ref: OPTIONAL<OBJECT_IDENTIFIER> = None;
+        let mut indir_ref: OPTIONAL<INTEGER> = None;
+        let mut dvd: OPTIONAL<ObjectDescriptor> = None;
+        let mut encoding_el: OPTIONAL<&X690Element> = None;
+        for (i, fallible_component_name) in it.enumerate() {
+            let component_name = fallible_component_name?;
+            match component_name {
+                "direct-reference" => dir_ref = Some(self.decode_object_identifier(&elements[i])?),
+                "indirect-reference" => indir_ref = Some(self.decode_integer(&elements[i])?),
+                "data-value-descriptor" => dvd = Some(self.decode_object_descriptor(&elements[i])?),
+                "encoding" => encoding_el = Some(&elements[i]),
+                _ => { // This type is NOT extensible.
+                    let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                    err.relate_tag(&elements[i].tag);
+                    err.constructed = Some(elements[i].is_constructed());
                     return Err(err);
-                }
-                match c.tag.tag_number {
-                    0 => {
-                        if let X690Value::Constructed(components) = &c.value {
-                            if components.len() != 1 {
-                                return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-                            }
-                            let v = self.decode_any(&components[0])?;
-                            ExternalEncoding::single_ASN1_type(Arc::new(v))
-                        } else {
-                            return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-                        }
+                },
+            }
+        }
+        let encoding_el = encoding_el
+            .expect("X.690 sequence parsing is broken: encoding element of EXTERNAL missing");
+        let encoding = match encoding_el.tag.tag_number {
+            0 => {
+                if let X690Value::Constructed(components) = &encoding_el.value {
+                    if components.len() != 1 {
+                        return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
                     }
-                    1 => {
-                        let v = self.decode_octet_string(c)?;
-                        ExternalEncoding::octet_aligned(v)
-                    }
-                    2 => {
-                        let v = self.decode_bit_string(c)?;
-                        ExternalEncoding::arbitrary(v)
-                    }
-                    _ => {
-                        return Err(ASN1Error::new(
-                            ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                        ))
-                    }
+                    let v = self.decode_any(&components[0])?;
+                    ExternalEncoding::single_ASN1_type(Arc::new(v))
+                } else {
+                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
                 }
             }
-            None => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            1 => {
+                let v = self.decode_octet_string(encoding_el)?;
+                ExternalEncoding::octet_aligned(v)
+            }
+            2 => {
+                let v = self.decode_bit_string(encoding_el)?;
+                ExternalEncoding::arbitrary(v)
+            }
+            _ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice))
         };
-        let identification: ExternalIdentification;
-        if dir_ref.is_some() && indir_ref.is_some() {
-            identification = ExternalIdentification::context_negotiation(ContextNegotiation {
-                transfer_syntax: dir_ref.unwrap(),
-                presentation_context_id: indir_ref.unwrap(),
-            });
-        } else if dir_ref.is_some() {
-            identification = ExternalIdentification::syntax(dir_ref.unwrap());
-        } else if indir_ref.is_some() {
-            identification = ExternalIdentification::presentation_context_id(indir_ref.unwrap());
-        } else {
-            return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-        }
+
+        let identification: ExternalIdentification = match (dir_ref, indir_ref) {
+            (Some(d), Some(i)) => ExternalIdentification::context_negotiation(ContextNegotiation::new(i, d)),
+            (Some(d), None) => ExternalIdentification::syntax(d),
+            (None, Some(i)) => ExternalIdentification::presentation_context_id(i),
+            (None, None) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+        };
         Ok(EXTERNAL {
             identification,
             data_value_descriptor: dvd,
             data_value: encoding,
         })
     }
+
     fn decode_instance_of(&self, el: &X690Element) -> ASN1Result<InstanceOf> {
         let elements = match &el.value {
             X690Value::Constructed(children) => children,
@@ -589,6 +606,7 @@ pub trait X690Codec {
             value: Arc::new(value),
         })
     }
+    // FIXME:
     fn decode_embedded_pdv(&self, el: &X690Element) -> ASN1Result<EMBEDDED_PDV> {
         let elements = match &el.value {
             X690Value::Constructed(children) => children,
@@ -604,19 +622,19 @@ pub trait X690Codec {
             data_value,
         })
     }
+    // FIXME:
     fn decode_character_string(&self, el: &X690Element) -> ASN1Result<CHARACTER_STRING> {
         let elements = match &el.value {
             X690Value::Constructed(children) => children,
             _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         };
-        if elements.len() != 2 { // FIXME: Review
+        if elements.len() != 2 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
         }
         let identification = self.decode_presentation_context_switching_type_id(&elements[0].inner()?)?;
         let string_value: OCTET_STRING = self.decode_octet_string(&elements[1])?;
         Ok(CHARACTER_STRING {
             identification,
-            data_value_descriptor: None,
             string_value,
         })
     }
@@ -1123,75 +1141,58 @@ pub trait X690Codec {
     }
 
     fn validate_embedded_pdv(&self, el: &X690Element) -> ASN1Result<()> {
-        let invalid_cons = || {
-            let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
-            err.relate_tag(&el.tag);
-            err.constructed = Some(el.is_constructed());
-            err
-        };
-        let components = match &el.value {
-            X690Value::Constructed(c) => c,
-            _ => return Err(invalid_cons()),
-        };
-        let len = components.len();
-        if len != 2 {
-            return Err(invalid_cons());
-        }
-        let id_el = &components[0];
-        let value_el = &components[1];
-        if
-            id_el.tag.tag_class != TagClass::CONTEXT
-            || value_el.tag.tag_class != TagClass::CONTEXT
-            || id_el.tag.tag_number != 0
-            || value_el.tag.tag_number != 1
-        {
-            return Err(invalid_cons());
-        }
-        self.validate_octet_string(value_el)?;
-        match id_el.tag.tag_number {
-            0 => { // syntaxes
-                let subs = match &id_el.value {
-                    X690Value::Constructed(s) => s,
-                    _ => return Err(invalid_cons()),
-                };
-                if
-                    subs.len() != 2
-                    || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
-                    || subs[0].tag.tag_number != 0
-                    || subs[1].tag.tag_number != 1
-                {
-                    return Err(invalid_cons());
-                }
-                for sub in subs.iter() {
-                    self.validate_object_identifier(sub)?;
-                }
-            },
-            1 | 4 => self.validate_object_identifier(id_el)?, // syntax or transfer-syntax
-            2 => self.validate_integer(id_el)?, // presentation-context-id
-            3 => { // context-negotiation
-                let subs = match &id_el.value {
-                    X690Value::Constructed(s) => s,
-                    _ => return Err(invalid_cons()),
-                };
-                if
-                    subs.len() != 2
-                    || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
-                    || subs[0].tag.tag_number != 0
-                    || subs[1].tag.tag_number != 1
-                {
-                    return Err(invalid_cons());
-                }
-                self.validate_integer(&subs[0])?;
-                self.validate_object_identifier(&subs[1])?;
-            },
-            5 => self.validate_null(id_el)?,
-            _ => return Err(invalid_cons()),
+        // you can use the same code for parsing the
+        let children: Vec<X690Element> = el.components().collect();
+        let it = X690StructureIterator::new( // TODO: Change the definition to take an element iterator
+            children.as_slice(),
+            wildboar_asn1::_rctl1_components_for_EMBEDDED_PDV,
+            wildboar_asn1::_eal_components_for_EMBEDDED_PDV,
+            wildboar_asn1::_rctl2_components_for_EMBEDDED_PDV,
+        );
+        let mut identification: OPTIONAL<PresentationContextSwitchingTypeIdentification> = None;
+        let mut string_value: OPTIONAL<OCTET_STRING> = None;
+        for (i, fallible_component_name) in it.enumerate() {
+            let component_name = fallible_component_name?;
+            match component_name {
+                "identification" => validate_presentation_context_switching_type_id(self, &children[i])?,
+                "data-value-descriptor" => self.validate_object_descriptor(&children[i])?,
+                "data-value" => self.validate_octet_string(&children[i])?,
+                _ => { // This type is NOT extensible.
+                    let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                    err.relate_tag(&children[i].tag);
+                    err.constructed = Some(children[i].is_constructed());
+                    return Err(err);
+                },
+            }
         }
         Ok(())
     }
 
     fn validate_character_string(&self, el: &X690Element) -> ASN1Result<()> {
-        self.validate_embedded_pdv(el)
+        // you can use the same code for parsing the
+        let children: Vec<X690Element> = el.components().collect();
+        let it = X690StructureIterator::new(
+            children.as_slice(),
+            wildboar_asn1::_rctl1_components_for_CharacterString,
+            wildboar_asn1::_eal_components_for_CharacterString,
+            wildboar_asn1::_rctl2_components_for_CharacterString
+        );
+        let mut identification: OPTIONAL<PresentationContextSwitchingTypeIdentification> = None;
+        let mut string_value: OPTIONAL<OCTET_STRING> = None;
+        for (i, fallible_component_name) in it.enumerate() {
+            let component_name = fallible_component_name?;
+            match component_name {
+                "identification" => validate_presentation_context_switching_type_id(self, &children[i])?,
+                "string-value" => self.validate_octet_string(&children[i])?,
+                _ => { // This type is NOT extensible.
+                    let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+                    err.relate_tag(&children[i].tag);
+                    err.constructed = Some(children[i].is_constructed());
+                    return Err(err);
+                },
+            }
+        }
+        Ok(())
     }
 
     fn validate_any (&self, el: &X690Element) -> ASN1Result<()> {
@@ -1591,10 +1592,18 @@ pub trait X690Codec {
             .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
-    // TODO: This is technically incorrect. It does not check padding.
     fn validate_i64 (&self, el: &X690Element) -> ASN1Result<()> {
         let content_octets = el.content_octets()?;
-        if content_octets.len() > 8 {
+        let len = content_octets.len();
+        if len > 2
+            && (
+                (content_octets[0] == 0x00 && content_octets[1] < 0b1000_0000)
+                || (content_octets[0] == 0xFF && content_octets[1] >= 0b1000_0000)
+            )
+        {
+            return Err(ASN1Error::new(ASN1ErrorCode::int_padding));
+        }
+        if len > 8 {
             Ok(())
         } else {
             Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
@@ -1669,8 +1678,8 @@ pub trait X690Codec {
     }
 
     fn decode_i128 (&self, el: &X690Element) -> ASN1Result<i128> {
-        let int_bytes = self.decode_integer(el)?; // TODO: Use content_octets instead to avoid a clone.
-        read_i128(&int_bytes).ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        read_i128(&el.content_octets()?.as_ref())
+            .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
     fn validate_i128 (&self, el: &X690Element) -> ASN1Result<()> {

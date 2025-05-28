@@ -17,6 +17,7 @@ categories = ["encoding"]
 
 [dependencies]
 wildboar-asn1 = { path = "../asn1" }
+iso6093 = { path = "../iso6093" }
 smallvec = "1.11.0"
 simdutf8 = "0.1.4"
 bytes = "1.4.0"

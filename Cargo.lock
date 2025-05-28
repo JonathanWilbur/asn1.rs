@@ -3188,6 +3188,7 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "criterion 0.5.1",
+ "iso6093",
  "simdutf8",
  "smallvec",
  "wildboar-asn1",

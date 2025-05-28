@@ -1,9 +1,11 @@
 pub mod ber;
 pub mod codec;
 pub mod parsing;
+pub(crate) mod utils;
 pub use crate::ber::*;
 pub use crate::codec::*;
 pub use crate::parsing::*;
+pub use crate::utils::*;
 use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use wildboar_asn1::{
     ASN1Value, ByteSlice, CharacterString, EmbeddedPDV, ExternalEncoding,
@@ -125,7 +127,6 @@ impl X690Value {
 
 }
 
-// TODO: Implement IntoIterator, Iterator or both?
 #[derive(Clone, Debug, Hash)]
 pub struct X690Element {
     pub tag: Tag,
@@ -196,7 +197,7 @@ impl X690Element {
     pub fn to_asn1_error (&self, errcode: ASN1ErrorCode) -> ASN1Error {
         ASN1Error {
             error_code: errcode,
-            component_name: None, // TODO: Should the name be a part of the element?
+            component_name: None,
             tag: Some(Tag::new(self.tag.tag_class, self.tag.tag_number)),
             length: Some(self.len()),
             constructed: Some(self.is_constructed()),
@@ -242,6 +243,7 @@ impl X690Element {
 //     }
 // }
 
+// TODO: Get rid of this?
 // This is a struct with a single field for the sake of extensibility.
 pub struct X690ConcreteSyntaxTree {
     pub root: X690Element,
@@ -274,8 +276,7 @@ pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
 }
 
 fn base_128_len(num: u32) -> usize {
-    // TODO: Could you get a performance improvement by using a match statement instead?
-    if num < 128 {
+    if likely(num < 128) {
         return 1;
     }
     let mut l = 0;
@@ -287,11 +288,12 @@ fn base_128_len(num: u32) -> usize {
     return l;
 }
 
+// TODO: Where this is used, prefer push.
 fn write_base_128<W>(output: &mut W, mut num: u32) -> Result<usize>
 where
     W: Write,
 {
-    if num < 128 { // TODO: likely?
+    if likely(num < 128) {
         return output.write(&[num as u8]);
     }
 
@@ -327,7 +329,7 @@ pub fn get_written_x690_length_length(len: usize) -> usize {
         256..=65535 => 2,
         65536..=16777215 => 3,
         16777216..=4294967295 => 4,
-        _ => return 4, // TODO: What do you do about this scenario?
+        _ => return 5, // This is 4GB * 255. It's more than enough for anything.
     };
     octets_needed + 1
 }
@@ -476,7 +478,6 @@ pub fn x690_write_object_descriptor_value<W>(
 where
     W: Write,
 {
-    // TODO: Validate
     output.write(value.as_bytes())
 }
 
@@ -821,7 +822,6 @@ where
     output.write(bytes.as_slice())
 }
 
-// TODO: This might be able to be de-duplicated from EmbeddedPDV.
 pub fn x690_encode_character_string_components (value: &CharacterString) -> Result<Vec<X690Element>> {
     let id = x690_context_switching_identification_to_cst(&value.identification)?;
     let mut data_value_bytes = BytesMut::new().writer();
@@ -911,14 +911,12 @@ where
     output.write(value.to_string().as_bytes())
 }
 
-// TODO: Add check for infinite recursion
 pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
     let mut tag_class: TagClass = TagClass::UNIVERSAL;
     let mut tag_number: TagNumber = 0;
     let encoded_value: X690Value;
     match value {
         ASN1Value::UnknownBytes(v) => {
-            // TODO: Review
             encoded_value = X690Value::Primitive(Bytes::copy_from_slice(v));
         }
         ASN1Value::TaggedValue(v) => {
@@ -929,7 +927,6 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
                 encoded_value = X690Value::from_explicit(&cst.root);
             } else {
                 let cst = create_x690_cst(&v.value)?;
-                // TODO: arc_unwrap_or_clone, when that is non-experimental.
                 encoded_value = cst.root.value.clone();
             }
         }
@@ -937,7 +934,6 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             tag_number = UNIV_TAG_BOOLEAN;
             encoded_value = X690Value::Primitive(Bytes::copy_from_slice(&[ if *v { 0xFF } else { 0x00 } ]));
         }
-        // TODO: Handle a BIGINT type
         ASN1Value::IntegerValue(v) => {
             tag_number = UNIV_TAG_INTEGER;
             let mut value_bytes = BytesMut::with_capacity(v.len()).writer();
@@ -968,7 +964,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
             tag_number = UNIV_TAG_EXTERNAL;
             let mut value_bytes = BytesMut::new().writer();
             x690_write_external_value(&mut value_bytes, v)?;
-            // FIXME:
+            // FIXME: This is not primitive! What do you do about this?
             encoded_value = X690Value::Primitive(value_bytes.into_inner().into());
         }
         ASN1Value::RealValue(v) => {
@@ -1258,7 +1254,7 @@ pub fn create_x690_cst_node(value: &ASN1Value) -> Result<X690Element> {
 }
 
 // TODO: Use this in ::new()
-pub fn create_x690_cst<'a>(value: &ASN1Value) -> Result<X690ConcreteSyntaxTree> {
+pub fn create_x690_cst(value: &ASN1Value) -> Result<X690ConcreteSyntaxTree> {
     match create_x690_cst_node(value) {
         Ok(root_node) => Ok(X690ConcreteSyntaxTree { root: root_node }),
         Err(e) => Err(e),
@@ -1411,7 +1407,6 @@ pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
                 {
                     let mut err =
                         ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
-                    // err.component_name = el.name.clone(); // FIXME:
                     err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(true);
@@ -1474,7 +1469,6 @@ pub fn x690_read_date_time_value(value_bytes: ByteSlice) -> ASN1Result<DATE_TIME
     DATE_TIME::try_from(value_bytes)
 }
 
-// FIXME: This is not exactly correct.
 pub fn x690_read_duration_value(value_bytes: ByteSlice) -> ASN1Result<DURATION> {
     DURATION::try_from(value_bytes)
 }
@@ -1487,7 +1481,6 @@ pub trait RelateTLV {
 impl RelateTLV for ASN1Error {
     fn relatve_tlv (&mut self, el: &X690Element) {
         self.tag = Some(el.tag);
-        // self.component_name = el.name.clone(); // FIXME:
         self.constructed = Some(el.is_constructed());
         self.length = Some(el.len());
     }

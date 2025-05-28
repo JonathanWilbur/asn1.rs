@@ -79,7 +79,6 @@ pub fn _parse_set<'a>(
                 let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_univ_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    // err.component_name = el.name.clone(); // FIXME:
                     err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
@@ -94,7 +93,6 @@ pub fn _parse_set<'a>(
                 let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_ctxt_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    // err.component_name = el.name.clone(); // FIXME:
                     err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
@@ -109,7 +107,6 @@ pub fn _parse_set<'a>(
                 let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_appl_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    // err.component_name = el.name.clone(); // FIXME:
                     err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
@@ -124,7 +121,6 @@ pub fn _parse_set<'a>(
                 let bit_mask = 1 << el.tag.tag_number;
                 if (encountered_priv_tags & bit_mask) > 0 {
                     let mut err = ASN1Error::new(ASN1ErrorCode::duplicate_tags_in_set);
-                    // err.component_name = el.name.clone(); // FIXME:
                     err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(el.is_constructed());
@@ -520,6 +516,7 @@ pub fn _parse_sequence_without_trailing_rctl<'a>(
     Ok(ret)
 }
 
+// FIXME: Get rid of this completely.
 pub fn _parse_sequence<'a>(
     elements: &'a [&'a X690Element],
     rctl1: &'a [ComponentSpec],
@@ -539,6 +536,9 @@ enum X690StructureIterationPhase {
     RCTL2,
 }
 
+/// Used for parsing `SEQUENCE`
+/// Returned name is "" for unrecgonized extensions.
+// TODO: Use this
 pub struct X690StructureIterator <'a> {
     pub elements: &'a [X690Element],
     pub rctl1: &'a [ComponentSpec<'a>],
@@ -572,16 +572,15 @@ impl <'a> X690StructureIterator<'a> {
 
 }
 
+// TODO: Implement other iterator traits for this.
+
 impl <'a> Iterator for X690StructureIterator<'a> {
     type Item = ASN1Result<&'a str>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(fallible_component) = self.ctl_iterator.next() {
             self.i += 1;
-            return match fallible_component {
-                Ok(component) => Some(Ok(component)),
-                Err(e) => Some(Err(e)),
-            };
+            return Some(fallible_component);
         }
         match self.phase {
             X690StructureIterationPhase::RCTL1 => {
@@ -598,17 +597,13 @@ impl <'a> Iterator for X690StructureIterator<'a> {
                     let start_of_exts = self.i;
                     let extensions_onwards = &self.elements[start_of_exts..];
                     let mut number_of_ext_components: Option<usize> = None;
-                    for el_index in 0..extensions_onwards.len() {
+                    'outer: for el_index in 0..extensions_onwards.len() {
                         let el = &extensions_onwards[el_index];
                         for possible_rctl2_component in possible_initial_rctl2_components {
                             if component_is_selected(el, possible_rctl2_component.selector) {
                                 number_of_ext_components = Some(el_index);
-                                break;
+                                break 'outer;
                             }
-                        }
-                        // TODO: Use named-label breaks: https://stackoverflow.com/questions/22905752/named-breaks-in-for-loops-in-rust
-                        if number_of_ext_components.is_some() {
-                            break;
                         }
                     }
                     let rctl2_found: bool = number_of_ext_components.is_some();
@@ -628,6 +623,8 @@ impl <'a> Iterator for X690StructureIterator<'a> {
                     };
                     self.ctl_iterator = X690ComponentIterator::new(self.eal, &self.elements[self.i..self.start_of_rctl2], true).into_iter();
                 }
+                // This isn't really a recursion risk, because it only iterates
+                // three times: once for each of RCTL1, EAL, and RCTL2.
                 return self.next();
             },
             X690StructureIterationPhase::EAL => {
@@ -683,7 +680,6 @@ pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN
         X690Value::Constructed(children) => children,
         _ => {
             let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
-            // err.component_name = el.name.clone(); // FIXME:
             err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
             err.constructed = Some(true);
             err.length = Some(el.len());
@@ -703,7 +699,6 @@ pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Resu
         X690Value::Constructed(children) => children,
         _ => {
             let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
-            // err.component_name = el.name.clone(); // FIXME:
             err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
             err.constructed = Some(true);
             err.length = Some(el.len());

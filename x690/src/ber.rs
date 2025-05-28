@@ -114,7 +114,6 @@ pub fn deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
                 if child.tag.tag_class != el.tag.tag_class || child.tag.tag_number != el.tag.tag_number {
                     let mut err =
                         ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
-                    // err.component_name = el.name.clone(); // FIXME:
                     err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
                     err.length = Some(el.len());
                     err.constructed = Some(true);
@@ -204,12 +203,9 @@ pub fn ber_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
                 break;
             }
         }
-        if tag_number <= 31 {
-            // TODO: Review this number / comparison.
+        if tag_number <= 30 {
             // This could have been encoded in short form.
-            return Err(ASN1Error::new(
-                ASN1ErrorCode::tag_number_could_have_used_short_form,
-            ));
+            return Err(ASN1Error::new(ASN1ErrorCode::tag_number_could_have_used_short_form));
         }
     } else {
         tag_number = (bytes[0] & 0b00011111) as TagNumber;
@@ -264,26 +260,26 @@ pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     Ok((bytes_read, X690Length::Definite(len)))
 }
 
-pub fn ber_read_var_length_u64(bytes: ByteSlice) -> u64 {
+pub fn ber_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
     match bytes.len() {
-        0 => 0,
-        1 => bytes[0] as u8 as u64,
-        2 => u16::from_be_bytes([bytes[0], bytes[1]]) as u64,
-        3 => u32::from_be_bytes([0x00, bytes[0], bytes[1], bytes[2]]) as u64,
-        4 => u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as u64,
-        5 => u64::from_be_bytes([
+        0 => Some(0),
+        1 => Some(bytes[0] as u8 as u64),
+        2 => Some(u16::from_be_bytes([bytes[0], bytes[1]]) as u64),
+        3 => Some(u32::from_be_bytes([0x00, bytes[0], bytes[1], bytes[2]]) as u64),
+        4 => Some(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as u64),
+        5 => Some(u64::from_be_bytes([
             0x00, 0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4],
-        ]),
-        6 => u64::from_be_bytes([
+        ])),
+        6 => Some(u64::from_be_bytes([
             0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5],
-        ]),
-        7 => u64::from_be_bytes([
+        ])),
+        7 => Some(u64::from_be_bytes([
             0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
-        ]),
-        8 => u64::from_be_bytes([
+        ])),
+        8 => Some(u64::from_be_bytes([
             bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
-        ]),
-        _ => 0,
+        ])),
+        _ => None,
     }
 }
 
@@ -505,41 +501,25 @@ impl X690Codec for BasicEncodingRules {
             return Ok(0.000000);
         }
         match value_bytes[0] & 0b1100_0000 {
-            X690_REAL_SPECIAL => match value_bytes[0] & 0b0011_1111 {
+            crate::X690_REAL_SPECIAL => match value_bytes[0] & 0b0011_1111 {
                 X690_SPECIAL_REAL_PLUS_INFINITY => return Ok(f64::INFINITY),
                 X690_SPECIAL_REAL_MINUS_INFINITY => return Ok(f64::NEG_INFINITY),
                 X690_SPECIAL_REAL_NOT_A_NUMBER => return Ok(f64::NAN),
                 X690_SPECIAL_REAL_MINUS_ZERO => return Ok(-0.000000),
                 _ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_special_real)),
             },
-            X690_REAL_BASE10 => {
-                let str_ = match from_utf8(&value_bytes[1..]) {
-                    Ok(v) => String::from(v.trim_start()),
-                    _ => {
-                        return Err(ASN1Error::new(
-                            ASN1ErrorCode::malformed_value,
-                        ))
-                    }
-                };
-                let f64_value = match f64::from_str(&str_) {
-                    Ok(f) => f,
-                    _ => {
-                        return Err(ASN1Error::new(
-                            ASN1ErrorCode::base_10_real_string_malformed(str_.to_owned().into_bytes()),
-                        ))
-                    }
-                };
-                // FIXME: Wrong formatting.
+            crate::X690_REAL_BASE10 => {
+                let s = from_utf8(&value_bytes[1..])
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?; // FIXME: UTF8 error
                 let format = value_bytes[0] & 0b0011_1111;
                 return match format {
-                    crate::X690_REAL_NR1 => Ok(f64_value),
-                    crate::X690_REAL_NR2 => Ok(f64_value),
-                    crate::X690_REAL_NR3 => Ok(f64_value),
-                    _ => {
-                        return Err(ASN1Error::new(
-                            ASN1ErrorCode::base_10_real_unrecognized_format(format),
-                        ))
-                    }
+                    crate::X690_REAL_NR1 => iso6093::parse_nr1(s)
+                        .map_err(|_| ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(s.to_owned().into_bytes()))),
+                    crate::X690_REAL_NR2 => iso6093::parse_nr2(s)
+                        .map_err(|_| ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(s.to_owned().into_bytes()))),
+                    crate::X690_REAL_NR3 => iso6093::parse_nr3(s)
+                        .map_err(|_| ASN1Error::new(ASN1ErrorCode::base_10_real_string_malformed(s.to_owned().into_bytes()))),
+                    _ => return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_unrecognized_format(format))),
                 };
             }
             _ => {
@@ -547,14 +527,10 @@ impl X690Codec for BasicEncodingRules {
                 let negative = (value_bytes[0] & 0b0100_0000) > 0;
                 let base_byte = value_bytes[0] & X690_REAL_BASE_MASK;
                 let base: u8 = match base_byte {
-                    X690_REAL_BASE_2 => 2,
-                    X690_REAL_BASE_8 => 8,
-                    X690_REAL_BASE_16 => 16,
-                    _ => {
-                        return Err(ASN1Error::new(
-                            ASN1ErrorCode::base_10_real_unrecognized_base(base_byte),
-                        ))
-                    }
+                    crate::X690_REAL_BASE_2 => 2,
+                    crate::X690_REAL_BASE_8 => 8,
+                    crate::X690_REAL_BASE_16 => 16,
+                    _ => return Err(ASN1Error::new(ASN1ErrorCode::base_10_real_unrecognized_base(base_byte))),
                 };
                 let scale: u8 = (value_bytes[0] & X690_REAL_BINARY_SCALING_MASK)
                     .overflowing_shr(2)
@@ -568,6 +544,7 @@ impl X690Codec for BasicEncodingRules {
                         }
                         exponent = value_bytes[1] as i8 as i32;
                         mantissa = ber_read_var_length_u64(&value_bytes[2..])
+                            .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_2_OCTET => {
                         if value_bytes.len() < 4 {
@@ -579,6 +556,7 @@ impl X690Codec for BasicEncodingRules {
                         }
                         exponent = i32::from_be_bytes([0, 0, value_bytes[1], value_bytes[2]]);
                         mantissa = ber_read_var_length_u64(&value_bytes[3..])
+                            .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_3_OCTET => {
                         if value_bytes.len() < 5 {
@@ -591,6 +569,7 @@ impl X690Codec for BasicEncodingRules {
                         exponent =
                             i32::from_be_bytes([0, value_bytes[1], value_bytes[2], value_bytes[3]]);
                         mantissa = ber_read_var_length_u64(&value_bytes[4..])
+                            .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_VAR_OCTET => {
                         if value_bytes.len() < 3 {
@@ -604,14 +583,15 @@ impl X690Codec for BasicEncodingRules {
                             // Mantissa too big.
                             return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                         }
-                        // FIXME: How do you know the mantissa was not too big?
                         if exponent_len == 1 {
                             exponent = value_bytes[2] as i8 as i32;
-                            mantissa = ber_read_var_length_u64(&value_bytes[3..]);
+                            mantissa = ber_read_var_length_u64(&value_bytes[3..])
+                                .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                         } else {
                             // The exponent must have length 2.
                             exponent = i32::from_be_bytes([0, 0, value_bytes[2], value_bytes[3]]);
-                            mantissa = ber_read_var_length_u64(&value_bytes[4..]);
+                            mantissa = ber_read_var_length_u64(&value_bytes[4..])
+                                .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                         }
                     }
                     _ => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)) // TODO: Define a variant for this error
@@ -933,9 +913,12 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn encode_utf8_string(&self, value: &str) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(value.len() << 1).writer(); // TODO: Should this pre-allocate double for non-ASCII?
-        x690_write_utf8_string_value(&mut out, &value)?;
-        Ok(X690Element::new(
+        let mut out = BytesMut::with_capacity(value.len()).writer();
+        let bytes_written = x690_write_utf8_string_value(&mut out, &value)?;
+        // value.len() is in bytes, not characters, so this allocation should
+        // be 100% accurate.
+        debug_assert_eq!(bytes_written, value.len());
+        Ok(X690Element::new( // TODO: Define macros to shorten this?
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
             X690Value::Primitive(out.into_inner().into()),
         ))
@@ -1346,7 +1329,7 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn validate_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii_graphic());
+        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_tstring_char(*b));
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1358,7 +1341,7 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn validate_numeric_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii_digit() || *b == b' ');
+        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_numeric_char(*b));
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1409,7 +1392,6 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    // TODO: Move this to asn1.
     // 9604152030Z
     fn validate_utc_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() > 17 {
@@ -1698,21 +1680,13 @@ impl X690Codec for BasicEncodingRules {
         }
     }
 
-    // TODO: Define a macro to reduce this boilerplate.
     fn validate_graphic_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii_graphic() || *b == b' ');
-        if let Some(bad_char_index) = maybe_bad_char {
-            let bad_char = content_octets[bad_char_index];
-            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-                bad_char as u32,
-                bad_char_index,
-            )));
-        }
         Ok(())
     }
 
+    // TODO: Define a macro to reduce this boilerplate.
     fn validate_visible_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| !b.is_ascii() || *b == 0x7F);
+        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_visible_char(*b));
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1723,15 +1697,9 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    fn validate_general_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| !b.is_ascii());
-        if let Some(bad_char_index) = maybe_bad_char {
-            let bad_char = content_octets[bad_char_index];
-            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-                bad_char as u32,
-                bad_char_index,
-            )));
-        }
+    /// There's no validation here, because a `GeneralString` can be basically
+    /// anything.
+    fn validate_general_string_value (&self, _: ByteSlice) -> ASN1Result<()> {
         Ok(())
     }
 
@@ -1744,13 +1712,10 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    // TODO: CHARACTER STRING	Constructed	29	1D
-
     fn validate_bmp_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() % 2 > 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
-        // TODO: Do you need to do any validation with a BOM?
         Ok(())
     }
 

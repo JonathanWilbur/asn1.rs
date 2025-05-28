@@ -102,6 +102,7 @@ pub struct External<Asn1Type: Sized = Arc<ASN1Value>> {
     pub data_value: ExternalEncoding<Asn1Type>,
 }
 
+// TODO: This name is just too dang long.
 /// Presentation syntax identification for an `EMBEDDED PDV` or
 /// `CharacterString` value
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
@@ -139,9 +140,6 @@ pub struct CharacterString {
 
     /// Identifies the type of encoding used in `string_value`
     pub identification: PresentationContextSwitchingTypeIdentification,
-
-    /// A human-readable description of the encoding used in `string_value`
-    pub data_value_descriptor: OPTIONAL<ObjectDescriptor>,
 
     /// The presentation data value itself
     pub string_value: OCTET_STRING,
@@ -207,7 +205,6 @@ impl CHARACTER_STRING {
     ) -> CHARACTER_STRING {
         CHARACTER_STRING {
             identification,
-            data_value_descriptor: None,
             string_value,
         }
     }

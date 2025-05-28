@@ -37,6 +37,7 @@
 //! ```
 //!
 use std::borrow::Cow;
+use crate::utils::likely;
 
 /// Return `true` if the character `b` is "printable" per the ASN.1 definition
 /// of a `PrintableString`.
@@ -79,11 +80,32 @@ pub const fn is_ia5_str (s: &str) -> bool {
     s.is_ascii()
 }
 
+#[inline]
+pub fn is_visible_char (b: u8) -> bool {
+    b.is_ascii_graphic()
+}
+
 /// Return `true` if the string `s` is "visible" per the ASN.1 definition of
 /// `VisibleString`. A `VisibleString` is ASCII graphic characters.
 #[inline]
 pub fn is_visible_str (s: &str) -> bool {
     s.chars().all(|c| c.is_ascii_graphic())
+}
+
+/// Defined by ITU X.680 as:
+/// `0 1 2 3 4 5 6 7 8 9 + - : . , / C D H M R P S T W Y Z`
+#[inline]
+pub fn is_tstring_char (b: u8) -> bool {
+    // This covers all digits AND + , - . / :
+    if likely(b >= b'+' && b <= b':') {
+        return true;
+    }
+    b"CDHMPRSTWYZ".binary_search(&b).is_ok()
+}
+
+#[inline]
+pub fn is_tstring (s: &str) -> bool {
+    s.as_bytes().iter().copied().all(is_tstring_char)
 }
 
 /// Normalize a `NumericString` by removing the spaces.
