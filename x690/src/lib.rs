@@ -1301,19 +1301,16 @@ where
     write_x690_node(output, &cst.root)
 }
 
+// TODO: Isn't this code duplicate?
 // TODO: Create a version that takes a bytes::Bytes instead of &[u8]
 // Get the CST of BER-encoded data.
 pub fn ber_cst (bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
     let (len, tag, constructed) = ber_decode_tag(bytes)?;
     let mut bytes_read: usize = len;
     let value_length;
-    match ber_decode_length(&bytes[bytes_read..]) {
-        Ok((len_len, len)) => {
-            bytes_read += len_len;
-            value_length = len;
-        }
-        Err(e) => return Err(e),
-    };
+    let (len_len, len) = ber_decode_length(&bytes[bytes_read..])?;
+    bytes_read += len_len;
+    value_length = len;
     match value_length {
         X690Length::Definite(len) => {
             if (bytes.len() - bytes_read) < len {
@@ -1366,22 +1363,18 @@ pub fn ber_cst (bytes: ByteSlice) -> ASN1Result<(usize, X690Element)> {
             let mut children: Vec<X690Element> = Vec::with_capacity(1);
             let mut value_bytes_read: usize = 0;
             while value_bytes_read < bytes.len() {
-                match ber_cst(&bytes[bytes_read + value_bytes_read..]) {
-                    Ok((el_len, el)) => {
-                        if el_len == 0 {
-                            break;
-                        }
-                        value_bytes_read += el_len;
-                        if el.tag.tag_class == TagClass::UNIVERSAL
-                            && (el.tag.tag_number == UNIV_TAG_END_OF_CONTENT)
-                        {
-                            // We do NOT append the EOC element. It is treated like it does not exist.
-                            break;
-                        }
-                        children.push(el);
-                    }
-                    Err(e) => return Err(e),
-                };
+                let (el_len, el) = ber_cst(&bytes[bytes_read + value_bytes_read..])?;
+                if el_len == 0 {
+                    break;
+                }
+                value_bytes_read += el_len;
+                if el.tag.tag_class == TagClass::UNIVERSAL
+                    && (el.tag.tag_number == UNIV_TAG_END_OF_CONTENT)
+                {
+                    // We do NOT append the EOC element. It is treated like it does not exist.
+                    break;
+                }
+                children.push(el);
             }
             bytes_read += value_bytes_read;
             let el = X690Element::new(
@@ -1412,12 +1405,8 @@ pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
                     err.constructed = Some(true);
                     return Err(err);
                 }
-                match deconstruct(&child) {
-                    Ok(deconstructed_child) => {
-                        deconstructed_value.put(deconstructed_child.as_ref());
-                    }
-                    Err(e) => return Err(e),
-                }
+                let deconstructed_child = deconstruct(&child)?;
+                deconstructed_value.put(deconstructed_child.as_ref());
             }
             Ok(Cow::Owned(Vec::<u8>::from(deconstructed_value)))
         }

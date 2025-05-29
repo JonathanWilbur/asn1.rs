@@ -119,12 +119,8 @@ pub fn deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
                     err.constructed = Some(true);
                     return Err(err);
                 }
-                match deconstruct_bit_string(&child) {
-                    Ok(deconstructed_child) => {
-                        substituent_bit_strings.push(deconstructed_child);
-                    }
-                    Err(e) => return Err(e),
-                }
+                let deconstructed_child = deconstruct_bit_string(&child)?;
+                substituent_bit_strings.push(deconstructed_child);
             }
             return Ok(join_bit_strings(&substituent_bit_strings.as_slice()));
         }
@@ -184,7 +180,7 @@ pub fn ber_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
 
     if (bytes[0] & 0b00011111) == 0b00011111 {
         // If it is a long tag...
-        for byte in bytes[1..].into_iter() {
+        for byte in bytes[1..].iter() {
             let final_byte: bool = ((*byte) & 0b1000_0000) == 0;
             if (tag_number > 0) && !final_byte {
                 // tag_number > 0 means we've already processed one byte.
@@ -290,13 +286,9 @@ impl X690Codec for BasicEncodingRules {
         let (len, tag, constructed) = ber_decode_tag(bytes)?;
         let mut bytes_read: usize = len;
         let value_length;
-        match ber_decode_length(&bytes[bytes_read..]) {
-            Ok((len_len, len)) => {
-                bytes_read += len_len;
-                value_length = len;
-            }
-            Err(e) => return Err(e),
-        };
+        let (len_len, len) = ber_decode_length(&bytes[bytes_read..])?;
+        bytes_read += len_len;
+        value_length = len;
         match value_length {
             X690Length::Definite(len) => {
                 if (bytes.len() - bytes_read) < len {
@@ -349,22 +341,18 @@ impl X690Codec for BasicEncodingRules {
                 let mut children: Vec<X690Element> = Vec::with_capacity(1);
                 let mut value_bytes_read: usize = 0;
                 while value_bytes_read < bytes.len() {
-                    match self.decode_from_slice(&bytes[bytes_read + value_bytes_read..]) {
-                        Ok((el_len, el)) => {
-                            if el_len == 0 {
-                                break;
-                            }
-                            value_bytes_read += el_len;
-                            if el.tag.tag_class == TagClass::UNIVERSAL
-                                && (el.tag.tag_number == UNIV_TAG_END_OF_CONTENT)
-                            {
-                                // We do NOT append the EOC element. It is treated like it does not exist.
-                                break;
-                            }
-                            children.push(el);
-                        }
-                        Err(e) => return Err(e),
-                    };
+                    let (el_len, el) =  self.decode_from_slice(&bytes[bytes_read + value_bytes_read..])?;
+                    if el_len == 0 {
+                        break;
+                    }
+                    value_bytes_read += el_len;
+                    if el.tag.tag_class == TagClass::UNIVERSAL
+                        && (el.tag.tag_number == UNIV_TAG_END_OF_CONTENT)
+                    {
+                        // We do NOT append the EOC element. It is treated like it does not exist.
+                        break;
+                    }
+                    children.push(el);
                 }
                 bytes_read += value_bytes_read;
                 let el = X690Element::new(
@@ -380,13 +368,9 @@ impl X690Codec for BasicEncodingRules {
         let (len, tag, constructed) = ber_decode_tag(&bytes)?;
         let mut bytes_read: usize = len;
         let value_length;
-        match ber_decode_length(&bytes[bytes_read..]) {
-            Ok((len_len, len)) => {
-                bytes_read += len_len;
-                value_length = len;
-            }
-            Err(e) => return Err(e),
-        };
+        let (len_len, len) = ber_decode_length(&bytes[bytes_read..])?;
+        bytes_read += len_len;
+        value_length = len;
         match value_length {
             X690Length::Definite(len) => {
                 if (bytes.len() - bytes_read) < len {
@@ -439,22 +423,18 @@ impl X690Codec for BasicEncodingRules {
                 let mut children: Vec<X690Element> = Vec::with_capacity(1);
                 let mut value_bytes_read: usize = 0;
                 while value_bytes_read < bytes.len() {
-                    match self.decode_from_bytes(bytes.slice(bytes_read + value_bytes_read..)) {
-                        Ok((el_len, el)) => {
-                            if el_len == 0 {
-                                break;
-                            }
-                            value_bytes_read += el_len;
-                            if el.tag.tag_class == TagClass::UNIVERSAL
-                                && (el.tag.tag_number == UNIV_TAG_END_OF_CONTENT)
-                            {
-                                // We do NOT append the EOC element. It is treated like it does not exist.
-                                break;
-                            }
-                            children.push(el);
-                        }
-                        Err(e) => return Err(e),
-                    };
+                    let (el_len, el) = self.decode_from_bytes(bytes.slice(bytes_read + value_bytes_read..))?;
+                    if el_len == 0 {
+                        break;
+                    }
+                    value_bytes_read += el_len;
+                    if el.tag.tag_class == TagClass::UNIVERSAL
+                        && (el.tag.tag_number == UNIV_TAG_END_OF_CONTENT)
+                    {
+                        // We do NOT append the EOC element. It is treated like it does not exist.
+                        break;
+                    }
+                    children.push(el);
                 }
                 bytes_read += value_bytes_read;
                 let el = X690Element::new(
@@ -659,10 +639,8 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn decode_utf8_string(&self, el: &X690Element) -> ASN1Result<UTF8String> {
-        match String::from_utf8(deconstruct(el)?.into_owned()) {
-            Ok(x) => Ok(x),
-            Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
-        }
+        String::from_utf8(deconstruct(el)?.into_owned())
+            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))
     }
 
     fn decode_numeric_string(&self, el: &X690Element) -> ASN1Result<NumericString> {
@@ -1429,6 +1407,7 @@ impl X690Codec for BasicEncodingRules {
         if month > 12 || month == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
+        // FIXME: Use this function from elsewhere
         let max_day = match month {
             1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
             // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
@@ -1599,35 +1578,12 @@ impl X690Codec for BasicEncodingRules {
         }
 
         // Extract and validate date and time parts
-        let year: u32 = match s[..4].parse() {
-            Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_year)),
-        };
-
-        let month: u32 = match s[4..6].parse() {
-            Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_month)),
-        };
-
-        let day: u32 = match s[6..8].parse() {
-            Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_day)),
-        };
-
-        let hour: u32 = match s[8..10].parse() {
-            Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour)),
-        };
-
-        let minute: u32 = match s[10..12].parse() {
-            Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute)),
-        };
-
-        let second: u32 = match s[12..14].parse() {
-            Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_second)),
-        };
+        let year: u32 = s[..4].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
+        let month: u32 = s[4..6].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
+        let day: u32 = s[6..8].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
+        let hour: u32 = s[8..10].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
+        let minute: u32 = s[10..12].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+        let second: u32 = s[12..14].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
 
         if month == 0 || month > 12 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));

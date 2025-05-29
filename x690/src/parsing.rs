@@ -27,14 +27,7 @@ pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
         TagSelector::any => true,
         TagSelector::class(tc) => el.tag.tag_class == tc,
         TagSelector::number(tn) => el.tag.tag_number == tn,
-        TagSelector::or(sels) => {
-            for s in sels {
-                if component_is_selected(el, **s) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        TagSelector::or(sels) => sels.iter().any(|s| component_is_selected(el, **s)),
         TagSelector::not(n) => !component_is_selected(el, *n),
     }
 }
