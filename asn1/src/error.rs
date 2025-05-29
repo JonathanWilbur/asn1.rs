@@ -105,7 +105,10 @@ pub enum ASN1ErrorCode {
 
     /// A binary real number used a base value (as in part of the mantissa,
     /// base, and exponent that comprise a real number) that was unrecognized.
-    binary_real_unrecognized_base,
+    bin_real_unrecognized_base,
+
+    /// A binary real number used an exponent format that was unrecognized.
+    bin_real_unrecognized_exp_fmt,
 
     /// A base-10 `REAL` string was malformed. The variant value is the bytes
     /// of the string.
@@ -166,7 +169,7 @@ pub enum ASN1ErrorCode {
     invalid_time_offset,
 
     /// Invalid UTF-8 encoding
-    invalid_utf8(Utf8Error),
+    invalid_utf8(Option<Utf8Error>),
 
     /// An impossible error that should never happen.
     nonsense,
@@ -218,6 +221,8 @@ pub struct ASN1Error {
     /// The underlying error
     pub err_source: Option<Box<dyn std::error::Error + 'static>>,
 }
+
+// TODO: fluent API: e.g. with_tag()
 
 impl std::error::Error for ASN1Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
@@ -311,7 +316,7 @@ impl From<Utf8Error> for ASN1Error {
     #[inline]
     fn from(value: Utf8Error) -> Self {
         ASN1Error {
-            error_code: ASN1ErrorCode::invalid_utf8(value),
+            error_code: ASN1ErrorCode::invalid_utf8(Some(value)),
             component_name: None,
             tag: None,
             length: None,

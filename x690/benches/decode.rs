@@ -156,7 +156,6 @@ fn decode_AlgorithmIdentifier4(el: &X690Element) -> ASN1Result<AlgorithmIdentifi
             _ => panic!("There are no extensions in AlgorithmIdentifier!"),
         }
     }
-    // NOTE: unwrap() should be fine, because we validate that there is such a component in `_parse_sequence`.
     Ok(AlgorithmIdentifier {
         algorithm,
         parameters,

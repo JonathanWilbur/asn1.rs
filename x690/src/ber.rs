@@ -510,7 +510,7 @@ impl X690Codec for BasicEncodingRules {
             },
             crate::X690_REAL_BASE10 => {
                 let s = from_utf8(&value_bytes[1..])
-                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?; // FIXME: UTF8 error
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
                 let format = value_bytes[0] & 0b0011_1111;
                 return match format {
                     crate::X690_REAL_NR1 => iso6093::parse_nr1(s)
@@ -594,7 +594,7 @@ impl X690Codec for BasicEncodingRules {
                                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                         }
                     }
-                    _ => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)) // TODO: Define a variant for this error
+                    _ => return Err(ASN1Error::new(ASN1ErrorCode::bin_real_unrecognized_exp_fmt))
                 }
                 let unsigned_value = (mantissa as f64)
                     * (2u8.pow(scale.into())) as f64
@@ -661,7 +661,7 @@ impl X690Codec for BasicEncodingRules {
     fn decode_utf8_string(&self, el: &X690Element) -> ASN1Result<UTF8String> {
         match String::from_utf8(deconstruct(el)?.into_owned()) {
             Ok(x) => Ok(x),
-            Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(e.utf8_error()))),
+            Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
         }
     }
 
@@ -918,7 +918,7 @@ impl X690Codec for BasicEncodingRules {
         // value.len() is in bytes, not characters, so this allocation should
         // be 100% accurate.
         debug_assert_eq!(bytes_written, value.len());
-        Ok(X690Element::new( // TODO: Define macros to shorten this?
+        Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
             X690Value::Primitive(out.into_inner().into()),
         ))
@@ -1287,7 +1287,7 @@ impl X690Codec for BasicEncodingRules {
             0b1000_0000 | 0b1100_0000 => { // Binary formatting
                 let base = content_octets[0] & 0b0011_0000;
                 if base == 0b0011_0000 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::binary_real_unrecognized_base));
+                    return Err(ASN1Error::new(ASN1ErrorCode::bin_real_unrecognized_base));
                 }
                 let exp_encoding = content_octets[0] & 0b0000_0011;
                 let exp_len: usize = match exp_encoding {
@@ -1320,7 +1320,7 @@ impl X690Codec for BasicEncodingRules {
     fn validate_utf8_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         from_utf8(content_octets)
             .map(|_| ())
-            .map_err(|e| ASN1Error::new(ASN1ErrorCode::malformed_value)) // FIXME: Utf8Error
+            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))
     }
 
     #[inline]
@@ -1409,7 +1409,7 @@ impl X690Codec for BasicEncodingRules {
             )));
         }
         let s = from_utf8(&content_octets[0..10])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?; // FIXME: Utf8Error
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
         let mut year = u16::from_str(&s[0..2])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
         if year > 75 { // I think this is specified in RFC 5280. I forgot where I saw it.
@@ -1684,7 +1684,6 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    // TODO: Define a macro to reduce this boilerplate.
     fn validate_visible_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_visible_char(*b));
         if let Some(bad_char_index) = maybe_bad_char {

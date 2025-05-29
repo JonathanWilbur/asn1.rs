@@ -13,7 +13,6 @@ use crate::{
     x690_write_date_time_value,
     x690_write_time_value, x690_read_object_identifier_value,
     write_x690_node,
-    _parse_sequence,
     x690_encode_external_components,
     x690_encode_character_string_components,
     x690_encode_embedded_pdv_components,
@@ -694,7 +693,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
                 Ok(x) => Ok(x),
-                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(e.utf8_error()))),
+                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
             },
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
@@ -703,7 +702,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
                 Ok(x) => Ok(x),
-                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(e.utf8_error()))),
+                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
             },
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
@@ -712,7 +711,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
                 Ok(x) => Ok(x),
-                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(e.utf8_error()))),
+                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
             },
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }

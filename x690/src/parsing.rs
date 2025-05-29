@@ -436,100 +436,6 @@ fn _get_possible_initial_components(ctl: &[ComponentSpec]) -> usize {
     i
 }
 
-pub fn _parse_sequence_with_trailing_rctl<'a>(
-    elements: &'a [&'a X690Element],
-    rctl1: &'a [ComponentSpec],
-    eal: &'a [ComponentSpec],
-    rctl2: &'a [ComponentSpec],
-) -> ASN1Result<IndexedComponents<'a>> {
-    let (start_of_exts, rctl1_index) = _parse_component_type_list(rctl1, elements, false)?;
-    let end_of_possible_rctl2_components = _get_possible_initial_components(rctl2);
-    let possible_initial_rctl2_components = &rctl2[0..end_of_possible_rctl2_components];
-    let extensions_onwards = &elements[start_of_exts..];
-    let mut number_of_ext_components: Option<usize> = None;
-    for el_index in 0..extensions_onwards.len() {
-        let el = &extensions_onwards[el_index];
-        for possible_rctl2_component in possible_initial_rctl2_components {
-            if component_is_selected(el, possible_rctl2_component.selector) {
-                number_of_ext_components = Some(el_index);
-                break;
-            }
-        }
-        // TODO: Use named-label breaks: https://stackoverflow.com/questions/22905752/named-breaks-in-for-loops-in-rust
-        if number_of_ext_components.is_some() {
-            break;
-        }
-    }
-    let rctl2_found: bool = number_of_ext_components.is_some();
-    let rctl2_entirely_optional: bool = rctl2.iter().all(|s| s.optional);
-    if !rctl2_found && !rctl2_entirely_optional {
-        let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
-        err.constructed = Some(true);
-        return Err(err);
-    }
-    // NOTE: I deviated from the TypeScript implementation here. I don't see
-    // how the value `startOfExtensions` could ever be -1.
-    // FIXME: I think the below needs to default to the end of elements.
-    let start_of_rctl2 = match number_of_ext_components {
-        Some(num) => start_of_exts + num,
-        None => elements.len(),
-    };
-    let (eal_components_read, eal_index) =
-        _parse_component_type_list(eal, &elements[start_of_exts..start_of_rctl2], true)?;
-    let (rctl2_components_read, rctl2_index) =
-        _parse_component_type_list(rctl2, &elements[start_of_rctl2..], false)?;
-    if start_of_rctl2 + rctl2_components_read > elements.len() {
-        let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
-        err.constructed = Some(true);
-        return Err(err);
-    }
-    if start_of_rctl2 + rctl2_components_read != elements.len() {
-        let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
-        err.constructed = Some(true);
-        return Err(err);
-    }
-    let end_of_recognized_exts = start_of_exts + eal_components_read;
-    let mut ret: IndexedComponents = rctl1_index;
-    ret.0.extend(eal_index.0);
-    ret.1.extend(eal_index.1);
-    for ext in &elements[end_of_recognized_exts..start_of_rctl2] {
-        ret.1.push((*ext).clone());
-    }
-    ret.0.extend(rctl2_index.0);
-    ret.1.extend(rctl2_index.1);
-    Ok(ret)
-}
-
-pub fn _parse_sequence_without_trailing_rctl<'a>(
-    elements: &'a [&'a X690Element],
-    rctl1: &'a [ComponentSpec],
-    eal: &'a [ComponentSpec],
-) -> ASN1Result<IndexedComponents<'a>> {
-    let (start_of_exts, rctl_index) = _parse_component_type_list(rctl1, &elements, false)?;
-    let (exts_read, eal_index) = _parse_component_type_list(eal, &elements[start_of_exts..], true)?;
-    let end_of_recognized_exts = start_of_exts + exts_read;
-    let mut ret: IndexedComponents = rctl_index;
-    ret.0.extend(eal_index.0);
-    for el in elements[end_of_recognized_exts..].into_iter() {
-        ret.1.push((**el).clone());
-    }
-    Ok(ret)
-}
-
-// FIXME: Get rid of this completely.
-pub fn _parse_sequence<'a>(
-    elements: &'a [&'a X690Element],
-    rctl1: &'a [ComponentSpec],
-    eal: &'a [ComponentSpec],
-    rctl2: &'a [ComponentSpec],
-) -> ASN1Result<IndexedComponents<'a>> {
-    if rctl2.len() > 0 {
-        return _parse_sequence_with_trailing_rctl(elements, rctl1, eal, rctl2);
-    } else {
-        return _parse_sequence_without_trailing_rctl(elements, rctl1, eal);
-    }
-}
-
 enum X690StructureIterationPhase {
     RCTL1,
     EAL,
@@ -538,7 +444,6 @@ enum X690StructureIterationPhase {
 
 /// Used for parsing `SEQUENCE`
 /// Returned name is "" for unrecgonized extensions.
-// TODO: Use this
 pub struct X690StructureIterator <'a> {
     pub elements: &'a [X690Element],
     pub rctl1: &'a [ComponentSpec<'a>],
@@ -573,6 +478,10 @@ impl <'a> X690StructureIterator<'a> {
 }
 
 // TODO: Implement other iterator traits for this.
+// impl std::iter::FusedIterator for OidArcs<'_> {}
+// The provided implementations are sufficient.
+// impl std::iter::ExactSizeIterator for OidArcs<'_> {}
+// impl std::iter::DoubleEndedIterator for OidArcs<'_> {}
 
 impl <'a> Iterator for X690StructureIterator<'a> {
     type Item = ASN1Result<&'a str>;
