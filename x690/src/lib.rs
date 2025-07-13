@@ -5,17 +5,17 @@ pub(crate) mod utils;
 pub use crate::ber::*;
 pub use crate::codec::*;
 pub use crate::parsing::*;
-pub use crate::utils::*;
+use crate::utils::likely;
 use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use wildboar_asn1::{
     ASN1Value, ByteSlice, CharacterString, EmbeddedPDV, ExternalEncoding,
-    ExternalIdentification, GeneralizedTime, ObjectDescriptor,
+    ExternalIdentification, GeneralizedTime,
     PresentationContextSwitchingTypeIdentification, Tag, TagClass, TagNumber, TaggedASN1Value,
-    UTCTime, UniversalString, UNIV_TAG_BIT_STRING,
+    UTCTime, UNIV_TAG_BIT_STRING,
     UNIV_TAG_BMP_STRING, UNIV_TAG_BOOLEAN,
     UNIV_TAG_CHARACTER_STRING, UNIV_TAG_DATE,
     UNIV_TAG_DATE_TIME, UNIV_TAG_DURATION,
-    UNIV_TAG_EMBEDDED_PDV, UNIV_TAG_END_OF_CONTENT,
+    UNIV_TAG_EMBEDDED_PDV,
     UNIV_TAG_ENUMERATED, UNIV_TAG_EXTERNAL,
     UNIV_TAG_GENERALIZED_TIME, UNIV_TAG_GENERAL_STRING,
     UNIV_TAG_GRAPHIC_STRING, UNIV_TAG_IA5_STRING,
@@ -39,7 +39,6 @@ use std::borrow::Cow;
 use std::io::{Error, ErrorKind, Result, Write};
 use std::mem::size_of;
 use std::sync::Arc;
-use smallvec::{smallvec, SmallVec};
 use bytes::{Bytes, BytesMut, BufMut};
 
 pub const X690_TAG_CLASS_UNIVERSAL: u8 = 0b0000_0000;
@@ -88,13 +87,10 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
     type Item = X690Element;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let X690Value::Constructed(components) = &self.el.value {
-            let i = self.i;
-            self.i += 1;
-            components.get(i).cloned()
-        } else {
-            None
-        }
+        let components = self.el.value.components().ok()?;
+        let i = self.i;
+        self.i += 1;
+        components.get(i).cloned()
     }
 
 }
@@ -103,11 +99,12 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
 pub enum X690Value {
     Primitive(Bytes),
     Constructed(Arc<Vec<X690Element>>),
-    // TODO: Serialized variant?
+    Serialized(Bytes),
 }
 
 impl X690Value {
 
+    // Returns the length of the content octets in bytes.
     pub fn len(&self) -> usize {
         match self {
             X690Value::Primitive(v) => v.len(),
@@ -118,11 +115,26 @@ impl X690Value {
                 }
                 sum
             },
+            X690Value::Serialized(v) => {
+                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                el.len()
+            }
         }
     }
 
     pub fn from_explicit(inner: X690Element) -> Self {
         X690Value::Constructed(Arc::new(Vec::from([ inner ])))
+    }
+
+    pub fn components(&self) -> ASN1Result<Arc<Vec<X690Element>>> {
+        match self {
+            X690Value::Constructed(components) => Ok(components.clone()),
+            X690Value::Serialized(v) => {
+                let (_, el) = BER.decode_from_slice(&v)?;
+                el.value.components()
+            },
+            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+        }
     }
 
 }
@@ -141,22 +153,16 @@ impl X690Element {
 
     pub fn len(&self) -> usize {
         let tag_length: usize = get_written_x690_tag_length(self.tag.tag_number);
-        let value_length = match &self.value {
-            X690Value::Primitive(v) => v.len(),
-            X690Value::Constructed(components) => {
-                let mut sum: usize = 0;
-                for component in components.iter() {
-                    sum += component.len();
-                }
-                sum
-            },
-        };
+        let value_length = self.value.len();
         let length_length: usize = get_written_x690_length_length(value_length);
         let ret = tag_length + length_length + value_length;
         ret
     }
 
     pub fn is_constructed (&self) -> bool {
+        if let X690Value::Serialized(v) = &self.value {
+            return v.get(0).is_some_and(|b| (*b & 0b0010_0000) == 0b0010_0000);
+        }
         if let X690Value::Constructed(_) = self.value {
             true
         } else {
@@ -164,6 +170,7 @@ impl X690Element {
         }
     }
 
+    // TODO: Rename to components_iter
     pub fn components (&self) -> X690ComponentIterator<'_> {
         X690ComponentIterator {
             el: self,
@@ -179,6 +186,10 @@ impl X690Element {
                 }
                 Ok(components[0].clone())
             },
+            X690Value::Serialized(v) => {
+                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                el.inner()
+            },
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
@@ -191,6 +202,18 @@ impl X690Element {
                 write_x690_encoding(&mut output, &self.value)?;
                 Ok(Cow::Owned(output.into_inner().into()))
             },
+            X690Value::Serialized(v) => {
+                let (_, el) = BER.decode_from_slice(v).unwrap();
+                match el.value {
+                    X690Value::Primitive(inner) => Ok(Cow::Owned(inner.to_vec())),
+                    X690Value::Constructed(_) => {
+                        let mut output = BytesMut::with_capacity(el.len()).writer();
+                        write_x690_encoding(&mut output, &el.value)?;
+                        Ok(Cow::Owned(output.into_inner().into()))
+                    },
+                    _ => panic!("ASN.1 / X.690 decoding returned serialized value"),
+                }
+            }
         }
     }
 
@@ -226,6 +249,7 @@ impl X690Element {
         match &self.value {
             X690Value::Primitive(v) => v.len() == 0,
             X690Value::Constructed(components) => components.len() == 0,
+            X690Value::Serialized(v) => v.len() <= 2,
         }
     }
 
@@ -443,6 +467,54 @@ impl TryInto<BOOLEAN> for X690Element {
 //     }
 // }
 
+pub fn x690_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
+    if bytes.len() == 0 {
+        return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
+    }
+    let mut bytes_read = 1;
+    let tag_class = match (bytes[0] & 0b1100_0000) >> 6 {
+        0 => TagClass::UNIVERSAL,
+        1 => TagClass::APPLICATION,
+        2 => TagClass::CONTEXT,
+        3 => TagClass::PRIVATE,
+        _ => panic!("Impossible tag class"),
+    };
+    let constructed = (bytes[0] & 0b0010_0000) > 0;
+    let mut tag_number: TagNumber = 0;
+
+    if (bytes[0] & 0b00011111) == 0b00011111 {
+        // If it is a long tag...
+        for byte in bytes[1..].iter() {
+            let final_byte: bool = ((*byte) & 0b1000_0000) == 0;
+            if (tag_number > 0) && !final_byte {
+                // tag_number > 0 means we've already processed one byte.
+                // Tag encoded on more than 14 bits / two bytes.
+                return Err(ASN1Error::new(ASN1ErrorCode::tag_too_big));
+            }
+            let seven_bits = ((*byte) & 0b0111_1111) as u16;
+            if !final_byte && (seven_bits == 0) {
+                // You cannot encode a long tag with padding bytes.
+                return Err(ASN1Error::new(ASN1ErrorCode::padding_in_tag_number));
+            }
+            tag_number <<= 7;
+            tag_number += seven_bits;
+            bytes_read += 1;
+            if final_byte {
+                break;
+            }
+        }
+        if tag_number <= 30 {
+            // This could have been encoded in short form.
+            return Err(ASN1Error::new(ASN1ErrorCode::tag_number_could_have_used_short_form));
+        }
+    } else {
+        tag_number = (bytes[0] & 0b00011111) as TagNumber;
+    }
+
+    let tag = Tag::new(tag_class, tag_number);
+    Ok((bytes_read, tag, constructed))
+}
+
 pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
     if bytes.len() == 0 {
         return 0;
@@ -486,6 +558,7 @@ fn write_base_128<W>(output: &mut W, mut num: u32) -> Result<usize>
 where
     W: Write,
 {
+    #[cfg(feature = "likely_stable")]
     if likely(num < 128) {
         return output.write(&[num as u8]);
     }
@@ -1446,6 +1519,10 @@ where
             }
             Ok(sum)
         },
+        X690Value::Serialized(v) => {
+            let (_, el) = BER.decode_from_slice(&v).unwrap();
+            write_x690_encoding(output, &el.value)
+        }
     }
 }
 
@@ -1453,6 +1530,9 @@ pub fn write_x690_node<W>(output: &mut W, node: &X690Element) -> Result<usize>
 where
     W: Write,
 {
+    if let X690Value::Serialized(serialized) = &node.value {
+        return output.write(&serialized);
+    }
     let mut bytes_written: usize = 0;
     bytes_written += x690_write_tag(output, node.tag.tag_class, node.is_constructed(), node.tag.tag_number)?;
     bytes_written += x690_write_length(output, node.value.len())?;
@@ -1491,6 +1571,10 @@ pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
                 deconstructed_value.put(deconstructed_child.as_ref());
             }
             Ok(Cow::Owned(Vec::<u8>::from(deconstructed_value)))
+        },
+        X690Value::Serialized(v) => {
+            let (_, el) = BER.decode_from_slice(&v).unwrap();
+            Ok(Cow::Owned(deconstruct(&el)?.into_owned()))
         }
     }
 }

@@ -49,7 +49,7 @@ pub fn _parse_set<'a>(
     /* We need to check for any duplicate tags. No, checking for duplicate
     components is not sufficient, because that only works for recognized
     components. We need to make sure the extensions do not have duplicates as
-    well, even if we do not recognized them.
+    well, even if we do not recognize them.
 
     Instead of using a `HashSet` (as was the case before), this solution avoids
     allocation on the heap entirely by using u64s as bitmaps. Unfortunately,
@@ -436,7 +436,7 @@ enum X690StructureIterationPhase {
 }
 
 /// Used for parsing `SEQUENCE`
-/// Returned name is "" for unrecgonized extensions.
+/// Returned name is "" for unrecognized extensions.
 pub struct X690StructureIterator <'a> {
     pub elements: &'a [X690Element],
     pub rctl1: &'a [ComponentSpec<'a>],
@@ -578,16 +578,14 @@ impl <'a> Iterator for X690StructureIterator<'a> {
 // }
 
 pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
-    let elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => {
-            let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
+    let elements = el.value.components()
+        .map_err(|e| {
+            let mut err = ASN1Error::new(e.error_code);
             err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
             err.constructed = Some(true);
             err.length = Some(el.len());
-            return Err(err);
-        }
-    };
+            err
+        })?;
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
     for element in elements.iter() {
         let v = item_decoder(&element)?;
@@ -597,16 +595,14 @@ pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN
 }
 
 pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
-    let elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => {
-            let mut err = ASN1Error::new(ASN1ErrorCode::nonsense);
+    let elements = el.value.components()
+        .map_err(|e| {
+            let mut err = ASN1Error::new(e.error_code);
             err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
             err.constructed = Some(true);
             err.length = Some(el.len());
-            return Err(err);
-        }
-    };
+            err
+        })?;
     let mut ret: Vec<T> = Vec::with_capacity(elements.len());
     for element in elements.iter() {
         let v = item_decoder(&element)?;

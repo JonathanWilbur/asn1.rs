@@ -3189,6 +3189,7 @@ dependencies = [
  "bytes",
  "criterion 0.5.1",
  "iso6093",
+ "likely_stable",
  "simdutf8",
  "smallvec",
  "wildboar-asn1",
