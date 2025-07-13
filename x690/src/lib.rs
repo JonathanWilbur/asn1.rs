@@ -77,24 +77,6 @@ pub enum X690Length {
     Indefinite,
 }
 
-#[derive(Clone, Debug)]
-pub struct X690ComponentIterator<'a>{
-    pub el: &'a X690Element,
-    pub i: usize,
-}
-
-impl <'a> Iterator for X690ComponentIterator<'a> {
-    type Item = X690Element;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let components = self.el.value.components().ok()?;
-        let i = self.i;
-        self.i += 1;
-        components.get(i).cloned()
-    }
-
-}
-
 #[derive(Clone, Debug, Hash)]
 pub enum X690Value {
     Primitive(Bytes),
@@ -170,12 +152,8 @@ impl X690Element {
         }
     }
 
-    // TODO: Rename to components_iter
-    pub fn components (&self) -> X690ComponentIterator<'_> {
-        X690ComponentIterator {
-            el: self,
-            i: 0,
-        }
+    pub fn components (&self) -> ASN1Result<Arc<Vec<X690Element>>> {
+        self.value.components()
     }
 
     pub fn inner(&self) -> ASN1Result<X690Element> {

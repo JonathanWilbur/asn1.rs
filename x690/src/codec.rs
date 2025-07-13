@@ -1273,7 +1273,7 @@ pub trait X690Codec {
 
     fn validate_character_string(&self, el: &X690Element) -> ASN1Result<()> {
         // you can use the same code for parsing the
-        let children: Vec<X690Element> = el.components().collect();
+        let children: Arc<Vec<X690Element>> = el.components()?;
         let it = X690StructureIterator::new(
             children.as_slice(),
             wildboar_asn1::_rctl1_components_for_CharacterString,
