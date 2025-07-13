@@ -6205,13 +6205,13 @@ pub fn _encode_TBrequest(value_: &TBrequest) -> ASN1Result<X690Element> {
         TBrequest::caCert(v) => |v_1: &PKCertIdentifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_PKCertIdentifier(&v_1)?),
+                X690Value::from_explicit(_encode_PKCertIdentifier(&v_1)?),
             ))
         }(&v),
         TBrequest::subjectCert(v) => |v_1: &PKCertIdentifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_PKCertIdentifier(&v_1)?),
+                X690Value::from_explicit(_encode_PKCertIdentifier(&v_1)?),
             ))
         }(&v),
         TBrequest::_unrecognized(el) => Ok(el.clone()),
@@ -6277,13 +6277,13 @@ pub fn _encode_TBresponse(value_: &TBresponse) -> ASN1Result<X690Element> {
         TBresponse::success(v) => |v_1: &TBOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_TBOK(&v_1)?),
+                X690Value::from_explicit(_encode_TBOK(&v_1)?),
             ))
         }(&v),
         TBresponse::failure(v) => |v_1: &TBerror| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_TBerror(&v_1)?),
+                X690Value::from_explicit(_encode_TBerror(&v_1)?),
             ))
         }(&v),
         TBresponse::_unrecognized(el) => Ok(el.clone()),
@@ -6443,19 +6443,19 @@ pub fn _encode_TBOK(value_: &TBOK) -> ASN1Result<X690Element> {
     components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+            X690Value::from_explicit(BER.encode_integer(&v_1)?),
         ))
     }(&value_.levelOfAssurance)?);
     components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+            X690Value::from_explicit(BER.encode_integer(&v_1)?),
         ))
     }(&value_.confidenceLevel)?);
     components_.push(|v_1: &UTCTime| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&BER.encode_utc_time(&v_1)?),
+            X690Value::from_explicit(BER.encode_utc_time(&v_1)?),
         ))
     }(&value_.validationTime)?);
     if let Some(v_) = &value_.info {
@@ -6698,13 +6698,13 @@ pub fn _encode_CertRsp_result(value_: &CertRsp_result) -> ASN1Result<X690Element
         CertRsp_result::success(v) => |v_1: &CertOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertOK(&v_1)?),
+                X690Value::from_explicit(_encode_CertOK(&v_1)?),
             ))
         }(&v),
         CertRsp_result::failure(v) => |v_1: &CertErr| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_CertErr(&v_1)?),
+                X690Value::from_explicit(_encode_CertErr(&v_1)?),
             ))
         }(&v),
         CertRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -6769,13 +6769,13 @@ pub fn _encode_CertErr_notOK(value_: &CertErr_notOK) -> ASN1Result<X690Element> 
         CertErr_notOK::wrErr(v) => |v_1: &PkiWaError| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_PkiWaError(&v_1)?),
+                X690Value::from_explicit(_encode_PkiWaError(&v_1)?),
             ))
         }(&v),
         CertErr_notOK::avmpErr(v) => |v_1: &AVMP_error| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_AVMP_error(&v_1)?),
+                X690Value::from_explicit(_encode_AVMP_error(&v_1)?),
             ))
         }(&v),
         CertErr_notOK::_unrecognized(el) => Ok(el.clone()),
@@ -6840,13 +6840,13 @@ pub fn _encode_AddAvlRsp_result(value_: &AddAvlRsp_result) -> ASN1Result<X690Ele
         AddAvlRsp_result::success(v) => |v_1: &AddAvlOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_AddAvlOK(&v_1)?),
+                X690Value::from_explicit(_encode_AddAvlOK(&v_1)?),
             ))
         }(&v),
         AddAvlRsp_result::failure(v) => |v_1: &AddAvlErr| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_AddAvlErr(&v_1)?),
+                X690Value::from_explicit(_encode_AddAvlErr(&v_1)?),
             ))
         }(&v),
         AddAvlRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -6911,13 +6911,13 @@ pub fn _encode_ReplaceAvlRsp_result(value_: &ReplaceAvlRsp_result) -> ASN1Result
         ReplaceAvlRsp_result::success(v) => |v_1: &RepAvlOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_RepAvlOK(&v_1)?),
+                X690Value::from_explicit(_encode_RepAvlOK(&v_1)?),
             ))
         }(&v),
         ReplaceAvlRsp_result::failure(v) => |v_1: &RepAvlErr| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_RepAvlErr(&v_1)?),
+                X690Value::from_explicit(_encode_RepAvlErr(&v_1)?),
             ))
         }(&v),
         ReplaceAvlRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -6982,13 +6982,13 @@ pub fn _encode_DeleteAvlRsp_result(value_: &DeleteAvlRsp_result) -> ASN1Result<X
         DeleteAvlRsp_result::success(v) => |v_1: &DelAvlOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_DelAvlOK(&v_1)?),
+                X690Value::from_explicit(_encode_DelAvlOK(&v_1)?),
             ))
         }(&v),
         DeleteAvlRsp_result::failure(v) => |v_1: &DelAvlErr| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_DelAvlErr(&v_1)?),
+                X690Value::from_explicit(_encode_DelAvlErr(&v_1)?),
             ))
         }(&v),
         DeleteAvlRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -7189,14 +7189,14 @@ pub fn _encode_CertSubscribeRsp_result(
         CertSubscribeRsp_result::success(v) => |v_1: &CertSubscribeOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertSubscribeOK(&v_1)?),
+                X690Value::from_explicit(_encode_CertSubscribeOK(&v_1)?),
             ))
         }(&v),
         CertSubscribeRsp_result::failure(v) => {
             |v_1: &CertSubscribeErr| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_CertSubscribeErr(&v_1)?),
+                    X690Value::from_explicit(_encode_CertSubscribeErr(&v_1)?),
                 ))
             }(&v)
         }
@@ -7538,14 +7538,14 @@ pub fn _encode_CertSubscribeOK_Item(value_: &CertSubscribeOK_Item) -> ASN1Result
         CertSubscribeOK_Item::ok(v) => |v_1: &CertSubscribeOK_Item_ok| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertSubscribeOK_Item_ok(&v_1)?),
+                X690Value::from_explicit(_encode_CertSubscribeOK_Item_ok(&v_1)?),
             ))
         }(&v),
         CertSubscribeOK_Item::not_ok(v) => {
             |v_1: &CertSubscribeOK_Item_not_ok| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_CertSubscribeOK_Item_not_ok(&v_1)?),
+                    X690Value::from_explicit(_encode_CertSubscribeOK_Item_not_ok(&v_1)?),
                 ))
             }(&v)
         }
@@ -7750,7 +7750,7 @@ pub fn _encode_CertUnsubscribeRsp_result(
             |v_1: &CertUnsubscribeOK| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_CertUnsubscribeOK(&v_1)?),
+                    X690Value::from_explicit(_encode_CertUnsubscribeOK(&v_1)?),
                 ))
             }(&v)
         }
@@ -7758,7 +7758,7 @@ pub fn _encode_CertUnsubscribeRsp_result(
             |v_1: &CertUnsubscribeErr| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_CertUnsubscribeErr(&v_1)?),
+                    X690Value::from_explicit(_encode_CertUnsubscribeErr(&v_1)?),
                 ))
             }(&v)
         }
@@ -8080,7 +8080,7 @@ pub fn _encode_CertUnsubscribeOK_Item(value_: &CertUnsubscribeOK_Item) -> ASN1Re
             |v_1: &CertUnsubscribeOK_Item_ok| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_CertUnsubscribeOK_Item_ok(&v_1)?),
+                    X690Value::from_explicit(_encode_CertUnsubscribeOK_Item_ok(&v_1)?),
                 ))
             }(&v)
         }
@@ -8088,7 +8088,7 @@ pub fn _encode_CertUnsubscribeOK_Item(value_: &CertUnsubscribeOK_Item) -> ASN1Re
             |v_1: &CertUnsubscribeOK_Item_not_ok| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_CertUnsubscribeOK_Item_not_ok(&v_1)?),
+                    X690Value::from_explicit(_encode_CertUnsubscribeOK_Item_not_ok(&v_1)?),
                 ))
             }(&v)
         }
@@ -8294,13 +8294,13 @@ pub fn _encode_CertReplaceRsp_result(value_: &CertReplaceRsp_result) -> ASN1Resu
         CertReplaceRsp_result::success(v) => |v_1: &CertReplaceOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertReplaceOK(&v_1)?),
+                X690Value::from_explicit(_encode_CertReplaceOK(&v_1)?),
             ))
         }(&v),
         CertReplaceRsp_result::failure(v) => |v_1: &CertReplaceErr| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_CertReplaceErr(&v_1)?),
+                X690Value::from_explicit(_encode_CertReplaceErr(&v_1)?),
             ))
         }(&v),
         CertReplaceRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -8614,14 +8614,14 @@ pub fn _encode_CertReplaceOK_Item(value_: &CertReplaceOK_Item) -> ASN1Result<X69
         CertReplaceOK_Item::ok(v) => |v_1: &CertReplaceOK_Item_ok| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertReplaceOK_Item_ok(&v_1)?),
+                X690Value::from_explicit(_encode_CertReplaceOK_Item_ok(&v_1)?),
             ))
         }(&v),
         CertReplaceOK_Item::not_ok(v) => {
             |v_1: &CertReplaceOK_Item_not_ok| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_CertReplaceOK_Item_not_ok(&v_1)?),
+                    X690Value::from_explicit(_encode_CertReplaceOK_Item_not_ok(&v_1)?),
                 ))
             }(&v)
         }
@@ -8693,21 +8693,21 @@ pub fn _encode_CertReplaceErr_code(value_: &CertReplaceErr_code) -> ASN1Result<X
         CertReplaceErr_code::signedData(v) => |v_1: &SignedData_error| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_SignedData_error(&v_1)?),
+                X690Value::from_explicit(_encode_SignedData_error(&v_1)?),
             ))
         }(&v),
         CertReplaceErr_code::envelopedData(v) => {
             |v_1: &EnvelopedData_error| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_EnvelopedData_error(&v_1)?),
+                    X690Value::from_explicit(_encode_EnvelopedData_error(&v_1)?),
                 ))
             }(&v)
         }
         CertReplaceErr_code::casp(v) => |v_1: &CASP_error| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_CASP_error(&v_1)?),
+                X690Value::from_explicit(_encode_CASP_error(&v_1)?),
             ))
         }(&v),
         CertReplaceErr_code::_unrecognized(el) => Ok(el.clone()),
@@ -8927,13 +8927,13 @@ pub fn _encode_CertUpdateRsp_result(value_: &CertUpdateRsp_result) -> ASN1Result
         CertUpdateRsp_result::success(v) => |v_1: &CertUpdateOK| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertUpdateOK(&v_1)?),
+                X690Value::from_explicit(_encode_CertUpdateOK(&v_1)?),
             ))
         }(&v),
         CertUpdateRsp_result::failure(v) => |v_1: &CertUpdateErr| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_CertUpdateErr(&v_1)?),
+                X690Value::from_explicit(_encode_CertUpdateErr(&v_1)?),
             ))
         }(&v),
         CertUpdateRsp_result::_unrecognized(el) => Ok(el.clone()),
@@ -9245,14 +9245,14 @@ pub fn _encode_CertUpdateOK_Item(value_: &CertUpdateOK_Item) -> ASN1Result<X690E
         CertUpdateOK_Item::ok(v) => |v_1: &CertUpdateOK_Item_ok| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertUpdateOK_Item_ok(&v_1)?),
+                X690Value::from_explicit(_encode_CertUpdateOK_Item_ok(&v_1)?),
             ))
         }(&v),
         CertUpdateOK_Item::not_ok(v) => {
             |v_1: &CertUpdateOK_Item_not_ok| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_CertUpdateOK_Item_not_ok(&v_1)?),
+                    X690Value::from_explicit(_encode_CertUpdateOK_Item_not_ok(&v_1)?),
                 ))
             }(&v)
         }

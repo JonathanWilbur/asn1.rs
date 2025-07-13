@@ -1092,7 +1092,7 @@ pub fn _encode_Req_contents(value_: &Req_contents) -> ASN1Result<X690Element> {
         components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2194,7 +2194,7 @@ pub fn _encode_Rep_ti_contents(value_: &Rep_ti_contents) -> ASN1Result<X690Eleme
         components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3591,7 +3591,7 @@ pub fn _encode_Wrap_Header(value_: &Wrap_Header) -> ASN1Result<X690Element> {
         components_.push(|v_1: &Conf_Alg| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Conf_Alg(&v_1)?),
+                X690Value::from_explicit(_encode_Conf_Alg(&v_1)?),
             ))
         }(&v_)?);
     }

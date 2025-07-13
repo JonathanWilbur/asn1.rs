@@ -620,7 +620,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 |v_1: &Application_context_name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 1),
-                        X690Value::from_explicit(&_encode_Application_context_name(&v_1)?),
+                        X690Value::from_explicit(_encode_Application_context_name(&v_1)?),
                     ))
                 }(&value_.application_context_name)?,
             );
@@ -628,7 +628,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 2),
-                        X690Value::from_explicit(&_encode_Name(&v_1)?),
+                        X690Value::from_explicit(_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -637,7 +637,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 3),
-                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                            X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -647,7 +647,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 4),
-                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -657,7 +657,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 5),
-                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -666,7 +666,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 6),
-                        X690Value::from_explicit(&_encode_Name(&v_1)?),
+                        X690Value::from_explicit(_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -675,7 +675,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 7),
-                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                            X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -685,7 +685,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 8),
-                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -695,7 +695,7 @@ pub fn _encode_AARQ_apdu(value_: &AARQ_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 9),
-                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1033,7 +1033,7 @@ pub fn _encode_TheOsiBind(value_: &TheOsiBind) -> ASN1Result<X690Element> {
     |v_1: &TheOsiBind| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 16),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_)
 }
@@ -1486,21 +1486,21 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                 |v_1: &Application_context_name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 1),
-                        X690Value::from_explicit(&_encode_Application_context_name(&v_1)?),
+                        X690Value::from_explicit(_encode_Application_context_name(&v_1)?),
                     ))
                 }(&value_.application_context_name)?,
             );
             components_.push(|v_1: &Associate_result| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_Associate_result(&v_1)?),
+                    X690Value::from_explicit(_encode_Associate_result(&v_1)?),
                 ))
             }(&value_.result)?);
             components_.push(
                 |v_1: &Associate_source_diagnostic| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 3),
-                        X690Value::from_explicit(&_encode_Associate_source_diagnostic(&v_1)?),
+                        X690Value::from_explicit(_encode_Associate_source_diagnostic(&v_1)?),
                     ))
                 }(&value_.result_source_diagnostic)?,
             );
@@ -1508,7 +1508,7 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 4),
-                        X690Value::from_explicit(&_encode_Name(&v_1)?),
+                        X690Value::from_explicit(_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -1517,7 +1517,7 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 5),
-                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                            X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1527,7 +1527,7 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 6),
-                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1537,7 +1537,7 @@ pub fn _encode_AARE_apdu(value_: &AARE_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 7),
-                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -1922,7 +1922,7 @@ pub fn _encode_TheOsiBindRes(value_: &TheOsiBindRes) -> ASN1Result<X690Element> 
     |v_1: &TheOsiBindRes| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 17),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_)
 }
@@ -2365,21 +2365,21 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                 |v_1: &Application_context_name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 1),
-                        X690Value::from_explicit(&_encode_Application_context_name(&v_1)?),
+                        X690Value::from_explicit(_encode_Application_context_name(&v_1)?),
                     ))
                 }(&value_.application_context_name)?,
             );
             components_.push(|v_1: &Associate_result| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_Associate_result(&v_1)?),
+                    X690Value::from_explicit(_encode_Associate_result(&v_1)?),
                 ))
             }(&value_.result)?);
             components_.push(
                 |v_1: &Associate_source_diagnostic| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 3),
-                        X690Value::from_explicit(&_encode_Associate_source_diagnostic(&v_1)?),
+                        X690Value::from_explicit(_encode_Associate_source_diagnostic(&v_1)?),
                     ))
                 }(&value_.result_source_diagnostic)?,
             );
@@ -2387,7 +2387,7 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                 components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 4),
-                        X690Value::from_explicit(&_encode_Name(&v_1)?),
+                        X690Value::from_explicit(_encode_Name(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -2396,7 +2396,7 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                     |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 5),
-                            X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                            X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -2406,7 +2406,7 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AP_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 6),
-                            X690Value::from_explicit(&_encode_AP_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AP_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -2416,7 +2416,7 @@ pub fn _encode_AAREerr_apdu(value_: &AAREerr_apdu) -> ASN1Result<X690Element> {
                     |v_1: &AE_invocation_identifier| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 7),
-                            X690Value::from_explicit(&_encode_AE_invocation_identifier(&v_1)?),
+                            X690Value::from_explicit(_encode_AE_invocation_identifier(&v_1)?),
                         ))
                     }(&v_)?,
                 );
@@ -2656,7 +2656,7 @@ pub fn _encode_TheOsiBindErr(value_: &TheOsiBindErr) -> ASN1Result<X690Element> 
     |v_1: &TheOsiBindErr| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 18),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_)
 }
@@ -4806,7 +4806,7 @@ pub fn _encode_OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_
     value_: &OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
     match value_ {
-		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		OsiBind_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(x690_identity(&v_1)?))) }(&v),
 	}
 }
 
@@ -5896,7 +5896,7 @@ pub fn _encode_OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data
     value_: &OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
     match value_ {
-		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		OsiBindResult_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(x690_identity(&v_1)?))) }(&v),
 	}
 }
 
@@ -6588,7 +6588,7 @@ pub fn _encode_OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_
     value_: &OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
     match value_ {
-		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		OsiBindError_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(x690_identity(&v_1)?))) }(&v),
 	}
 }
 
@@ -7438,7 +7438,7 @@ pub fn _encode_OsiUnbind_fully_encoded_data_Item_presentation_data_values(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -7670,7 +7670,7 @@ pub fn _encode_OsiUnbindResult_fully_encoded_data_Item_presentation_data_values(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -7903,7 +7903,7 @@ pub fn _encode_OsiOperation_fully_encoded_data_Item_presentation_data_values(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -8336,7 +8336,7 @@ pub fn _encode_ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item
     value_: &ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values,
 ) -> ASN1Result<X690Element> {
     match value_ {
-		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(&x690_identity(&v_1)?))) }(&v),
+		ARU_PPDU_normal_mode_parameters_user_data_fully_encoded_data_Item_presentation_data_values::single_ASN1_type(v) => |v_1: &X690Element| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 0), X690Value::from_explicit(x690_identity(&v_1)?))) }(&v),
 	}
 }
 

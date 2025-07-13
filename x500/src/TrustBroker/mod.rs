@@ -104,13 +104,13 @@ pub fn _encode_TBprot(value_: &TBprot) -> ASN1Result<X690Element> {
         TBprot::tBrequest(v) => |v_1: &TBrequest| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_TBrequest(&v_1)?),
+                X690Value::from_explicit(_encode_TBrequest(&v_1)?),
             ))
         }(&v),
         TBprot::tBresponse(v) => |v_1: &TBresponse| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_TBresponse(&v_1)?),
+                X690Value::from_explicit(_encode_TBresponse(&v_1)?),
             ))
         }(&v),
         TBprot::_unrecognized(el) => Ok(el.clone()),
@@ -671,13 +671,13 @@ pub fn _encode_TBrequest(value_: &TBrequest) -> ASN1Result<X690Element> {
         TBrequest::caCert(v) => |v_1: &PKCertIdentifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_PKCertIdentifier(&v_1)?),
+                X690Value::from_explicit(_encode_PKCertIdentifier(&v_1)?),
             ))
         }(&v),
         TBrequest::subjectCert(v) => |v_1: &PKCertIdentifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_PKCertIdentifier(&v_1)?),
+                X690Value::from_explicit(_encode_PKCertIdentifier(&v_1)?),
             ))
         }(&v),
         TBrequest::_unrecognized(el) => Ok(el.clone()),

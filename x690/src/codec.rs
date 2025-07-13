@@ -605,13 +605,20 @@ pub trait X690Codec {
             value: Arc::new(value),
         })
     }
-    // FIXME:
     fn decode_embedded_pdv(&self, el: &X690Element) -> ASN1Result<EMBEDDED_PDV> {
         let elements = match &el.value {
             X690Value::Constructed(children) => children,
             _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         };
         if elements.len() != 2 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
+        }
+        if
+            elements[0].tag.tag_class != TagClass::CONTEXT
+            || elements[0].tag.tag_number != 0
+            || !elements[0].is_constructed()
+            || elements[1].tag.tag_class != TagClass::CONTEXT
+            || elements[1].tag.tag_number != 1 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
         }
         let identification = self.decode_presentation_context_switching_type_id( &elements[0].inner()?)?;
@@ -621,13 +628,20 @@ pub trait X690Codec {
             data_value,
         })
     }
-    // FIXME:
     fn decode_character_string(&self, el: &X690Element) -> ASN1Result<CHARACTER_STRING> {
         let elements = match &el.value {
             X690Value::Constructed(children) => children,
             _ => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         };
         if elements.len() != 2 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
+        }
+        if
+            elements[0].tag.tag_class != TagClass::CONTEXT
+            || elements[0].tag.tag_number != 0
+            || !elements[0].is_constructed()
+            || elements[1].tag.tag_class != TagClass::CONTEXT
+            || elements[1].tag.tag_number != 1 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
         }
         let identification = self.decode_presentation_context_switching_type_id(&elements[0].inner()?)?;
@@ -881,14 +895,29 @@ pub trait X690Codec {
         ))
     }
     fn validate_boolean_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
-    fn validate_integer_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    fn validate_integer_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() == 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
+        if content_octets.len() == 1 {
+            return Ok(());
+        }
+        if ((content_octets[0] == 0xFF) && (content_octets[1] >= 0b1000_0000))
+            || ((content_octets[0] == 0x00) && (content_octets[1] < 0b1000_0000)) {
+            return Err(ASN1Error::new(ASN1ErrorCode::int_padding));
+        }
+        return Ok(());
+    }
     fn validate_bit_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_octet_string_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_null_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_object_identifier_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_object_descriptor_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_real_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
-    fn validate_enumerated_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_enumerated_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        self.validate_integer_value(content_octets)
+    }
     fn validate_utf8_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_relative_object_identifier_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
     fn validate_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
@@ -1417,11 +1446,15 @@ pub trait X690Codec {
     }
 
     fn validate_i8 (&self, el: &X690Element) -> ASN1Result<()> {
-        let content_octets = el.content_octets()?;
-        if content_octets.len() == 1 {
-            Ok(())
-        } else {
-            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        match &el.value {
+            X690Value::Primitive(x) => if x.len() == 1 {
+                Ok(())
+            } else if x.len() == 0 {
+                Err(el.to_asn1_error(ASN1ErrorCode::value_too_short))
+            } else {
+                Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+            },
+            X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction))
         }
     }
 
@@ -1468,11 +1501,14 @@ pub trait X690Codec {
     }
 
     fn validate_i16 (&self, el: &X690Element) -> ASN1Result<()> {
-        let content_octets = el.content_octets()?;
-        if content_octets.len() > 2 {
-            Ok(())
-        } else {
-            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        match &el.value {
+            X690Value::Primitive(v) => {
+                if v.len() > 2 {
+                    return Err(el.to_asn1_error(ASN1ErrorCode::constraint_violation));
+                }
+                self.validate_integer_value(&v)
+            },
+            X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -1481,7 +1517,17 @@ pub trait X690Codec {
     }
 
     fn decode_u16 (&self, el: &X690Element) -> ASN1Result<u16> {
-        let int_bytes = self.decode_integer(el)?;
+        let int_bytes = match &el.value {
+            X690Value::Primitive(v) => v,
+            X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
+        };
+        if int_bytes.len() == size_of::<u16>() + 1 && int_bytes[0] == 0 {
+            // It's still a u16, but it starts with a set bit.
+            return Ok(u16::from_be_bytes([
+                int_bytes[1],
+                int_bytes[2],
+            ]));
+        }
         let i = read_i64(&int_bytes)
             .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
@@ -1531,11 +1577,14 @@ pub trait X690Codec {
     }
 
     fn validate_i32 (&self, el: &X690Element) -> ASN1Result<()> {
-        let content_octets = el.content_octets()?;
-        if content_octets.len() > 4 {
-            Ok(())
-        } else {
-            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        match &el.value {
+            X690Value::Primitive(v) => {
+                if v.len() > 4 {
+                    return Err(el.to_asn1_error(ASN1ErrorCode::constraint_violation));
+                }
+                self.validate_integer_value(&v)
+            },
+            X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -1544,7 +1593,19 @@ pub trait X690Codec {
     }
 
     fn decode_u32 (&self, el: &X690Element) -> ASN1Result<u32> {
-        let int_bytes = self.decode_integer(el)?;
+        let int_bytes = match &el.value {
+            X690Value::Primitive(v) => v,
+            X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
+        };
+        if int_bytes.len() == size_of::<u32>() + 1 && int_bytes[0] == 0 {
+            // It's still a u32, but it starts with a set bit.
+            return Ok(u32::from_be_bytes([
+                int_bytes[1],
+                int_bytes[2],
+                int_bytes[3],
+                int_bytes[4],
+            ]));
+        }
         let i = read_i64(&int_bytes)
             .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
@@ -1592,20 +1653,14 @@ pub trait X690Codec {
     }
 
     fn validate_i64 (&self, el: &X690Element) -> ASN1Result<()> {
-        let content_octets = el.content_octets()?;
-        let len = content_octets.len();
-        if len > 2
-            && (
-                (content_octets[0] == 0x00 && content_octets[1] < 0b1000_0000)
-                || (content_octets[0] == 0xFF && content_octets[1] >= 0b1000_0000)
-            )
-        {
-            return Err(ASN1Error::new(ASN1ErrorCode::int_padding));
-        }
-        if len > 8 {
-            Ok(())
-        } else {
-            Err(el.to_asn1_error(ASN1ErrorCode::value_too_big))
+        match &el.value {
+            X690Value::Primitive(v) => {
+                if v.len() > 8 {
+                    return Err(el.to_asn1_error(ASN1ErrorCode::constraint_violation));
+                }
+                self.validate_integer_value(&v)
+            },
+            X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -1635,7 +1690,23 @@ pub trait X690Codec {
     }
 
     fn decode_u64 (&self, el: &X690Element) -> ASN1Result<u64> {
-        let int_bytes = self.decode_integer(el)?;
+        let int_bytes = match &el.value {
+            X690Value::Primitive(v) => v,
+            X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
+        };
+        if int_bytes.len() == size_of::<u64>() + 1 && int_bytes[0] == 0 {
+            // It's still a u64, but it starts with a set bit.
+            return Ok(u64::from_be_bytes([
+                int_bytes[1],
+                int_bytes[2],
+                int_bytes[3],
+                int_bytes[4],
+                int_bytes[5],
+                int_bytes[6],
+                int_bytes[7],
+                int_bytes[8],
+            ]));
+        }
         let i = read_i64(&int_bytes)
             .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
@@ -1715,20 +1786,50 @@ pub trait X690Codec {
         ));
     }
 
-    // TODO:
-    // fn decode_u128 (&self, el: &X690Element) -> ASN1Result<u128> {
+    fn decode_u128 (&self, el: &X690Element) -> ASN1Result<u128> {
+        let int_bytes = match &el.value {
+            X690Value::Primitive(v) => v,
+            X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
+        };
+        if int_bytes.len() == size_of::<u128>() + 1 && int_bytes[0] == 0 {
+            // It's still a u128, but it starts with a set bit.
+            return Ok(u128::from_be_bytes([
+                int_bytes[1],
+                int_bytes[2],
+                int_bytes[3],
+                int_bytes[4],
+                int_bytes[5],
+                int_bytes[6],
+                int_bytes[7],
+                int_bytes[8],
+                int_bytes[9],
+                int_bytes[10],
+                int_bytes[11],
+                int_bytes[12],
+                int_bytes[13],
+                int_bytes[14],
+                int_bytes[15],
+                int_bytes[16],
+            ]));
+        }
+        let i = read_i128(&int_bytes)
+            .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))?;
+        Ok(i as u128)
+    }
 
-    // }
-
-    // fn validate_u128 (&self, el: &X690Element) -> ASN1Result<()> {
-
-    // }
-
-    // TODO: Implement X690Element::from() all the integer types, string, [u8], etc.
+    fn validate_u128 (&self, el: &X690Element) -> ASN1Result<()> {
+        match &el.value {
+            X690Value::Primitive(v) => {
+                if v.len() > 8 {
+                    return Err(el.to_asn1_error(ASN1ErrorCode::constraint_violation));
+                }
+                self.validate_integer_value(&v)
+            },
+            X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
+        }
+    }
 
 }
-
-// TODO: write_indefinite
 
 pub struct BasicEncodingRules;
 pub struct CanonicalEncodingRules;

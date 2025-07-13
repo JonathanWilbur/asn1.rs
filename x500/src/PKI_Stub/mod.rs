@@ -224,7 +224,7 @@ pub fn _encode_AlgorithmWithInvoke(value_: &AlgorithmWithInvoke) -> ASN1Result<X
         components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&x690_identity(&v_1)?),
+                X690Value::from_explicit(x690_identity(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -232,7 +232,7 @@ pub fn _encode_AlgorithmWithInvoke(value_: &AlgorithmWithInvoke) -> ASN1Result<X
         components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&x690_identity(&v_1)?),
+                X690Value::from_explicit(x690_identity(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1207,7 +1207,7 @@ pub fn _encode_TBSCertificate(value_: &TBSCertificate) -> ASN1Result<X690Element
             components_.push(|v_1: &Version| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_Version(&v_1)?),
+                    X690Value::from_explicit(_encode_Version(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1238,7 +1238,7 @@ pub fn _encode_TBSCertificate(value_: &TBSCertificate) -> ASN1Result<X690Element
         components_.push(|v_1: &Extensions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Extensions(&v_1)?),
+                X690Value::from_explicit(_encode_Extensions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2905,7 +2905,7 @@ pub fn _encode_Holder(value_: &Holder) -> ASN1Result<X690Element> {
         components_.push(|v_1: &IssuerSerial| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_IssuerSerial(&v_1)?),
+                X690Value::from_explicit(_encode_IssuerSerial(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2913,7 +2913,7 @@ pub fn _encode_Holder(value_: &Holder) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralNames| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_GeneralNames(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralNames(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2921,7 +2921,7 @@ pub fn _encode_Holder(value_: &Holder) -> ASN1Result<X690Element> {
         components_.push(|v_1: &ObjectDigestInfo| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_ObjectDigestInfo(&v_1)?),
+                X690Value::from_explicit(_encode_ObjectDigestInfo(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3445,7 +3445,7 @@ pub fn _encode_AttCertIssuer(value_: &AttCertIssuer) -> ASN1Result<X690Element> 
     |v_1: &AttCertIssuer| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&|value_: &AttCertIssuer| -> ASN1Result<X690Element> {
+            X690Value::from_explicit(|value_: &AttCertIssuer| -> ASN1Result<X690Element> {
                 let mut components_: Vec<X690Element> = Vec::with_capacity(13);
                 if let Some(v_) = &value_.issuerName {
                     components_.push(_encode_GeneralNames(&v_)?);
@@ -3454,7 +3454,7 @@ pub fn _encode_AttCertIssuer(value_: &AttCertIssuer) -> ASN1Result<X690Element> 
                     components_.push(|v_1: &IssuerSerial| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 0),
-                            X690Value::from_explicit(&_encode_IssuerSerial(&v_1)?),
+                            X690Value::from_explicit(_encode_IssuerSerial(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -3462,7 +3462,7 @@ pub fn _encode_AttCertIssuer(value_: &AttCertIssuer) -> ASN1Result<X690Element> 
                     components_.push(|v_1: &ObjectDigestInfo| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 1),
-                            X690Value::from_explicit(&_encode_ObjectDigestInfo(&v_1)?),
+                            X690Value::from_explicit(_encode_ObjectDigestInfo(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -3790,43 +3790,43 @@ pub fn _encode_GeneralName(value_: &GeneralName) -> ASN1Result<X690Element> {
         GeneralName::otherName(v) => |v_1: &INSTANCE_OF| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_instance_of(&v_1)?),
+                X690Value::from_explicit(BER.encode_instance_of(&v_1)?),
             ))
         }(&v),
         GeneralName::rfc822Name(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_ia5_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_ia5_string(&v_1)?),
             ))
         }(&v),
         GeneralName::dNSName(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_ia5_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_ia5_string(&v_1)?),
             ))
         }(&v),
         GeneralName::directoryName(v) => |v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v),
         GeneralName::uniformResourceIdentifier(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(&BER.encode_ia5_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_ia5_string(&v_1)?),
             ))
         }(&v),
         GeneralName::iPAddress(v) => |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v),
         GeneralName::registeredID(v) => |v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v),
         GeneralName::_unrecognized(el) => Ok(el.clone()),
@@ -4537,7 +4537,7 @@ pub fn _encode_TBSCertAVL_entries_Item_idType(
             |v_1: &PKCertIdentifier| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_PKCertIdentifier(&v_1)?),
+                    X690Value::from_explicit(_encode_PKCertIdentifier(&v_1)?),
                 ))
             }(&v)
         }

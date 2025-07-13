@@ -1833,7 +1833,7 @@ pub fn _encode_ExtensionAttribute_value_Item(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1843,7 +1843,7 @@ pub fn _encode_ExtensionAttribute_value_Item(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1851,7 +1851,7 @@ pub fn _encode_ExtensionAttribute_value_Item(
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.ext)?);
     Ok(X690Element::new(

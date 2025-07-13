@@ -2318,14 +2318,14 @@ pub fn _encode_Guide(value_: &Guide) -> ASN1Result<X690Element> {
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
     components_.push(|v_1: &Criteria| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_Criteria(&v_1)?),
+            X690Value::from_explicit(_encode_Criteria(&v_1)?),
         ))
     }(&value_.criteria)?);
     Ok(X690Element::new(
@@ -2453,13 +2453,13 @@ pub fn _encode_Criteria(value_: &Criteria) -> ASN1Result<X690Element> {
         Criteria::type_(v) => |v_1: &CriteriaItem| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CriteriaItem(&v_1)?),
+                X690Value::from_explicit(_encode_CriteriaItem(&v_1)?),
             ))
         }(&v),
         Criteria::and(v) => |v_1: &Vec<Criteria>| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&|value_: &SET_OF<Criteria>| -> ASN1Result<X690Element> {
+                X690Value::from_explicit(|value_: &SET_OF<Criteria>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Criteria(&v)?);
@@ -2474,7 +2474,7 @@ pub fn _encode_Criteria(value_: &Criteria) -> ASN1Result<X690Element> {
         Criteria::or(v) => |v_1: &Vec<Criteria>| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&|value_: &SET_OF<Criteria>| -> ASN1Result<X690Element> {
+                X690Value::from_explicit(|value_: &SET_OF<Criteria>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Criteria(&v)?);
@@ -2489,7 +2489,7 @@ pub fn _encode_Criteria(value_: &Criteria) -> ASN1Result<X690Element> {
         Criteria::not(v) => |v_1: &Criteria| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Criteria(&v_1)?),
+                X690Value::from_explicit(_encode_Criteria(&v_1)?),
             ))
         }(&v),
         Criteria::_unrecognized(el) => Ok(el.clone()),
@@ -2610,31 +2610,31 @@ pub fn _encode_CriteriaItem(value_: &CriteriaItem) -> ASN1Result<X690Element> {
         CriteriaItem::equality(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         CriteriaItem::substrings(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         CriteriaItem::greaterOrEqual(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         CriteriaItem::lessOrEqual(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         CriteriaItem::approximateMatch(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         CriteriaItem::_unrecognized(el) => Ok(el.clone()),
@@ -2855,13 +2855,13 @@ pub fn _encode_EnhancedGuide(value_: &EnhancedGuide) -> ASN1Result<X690Element> 
     components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
         ))
     }(&value_.objectClass)?);
     components_.push(|v_1: &Criteria| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_Criteria(&v_1)?),
+            X690Value::from_explicit(_encode_Criteria(&v_1)?),
         ))
     }(&value_.criteria)?);
     if let Some(v_) = &value_.subset {
@@ -2869,7 +2869,7 @@ pub fn _encode_EnhancedGuide(value_: &EnhancedGuide) -> ASN1Result<X690Element> 
             components_.push(|v_1: &EnhancedGuide_subset| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_EnhancedGuide_subset(&v_1)?),
+                    X690Value::from_explicit(_encode_EnhancedGuide_subset(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -4678,7 +4678,7 @@ pub fn _encode_PresentationAddress(value_: &PresentationAddress) -> ASN1Result<X
         components_.push(|v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -4686,7 +4686,7 @@ pub fn _encode_PresentationAddress(value_: &PresentationAddress) -> ASN1Result<X
         components_.push(|v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -4694,7 +4694,7 @@ pub fn _encode_PresentationAddress(value_: &PresentationAddress) -> ASN1Result<X
         components_.push(|v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5977,7 +5977,7 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
         UiiFilter::item(v) => |v_1: &UiiItem| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_UiiItem(&v_1)?),
+                X690Value::from_explicit(_encode_UiiItem(&v_1)?),
             ))
         }(&v),
         UiiFilter::and(v) => |v_1: &Vec<UiiFilter>| -> ASN1Result<X690Element> {
@@ -6017,7 +6017,7 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
         UiiFilter::not(v) => |v_1: &UiiFilter| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_UiiFilter(&v_1)?),
+                X690Value::from_explicit(_encode_UiiFilter(&v_1)?),
             ))
         }(&v),
     }
@@ -6628,7 +6628,7 @@ pub fn _encode_EpcFormat(value_: &EpcFormat) -> ASN1Result<X690Element> {
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -6636,7 +6636,7 @@ pub fn _encode_EpcFormat(value_: &EpcFormat) -> ASN1Result<X690Element> {
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12184,7 +12184,7 @@ pub fn _encode_Period(value_: &Period) -> ASN1Result<X690Element> {
         components_.push(|v_1: &Period_days| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Period_days(&v_1)?),
+                X690Value::from_explicit(_encode_Period_days(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12192,7 +12192,7 @@ pub fn _encode_Period(value_: &Period) -> ASN1Result<X690Element> {
         components_.push(|v_1: &Period_weeks| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_Period_weeks(&v_1)?),
+                X690Value::from_explicit(_encode_Period_weeks(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12200,7 +12200,7 @@ pub fn _encode_Period(value_: &Period) -> ASN1Result<X690Element> {
         components_.push(|v_1: &Period_months| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Period_months(&v_1)?),
+                X690Value::from_explicit(_encode_Period_months(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12208,7 +12208,7 @@ pub fn _encode_Period(value_: &Period) -> ASN1Result<X690Element> {
         components_.push(|v_1: &Vec<INTEGER>| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&|value_: &SET_OF<INTEGER>| -> ASN1Result<X690Element> {
+                X690Value::from_explicit(|value_: &SET_OF<INTEGER>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(BER.encode_integer(&v)?);
@@ -12367,31 +12367,31 @@ pub fn _encode_XDayOf(value_: &XDayOf) -> ASN1Result<X690Element> {
         XDayOf::first(v) => |v_1: &NamedDay| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_NamedDay(&v_1)?),
+                X690Value::from_explicit(_encode_NamedDay(&v_1)?),
             ))
         }(&v),
         XDayOf::second(v) => |v_1: &NamedDay| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_NamedDay(&v_1)?),
+                X690Value::from_explicit(_encode_NamedDay(&v_1)?),
             ))
         }(&v),
         XDayOf::third(v) => |v_1: &NamedDay| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_NamedDay(&v_1)?),
+                X690Value::from_explicit(_encode_NamedDay(&v_1)?),
             ))
         }(&v),
         XDayOf::fourth(v) => |v_1: &NamedDay| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_NamedDay(&v_1)?),
+                X690Value::from_explicit(_encode_NamedDay(&v_1)?),
             ))
         }(&v),
         XDayOf::fifth(v) => |v_1: &NamedDay| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_NamedDay(&v_1)?),
+                X690Value::from_explicit(_encode_NamedDay(&v_1)?),
             ))
         }(&v),
     }
@@ -12637,7 +12637,7 @@ pub fn _encode_DayTimeBand(value_: &DayTimeBand) -> ASN1Result<X690Element> {
             components_.push(|v_1: &DayTime| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_DayTime(&v_1)?),
+                    X690Value::from_explicit(_encode_DayTime(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12647,7 +12647,7 @@ pub fn _encode_DayTimeBand(value_: &DayTimeBand) -> ASN1Result<X690Element> {
             components_.push(|v_1: &DayTime| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_DayTime(&v_1)?),
+                    X690Value::from_explicit(_encode_DayTime(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12820,13 +12820,13 @@ pub fn _encode_DayTime(value_: &DayTime) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
     components_.push(X690Element::new(
         Tag::new(TagClass::CONTEXT, 0),
-        X690Value::from_explicit(&BER.encode_u8(value_.hour)?),
+        X690Value::from_explicit(BER.encode_u8(value_.hour)?),
     ));
     if let Some(v_) = &value_.minute {
         if *v_ != DayTime::_default_value_for_minute() {
             components_.push(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_u8(*v_)?),
+                X690Value::from_explicit(BER.encode_u8(*v_)?),
             ));
         }
     }
@@ -12834,7 +12834,7 @@ pub fn _encode_DayTime(value_: &DayTime) -> ASN1Result<X690Element> {
         if *v_ != DayTime::_default_value_for_second() {
             components_.push(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_u8(*v_)?),
+                X690Value::from_explicit(BER.encode_u8(*v_)?),
             ));
         }
     }
@@ -16267,7 +16267,7 @@ pub fn _encode_EpcFormat_fields_Item_charField(
             |v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v)
         }
@@ -16275,7 +16275,7 @@ pub fn _encode_EpcFormat_fields_Item_charField(
             |v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v)
         }
@@ -16527,13 +16527,13 @@ pub fn _encode_PwdResponse_warning(value_: &PwdResponse_warning) -> ASN1Result<X
         PwdResponse_warning::timeleft(v) => |v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v),
         PwdResponse_warning::graceRemaining(v) => |v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v),
         PwdResponse_warning::_unrecognized(el) => Ok(el.clone()),
@@ -16634,7 +16634,7 @@ pub fn _encode_SubstringAssertion_Item(
             |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                    X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
                 ))
             }(&v)
         }
@@ -16642,7 +16642,7 @@ pub fn _encode_SubstringAssertion_Item(
             |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                    X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
                 ))
             }(&v)
         }
@@ -16650,7 +16650,7 @@ pub fn _encode_SubstringAssertion_Item(
             |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                    X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
                 ))
             }(&v)
         }
@@ -16735,21 +16735,21 @@ pub fn _encode_OctetSubstringAssertion_Item(
             |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                    X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
                 ))
             }(&v)
         }
         OctetSubstringAssertion_Item::any(v) => |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v),
         OctetSubstringAssertion_Item::final_(v) => {
             |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                    X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
                 ))
             }(&v)
         }
@@ -16900,7 +16900,7 @@ pub fn _encode_TimeSpecification_time_absolute(
         components_.push(|v_1: &GeneralizedTime| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_generalized_time(&v_1)?),
+                X690Value::from_explicit(BER.encode_generalized_time(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16908,7 +16908,7 @@ pub fn _encode_TimeSpecification_time_absolute(
         components_.push(|v_1: &GeneralizedTime| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_generalized_time(&v_1)?),
+                X690Value::from_explicit(BER.encode_generalized_time(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17601,14 +17601,14 @@ pub fn _encode_TimeAssertion_between(value_: &TimeAssertion_between) -> ASN1Resu
     components_.push(|v_1: &GeneralizedTime| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_generalized_time(&v_1)?),
+            X690Value::from_explicit(BER.encode_generalized_time(&v_1)?),
         ))
     }(&value_.startTime)?);
     if let Some(v_) = &value_.endTime {
         components_.push(|v_1: &GeneralizedTime| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_generalized_time(&v_1)?),
+                X690Value::from_explicit(BER.encode_generalized_time(&v_1)?),
             ))
         }(&v_)?);
     }

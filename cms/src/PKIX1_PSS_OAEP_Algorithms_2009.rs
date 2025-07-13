@@ -1086,7 +1086,7 @@ pub fn _encode_RSASSA_PSS_params(value_: &RSASSA_PSS_params) -> ASN1Result<X690E
             components_.push(|v_1: &HashAlgorithm| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_HashAlgorithm(&v_1)?),
+                    X690Value::from_explicit(_encode_HashAlgorithm(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1096,7 +1096,7 @@ pub fn _encode_RSASSA_PSS_params(value_: &RSASSA_PSS_params) -> ASN1Result<X690E
             components_.push(|v_1: &MaskGenAlgorithm| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_MaskGenAlgorithm(&v_1)?),
+                    X690Value::from_explicit(_encode_MaskGenAlgorithm(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1106,7 +1106,7 @@ pub fn _encode_RSASSA_PSS_params(value_: &RSASSA_PSS_params) -> ASN1Result<X690E
             components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1116,7 +1116,7 @@ pub fn _encode_RSASSA_PSS_params(value_: &RSASSA_PSS_params) -> ASN1Result<X690E
             components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1338,7 +1338,7 @@ pub fn _encode_RSAES_OAEP_params(value_: &RSAES_OAEP_params) -> ASN1Result<X690E
             components_.push(|v_1: &HashAlgorithm| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_HashAlgorithm(&v_1)?),
+                    X690Value::from_explicit(_encode_HashAlgorithm(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1348,7 +1348,7 @@ pub fn _encode_RSAES_OAEP_params(value_: &RSAES_OAEP_params) -> ASN1Result<X690E
             components_.push(|v_1: &MaskGenAlgorithm| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_MaskGenAlgorithm(&v_1)?),
+                    X690Value::from_explicit(_encode_MaskGenAlgorithm(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1358,7 +1358,7 @@ pub fn _encode_RSAES_OAEP_params(value_: &RSAES_OAEP_params) -> ASN1Result<X690E
             components_.push(|v_1: &PSourceAlgorithm| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_PSourceAlgorithm(&v_1)?),
+                    X690Value::from_explicit(_encode_PSourceAlgorithm(&v_1)?),
                 ))
             }(&v_)?);
         }

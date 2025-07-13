@@ -993,7 +993,7 @@ pub fn _encode_TimeStampToken(value_: &TimeStampToken) -> ASN1Result<X690Element
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.content)?);
     Ok(X690Element::new(
@@ -1292,7 +1292,7 @@ pub fn _encode_TSTInfo(value_: &TSTInfo) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1723,7 +1723,7 @@ pub fn _encode_EncapsulatedContentInfo(
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.eContent)?);
     Ok(X690Element::new(

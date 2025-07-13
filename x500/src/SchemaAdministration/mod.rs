@@ -1278,7 +1278,7 @@ pub fn _encode_MatchingRuleDescription(
             |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                    X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -1591,7 +1591,7 @@ pub fn _encode_AttributeTypeDescription(
         |v_1: &AttributeTypeInformation| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_AttributeTypeInformation(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeTypeInformation(&v_1)?),
             ))
         }(&value_.information)?,
     );
@@ -1917,7 +1917,7 @@ pub fn _encode_AttributeTypeInformation(
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1925,7 +1925,7 @@ pub fn _encode_AttributeTypeInformation(
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1933,7 +1933,7 @@ pub fn _encode_AttributeTypeInformation(
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1941,7 +1941,7 @@ pub fn _encode_AttributeTypeInformation(
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1950,7 +1950,7 @@ pub fn _encode_AttributeTypeInformation(
             |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                    X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -1960,7 +1960,7 @@ pub fn _encode_AttributeTypeInformation(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 5),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1970,7 +1970,7 @@ pub fn _encode_AttributeTypeInformation(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 6),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1980,7 +1980,7 @@ pub fn _encode_AttributeTypeInformation(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 7),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -2340,7 +2340,7 @@ pub fn _encode_ObjectClassDescription(value_: &ObjectClassDescription) -> ASN1Re
     components_.push(|v_1: &ObjectClassInformation| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_ObjectClassInformation(&v_1)?),
+            X690Value::from_explicit(_encode_ObjectClassInformation(&v_1)?),
         ))
     }(&value_.information)?);
     Ok(X690Element::new(
@@ -2998,7 +2998,7 @@ pub fn _encode_NameFormDescription(value_: &NameFormDescription) -> ASN1Result<X
     components_.push(|v_1: &NameFormInformation| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_NameFormInformation(&v_1)?),
+            X690Value::from_explicit(_encode_NameFormInformation(&v_1)?),
         ))
     }(&value_.information)?);
     Ok(X690Element::new(
@@ -3993,7 +3993,7 @@ pub fn _encode_ContextDescription(value_: &ContextDescription) -> ASN1Result<X69
     components_.push(|v_1: &ContextInformation| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_ContextInformation(&v_1)?),
+            X690Value::from_explicit(_encode_ContextInformation(&v_1)?),
         ))
     }(&value_.information)?);
     Ok(X690Element::new(
@@ -4440,7 +4440,7 @@ pub fn _encode_DITContextUseDescription(
         |v_1: &DITContextUseInformation| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_DITContextUseInformation(&v_1)?),
+                X690Value::from_explicit(_encode_DITContextUseInformation(&v_1)?),
             ))
         }(&value_.information)?,
     );

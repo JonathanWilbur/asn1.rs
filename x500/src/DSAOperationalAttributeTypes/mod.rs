@@ -474,13 +474,13 @@ pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X69
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.ae_title)?);
     components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_PresentationAddress(&v_1)?),
+            X690Value::from_explicit(_encode_PresentationAddress(&v_1)?),
         ))
     }(&value_.address)?);
     if let Some(v_) = &value_.protocolInformation {
@@ -507,7 +507,7 @@ pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X69
     components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
-            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+            X690Value::from_explicit(_encode_OperationalBindingID(&v_1)?),
         ))
     }(&value_.agreementID)?);
     Ok(X690Element::new(
@@ -759,13 +759,13 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.ae_title)?);
     components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_PresentationAddress(&v_1)?),
+            X690Value::from_explicit(_encode_PresentationAddress(&v_1)?),
         ))
     }(&value_.address)?);
     if let Some(v_) = &value_.protocolInformation {
@@ -792,7 +792,7 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
     components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
-            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+            X690Value::from_explicit(_encode_OperationalBindingID(&v_1)?),
         ))
     }(&value_.agreementID)?);
     if let Some(v_) = &value_.supplier_is_master {
@@ -800,7 +800,7 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -809,7 +809,7 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
         components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+                X690Value::from_explicit(_encode_AccessPoint(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1171,13 +1171,13 @@ pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.ae_title)?);
     components_.push(|v_1: &PresentationAddress| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_PresentationAddress(&v_1)?),
+            X690Value::from_explicit(_encode_PresentationAddress(&v_1)?),
         ))
     }(&value_.address)?);
     if let Some(v_) = &value_.protocolInformation {
@@ -1204,7 +1204,7 @@ pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result
     components_.push(|v_1: &Vec<AccessPoint>| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
-            X690Value::from_explicit(&|value_: &SET_OF<AccessPoint>| -> ASN1Result<X690Element> {
+            X690Value::from_explicit(|value_: &SET_OF<AccessPoint>| -> ASN1Result<X690Element> {
                 let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                 for v in value_ {
                     children.push(_encode_AccessPoint(&v)?);
@@ -1802,13 +1802,13 @@ pub fn _encode_supplierOrConsumerInformationMatch_AssertionType(
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.ae_title)?);
     components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+            X690Value::from_explicit(BER.encode_integer(&v_1)?),
         ))
     }(&value_.agreement_identifier)?);
     Ok(X690Element::new(

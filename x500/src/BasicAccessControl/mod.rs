@@ -725,7 +725,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
         components_.push(|v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -733,7 +733,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
         components_.push(|v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -779,7 +779,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
         components_.push(|v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -827,7 +827,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
         components_.push(|v_1: &Filter| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(&_encode_Filter(&v_1)?),
+                X690Value::from_explicit(_encode_Filter(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -854,7 +854,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 9),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -900,7 +900,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
         components_.push(|v_1: &Refinement| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 12),
-                X690Value::from_explicit(&_encode_Refinement(&v_1)?),
+                X690Value::from_explicit(_encode_Refinement(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1660,7 +1660,7 @@ pub fn _encode_UserClasses(value_: &UserClasses) -> ASN1Result<X690Element> {
         components_.push(|v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1668,7 +1668,7 @@ pub fn _encode_UserClasses(value_: &UserClasses) -> ASN1Result<X690Element> {
         components_.push(|v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2940,7 +2940,7 @@ pub fn _encode_ACIItem_itemOrUserFirst(
             |v_1: &ACIItem_itemOrUserFirst_itemFirst| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_ACIItem_itemOrUserFirst_itemFirst(&v_1)?),
+                    X690Value::from_explicit(_encode_ACIItem_itemOrUserFirst_itemFirst(&v_1)?),
                 ))
             }(&v)
         }
@@ -2948,7 +2948,7 @@ pub fn _encode_ACIItem_itemOrUserFirst(
             |v_1: &ACIItem_itemOrUserFirst_userFirst| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_ACIItem_itemOrUserFirst_userFirst(&v_1)?),
+                    X690Value::from_explicit(_encode_ACIItem_itemOrUserFirst_userFirst(&v_1)?),
                 ))
             }(&v)
         }

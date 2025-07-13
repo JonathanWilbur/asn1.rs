@@ -1283,7 +1283,7 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(|v_1: &NetworkAddress| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_NetworkAddress(&v_1)?),
+                X690Value::from_explicit(_encode_NetworkAddress(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1291,7 +1291,7 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(|v_1: &TerminalIdentifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_TerminalIdentifier(&v_1)?),
+                X690Value::from_explicit(_encode_TerminalIdentifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1299,7 +1299,7 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(|v_1: &PrivateDomainName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_PrivateDomainName(&v_1)?),
+                X690Value::from_explicit(_encode_PrivateDomainName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1307,7 +1307,7 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(|v_1: &OrganizationName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_OrganizationName(&v_1)?),
+                X690Value::from_explicit(_encode_OrganizationName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1315,7 +1315,7 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(|v_1: &NumericUserIdentifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_NumericUserIdentifier(&v_1)?),
+                X690Value::from_explicit(_encode_NumericUserIdentifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1323,7 +1323,7 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(|v_1: &PersonalName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_PersonalName(&v_1)?),
+                X690Value::from_explicit(_encode_PersonalName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1331,7 +1331,7 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(|v_1: &OrganizationalUnitNames| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(&_encode_OrganizationalUnitNames(&v_1)?),
+                X690Value::from_explicit(_encode_OrganizationalUnitNames(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1518,7 +1518,7 @@ pub fn _encode_CountryName(value_: &CountryName) -> ASN1Result<X690Element> {
     |v_1: &CountryName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::APPLICATION, 1),
-            X690Value::from_explicit(&|value_: &CountryName| -> ASN1Result<X690Element> {
+            X690Value::from_explicit(|value_: &CountryName| -> ASN1Result<X690Element> {
                 match value_ {
                     CountryName::x121_dcc_code(v) => BER.encode_numeric_string(&v),
                     CountryName::iso_3166_alpha2_code(v) => BER.encode_printable_string(&v),
@@ -1950,14 +1950,14 @@ pub fn _encode_PersonalName(value_: &PersonalName) -> ASN1Result<X690Element> {
     components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_printable_string(&v_1)?),
+            X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
         ))
     }(&value_.surname)?);
     if let Some(v_) = &value_.given_name {
         components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_printable_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1965,7 +1965,7 @@ pub fn _encode_PersonalName(value_: &PersonalName) -> ASN1Result<X690Element> {
         components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_printable_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1973,7 +1973,7 @@ pub fn _encode_PersonalName(value_: &PersonalName) -> ASN1Result<X690Element> {
         components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_printable_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2453,13 +2453,13 @@ pub fn _encode_ExtensionAttribute(value_: &ExtensionAttribute) -> ASN1Result<X69
     components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+            X690Value::from_explicit(BER.encode_integer(&v_1)?),
         ))
     }(&value_.extension_attribute_type)?);
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.extension_attribute_value)?);
     Ok(X690Element::new(
@@ -3017,14 +3017,14 @@ pub fn _encode_TeletexPersonalName(value_: &TeletexPersonalName) -> ASN1Result<X
     components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_t61_string(&v_1)?),
+            X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
         ))
     }(&value_.surname)?);
     if let Some(v_) = &value_.given_name {
         components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_t61_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3032,7 +3032,7 @@ pub fn _encode_TeletexPersonalName(value_: &TeletexPersonalName) -> ASN1Result<X
         components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_t61_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3040,7 +3040,7 @@ pub fn _encode_TeletexPersonalName(value_: &TeletexPersonalName) -> ASN1Result<X
         components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_t61_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3266,14 +3266,14 @@ pub fn _encode_UniversalPersonalName(value_: &UniversalPersonalName) -> ASN1Resu
     components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_UniversalOrBMPString(&v_1)?),
+            X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
         ))
     }(&value_.surname)?);
     if let Some(v_) = &value_.given_name {
         components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_UniversalOrBMPString(&v_1)?),
+                X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3281,7 +3281,7 @@ pub fn _encode_UniversalPersonalName(value_: &UniversalPersonalName) -> ASN1Resu
         components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_UniversalOrBMPString(&v_1)?),
+                X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3289,7 +3289,7 @@ pub fn _encode_UniversalPersonalName(value_: &UniversalPersonalName) -> ASN1Resu
         components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_UniversalOrBMPString(&v_1)?),
+                X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5555,7 +5555,7 @@ pub fn _encode_ExtendedNetworkAddress(value_: &ExtendedNetworkAddress) -> ASN1Re
             |v_1: &PresentationAddress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_PresentationAddress(&v_1)?),
+                    X690Value::from_explicit(_encode_PresentationAddress(&v_1)?),
                 ))
             }(&v)
         }
@@ -6531,14 +6531,14 @@ pub fn _encode_ExtendedNetworkAddress_e163_4_address(
     components_.push(|v_1: &NumericString| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_numeric_string(&v_1)?),
+            X690Value::from_explicit(BER.encode_numeric_string(&v_1)?),
         ))
     }(&value_.number)?);
     if let Some(v_) = &value_.sub_address {
         components_.push(|v_1: &NumericString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_numeric_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_numeric_string(&v_1)?),
             ))
         }(&v_)?);
     }

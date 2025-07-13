@@ -331,7 +331,7 @@ pub fn _encode_DirectoryInformationServiceElement(
         components_.push(|v_1: &AttributeValue| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_AttributeValue(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeValue(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -4251,7 +4251,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
             |v_1: &Vec<DITStructureRuleDescription>| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&|value_: &SEQUENCE_OF<
+                    X690Value::from_explicit(|value_: &SEQUENCE_OF<
                         DITStructureRuleDescription,
                     >|
                      -> ASN1Result<X690Element> {
@@ -4273,7 +4273,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
             |v_1: &Vec<DITContentRuleDescription>| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&|value_: &SEQUENCE_OF<
+                    X690Value::from_explicit(|value_: &SEQUENCE_OF<
                         DITContentRuleDescription,
                     >|
                      -> ASN1Result<X690Element> {
@@ -4291,7 +4291,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
         );
     }
     if let Some(v_) = &value_.matchingRules {
-        components_.push(|v_1: &Vec<MatchingRuleDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 3), X690Value::from_explicit(&|value_: &SEQUENCE_OF<MatchingRuleDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+        components_.push(|v_1: &Vec<MatchingRuleDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 3), X690Value::from_explicit(|value_: &SEQUENCE_OF<MatchingRuleDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_MatchingRuleDescription(&v)?);
 	}
@@ -4299,7 +4299,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
 }(&v_1)?))) }(&v_)?);
     }
     if let Some(v_) = &value_.attributeTypes {
-        components_.push(|v_1: &Vec<AttributeTypeDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 4), X690Value::from_explicit(&|value_: &SEQUENCE_OF<AttributeTypeDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+        components_.push(|v_1: &Vec<AttributeTypeDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 4), X690Value::from_explicit(|value_: &SEQUENCE_OF<AttributeTypeDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_AttributeTypeDescription(&v)?);
 	}
@@ -4307,7 +4307,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
 }(&v_1)?))) }(&v_)?);
     }
     if let Some(v_) = &value_.objectClasses {
-        components_.push(|v_1: &Vec<ObjectClassDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 5), X690Value::from_explicit(&|value_: &SEQUENCE_OF<ObjectClassDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
+        components_.push(|v_1: &Vec<ObjectClassDescription>| -> ASN1Result<X690Element> { Ok(X690Element::new(Tag::new(TagClass::CONTEXT, 5), X690Value::from_explicit(|value_: &SEQUENCE_OF<ObjectClassDescription>| -> ASN1Result<X690Element> {	let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
 	for v in value_ {
 		children.push(_encode_ObjectClassDescription(&v)?);
 	}
@@ -4343,7 +4343,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
             |v_1: &Vec<MatchingRuleUseDescription>| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 7),
-                    X690Value::from_explicit(&|value_: &SEQUENCE_OF<
+                    X690Value::from_explicit(|value_: &SEQUENCE_OF<
                         MatchingRuleUseDescription,
                     >|
                      -> ASN1Result<X690Element> {
@@ -4647,14 +4647,14 @@ pub fn _encode_SubSchemaSyntax_Item(value_: &SubSchemaSyntax_Item) -> ASN1Result
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.name)?);
     components_.push(
         |v_1: &SubSchemaSyntax_Item_subSchema| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_SubSchemaSyntax_Item_subSchema(&v_1)?),
+                X690Value::from_explicit(_encode_SubSchemaSyntax_Item_subSchema(&v_1)?),
             ))
         }(&value_.subSchema)?,
     );

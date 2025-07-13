@@ -293,12 +293,7 @@ impl X690Validate for DATE {
         if month > 12 || month == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
-        let max_day = match month {
-            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-            // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
-            2 => if year % 4 > 0 { 28 } else { 29 },
-            _ => 30,
-        };
+        let max_day = get_days_in_month(year, month);
         if day == 0 || day > max_day {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }

@@ -137,14 +137,14 @@ pub fn _encode_HierarchicalAgreement(value_: &HierarchicalAgreement) -> ASN1Resu
         |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
             ))
         }(&value_.rdn)?,
     );
     components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
         ))
     }(&value_.immediateSuperior)?);
     Ok(X690Element::new(
@@ -356,7 +356,7 @@ pub fn _encode_SuperiorToSubordinate(value_: &SuperiorToSubordinate) -> ASN1Resu
     components_.push(|v_1: &DITcontext| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_DITcontext(&v_1)?),
+            X690Value::from_explicit(_encode_DITcontext(&v_1)?),
         ))
     }(&value_.contextPrefixInfo)?);
     if let Some(v_) = &value_.entryInfo {
@@ -701,7 +701,7 @@ pub fn _encode_Vertex(value_: &Vertex) -> ASN1Result<X690Element> {
         |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
             ))
         }(&value_.rdn)?,
     );
@@ -748,7 +748,7 @@ pub fn _encode_Vertex(value_: &Vertex) -> ASN1Result<X690Element> {
             |v_1: &MasterAndShadowAccessPoints| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&_encode_MasterAndShadowAccessPoints(&v_1)?),
+                    X690Value::from_explicit(_encode_MasterAndShadowAccessPoints(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -962,14 +962,14 @@ pub fn _encode_SubentryInfo(value_: &SubentryInfo) -> ASN1Result<X690Element> {
         |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
             ))
         }(&value_.rdn)?,
     );
     components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+            X690Value::from_explicit(|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
                 let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                 for v in value_ {
                     children.push(_encode_Attribute(&v)?);
@@ -1227,7 +1227,7 @@ pub fn _encode_SubordinateToSuperior(value_: &SubordinateToSuperior) -> ASN1Resu
             |v_1: &MasterAndShadowAccessPoints| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_MasterAndShadowAccessPoints(&v_1)?),
+                    X690Value::from_explicit(_encode_MasterAndShadowAccessPoints(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -1237,7 +1237,7 @@ pub fn _encode_SubordinateToSuperior(value_: &SubordinateToSuperior) -> ASN1Resu
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1485,7 +1485,7 @@ pub fn _encode_NonSpecificHierarchicalAgreement(
     components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
         ))
     }(&value_.immediateSuperior)?);
     Ok(X690Element::new(
@@ -1699,7 +1699,7 @@ pub fn _encode_NHOBSubordinateToSuperior(
             |v_1: &MasterAndShadowAccessPoints| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_MasterAndShadowAccessPoints(&v_1)?),
+                    X690Value::from_explicit(_encode_MasterAndShadowAccessPoints(&v_1)?),
                 ))
             }(&v_)?,
         );

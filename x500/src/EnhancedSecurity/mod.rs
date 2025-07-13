@@ -1051,7 +1051,7 @@ pub fn _encode_SecurityCategory(value_: &SecurityCategory) -> ASN1Result<X690Ele
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.value)?);
     Ok(X690Element::new(
@@ -1376,7 +1376,7 @@ pub fn _encode_Signer(value_: &Signer) -> ASN1Result<X690Element> {
         Signer::thisEntry(v) => |v_1: &ThisEntry| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_ThisEntry(&v_1)?),
+                X690Value::from_explicit(_encode_ThisEntry(&v_1)?),
             ))
         }(&v),
         Signer::thirdParty(v) => |v_1: &SpecificallyIdentified| -> ASN1Result<X690Element> {

@@ -661,7 +661,7 @@ pub fn _encode_TBSCertificate(value_: &TBSCertificate) -> ASN1Result<X690Element
             components_.push(|v_1: &Version| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_Version(&v_1)?),
+                    X690Value::from_explicit(_encode_Version(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -2034,7 +2034,7 @@ pub fn _encode_CertificateListContent(value_: &CertificateListContent) -> ASN1Re
         components_.push(|v_1: &Extensions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_Extensions(&v_1)?),
+                X690Value::from_explicit(_encode_Extensions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2897,7 +2897,7 @@ pub fn _encode_CertificatePair(value_: &CertificatePair) -> ASN1Result<X690Eleme
         components_.push(|v_1: &Certificate| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_Certificate(&v_1)?),
+                X690Value::from_explicit(_encode_Certificate(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2905,7 +2905,7 @@ pub fn _encode_CertificatePair(value_: &CertificatePair) -> ASN1Result<X690Eleme
         components_.push(|v_1: &Certificate| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Certificate(&v_1)?),
+                X690Value::from_explicit(_encode_Certificate(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3320,7 +3320,7 @@ pub fn _encode_SupportedAlgorithm(value_: &SupportedAlgorithm) -> ASN1Result<X69
         components_.push(|v_1: &KeyUsage| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_KeyUsage(&v_1)?),
+                X690Value::from_explicit(_encode_KeyUsage(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3329,7 +3329,7 @@ pub fn _encode_SupportedAlgorithm(value_: &SupportedAlgorithm) -> ASN1Result<X69
             |v_1: &CertificatePoliciesSyntax| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_CertificatePoliciesSyntax(&v_1)?),
+                    X690Value::from_explicit(_encode_CertificatePoliciesSyntax(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -4796,7 +4796,7 @@ pub fn _encode_TBSCertAVL_entries_Item_idType(
             |v_1: &PKCertIdentifier| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_PKCertIdentifier(&v_1)?),
+                    X690Value::from_explicit(_encode_PKCertIdentifier(&v_1)?),
                 ))
             }(&v)
         }

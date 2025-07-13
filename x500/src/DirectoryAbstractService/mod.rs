@@ -369,7 +369,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -378,7 +378,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -386,7 +386,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -395,7 +395,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -404,7 +404,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -412,7 +412,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -420,7 +420,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -429,7 +429,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -438,7 +438,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -447,7 +447,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -456,7 +456,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -465,7 +465,7 @@ pub fn _encode_CommonArguments(value_: &CommonArguments) -> ASN1Result<X690Eleme
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -961,7 +961,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -970,7 +970,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -978,7 +978,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -987,7 +987,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -996,7 +996,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1004,7 +1004,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1012,7 +1012,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1021,7 +1021,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1030,7 +1030,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1039,7 +1039,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1048,7 +1048,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1057,7 +1057,7 @@ pub fn _encode_CommonArgumentsSeq(value_: &CommonArgumentsSeq) -> ASN1Result<X69
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1393,7 +1393,7 @@ pub fn _encode_CommonResults(value_: &CommonResults) -> ASN1Result<X690Element> 
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1401,7 +1401,7 @@ pub fn _encode_CommonResults(value_: &CommonResults) -> ASN1Result<X690Element> 
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1410,7 +1410,7 @@ pub fn _encode_CommonResults(value_: &CommonResults) -> ASN1Result<X690Element> 
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1686,7 +1686,7 @@ pub fn _encode_CommonResultsSeq(value_: &CommonResultsSeq) -> ASN1Result<X690Ele
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1694,7 +1694,7 @@ pub fn _encode_CommonResultsSeq(value_: &CommonResultsSeq) -> ASN1Result<X690Ele
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1703,7 +1703,7 @@ pub fn _encode_CommonResultsSeq(value_: &CommonResultsSeq) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -2096,7 +2096,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
             components_.push(|v_1: &ServiceControlOptions| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_ServiceControlOptions(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControlOptions(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -2107,7 +2107,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
                 |v_1: &ServiceControls_priority| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 1),
-                        X690Value::from_explicit(&_encode_ServiceControls_priority(&v_1)?),
+                        X690Value::from_explicit(_encode_ServiceControls_priority(&v_1)?),
                     ))
                 }(&v_)?,
             );
@@ -2117,7 +2117,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2125,7 +2125,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2134,7 +2134,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
             |v_1: &ServiceControls_scopeOfReferral| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&_encode_ServiceControls_scopeOfReferral(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls_scopeOfReferral(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -2143,7 +2143,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2152,7 +2152,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
             |v_1: &ServiceControls_manageDSAITPlaneRef| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 6),
-                    X690Value::from_explicit(&_encode_ServiceControls_manageDSAITPlaneRef(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls_manageDSAITPlaneRef(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -2161,7 +2161,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2169,7 +2169,7 @@ pub fn _encode_ServiceControls(value_: &ServiceControls) -> ASN1Result<X690Eleme
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2621,7 +2621,7 @@ pub fn _encode_EntryInformationSelection(
                 |v_1: &EntryInformationSelection_infoTypes| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 2),
-                        X690Value::from_explicit(&_encode_EntryInformationSelection_infoTypes(
+                        X690Value::from_explicit(_encode_EntryInformationSelection_infoTypes(
                             &v_1,
                         )?),
                     ))
@@ -3343,7 +3343,7 @@ pub fn _encode_EntryInformation(value_: &EntryInformation) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -3353,7 +3353,7 @@ pub fn _encode_EntryInformation(value_: &EntryInformation) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -3363,7 +3363,7 @@ pub fn _encode_EntryInformation(value_: &EntryInformation) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 5),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -3971,13 +3971,13 @@ pub fn _encode_Filter(value_: &Filter) -> ASN1Result<X690Element> {
         Filter::item(v) => |v_1: &FilterItem| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_FilterItem(&v_1)?),
+                X690Value::from_explicit(_encode_FilterItem(&v_1)?),
             ))
         }(&v),
         Filter::and(v) => |v_1: &Vec<Filter>| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&|value_: &SET_OF<Filter>| -> ASN1Result<X690Element> {
+                X690Value::from_explicit(|value_: &SET_OF<Filter>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Filter(&v)?);
@@ -3992,7 +3992,7 @@ pub fn _encode_Filter(value_: &Filter) -> ASN1Result<X690Element> {
         Filter::or(v) => |v_1: &Vec<Filter>| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&|value_: &SET_OF<Filter>| -> ASN1Result<X690Element> {
+                X690Value::from_explicit(|value_: &SET_OF<Filter>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_Filter(&v)?);
@@ -4007,7 +4007,7 @@ pub fn _encode_Filter(value_: &Filter) -> ASN1Result<X690Element> {
         Filter::not(v) => |v_1: &Filter| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Filter(&v_1)?),
+                X690Value::from_explicit(_encode_Filter(&v_1)?),
             ))
         }(&v),
         Filter::_unrecognized(el) => Ok(el.clone()),
@@ -4161,40 +4161,40 @@ pub fn _encode_FilterItem(value_: &FilterItem) -> ASN1Result<X690Element> {
         FilterItem::equality(v) => |v_1: &AttributeValueAssertion| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_AttributeValueAssertion(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeValueAssertion(&v_1)?),
             ))
         }(&v),
         FilterItem::substrings(v) => |v_1: &FilterItem_substrings| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_FilterItem_substrings(&v_1)?),
+                X690Value::from_explicit(_encode_FilterItem_substrings(&v_1)?),
             ))
         }(&v),
         FilterItem::greaterOrEqual(v) => {
             |v_1: &AttributeValueAssertion| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_AttributeValueAssertion(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeValueAssertion(&v_1)?),
                 ))
             }(&v)
         }
         FilterItem::lessOrEqual(v) => |v_1: &AttributeValueAssertion| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_AttributeValueAssertion(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeValueAssertion(&v_1)?),
             ))
         }(&v),
         FilterItem::present(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         FilterItem::approximateMatch(v) => {
             |v_1: &AttributeValueAssertion| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 5),
-                    X690Value::from_explicit(&_encode_AttributeValueAssertion(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeValueAssertion(&v_1)?),
                 ))
             }(&v)
         }
@@ -4202,7 +4202,7 @@ pub fn _encode_FilterItem(value_: &FilterItem) -> ASN1Result<X690Element> {
             |v_1: &MatchingRuleAssertion| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 6),
-                    X690Value::from_explicit(&_encode_MatchingRuleAssertion(&v_1)?),
+                    X690Value::from_explicit(_encode_MatchingRuleAssertion(&v_1)?),
                 ))
             }(&v)
         }
@@ -4210,7 +4210,7 @@ pub fn _encode_FilterItem(value_: &FilterItem) -> ASN1Result<X690Element> {
             |v_1: &AttributeTypeAssertion| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 7),
-                    X690Value::from_explicit(&_encode_AttributeTypeAssertion(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeTypeAssertion(&v_1)?),
                 ))
             }(&v)
         }
@@ -4466,14 +4466,14 @@ pub fn _encode_MatchingRuleAssertion(value_: &MatchingRuleAssertion) -> ASN1Resu
         components_.push(|v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v_)?);
     }
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.matchValue)?);
     if let Some(v_) = &value_.dnAttributes {
@@ -4481,7 +4481,7 @@ pub fn _encode_MatchingRuleAssertion(value_: &MatchingRuleAssertion) -> ASN1Resu
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -4620,7 +4620,7 @@ pub fn _encode_PagedResultsRequest(value_: &PagedResultsRequest) -> ASN1Result<X
         PagedResultsRequest::abandonQuery(v) => |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v),
         PagedResultsRequest::_unrecognized(el) => Ok(el.clone()),
@@ -5010,7 +5010,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &CertificationPath| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertificationPath(&v_1)?),
+                X690Value::from_explicit(_encode_CertificationPath(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5018,7 +5018,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5026,7 +5026,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5034,7 +5034,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5042,7 +5042,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &ProtectionRequest| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_ProtectionRequest(&v_1)?),
+                X690Value::from_explicit(_encode_ProtectionRequest(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5050,7 +5050,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &Code| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(&_encode_Code(&v_1)?),
+                X690Value::from_explicit(_encode_Code(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5058,7 +5058,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &ErrorProtectionRequest| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&_encode_ErrorProtectionRequest(&v_1)?),
+                X690Value::from_explicit(_encode_ErrorProtectionRequest(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5066,7 +5066,7 @@ pub fn _encode_SecurityParameters(value_: &SecurityParameters) -> ASN1Result<X69
         components_.push(|v_1: &Code| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 9),
-                X690Value::from_explicit(&_encode_Code(&v_1)?),
+                X690Value::from_explicit(_encode_Code(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5418,7 +5418,7 @@ pub fn _encode_DirectoryBindArgument(value_: &DirectoryBindArgument) -> ASN1Resu
         components_.push(|v_1: &Credentials| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_Credentials(&v_1)?),
+                X690Value::from_explicit(_encode_Credentials(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5427,7 +5427,7 @@ pub fn _encode_DirectoryBindArgument(value_: &DirectoryBindArgument) -> ASN1Resu
             components_.push(|v_1: &Versions| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_Versions(&v_1)?),
+                    X690Value::from_explicit(_encode_Versions(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -5543,31 +5543,31 @@ pub fn _encode_Credentials(value_: &Credentials) -> ASN1Result<X690Element> {
         Credentials::simple(v) => |v_1: &SimpleCredentials| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_SimpleCredentials(&v_1)?),
+                X690Value::from_explicit(_encode_SimpleCredentials(&v_1)?),
             ))
         }(&v),
         Credentials::strong(v) => |v_1: &StrongCredentials| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_StrongCredentials(&v_1)?),
+                X690Value::from_explicit(_encode_StrongCredentials(&v_1)?),
             ))
         }(&v),
         Credentials::externalProcedure(v) => |v_1: &EXTERNAL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_external(&v_1)?),
+                X690Value::from_explicit(BER.encode_external(&v_1)?),
             ))
         }(&v),
         Credentials::spkm(v) => |v_1: &SpkmCredentials| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_SpkmCredentials(&v_1)?),
+                X690Value::from_explicit(_encode_SpkmCredentials(&v_1)?),
             ))
         }(&v),
         Credentials::sasl(v) => |v_1: &SaslCredentials| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_SaslCredentials(&v_1)?),
+                X690Value::from_explicit(_encode_SaslCredentials(&v_1)?),
             ))
         }(&v),
         Credentials::_unrecognized(el) => Ok(el.clone()),
@@ -5751,7 +5751,7 @@ pub fn _encode_SimpleCredentials(value_: &SimpleCredentials) -> ASN1Result<X690E
     components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
         ))
     }(&value_.name)?);
     if let Some(v_) = &value_.validity {
@@ -5759,7 +5759,7 @@ pub fn _encode_SimpleCredentials(value_: &SimpleCredentials) -> ASN1Result<X690E
             |v_1: &SimpleCredentials_validity| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_SimpleCredentials_validity(&v_1)?),
+                    X690Value::from_explicit(_encode_SimpleCredentials_validity(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -5769,7 +5769,7 @@ pub fn _encode_SimpleCredentials(value_: &SimpleCredentials) -> ASN1Result<X690E
             |v_1: &SimpleCredentials_password| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_SimpleCredentials_password(&v_1)?),
+                    X690Value::from_explicit(_encode_SimpleCredentials_password(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -5969,21 +5969,21 @@ pub fn _encode_StrongCredentials(value_: &StrongCredentials) -> ASN1Result<X690E
         components_.push(|v_1: &CertificationPath| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_CertificationPath(&v_1)?),
+                X690Value::from_explicit(_encode_CertificationPath(&v_1)?),
             ))
         }(&v_)?);
     }
     components_.push(|v_1: &Token| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_Token(&v_1)?),
+            X690Value::from_explicit(_encode_Token(&v_1)?),
         ))
     }(&value_.bind_token)?);
     if let Some(v_) = &value_.name {
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5992,7 +5992,7 @@ pub fn _encode_StrongCredentials(value_: &StrongCredentials) -> ASN1Result<X690E
             |v_1: &AttributeCertificationPath| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&_encode_AttributeCertificationPath(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeCertificationPath(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -6105,13 +6105,13 @@ pub fn _encode_SpkmCredentials(value_: &SpkmCredentials) -> ASN1Result<X690Eleme
         SpkmCredentials::req(v) => |v_1: &SPKM_REQ| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_SPKM_REQ(&v_1)?),
+                X690Value::from_explicit(_encode_SPKM_REQ(&v_1)?),
             ))
         }(&v),
         SpkmCredentials::rep(v) => |v_1: &SPKM_REP_TI| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_SPKM_REP_TI(&v_1)?),
+                X690Value::from_explicit(_encode_SPKM_REP_TI(&v_1)?),
             ))
         }(&v),
         SpkmCredentials::_unrecognized(el) => Ok(el.clone()),
@@ -6262,14 +6262,14 @@ pub fn _encode_SaslCredentials(value_: &SaslCredentials) -> ASN1Result<X690Eleme
     components_.push(|v_1: &DirectoryString| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_DirectoryString(&v_1)?),
+            X690Value::from_explicit(_encode_DirectoryString(&v_1)?),
         ))
     }(&value_.mechanism)?);
     if let Some(v_) = &value_.credentials {
         components_.push(|v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -6278,7 +6278,7 @@ pub fn _encode_SaslCredentials(value_: &SaslCredentials) -> ASN1Result<X690Eleme
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -6527,32 +6527,32 @@ pub fn _encode_TokenContent(value_: &TokenContent) -> ASN1Result<X690Element> {
     components_.push(|v_1: &AlgorithmIdentifier| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_AlgorithmIdentifier(&v_1)?),
+            X690Value::from_explicit(_encode_AlgorithmIdentifier(&v_1)?),
         ))
     }(&value_.algorithm)?);
     components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
         ))
     }(&value_.name)?);
     components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&_encode_Time(&v_1)?),
+            X690Value::from_explicit(_encode_Time(&v_1)?),
         ))
     }(&value_.time)?);
     components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
-            X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+            X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
         ))
     }(&value_.random)?);
     if let Some(v_) = &value_.response {
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -6773,7 +6773,7 @@ pub fn _encode_DirectoryBindResult(value_: &DirectoryBindResult) -> ASN1Result<X
         components_.push(|v_1: &Credentials| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_Credentials(&v_1)?),
+                X690Value::from_explicit(_encode_Credentials(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -6782,7 +6782,7 @@ pub fn _encode_DirectoryBindResult(value_: &DirectoryBindResult) -> ASN1Result<X
             components_.push(|v_1: &Versions| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_Versions(&v_1)?),
+                    X690Value::from_explicit(_encode_Versions(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -6791,7 +6791,7 @@ pub fn _encode_DirectoryBindResult(value_: &DirectoryBindResult) -> ASN1Result<X
         components_.push(|v_1: &PwdResponseValue| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_PwdResponseValue(&v_1)?),
+                X690Value::from_explicit(_encode_PwdResponseValue(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7135,7 +7135,7 @@ pub fn _encode_DirectoryBindError_OPTIONALLY_PROTECTED_Parameter1(
             components_.push(|v_1: &Versions| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_Versions(&v_1)?),
+                    X690Value::from_explicit(_encode_Versions(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -7146,7 +7146,7 @@ pub fn _encode_DirectoryBindError_OPTIONALLY_PROTECTED_Parameter1(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7699,7 +7699,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.object)?);
     if let Some(v_) = &value_.selection {
@@ -7708,7 +7708,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
                 |v_1: &EntryInformationSelection| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 1),
-                        X690Value::from_explicit(&_encode_EntryInformationSelection(&v_1)?),
+                        X690Value::from_explicit(_encode_EntryInformationSelection(&v_1)?),
                     ))
                 }(&v_)?,
             );
@@ -7719,7 +7719,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -7729,7 +7729,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -7738,7 +7738,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7746,7 +7746,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7755,7 +7755,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -7764,7 +7764,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7772,7 +7772,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7780,7 +7780,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7789,7 +7789,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -7798,7 +7798,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7807,7 +7807,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -7816,7 +7816,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7825,7 +7825,7 @@ pub fn _encode_ReadArgumentData(value_: &ReadArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -8211,14 +8211,14 @@ pub fn _encode_ReadResultData(value_: &ReadResultData) -> ASN1Result<X690Element
     components_.push(|v_1: &EntryInformation| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_EntryInformation(&v_1)?),
+            X690Value::from_explicit(_encode_EntryInformation(&v_1)?),
         ))
     }(&value_.entry)?);
     if let Some(v_) = &value_.modifyRights {
         components_.push(|v_1: &ModifyRights| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_ModifyRights(&v_1)?),
+                X690Value::from_explicit(_encode_ModifyRights(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8226,7 +8226,7 @@ pub fn _encode_ReadResultData(value_: &ReadResultData) -> ASN1Result<X690Element
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8234,7 +8234,7 @@ pub fn _encode_ReadResultData(value_: &ReadResultData) -> ASN1Result<X690Element
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8243,7 +8243,7 @@ pub fn _encode_ReadResultData(value_: &ReadResultData) -> ASN1Result<X690Element
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -8822,13 +8822,13 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.object)?);
     components_.push(|v_1: &AttributeValueAssertion| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_AttributeValueAssertion(&v_1)?),
+            X690Value::from_explicit(_encode_AttributeValueAssertion(&v_1)?),
         ))
     }(&value_.purported)?);
     if let Some(v_) = &value_.serviceControls {
@@ -8836,7 +8836,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -8845,7 +8845,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8853,7 +8853,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8862,7 +8862,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -8871,7 +8871,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8879,7 +8879,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8887,7 +8887,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8896,7 +8896,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -8905,7 +8905,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8914,7 +8914,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -8923,7 +8923,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8932,7 +8932,7 @@ pub fn _encode_CompareArgumentData(value_: &CompareArgumentData) -> ASN1Result<X
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -9346,7 +9346,7 @@ pub fn _encode_CompareResultData(value_: &CompareResultData) -> ASN1Result<X690E
     components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+            X690Value::from_explicit(BER.encode_boolean(&v_1)?),
         ))
     }(&value_.matched)?);
     if let Some(v_) = &value_.fromEntry {
@@ -9354,7 +9354,7 @@ pub fn _encode_CompareResultData(value_: &CompareResultData) -> ASN1Result<X690E
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -9363,7 +9363,7 @@ pub fn _encode_CompareResultData(value_: &CompareResultData) -> ASN1Result<X690E
         components_.push(|v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9371,7 +9371,7 @@ pub fn _encode_CompareResultData(value_: &CompareResultData) -> ASN1Result<X690E
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9379,7 +9379,7 @@ pub fn _encode_CompareResultData(value_: &CompareResultData) -> ASN1Result<X690E
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9388,7 +9388,7 @@ pub fn _encode_CompareResultData(value_: &CompareResultData) -> ASN1Result<X690E
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -9672,7 +9672,7 @@ pub fn _encode_AbandonArgumentData(value_: &AbandonArgumentData) -> ASN1Result<X
     components_.push(|v_1: &InvokeId| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_InvokeId(&v_1)?),
+            X690Value::from_explicit(_encode_InvokeId(&v_1)?),
         ))
     }(&value_.invokeID)?);
     Ok(X690Element::new(
@@ -9947,7 +9947,7 @@ pub fn _encode_AbandonResultData(value_: &AbandonResultData) -> ASN1Result<X690E
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9955,7 +9955,7 @@ pub fn _encode_AbandonResultData(value_: &AbandonResultData) -> ASN1Result<X690E
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9964,7 +9964,7 @@ pub fn _encode_AbandonResultData(value_: &AbandonResultData) -> ASN1Result<X690E
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -10501,14 +10501,14 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.object)?);
     if let Some(v_) = &value_.pagedResults {
         components_.push(|v_1: &PagedResultsRequest| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_PagedResultsRequest(&v_1)?),
+                X690Value::from_explicit(_encode_PagedResultsRequest(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10517,7 +10517,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -10527,7 +10527,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -10536,7 +10536,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10544,7 +10544,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10553,7 +10553,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -10562,7 +10562,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10570,7 +10570,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10578,7 +10578,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10587,7 +10587,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -10596,7 +10596,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10605,7 +10605,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -10614,7 +10614,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10623,7 +10623,7 @@ pub fn _encode_ListArgumentData(value_: &ListArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -11224,7 +11224,7 @@ pub fn _encode_PartialOutcomeQualifier(
         components_.push(|v_1: &LimitProblem| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_LimitProblem(&v_1)?),
+                X690Value::from_explicit(_encode_LimitProblem(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -11254,7 +11254,7 @@ pub fn _encode_PartialOutcomeQualifier(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -11282,7 +11282,7 @@ pub fn _encode_PartialOutcomeQualifier(
         components_.push(|v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -11290,7 +11290,7 @@ pub fn _encode_PartialOutcomeQualifier(
         components_.push(|v_1: &Filter| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_Filter(&v_1)?),
+                X690Value::from_explicit(_encode_Filter(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12195,7 +12195,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.baseObject)?);
     if let Some(v_) = &value_.subset {
@@ -12204,7 +12204,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
                 |v_1: &SearchArgumentData_subset| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 1),
-                        X690Value::from_explicit(&_encode_SearchArgumentData_subset(&v_1)?),
+                        X690Value::from_explicit(_encode_SearchArgumentData_subset(&v_1)?),
                     ))
                 }(&v_)?,
             );
@@ -12219,7 +12219,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &Filter| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_Filter(&v_1)?),
+                    X690Value::from_explicit(_encode_Filter(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12229,7 +12229,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12240,7 +12240,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
                 |v_1: &EntryInformationSelection| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 4),
-                        X690Value::from_explicit(&_encode_EntryInformationSelection(&v_1)?),
+                        X690Value::from_explicit(_encode_EntryInformationSelection(&v_1)?),
                     ))
                 }(&v_)?,
             );
@@ -12250,7 +12250,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &PagedResultsRequest| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_PagedResultsRequest(&v_1)?),
+                X690Value::from_explicit(_encode_PagedResultsRequest(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12259,7 +12259,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 6),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12268,7 +12268,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &Filter| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(&_encode_Filter(&v_1)?),
+                X690Value::from_explicit(_encode_Filter(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12277,7 +12277,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 8),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12286,7 +12286,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &RelaxationPolicy| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 9),
-                X690Value::from_explicit(&_encode_RelaxationPolicy(&v_1)?),
+                X690Value::from_explicit(_encode_RelaxationPolicy(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12294,7 +12294,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 10),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12303,7 +12303,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &HierarchySelections| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 11),
-                    X690Value::from_explicit(&_encode_HierarchySelections(&v_1)?),
+                    X690Value::from_explicit(_encode_HierarchySelections(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12313,7 +12313,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &SearchControlOptions| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 12),
-                    X690Value::from_explicit(&_encode_SearchControlOptions(&v_1)?),
+                    X690Value::from_explicit(_encode_SearchControlOptions(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12343,7 +12343,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
                 |v_1: &SearchArgumentData_joinType| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 14),
-                        X690Value::from_explicit(&_encode_SearchArgumentData_joinType(&v_1)?),
+                        X690Value::from_explicit(_encode_SearchArgumentData_joinType(&v_1)?),
                     ))
                 }(&v_)?,
             );
@@ -12354,7 +12354,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12363,7 +12363,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12371,7 +12371,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12380,7 +12380,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12389,7 +12389,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12397,7 +12397,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12405,7 +12405,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12414,7 +12414,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12423,7 +12423,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12432,7 +12432,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -12441,7 +12441,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -12450,7 +12450,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -13077,14 +13077,14 @@ pub fn _encode_JoinArgument(value_: &JoinArgument) -> ASN1Result<X690Element> {
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.joinBaseObject)?);
     if let Some(v_) = &value_.domainLocalID {
         components_.push(|v_1: &DomainLocalID| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_DomainLocalID(&v_1)?),
+                X690Value::from_explicit(_encode_DomainLocalID(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -13093,7 +13093,7 @@ pub fn _encode_JoinArgument(value_: &JoinArgument) -> ASN1Result<X690Element> {
             components_.push(|v_1: &JoinArgument_joinSubset| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_JoinArgument_joinSubset(&v_1)?),
+                    X690Value::from_explicit(_encode_JoinArgument_joinSubset(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -13102,7 +13102,7 @@ pub fn _encode_JoinArgument(value_: &JoinArgument) -> ASN1Result<X690Element> {
         components_.push(|v_1: &Filter| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Filter(&v_1)?),
+                X690Value::from_explicit(_encode_Filter(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -13129,7 +13129,7 @@ pub fn _encode_JoinArgument(value_: &JoinArgument) -> ASN1Result<X690Element> {
         |v_1: &EntryInformationSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_EntryInformationSelection(&v_1)?),
+                X690Value::from_explicit(_encode_EntryInformationSelection(&v_1)?),
             ))
         }(&value_.joinSelection)?,
     );
@@ -14022,13 +14022,13 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.object)?);
     components_.push(|v_1: &Vec<Attribute>| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+            X690Value::from_explicit(|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
                 let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                 for v in value_ {
                     children.push(_encode_Attribute(&v)?);
@@ -14044,7 +14044,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+                X690Value::from_explicit(_encode_AccessPoint(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14053,7 +14053,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -14062,7 +14062,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14070,7 +14070,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14079,7 +14079,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -14088,7 +14088,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14096,7 +14096,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14104,7 +14104,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14113,7 +14113,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -14122,7 +14122,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14131,7 +14131,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -14140,7 +14140,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14149,7 +14149,7 @@ pub fn _encode_AddEntryArgumentData(value_: &AddEntryArgumentData) -> ASN1Result
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -14568,7 +14568,7 @@ pub fn _encode_AddEntryResultData(value_: &AddEntryResultData) -> ASN1Result<X69
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14576,7 +14576,7 @@ pub fn _encode_AddEntryResultData(value_: &AddEntryResultData) -> ASN1Result<X69
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -14585,7 +14585,7 @@ pub fn _encode_AddEntryResultData(value_: &AddEntryResultData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -15084,7 +15084,7 @@ pub fn _encode_RemoveEntryArgumentData(
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.object)?);
     if let Some(v_) = &value_.serviceControls {
@@ -15092,7 +15092,7 @@ pub fn _encode_RemoveEntryArgumentData(
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -15101,7 +15101,7 @@ pub fn _encode_RemoveEntryArgumentData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15109,7 +15109,7 @@ pub fn _encode_RemoveEntryArgumentData(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15118,7 +15118,7 @@ pub fn _encode_RemoveEntryArgumentData(
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -15127,7 +15127,7 @@ pub fn _encode_RemoveEntryArgumentData(
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15135,7 +15135,7 @@ pub fn _encode_RemoveEntryArgumentData(
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15143,7 +15143,7 @@ pub fn _encode_RemoveEntryArgumentData(
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15152,7 +15152,7 @@ pub fn _encode_RemoveEntryArgumentData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -15161,7 +15161,7 @@ pub fn _encode_RemoveEntryArgumentData(
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15170,7 +15170,7 @@ pub fn _encode_RemoveEntryArgumentData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -15179,7 +15179,7 @@ pub fn _encode_RemoveEntryArgumentData(
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15188,7 +15188,7 @@ pub fn _encode_RemoveEntryArgumentData(
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -15581,7 +15581,7 @@ pub fn _encode_RemoveEntryResultData(value_: &RemoveEntryResultData) -> ASN1Resu
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15589,7 +15589,7 @@ pub fn _encode_RemoveEntryResultData(value_: &RemoveEntryResultData) -> ASN1Resu
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -15598,7 +15598,7 @@ pub fn _encode_RemoveEntryResultData(value_: &RemoveEntryResultData) -> ASN1Resu
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -16150,7 +16150,7 @@ pub fn _encode_ModifyEntryArgumentData(
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.object)?);
     components_.push(|v_1: &Vec<EntryModification>| -> ASN1Result<X690Element> {
@@ -16175,7 +16175,7 @@ pub fn _encode_ModifyEntryArgumentData(
             |v_1: &EntryInformationSelection| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_EntryInformationSelection(&v_1)?),
+                    X690Value::from_explicit(_encode_EntryInformationSelection(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -16185,7 +16185,7 @@ pub fn _encode_ModifyEntryArgumentData(
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -16194,7 +16194,7 @@ pub fn _encode_ModifyEntryArgumentData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16202,7 +16202,7 @@ pub fn _encode_ModifyEntryArgumentData(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16211,7 +16211,7 @@ pub fn _encode_ModifyEntryArgumentData(
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -16220,7 +16220,7 @@ pub fn _encode_ModifyEntryArgumentData(
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16228,7 +16228,7 @@ pub fn _encode_ModifyEntryArgumentData(
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16236,7 +16236,7 @@ pub fn _encode_ModifyEntryArgumentData(
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16245,7 +16245,7 @@ pub fn _encode_ModifyEntryArgumentData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -16254,7 +16254,7 @@ pub fn _encode_ModifyEntryArgumentData(
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16263,7 +16263,7 @@ pub fn _encode_ModifyEntryArgumentData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -16272,7 +16272,7 @@ pub fn _encode_ModifyEntryArgumentData(
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16281,7 +16281,7 @@ pub fn _encode_ModifyEntryArgumentData(
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -16717,7 +16717,7 @@ pub fn _encode_ModifyEntryResultData(value_: &ModifyEntryResultData) -> ASN1Resu
         components_.push(|v_1: &EntryInformation| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_EntryInformation(&v_1)?),
+                X690Value::from_explicit(_encode_EntryInformation(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16725,7 +16725,7 @@ pub fn _encode_ModifyEntryResultData(value_: &ModifyEntryResultData) -> ASN1Resu
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16733,7 +16733,7 @@ pub fn _encode_ModifyEntryResultData(value_: &ModifyEntryResultData) -> ASN1Resu
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -16742,7 +16742,7 @@ pub fn _encode_ModifyEntryResultData(value_: &ModifyEntryResultData) -> ASN1Resu
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -16934,45 +16934,45 @@ pub fn _encode_EntryModification(value_: &EntryModification) -> ASN1Result<X690E
         EntryModification::addAttribute(v) => |v_1: &Attribute| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_Attribute(&v_1)?),
+                X690Value::from_explicit(_encode_Attribute(&v_1)?),
             ))
         }(&v),
         EntryModification::removeAttribute(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         EntryModification::addValues(v) => |v_1: &Attribute| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_Attribute(&v_1)?),
+                X690Value::from_explicit(_encode_Attribute(&v_1)?),
             ))
         }(&v),
         EntryModification::removeValues(v) => |v_1: &Attribute| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Attribute(&v_1)?),
+                X690Value::from_explicit(_encode_Attribute(&v_1)?),
             ))
         }(&v),
         EntryModification::alterValues(v) => {
             |v_1: &AttributeTypeAndValue| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&_encode_AttributeTypeAndValue(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeTypeAndValue(&v_1)?),
                 ))
             }(&v)
         }
         EntryModification::resetValue(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         EntryModification::replaceValues(v) => |v_1: &Attribute| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(&_encode_Attribute(&v_1)?),
+                X690Value::from_explicit(_encode_Attribute(&v_1)?),
             ))
         }(&v),
         EntryModification::_unrecognized(el) => Ok(el.clone()),
@@ -17479,14 +17479,14 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
     components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
         ))
     }(&value_.object)?);
     components_.push(
         |v_1: &RelativeDistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_RelativeDistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_RelativeDistinguishedName(&v_1)?),
             ))
         }(&value_.newRDN)?,
     );
@@ -17495,7 +17495,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -17504,7 +17504,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17513,7 +17513,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -17522,7 +17522,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17530,7 +17530,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17539,7 +17539,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -17548,7 +17548,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17556,7 +17556,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17564,7 +17564,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17573,7 +17573,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -17582,7 +17582,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17591,7 +17591,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -17600,7 +17600,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -17609,7 +17609,7 @@ pub fn _encode_ModifyDNArgumentData(value_: &ModifyDNArgumentData) -> ASN1Result
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -18029,7 +18029,7 @@ pub fn _encode_ModifyDNResultData(value_: &ModifyDNResultData) -> ASN1Result<X69
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -18037,7 +18037,7 @@ pub fn _encode_ModifyDNResultData(value_: &ModifyDNResultData) -> ASN1Result<X69
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -18046,7 +18046,7 @@ pub fn _encode_ModifyDNResultData(value_: &ModifyDNResultData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -18358,19 +18358,19 @@ pub fn _encode_ChangePasswordArgumentData(
     components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
         ))
     }(&value_.object)?);
     components_.push(|v_1: &UserPwd| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_UserPwd(&v_1)?),
+            X690Value::from_explicit(_encode_UserPwd(&v_1)?),
         ))
     }(&value_.oldPwd)?);
     components_.push(|v_1: &UserPwd| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&_encode_UserPwd(&v_1)?),
+            X690Value::from_explicit(_encode_UserPwd(&v_1)?),
         ))
     }(&value_.newPwd)?);
     Ok(X690Element::new(
@@ -18659,7 +18659,7 @@ pub fn _encode_ChangePasswordResultData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -18667,7 +18667,7 @@ pub fn _encode_ChangePasswordResultData(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -18676,7 +18676,7 @@ pub fn _encode_ChangePasswordResultData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -18975,13 +18975,13 @@ pub fn _encode_AdministerPasswordArgumentData(
     components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+            X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
         ))
     }(&value_.object)?);
     components_.push(|v_1: &UserPwd| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_UserPwd(&v_1)?),
+            X690Value::from_explicit(_encode_UserPwd(&v_1)?),
         ))
     }(&value_.newPwd)?);
     Ok(X690Element::new(
@@ -19272,7 +19272,7 @@ pub fn _encode_AdministerPasswordResultData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19280,7 +19280,7 @@ pub fn _encode_AdministerPasswordResultData(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19289,7 +19289,7 @@ pub fn _encode_AdministerPasswordResultData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -19843,7 +19843,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -19852,7 +19852,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19860,7 +19860,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19869,7 +19869,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -19878,7 +19878,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19886,7 +19886,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19894,7 +19894,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19903,7 +19903,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -19912,7 +19912,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19921,7 +19921,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -19930,7 +19930,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -19939,7 +19939,7 @@ pub fn _encode_LdapArgumentData(value_: &LdapArgumentData) -> ASN1Result<X690Ele
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -20363,7 +20363,7 @@ pub fn _encode_LdapResultData(value_: &LdapResultData) -> ASN1Result<X690Element
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -20371,7 +20371,7 @@ pub fn _encode_LdapResultData(value_: &LdapResultData) -> ASN1Result<X690Element
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -20380,7 +20380,7 @@ pub fn _encode_LdapResultData(value_: &LdapResultData) -> ASN1Result<X690Element
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -20939,7 +20939,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &ServiceControls| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 30),
-                    X690Value::from_explicit(&_encode_ServiceControls(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControls(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -20948,7 +20948,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -20956,7 +20956,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 28),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -20965,7 +20965,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &OperationProgress| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 27),
-                    X690Value::from_explicit(&_encode_OperationProgress(&v_1)?),
+                    X690Value::from_explicit(_encode_OperationProgress(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -20974,7 +20974,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 26),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -20982,7 +20982,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 25),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -20990,7 +20990,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &ReferenceType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 24),
-                X690Value::from_explicit(&_encode_ReferenceType(&v_1)?),
+                X690Value::from_explicit(_encode_ReferenceType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -20999,7 +20999,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 23),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -21008,7 +21008,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &Exclusions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 22),
-                X690Value::from_explicit(&_encode_Exclusions(&v_1)?),
+                X690Value::from_explicit(_encode_Exclusions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -21017,7 +21017,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 21),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -21026,7 +21026,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
         components_.push(|v_1: &ContextSelection| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 20),
-                X690Value::from_explicit(&_encode_ContextSelection(&v_1)?),
+                X690Value::from_explicit(_encode_ContextSelection(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -21035,7 +21035,7 @@ pub fn _encode_LinkedArgumentData(value_: &LinkedArgumentData) -> ASN1Result<X69
             components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 19),
-                    X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                    X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -21408,7 +21408,7 @@ pub fn _encode_AbandonedData(value_: &AbandonedData) -> ASN1Result<X690Element> 
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -21416,7 +21416,7 @@ pub fn _encode_AbandonedData(value_: &AbandonedData) -> ASN1Result<X690Element> 
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -21425,7 +21425,7 @@ pub fn _encode_AbandonedData(value_: &AbandonedData) -> ASN1Result<X690Element> 
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -21764,20 +21764,20 @@ pub fn _encode_AbandonFailedData(value_: &AbandonFailedData) -> ASN1Result<X690E
     components_.push(|v_1: &AbandonProblem| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_AbandonProblem(&v_1)?),
+            X690Value::from_explicit(_encode_AbandonProblem(&v_1)?),
         ))
     }(&value_.problem)?);
     components_.push(|v_1: &InvokeId| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_InvokeId(&v_1)?),
+            X690Value::from_explicit(_encode_InvokeId(&v_1)?),
         ))
     }(&value_.operation)?);
     if let Some(v_) = &value_.securityParameters {
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -21785,7 +21785,7 @@ pub fn _encode_AbandonFailedData(value_: &AbandonFailedData) -> ASN1Result<X690E
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -21794,7 +21794,7 @@ pub fn _encode_AbandonFailedData(value_: &AbandonFailedData) -> ASN1Result<X690E
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -22171,7 +22171,7 @@ pub fn _encode_AttributeErrorData(value_: &AttributeErrorData) -> ASN1Result<X69
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.object)?);
     components_.push(
@@ -22179,7 +22179,7 @@ pub fn _encode_AttributeErrorData(value_: &AttributeErrorData) -> ASN1Result<X69
             Ok(
                 X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&|value_: &SET_OF<
+                    X690Value::from_explicit(|value_: &SET_OF<
                         AttributeErrorData_problems_Item,
                     >|
                      -> ASN1Result<X690Element> {
@@ -22200,7 +22200,7 @@ pub fn _encode_AttributeErrorData(value_: &AttributeErrorData) -> ASN1Result<X69
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -22208,7 +22208,7 @@ pub fn _encode_AttributeErrorData(value_: &AttributeErrorData) -> ASN1Result<X69
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -22217,7 +22217,7 @@ pub fn _encode_AttributeErrorData(value_: &AttributeErrorData) -> ASN1Result<X69
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -22592,20 +22592,20 @@ pub fn _encode_NameErrorData(value_: &NameErrorData) -> ASN1Result<X690Element> 
     components_.push(|v_1: &NameProblem| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_NameProblem(&v_1)?),
+            X690Value::from_explicit(_encode_NameProblem(&v_1)?),
         ))
     }(&value_.problem)?);
     components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_Name(&v_1)?),
+            X690Value::from_explicit(_encode_Name(&v_1)?),
         ))
     }(&value_.matched)?);
     if let Some(v_) = &value_.securityParameters {
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -22613,7 +22613,7 @@ pub fn _encode_NameErrorData(value_: &NameErrorData) -> ASN1Result<X690Element> 
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -22622,7 +22622,7 @@ pub fn _encode_NameErrorData(value_: &NameErrorData) -> ASN1Result<X690Element> 
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -22957,14 +22957,14 @@ pub fn _encode_ReferralData(value_: &ReferralData) -> ASN1Result<X690Element> {
     components_.push(|v_1: &ContinuationReference| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_ContinuationReference(&v_1)?),
+            X690Value::from_explicit(_encode_ContinuationReference(&v_1)?),
         ))
     }(&value_.candidate)?);
     if let Some(v_) = &value_.securityParameters {
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -22972,7 +22972,7 @@ pub fn _encode_ReferralData(value_: &ReferralData) -> ASN1Result<X690Element> {
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -22981,7 +22981,7 @@ pub fn _encode_ReferralData(value_: &ReferralData) -> ASN1Result<X690Element> {
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -23320,14 +23320,14 @@ pub fn _encode_SecurityErrorData(value_: &SecurityErrorData) -> ASN1Result<X690E
     components_.push(|v_1: &SecurityProblem| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_SecurityProblem(&v_1)?),
+            X690Value::from_explicit(_encode_SecurityProblem(&v_1)?),
         ))
     }(&value_.problem)?);
     if let Some(v_) = &value_.spkmInfo {
         components_.push(|v_1: &SPKM_ERROR| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_SPKM_ERROR(&v_1)?),
+                X690Value::from_explicit(_encode_SPKM_ERROR(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -23335,7 +23335,7 @@ pub fn _encode_SecurityErrorData(value_: &SecurityErrorData) -> ASN1Result<X690E
         components_.push(|v_1: &EncPwdInfo| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_EncPwdInfo(&v_1)?),
+                X690Value::from_explicit(_encode_EncPwdInfo(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -23343,7 +23343,7 @@ pub fn _encode_SecurityErrorData(value_: &SecurityErrorData) -> ASN1Result<X690E
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -23351,7 +23351,7 @@ pub fn _encode_SecurityErrorData(value_: &SecurityErrorData) -> ASN1Result<X690E
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -23360,7 +23360,7 @@ pub fn _encode_SecurityErrorData(value_: &SecurityErrorData) -> ASN1Result<X690E
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -24006,14 +24006,14 @@ pub fn _encode_ServiceErrorData(value_: &ServiceErrorData) -> ASN1Result<X690Ele
     components_.push(|v_1: &ServiceProblem| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_ServiceProblem(&v_1)?),
+            X690Value::from_explicit(_encode_ServiceProblem(&v_1)?),
         ))
     }(&value_.problem)?);
     if let Some(v_) = &value_.securityParameters {
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -24021,7 +24021,7 @@ pub fn _encode_ServiceErrorData(value_: &ServiceErrorData) -> ASN1Result<X690Ele
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -24030,7 +24030,7 @@ pub fn _encode_ServiceErrorData(value_: &ServiceErrorData) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -24450,7 +24450,7 @@ pub fn _encode_UpdateErrorData(value_: &UpdateErrorData) -> ASN1Result<X690Eleme
     components_.push(|v_1: &UpdateProblem| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_UpdateProblem(&v_1)?),
+            X690Value::from_explicit(_encode_UpdateProblem(&v_1)?),
         ))
     }(&value_.problem)?);
     if let Some(v_) = &value_.attributeInfo {
@@ -24458,7 +24458,7 @@ pub fn _encode_UpdateErrorData(value_: &UpdateErrorData) -> ASN1Result<X690Eleme
             |v_1: &Vec<UpdateErrorData_attributeInfo_Item>| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&|value_: &SET_OF<
+                    X690Value::from_explicit(|value_: &SET_OF<
                         UpdateErrorData_attributeInfo_Item,
                     >|
                      -> ASN1Result<X690Element> {
@@ -24479,7 +24479,7 @@ pub fn _encode_UpdateErrorData(value_: &UpdateErrorData) -> ASN1Result<X690Eleme
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -24487,7 +24487,7 @@ pub fn _encode_UpdateErrorData(value_: &UpdateErrorData) -> ASN1Result<X690Eleme
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -24496,7 +24496,7 @@ pub fn _encode_UpdateErrorData(value_: &UpdateErrorData) -> ASN1Result<X690Eleme
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -24978,7 +24978,7 @@ pub fn _encode_EntryInformationSelection_attributes(
             |v_1: &NULL| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                    X690Value::from_explicit(BER.encode_null(&v_1)?),
                 ))
             }(&v)
         }
@@ -25164,7 +25164,7 @@ pub fn _encode_EntryInformationSelection_extraAttributes(
             |v_1: &NULL| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                    X690Value::from_explicit(BER.encode_null(&v_1)?),
                 ))
             }(&v)
         }
@@ -25535,7 +25535,7 @@ pub fn _encode_FilterItem_substrings_strings_Item(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -25543,7 +25543,7 @@ pub fn _encode_FilterItem_substrings_strings_Item(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -25551,7 +25551,7 @@ pub fn _encode_FilterItem_substrings_strings_Item(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -25949,7 +25949,7 @@ pub fn _encode_PagedResultsRequest_newRequest(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -25959,7 +25959,7 @@ pub fn _encode_PagedResultsRequest_newRequest(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -25968,7 +25968,7 @@ pub fn _encode_PagedResultsRequest_newRequest(
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -26308,7 +26308,7 @@ pub fn _encode_SimpleCredentials_validity(
             |v_1: &SimpleCredentials_validity_time1| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_SimpleCredentials_validity_time1(&v_1)?),
+                    X690Value::from_explicit(_encode_SimpleCredentials_validity_time1(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -26318,7 +26318,7 @@ pub fn _encode_SimpleCredentials_validity(
             |v_1: &SimpleCredentials_validity_time2| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_SimpleCredentials_validity_time2(&v_1)?),
+                    X690Value::from_explicit(_encode_SimpleCredentials_validity_time2(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -26327,7 +26327,7 @@ pub fn _encode_SimpleCredentials_validity(
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -26335,7 +26335,7 @@ pub fn _encode_SimpleCredentials_validity(
         components_.push(|v_1: &BIT_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_bit_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_bit_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -26445,7 +26445,7 @@ pub fn _encode_SimpleCredentials_password(
         SimpleCredentials_password::userPwd(v) => |v_1: &UserPwd| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_UserPwd(&v_1)?),
+                X690Value::from_explicit(_encode_UserPwd(&v_1)?),
             ))
         }(&v),
         SimpleCredentials_password::_unrecognized(el) => Ok(el.clone()),
@@ -26508,13 +26508,13 @@ pub fn _encode_PwdResponseValue_warning(
         PwdResponseValue_warning::timeLeft(v) => |v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v),
         PwdResponseValue_warning::graceRemaining(v) => |v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v),
         PwdResponseValue_warning::_unrecognized(el) => Ok(el.clone()),
@@ -26615,7 +26615,7 @@ pub fn _encode_DirectoryBindError_OPTIONALLY_PROTECTED_Parameter1_error(
             |v_1: &ServiceProblem| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_ServiceProblem(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceProblem(&v_1)?),
                 ))
             }(&v)
         }
@@ -26623,7 +26623,7 @@ pub fn _encode_DirectoryBindError_OPTIONALLY_PROTECTED_Parameter1_error(
             |v_1: &SecurityProblem| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_SecurityProblem(&v_1)?),
+                    X690Value::from_explicit(_encode_SecurityProblem(&v_1)?),
                 ))
             }(&v)
         }
@@ -26701,20 +26701,20 @@ pub fn _encode_ModifyRights_Item_item(value_: &ModifyRights_Item_item) -> ASN1Re
         ModifyRights_Item_item::entry(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v),
         ModifyRights_Item_item::attribute(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         ModifyRights_Item_item::value(v) => {
             |v_1: &AttributeValueAssertion| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&_encode_AttributeValueAssertion(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeValueAssertion(&v_1)?),
                 ))
             }(&v)
         }
@@ -26875,7 +26875,7 @@ pub fn _encode_ModifyRights_Item(value_: &ModifyRights_Item) -> ASN1Result<X690E
         |v_1: &ModifyRights_Item_permission| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_ModifyRights_Item_permission(&v_1)?),
+                X690Value::from_explicit(_encode_ModifyRights_Item_permission(&v_1)?),
             ))
         }(&value_.permission)?,
     );
@@ -27057,7 +27057,7 @@ pub fn _encode_ListResultData_listInfo_subordinates_Item(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -27067,7 +27067,7 @@ pub fn _encode_ListResultData_listInfo_subordinates_Item(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -27347,7 +27347,7 @@ pub fn _encode_ListResultData_listInfo(
         |v_1: &Vec<ListResultData_listInfo_subordinates_Item>| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&|value_: &SET_OF<
+                X690Value::from_explicit(|value_: &SET_OF<
                     ListResultData_listInfo_subordinates_Item,
                 >|
                  -> ASN1Result<X690Element> {
@@ -27367,7 +27367,7 @@ pub fn _encode_ListResultData_listInfo(
         components_.push(|v_1: &PartialOutcomeQualifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_PartialOutcomeQualifier(&v_1)?),
+                X690Value::from_explicit(_encode_PartialOutcomeQualifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -27375,7 +27375,7 @@ pub fn _encode_ListResultData_listInfo(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -27383,7 +27383,7 @@ pub fn _encode_ListResultData_listInfo(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -27392,7 +27392,7 @@ pub fn _encode_ListResultData_listInfo(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -27584,7 +27584,7 @@ pub fn _encode_PartialOutcomeQualifier_entryCount(
             |v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 7),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v)
         }
@@ -27592,7 +27592,7 @@ pub fn _encode_PartialOutcomeQualifier_entryCount(
             |v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 8),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v)
         }
@@ -27600,7 +27600,7 @@ pub fn _encode_PartialOutcomeQualifier_entryCount(
             |v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 9),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v)
         }
@@ -27973,7 +27973,7 @@ pub fn _encode_SearchResultData_searchInfo(
         components_.push(|v_1: &PartialOutcomeQualifier| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_PartialOutcomeQualifier(&v_1)?),
+                X690Value::from_explicit(_encode_PartialOutcomeQualifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -27982,7 +27982,7 @@ pub fn _encode_SearchResultData_searchInfo(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -27991,7 +27991,7 @@ pub fn _encode_SearchResultData_searchInfo(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -27999,7 +27999,7 @@ pub fn _encode_SearchResultData_searchInfo(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -28008,7 +28008,7 @@ pub fn _encode_SearchResultData_searchInfo(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -28284,20 +28284,20 @@ pub fn _encode_AttributeErrorData_problems_Item(
     components_.push(|v_1: &AttributeProblem| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_AttributeProblem(&v_1)?),
+            X690Value::from_explicit(_encode_AttributeProblem(&v_1)?),
         ))
     }(&value_.problem)?);
     components_.push(|v_1: &AttributeType| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+            X690Value::from_explicit(_encode_AttributeType(&v_1)?),
         ))
     }(&value_.type_)?);
     if let Some(v_) = &value_.value {
         components_.push(|v_1: &AttributeValue| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_AttributeValue(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeValue(&v_1)?),
             ))
         }(&v_)?);
     }

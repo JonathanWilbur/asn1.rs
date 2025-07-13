@@ -3169,7 +3169,7 @@ pub fn _encode_rSASSA_PSS_Type(value_: &rSASSA_PSS_Type) -> ASN1Result<X690Eleme
     components_.push(|v_1: &AlgorithmIdentifier| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_AlgorithmIdentifier(&v_1)?),
+            X690Value::from_explicit(_encode_AlgorithmIdentifier(&v_1)?),
         ))
     }(&value_.hashAlgorithm)?);
     if let Some(v_) = &value_.saltLength {
@@ -3177,7 +3177,7 @@ pub fn _encode_rSASSA_PSS_Type(value_: &rSASSA_PSS_Type) -> ASN1Result<X690Eleme
             components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -3187,7 +3187,7 @@ pub fn _encode_rSASSA_PSS_Type(value_: &rSASSA_PSS_Type) -> ASN1Result<X690Eleme
             components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v_)?);
         }

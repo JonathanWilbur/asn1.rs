@@ -458,14 +458,14 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
     components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
         ))
     }(&value_.dmdId)?);
     if let Some(v_) = &value_.serviceType {
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -473,7 +473,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -501,7 +501,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
             components_.push(|v_1: &AttributeCombination| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&_encode_AttributeCombination(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeCombination(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -529,7 +529,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &ControlOptions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(&_encode_ControlOptions(&v_1)?),
+                X690Value::from_explicit(_encode_ControlOptions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -537,7 +537,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &ControlOptions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(&_encode_ControlOptions(&v_1)?),
+                X690Value::from_explicit(_encode_ControlOptions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -545,7 +545,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &ControlOptions| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&_encode_ControlOptions(&v_1)?),
+                X690Value::from_explicit(_encode_ControlOptions(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -553,7 +553,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &FamilyGrouping| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 9),
-                X690Value::from_explicit(&_encode_FamilyGrouping(&v_1)?),
+                X690Value::from_explicit(_encode_FamilyGrouping(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -561,7 +561,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &FamilyReturn| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 10),
-                X690Value::from_explicit(&_encode_FamilyReturn(&v_1)?),
+                X690Value::from_explicit(_encode_FamilyReturn(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -569,7 +569,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &RelaxationPolicy| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 11),
-                X690Value::from_explicit(&_encode_RelaxationPolicy(&v_1)?),
+                X690Value::from_explicit(_encode_RelaxationPolicy(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -597,7 +597,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
             components_.push(|v_1: &AllowedSubset| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 13),
-                    X690Value::from_explicit(&_encode_AllowedSubset(&v_1)?),
+                    X690Value::from_explicit(_encode_AllowedSubset(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -606,7 +606,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &ImposedSubset| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 14),
-                X690Value::from_explicit(&_encode_ImposedSubset(&v_1)?),
+                X690Value::from_explicit(_encode_ImposedSubset(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -614,7 +614,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
         components_.push(|v_1: &EntryLimit| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 15),
-                X690Value::from_explicit(&_encode_EntryLimit(&v_1)?),
+                X690Value::from_explicit(_encode_EntryLimit(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -916,7 +916,7 @@ pub fn _encode_SearchRuleId(value_: &SearchRuleId) -> ASN1Result<X690Element> {
     components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
         ))
     }(&value_.dmdId)?);
     Ok(X690Element::new(
@@ -1289,7 +1289,7 @@ pub fn _encode_RequestAttribute(value_: &RequestAttribute) -> ASN1Result<X690Ele
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1318,7 +1318,7 @@ pub fn _encode_RequestAttribute(value_: &RequestAttribute) -> ASN1Result<X690Ele
             |v_1: &Vec<RequestAttribute_defaultValues_Item>| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&|value_: &SEQUENCE_OF<
+                    X690Value::from_explicit(|value_: &SEQUENCE_OF<
                         RequestAttribute_defaultValues_Item,
                     >|
                      -> ASN1Result<X690Element> {
@@ -1359,7 +1359,7 @@ pub fn _encode_RequestAttribute(value_: &RequestAttribute) -> ASN1Result<X690Ele
             components_.push(|v_1: &ContextCombination| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&_encode_ContextCombination(&v_1)?),
+                    X690Value::from_explicit(_encode_ContextCombination(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1839,7 +1839,7 @@ pub fn _encode_ContextCombination(value_: &ContextCombination) -> ASN1Result<X69
         ContextCombination::context(v) => |v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v),
         ContextCombination::and(v) => |v_1: &Vec<ContextCombination>| -> ASN1Result<X690Element> {
@@ -1879,7 +1879,7 @@ pub fn _encode_ContextCombination(value_: &ContextCombination) -> ASN1Result<X69
         ContextCombination::not(v) => |v_1: &ContextCombination| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_ContextCombination(&v_1)?),
+                X690Value::from_explicit(_encode_ContextCombination(&v_1)?),
             ))
         }(&v),
         ContextCombination::_unrecognized(el) => Ok(el.clone()),
@@ -2212,7 +2212,7 @@ pub fn _encode_AttributeCombination(value_: &AttributeCombination) -> ASN1Result
         AttributeCombination::attribute(v) => |v_1: &AttributeType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_AttributeType(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeType(&v_1)?),
             ))
         }(&v),
         AttributeCombination::and(v) => {
@@ -2262,7 +2262,7 @@ pub fn _encode_AttributeCombination(value_: &AttributeCombination) -> ASN1Result
         AttributeCombination::not(v) => |v_1: &AttributeCombination| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_AttributeCombination(&v_1)?),
+                X690Value::from_explicit(_encode_AttributeCombination(&v_1)?),
             ))
         }(&v),
         AttributeCombination::_unrecognized(el) => Ok(el.clone()),
@@ -2677,7 +2677,7 @@ pub fn _encode_ControlOptions(value_: &ControlOptions) -> ASN1Result<X690Element
             components_.push(|v_1: &ServiceControlOptions| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_ServiceControlOptions(&v_1)?),
+                    X690Value::from_explicit(_encode_ServiceControlOptions(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -2687,7 +2687,7 @@ pub fn _encode_ControlOptions(value_: &ControlOptions) -> ASN1Result<X690Element
             components_.push(|v_1: &SearchControlOptions| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_SearchControlOptions(&v_1)?),
+                    X690Value::from_explicit(_encode_SearchControlOptions(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -2696,7 +2696,7 @@ pub fn _encode_ControlOptions(value_: &ControlOptions) -> ASN1Result<X690Element
         components_.push(|v_1: &HierarchySelections| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_HierarchySelections(&v_1)?),
+                X690Value::from_explicit(_encode_HierarchySelections(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3100,7 +3100,7 @@ pub fn _encode_RelaxationPolicy(value_: &RelaxationPolicy) -> ASN1Result<X690Ele
         if v_.mapping.is_some() || v_.substitution.is_some() {
             components_.push(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_MRMapping(&v_)?),
+                X690Value::from_explicit(_encode_MRMapping(&v_)?),
             ));
         }
     }
@@ -3146,7 +3146,7 @@ pub fn _encode_RelaxationPolicy(value_: &RelaxationPolicy) -> ASN1Result<X690Ele
         components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                X690Value::from_explicit(BER.encode_integer(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3155,7 +3155,7 @@ pub fn _encode_RelaxationPolicy(value_: &RelaxationPolicy) -> ASN1Result<X690Ele
             components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&BER.encode_integer(&v_1)?),
+                    X690Value::from_explicit(BER.encode_integer(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -3770,7 +3770,7 @@ pub fn _encode_MRSubstitution(value_: &MRSubstitution) -> ASN1Result<X690Element
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3778,7 +3778,7 @@ pub fn _encode_MRSubstitution(value_: &MRSubstitution) -> ASN1Result<X690Element
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }

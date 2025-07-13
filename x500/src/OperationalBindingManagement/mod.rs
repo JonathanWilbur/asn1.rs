@@ -406,21 +406,21 @@ pub fn _encode_EstablishOperationalBindingArgumentData(
     components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
         ))
     }(&value_.bindingType)?);
     if let Some(v_) = &value_.bindingID {
         components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+                X690Value::from_explicit(_encode_OperationalBindingID(&v_1)?),
             ))
         }(&v_)?);
     }
     components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+            X690Value::from_explicit(_encode_AccessPoint(&v_1)?),
         ))
     }(&value_.accessPoint)?);
     components_.push(_encode_EstablishOperationalBindingArgumentData_initiator(
@@ -429,20 +429,20 @@ pub fn _encode_EstablishOperationalBindingArgumentData(
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 6),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.agreement)?);
     if value_.valid.as_ref().is_some_and(|v| !v.is_empty()) {
         components_.push(X690Element::new(
             Tag::new(TagClass::CONTEXT, 7),
-            X690Value::from_explicit(&_encode_Validity(&value_.valid.as_ref().unwrap())?),
+            X690Value::from_explicit(_encode_Validity(&value_.valid.as_ref().unwrap())?),
         ));
     }
     if let Some(v_) = &value_.securityParameters {
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -829,14 +829,14 @@ pub fn _encode_Validity(value_: &Validity) -> ASN1Result<X690Element> {
         let v = value_.validFrom.as_ref().unwrap();
         components_.push(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_Validity_validFrom(&v)?),
+            X690Value::from_explicit(_encode_Validity_validFrom(&v)?),
         ));
     }
     if value_.upper_bounded() {
         let v = value_.validUntil.as_ref().unwrap();
         components_.push(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_Validity_validUntil(&v)?),
+            X690Value::from_explicit(_encode_Validity_validUntil(&v)?),
         ));
     }
     Ok(X690Element::new(
@@ -1205,21 +1205,21 @@ pub fn _encode_EstablishOperationalBindingResultData(
     components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
         ))
     }(&value_.bindingType)?);
     if let Some(v_) = &value_.bindingID {
         components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+                X690Value::from_explicit(_encode_OperationalBindingID(&v_1)?),
             ))
         }(&v_)?);
     }
     components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+            X690Value::from_explicit(_encode_AccessPoint(&v_1)?),
         ))
     }(&value_.accessPoint)?);
     components_.push(_encode_EstablishOperationalBindingResultData_initiator(
@@ -1229,7 +1229,7 @@ pub fn _encode_EstablishOperationalBindingResultData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1237,7 +1237,7 @@ pub fn _encode_EstablishOperationalBindingResultData(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1246,7 +1246,7 @@ pub fn _encode_EstablishOperationalBindingResultData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -1684,20 +1684,20 @@ pub fn _encode_ModifyOperationalBindingArgumentData(
     components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
         ))
     }(&value_.bindingType)?);
     components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+            X690Value::from_explicit(_encode_OperationalBindingID(&v_1)?),
         ))
     }(&value_.bindingID)?);
     if let Some(v_) = &value_.accessPoint {
         components_.push(|v_1: &AccessPoint| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_AccessPoint(&v_1)?),
+                X690Value::from_explicit(_encode_AccessPoint(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1707,14 +1707,14 @@ pub fn _encode_ModifyOperationalBindingArgumentData(
     components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 6),
-            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+            X690Value::from_explicit(_encode_OperationalBindingID(&v_1)?),
         ))
     }(&value_.newBindingID)?);
     if let Some(v_) = &value_.newAgreement {
         components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(&x690_identity(&v_1)?),
+                X690Value::from_explicit(x690_identity(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1722,7 +1722,7 @@ pub fn _encode_ModifyOperationalBindingArgumentData(
         components_.push(|v_1: &ModifiedValidity| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&_encode_ModifiedValidity(&v_1)?),
+                X690Value::from_explicit(_encode_ModifiedValidity(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1730,7 +1730,7 @@ pub fn _encode_ModifyOperationalBindingArgumentData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 9),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -1973,7 +1973,7 @@ pub fn _encode_ModifiedValidity(value_: &ModifiedValidity) -> ASN1Result<X690Ele
         let v = value_.validFrom.as_ref().unwrap();
         components_.push(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_ModifiedValidity_validFrom(&v)?),
+            X690Value::from_explicit(_encode_ModifiedValidity_validFrom(&v)?),
         ));
     }
     if let Some(v_) = &value_.validUntil {
@@ -1982,7 +1982,7 @@ pub fn _encode_ModifiedValidity(value_: &ModifiedValidity) -> ASN1Result<X690Ele
                 |v_1: &ModifiedValidity_validUntil| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 1),
-                        X690Value::from_explicit(&_encode_ModifiedValidity_validUntil(&v_1)?),
+                        X690Value::from_explicit(_encode_ModifiedValidity_validUntil(&v_1)?),
                     ))
                 }(&v_)?,
             );
@@ -2094,7 +2094,7 @@ pub fn _encode_ModifyOperationalBindingResult(
          -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_OPTIONALLY_PROTECTED_SEQ::<
+                X690Value::from_explicit(_encode_OPTIONALLY_PROTECTED_SEQ::<
                     ModifyOperationalBindingResultData,
                 >(
                     _encode_ModifyOperationalBindingResultData, &v_1
@@ -2346,7 +2346,7 @@ pub fn _encode_ModifyOperationalBindingResultData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2354,7 +2354,7 @@ pub fn _encode_ModifyOperationalBindingResultData(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2363,7 +2363,7 @@ pub fn _encode_ModifyOperationalBindingResultData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -2727,13 +2727,13 @@ pub fn _encode_TerminateOperationalBindingArgumentData(
     components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+            X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
         ))
     }(&value_.bindingType)?);
     components_.push(|v_1: &OperationalBindingID| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_OperationalBindingID(&v_1)?),
+            X690Value::from_explicit(_encode_OperationalBindingID(&v_1)?),
         ))
     }(&value_.bindingID)?);
     if let Some(v_) = &value_.initiator {
@@ -2745,7 +2745,7 @@ pub fn _encode_TerminateOperationalBindingArgumentData(
         components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2753,7 +2753,7 @@ pub fn _encode_TerminateOperationalBindingArgumentData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2885,7 +2885,7 @@ pub fn _encode_TerminateOperationalBindingResult(
          -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_OPTIONALLY_PROTECTED_SEQ::<
+                X690Value::from_explicit(_encode_OPTIONALLY_PROTECTED_SEQ::<
                     TerminateOperationalBindingResultData,
                 >(
                     _encode_TerminateOperationalBindingResultData, v_1
@@ -3127,7 +3127,7 @@ pub fn _encode_TerminateOperationalBindingResultData(
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3135,7 +3135,7 @@ pub fn _encode_TerminateOperationalBindingResultData(
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3144,7 +3144,7 @@ pub fn _encode_TerminateOperationalBindingResultData(
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -3536,7 +3536,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
         |v_1: &OpBindingErrorParam_problem| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_OpBindingErrorParam_problem(&v_1)?),
+                X690Value::from_explicit(_encode_OpBindingErrorParam_problem(&v_1)?),
             ))
         }(&value_.problem)?,
     );
@@ -3544,7 +3544,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
         components_.push(|v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&BER.encode_object_identifier(&v_1)?),
+                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3552,7 +3552,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
         components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&x690_identity(&v_1)?),
+                X690Value::from_explicit(x690_identity(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3560,7 +3560,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
         components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3568,7 +3568,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3576,7 +3576,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3585,7 +3585,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }
@@ -3787,7 +3787,7 @@ pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -3795,7 +3795,7 @@ pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -3803,7 +3803,7 @@ pub fn _encode_EstablishOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 5),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -3881,13 +3881,13 @@ pub fn _encode_Validity_validFrom(value_: &Validity_validFrom) -> ASN1Result<X69
         Validity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v),
         Validity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v),
         Validity_validFrom::_unrecognized(el) => Ok(el.clone()),
@@ -3948,13 +3948,13 @@ pub fn _encode_Validity_validUntil(value_: &Validity_validUntil) -> ASN1Result<X
         Validity_validUntil::explicitTermination(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v),
         Validity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v),
         Validity_validUntil::_unrecognized(el) => Ok(el.clone()),
@@ -4041,7 +4041,7 @@ pub fn _encode_EstablishOperationalBindingResultData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4049,7 +4049,7 @@ pub fn _encode_EstablishOperationalBindingResultData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4057,7 +4057,7 @@ pub fn _encode_EstablishOperationalBindingResultData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 5),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4158,7 +4158,7 @@ pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4166,7 +4166,7 @@ pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4174,7 +4174,7 @@ pub fn _encode_ModifyOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 5),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4256,13 +4256,13 @@ pub fn _encode_ModifiedValidity_validFrom(
         ModifiedValidity_validFrom::now(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v),
         ModifiedValidity_validFrom::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v),
         ModifiedValidity_validFrom::_unrecognized(el) => Ok(el.clone()),
@@ -4341,20 +4341,20 @@ pub fn _encode_ModifiedValidity_validUntil(
             |v_1: &NULL| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                    X690Value::from_explicit(BER.encode_null(&v_1)?),
                 ))
             }(&v)
         }
         ModifiedValidity_validUntil::time(v) => |v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v),
         ModifiedValidity_validUntil::unchanged(v) => |v_1: &NULL| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&BER.encode_null(&v_1)?),
+                X690Value::from_explicit(BER.encode_null(&v_1)?),
             ))
         }(&v),
         ModifiedValidity_validUntil::_unrecognized(el) => Ok(el.clone()),
@@ -4449,7 +4449,7 @@ pub fn _encode_TerminateOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4457,7 +4457,7 @@ pub fn _encode_TerminateOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 3),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }
@@ -4465,7 +4465,7 @@ pub fn _encode_TerminateOperationalBindingArgumentData_initiator(
             |v_1: &X690Element| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
-                    X690Value::from_explicit(&x690_identity(&v_1)?),
+                    X690Value::from_explicit(x690_identity(&v_1)?),
                 ))
             }(&v)
         }

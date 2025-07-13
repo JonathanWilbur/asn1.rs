@@ -284,7 +284,7 @@ pub fn _encode_WrapperPDU(value_: &WrapperPDU) -> ASN1Result<X690Element> {
             |v_1: &DataTransferClient| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 10),
-                    X690Value::from_explicit(&_encode_DataTransferClient(&v_1)?),
+                    X690Value::from_explicit(_encode_DataTransferClient(&v_1)?),
                 ))
             }(&v)
         }
@@ -292,7 +292,7 @@ pub fn _encode_WrapperPDU(value_: &WrapperPDU) -> ASN1Result<X690Element> {
             |v_1: &DataTransferServer| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 11),
-                    X690Value::from_explicit(&_encode_DataTransferServer(&v_1)?),
+                    X690Value::from_explicit(_encode_DataTransferServer(&v_1)?),
                 ))
             }(&v)
         }

@@ -698,7 +698,7 @@ pub fn _encode_KeyAgreement(value_: &KeyAgreement) -> ASN1Result<X690Element> {
     components_.push(|v_1: &SenderDhInfo| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_SenderDhInfo(&v_1)?),
+            X690Value::from_explicit(_encode_SenderDhInfo(&v_1)?),
         ))
     }(&value_.senderDhInfo)?);
     components_.push(_encode_KeyAgreement_keyEncryptionAlgorithm(
@@ -800,14 +800,14 @@ pub fn _encode_SenderDhInfo(value_: &SenderDhInfo) -> ASN1Result<X690Element> {
         SenderDhInfo::senderStaticInfo(v) => |v_1: &SenderStaticInfo| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_SenderStaticInfo(&v_1)?),
+                X690Value::from_explicit(_encode_SenderStaticInfo(&v_1)?),
             ))
         }(&v),
         SenderDhInfo::senderDhPublicKey(v) => {
             |v_1: &SenderDhPublicKey| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
-                    X690Value::from_explicit(&_encode_SenderDhPublicKey(&v_1)?),
+                    X690Value::from_explicit(_encode_SenderDhPublicKey(&v_1)?),
                 ))
             }(&v)
         }
@@ -1295,7 +1295,7 @@ pub fn _encode_EncryptedPduInfo(value_: &EncryptedPduInfo) -> ASN1Result<X690Ele
     components_.push(|v_1: &EncryptedPdu| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_EncryptedPdu(&v_1)?),
+            X690Value::from_explicit(_encode_EncryptedPdu(&v_1)?),
         ))
     }(&value_.encryptedPdu)?);
     Ok(X690Element::new(
@@ -1656,13 +1656,13 @@ pub fn _encode_TBSPDU_wrapper_conf(value_: &TBSPDU_wrapper_conf) -> ASN1Result<X
         TBSPDU_wrapper_conf::clear(v) => |v_1: &WrappedPDUInfo| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_WrappedPDUInfo(&v_1)?),
+                X690Value::from_explicit(_encode_WrappedPDUInfo(&v_1)?),
             ))
         }(&v),
         TBSPDU_wrapper_conf::protected(v) => |v_1: &EncryptedInfo| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_EncryptedInfo(&v_1)?),
+                X690Value::from_explicit(_encode_EncryptedInfo(&v_1)?),
             ))
         }(&v),
         TBSPDU_wrapper_conf::_unrecognized(el) => Ok(el.clone()),

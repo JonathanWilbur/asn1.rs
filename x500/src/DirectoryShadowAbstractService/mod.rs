@@ -690,7 +690,7 @@ pub fn _encode_UnitOfReplication(value_: &UnitOfReplication) -> ASN1Result<X690E
             |v_1: &UnitOfReplication_supplyContexts| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_UnitOfReplication_supplyContexts(&v_1)?),
+                    X690Value::from_explicit(_encode_UnitOfReplication_supplyContexts(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -1390,7 +1390,7 @@ pub fn _encode_UpdateMode(value_: &UpdateMode) -> ASN1Result<X690Element> {
         UpdateMode::supplierInitiated(v) => |v_1: &SupplierUpdateMode| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_SupplierUpdateMode(&v_1)?),
+                X690Value::from_explicit(_encode_SupplierUpdateMode(&v_1)?),
             ))
         }(&v),
         UpdateMode::consumerInitiated(v) => |v_1: &ConsumerUpdateMode| -> ASN1Result<X690Element> {
@@ -2397,7 +2397,7 @@ pub fn _encode_CoordinateShadowUpdateResultData(
                 components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 30),
-                        X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                        X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -2405,7 +2405,7 @@ pub fn _encode_CoordinateShadowUpdateResultData(
                 components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 29),
-                        X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                        X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -2414,7 +2414,7 @@ pub fn _encode_CoordinateShadowUpdateResultData(
                     components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 28),
-                            X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                            X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -3101,7 +3101,7 @@ pub fn _encode_RequestShadowUpdateResultData(
                 components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 30),
-                        X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                        X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -3109,7 +3109,7 @@ pub fn _encode_RequestShadowUpdateResultData(
                 components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 29),
-                        X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                        X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -3118,7 +3118,7 @@ pub fn _encode_RequestShadowUpdateResultData(
                     components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 28),
-                            X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                            X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -3786,7 +3786,7 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
                 components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 30),
-                        X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                        X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -3794,7 +3794,7 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
                 components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 29),
-                        X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                        X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
                     ))
                 }(&v_)?);
             }
@@ -3803,7 +3803,7 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
                     components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                         Ok(X690Element::new(
                             Tag::new(TagClass::CONTEXT, 28),
-                            X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                            X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                         ))
                     }(&v_)?);
                 }
@@ -5734,7 +5734,7 @@ pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Eleme
         components_.push(|v_1: &SecurityParameters| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
-                X690Value::from_explicit(&_encode_SecurityParameters(&v_1)?),
+                X690Value::from_explicit(_encode_SecurityParameters(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5742,7 +5742,7 @@ pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Eleme
         components_.push(|v_1: &DistinguishedName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 29),
-                X690Value::from_explicit(&_encode_DistinguishedName(&v_1)?),
+                X690Value::from_explicit(_encode_DistinguishedName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5751,7 +5751,7 @@ pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Eleme
             components_.push(|v_1: &BOOLEAN| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 28),
-                    X690Value::from_explicit(&BER.encode_boolean(&v_1)?),
+                    X690Value::from_explicit(BER.encode_boolean(&v_1)?),
                 ))
             }(&v_)?);
         }

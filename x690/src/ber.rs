@@ -149,17 +149,14 @@ fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
     }
 }
 
-fn is_leap_year(year: u32) -> bool {
-    (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
-}
-
-fn days_in_month(year: u32, month: u32) -> u32 {
+/// This is not a time library.
+#[inline]
+pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
+    let is_leap_year = ((year % 4) == 0) && (((year % 100) > 0) || ((year % 400) == 0));
     match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 if is_leap_year(year) => 29,
-        2 => 28,
-        _ => 0, // Invalid month
+        2 => if is_leap_year { 29 } else { 28 },
+        _ => 30,
     }
 }
 
@@ -1097,20 +1094,6 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    fn validate_integer_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() == 0 {
-            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
-        }
-        if content_octets.len() == 1 {
-            return Ok(());
-        }
-        if ((content_octets[0] == 0xFF) && (content_octets[1] >= 0b1000_0000))
-            || ((content_octets[0] == 0x00) && (content_octets[1] < 0b1000_0000)) {
-            return Err(ASN1Error::new(ASN1ErrorCode::int_padding));
-        }
-        return Ok(());
-    }
-
     fn validate_bit_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
@@ -1407,13 +1390,7 @@ impl X690Codec for BasicEncodingRules {
         if month > 12 || month == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
-        // FIXME: Use this function from elsewhere
-        let max_day = match month {
-            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-            // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
-            2 => if year % 4 > 0 { 28 } else { 29 },
-            _ => 30,
-        };
+        let max_day = get_days_in_month(year, month);
         if day == 0 || day > max_day {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
@@ -1589,7 +1566,7 @@ impl X690Codec for BasicEncodingRules {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
 
-        if day == 0 || day > days_in_month(year, month) {
+        if day == 0 || day > get_days_in_month(year as u16, month as u8) as u32 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
         }
 
@@ -1914,7 +1891,7 @@ impl X690Codec for BasicEncodingRules {
 
 //     use super::*;
 //     use super::X690Value;
-//     use crate::{X690_TAG_CLASS_UNIVERSAL, ber_cst};
+//     use crate::{X690_TAG_CLASS_UNIVERSAL};
 
 //     // pub struct AlgorithmIdentifier {
 //     //     pub algorithm: OBJECT_IDENTIFIER,
@@ -1936,7 +1913,7 @@ impl X690Codec for BasicEncodingRules {
 //             0x05,
 //             0x00,
 //         ];
-//         let (bytes_read, el) = match ber_cst(encoded_data.as_slice()) {
+//         let (bytes_read, el) = match BER.decode_from_slice(encoded_data.as_slice()) {
 //             Err(_) => panic!("asdf"),
 //             Ok(result) => result,
 //         };
@@ -1974,7 +1951,7 @@ impl X690Codec for BasicEncodingRules {
 //     fn test_ber_decode_utc_time() {
 //         let time = "\x17\x11991105223344+0523";
 //         let value_bytes = Vec::from(time);
-//         let cst = match ber_cst(&value_bytes) {
+//         let cst = match BER.decode_from_slice(&value_bytes) {
 //             Ok((_, el)) => el,
 //             Err(e) => panic!("{}", e),
 //         };

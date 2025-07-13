@@ -884,7 +884,7 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
 //             0x04, 0x0a, 0x8e, 0x44, 0x22, 0x8c, 0x90, 0x52, 0x6d, 0x5a, 0xd3,
 //             0x8a, // Some unrecognized extension.
 //         ];
-//         let (bytes_read, root) = match ber_cst(encoded_data.as_slice()) {
+//         let (bytes_read, root) = match BER.decode_from_slice(encoded_data.as_slice()) {
 //             Err(_) => panic!("asdf"),
 //             Ok(result) => result,
 //         };

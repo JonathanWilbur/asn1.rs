@@ -36,7 +36,7 @@ use std::io::{Error, ErrorKind, Result};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::{oneshot, Mutex};
 use x500::{CommonProtocolSpecification::InvokeId, IDMProtocolSpecification::*};
-use x690::{ber_cst, write_x690_node, X690Element};
+use x690::{write_x690_node, X690Element, BER};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -555,7 +555,7 @@ impl<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync> ROSEReceiver<X690Ele
             // We don't support this encoding, so we return an error.
             return Err(Error::from(ErrorKind::InvalidData));
         }
-        let idm_pdu_element = match ber_cst(&idm_pdu_bytes) {
+        let idm_pdu_element = match BER.decode_from_slice(&idm_pdu_bytes) {
             Ok((bytes_read, element)) => {
                 if bytes_read != idm_pdu_bytes.len() {
                     return Err(Error::from(ErrorKind::InvalidData));

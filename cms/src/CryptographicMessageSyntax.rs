@@ -179,7 +179,7 @@ pub fn _encode_ContentInfo(value_: &ContentInfo) -> ASN1Result<X690Element> {
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.content)?);
     Ok(X690Element::new(
@@ -653,7 +653,7 @@ pub fn _encode_EncapsulatedContentInfo(
         components_.push(|v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&BER.encode_octet_string(&v_1)?),
+                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -2207,7 +2207,7 @@ pub fn _encode_KeyAgreeRecipientInfo(value_: &KeyAgreeRecipientInfo) -> ASN1Resu
         |v_1: &OriginatorIdentifierOrKey| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_OriginatorIdentifierOrKey(&v_1)?),
+                X690Value::from_explicit(_encode_OriginatorIdentifierOrKey(&v_1)?),
             ))
         }(&value_.originator)?,
     );
@@ -2215,7 +2215,7 @@ pub fn _encode_KeyAgreeRecipientInfo(value_: &KeyAgreeRecipientInfo) -> ASN1Resu
         components_.push(|v_1: &UserKeyingMaterial| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_UserKeyingMaterial(&v_1)?),
+                X690Value::from_explicit(_encode_UserKeyingMaterial(&v_1)?),
             ))
         }(&v_)?);
     }

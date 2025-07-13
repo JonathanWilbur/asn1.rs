@@ -1762,7 +1762,7 @@ pub fn _encode_RoleSyntax(value_: &RoleSyntax) -> ASN1Result<X690Element> {
     components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+            X690Value::from_explicit(_encode_GeneralName(&v_1)?),
         ))
     }(&value_.roleName)?);
     Ok(X690Element::new(
@@ -2009,7 +2009,7 @@ pub fn _encode_DualStringSyntax(value_: &DualStringSyntax) -> ASN1Result<X690Ele
         |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
             ))
         }(&value_.operation)?,
     );
@@ -2017,7 +2017,7 @@ pub fn _encode_DualStringSyntax(value_: &DualStringSyntax) -> ASN1Result<X690Ele
         |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
             ))
         }(&value_.object)?,
     );
@@ -2313,13 +2313,13 @@ pub fn _encode_Target(value_: &Target) -> ASN1Result<X690Element> {
         Target::targetName(v) => |v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v),
         Target::targetGroup(v) => |v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v),
         Target::targetCert(v) => |v_1: &TargetCert| -> ASN1Result<X690Element> {
@@ -3875,13 +3875,13 @@ pub fn _encode_RoleSpecCertIdentifier(value_: &RoleSpecCertIdentifier) -> ASN1Re
     components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+            X690Value::from_explicit(_encode_GeneralName(&v_1)?),
         ))
     }(&value_.roleName)?);
     components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+            X690Value::from_explicit(_encode_GeneralName(&v_1)?),
         ))
     }(&value_.roleCertIssuer)?);
     if let Some(v_) = &value_.roleCertSerialNumber {
@@ -6359,7 +6359,7 @@ pub fn _encode_AttributeCertificateAssertion(
             |v_1: &AttributeCertificateAssertion_holder| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_AttributeCertificateAssertion_holder(&v_1)?),
+                    X690Value::from_explicit(_encode_AttributeCertificateAssertion_holder(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -7785,7 +7785,7 @@ pub fn _encode_AllowedAttributeAssignments_Item(
     components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+            X690Value::from_explicit(_encode_GeneralName(&v_1)?),
         ))
     }(&value_.holderDomain)?);
     Ok(X690Element::new(

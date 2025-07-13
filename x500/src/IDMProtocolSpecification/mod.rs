@@ -121,67 +121,67 @@ pub fn _encode_IDM_PDU(value_: &IDM_PDU) -> ASN1Result<X690Element> {
         IDM_PDU::bind(v) => |v_1: &IdmBind| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_IdmBind(&v_1)?),
+                X690Value::from_explicit(_encode_IdmBind(&v_1)?),
             ))
         }(&v),
         IDM_PDU::bindResult(v) => |v_1: &IdmBindResult| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_IdmBindResult(&v_1)?),
+                X690Value::from_explicit(_encode_IdmBindResult(&v_1)?),
             ))
         }(&v),
         IDM_PDU::bindError(v) => |v_1: &IdmBindError| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_IdmBindError(&v_1)?),
+                X690Value::from_explicit(_encode_IdmBindError(&v_1)?),
             ))
         }(&v),
         IDM_PDU::request(v) => |v_1: &Request| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(&_encode_Request(&v_1)?),
+                X690Value::from_explicit(_encode_Request(&v_1)?),
             ))
         }(&v),
         IDM_PDU::result(v) => |v_1: &IdmResult| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_IdmResult(&v_1)?),
+                X690Value::from_explicit(_encode_IdmResult(&v_1)?),
             ))
         }(&v),
         IDM_PDU::error(v) => |v_1: &Error| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(&_encode_Error(&v_1)?),
+                X690Value::from_explicit(_encode_Error(&v_1)?),
             ))
         }(&v),
         IDM_PDU::reject(v) => |v_1: &IdmReject| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(&_encode_IdmReject(&v_1)?),
+                X690Value::from_explicit(_encode_IdmReject(&v_1)?),
             ))
         }(&v),
         IDM_PDU::unbind(v) => |v_1: &Unbind| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(&_encode_Unbind(&v_1)?),
+                X690Value::from_explicit(_encode_Unbind(&v_1)?),
             ))
         }(&v),
         IDM_PDU::abort(v) => |v_1: &Abort| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&_encode_Abort(&v_1)?),
+                X690Value::from_explicit(_encode_Abort(&v_1)?),
             ))
         }(&v),
         IDM_PDU::startTLS(v) => |v_1: &StartTLS| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 9),
-                X690Value::from_explicit(&_encode_StartTLS(&v_1)?),
+                X690Value::from_explicit(_encode_StartTLS(&v_1)?),
             ))
         }(&v),
         IDM_PDU::tLSResponse(v) => |v_1: &TLSResponse| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 10),
-                X690Value::from_explicit(&_encode_TLSResponse(&v_1)?),
+                X690Value::from_explicit(_encode_TLSResponse(&v_1)?),
             ))
         }(&v),
         IDM_PDU::_unrecognized(el) => Ok(el.clone()),
@@ -400,7 +400,7 @@ pub fn _encode_IdmBind(value_: &IdmBind) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -408,14 +408,14 @@ pub fn _encode_IdmBind(value_: &IdmBind) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.argument)?);
     Ok(X690Element::new(
@@ -596,14 +596,14 @@ pub fn _encode_IdmBindResult(value_: &IdmBindResult) -> ASN1Result<X690Element> 
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.result)?);
     Ok(X690Element::new(
@@ -793,7 +793,7 @@ pub fn _encode_IdmBindError(value_: &IdmBindError) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -803,7 +803,7 @@ pub fn _encode_IdmBindError(value_: &IdmBindError) -> ASN1Result<X690Element> {
     components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(&x690_identity(&v_1)?),
+            X690Value::from_explicit(x690_identity(&v_1)?),
         ))
     }(&value_.error)?);
     Ok(X690Element::new(

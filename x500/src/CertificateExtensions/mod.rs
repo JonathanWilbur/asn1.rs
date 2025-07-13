@@ -1550,7 +1550,7 @@ pub fn _encode_GeneralName(value_: &GeneralName) -> ASN1Result<X690Element> {
         GeneralName::directoryName(v) => |v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v),
         GeneralName::ediPartyName(v) => |v_1: &EDIPartyName| -> ASN1Result<X690Element> {
@@ -1759,7 +1759,7 @@ pub fn _encode_EDIPartyName(value_: &EDIPartyName) -> ASN1Result<X690Element> {
             |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                    X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
                 ))
             }(&v_)?,
         );
@@ -1768,7 +1768,7 @@ pub fn _encode_EDIPartyName(value_: &EDIPartyName) -> ASN1Result<X690Element> {
         |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_UnboundedDirectoryString(&v_1)?),
+                X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
             ))
         }(&value_.partyName)?,
     );
@@ -3182,7 +3182,7 @@ pub fn _encode_PerAuthorityScope(value_: &PerAuthorityScope) -> ASN1Result<X690E
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -3190,7 +3190,7 @@ pub fn _encode_PerAuthorityScope(value_: &PerAuthorityScope) -> ASN1Result<X690E
         components_.push(|v_1: &DistributionPointName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_DistributionPointName(&v_1)?),
+                X690Value::from_explicit(_encode_DistributionPointName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -4058,7 +4058,7 @@ pub fn _encode_CRLReferral(value_: &CRLReferral) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -4066,7 +4066,7 @@ pub fn _encode_CRLReferral(value_: &CRLReferral) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -4764,7 +4764,7 @@ pub fn _encode_ToBeRevokedGroup(value_: &ToBeRevokedGroup) -> ASN1Result<X690Ele
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5027,7 +5027,7 @@ pub fn _encode_CertificateGroup(value_: &CertificateGroup) -> ASN1Result<X690Ele
         CertificateGroup::nameSubtree(v) => |v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v),
         CertificateGroup::_unrecognized(el) => Ok(el.clone()),
@@ -5492,7 +5492,7 @@ pub fn _encode_RevokedGroup(value_: &RevokedGroup) -> ASN1Result<X690Element> {
         components_.push(|v_1: &GeneralName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_GeneralName(&v_1)?),
+                X690Value::from_explicit(_encode_GeneralName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -5515,7 +5515,7 @@ pub fn _encode_RevokedGroup(value_: &RevokedGroup) -> ASN1Result<X690Element> {
     components_.push(|v_1: &RevokedCertificateGroup| -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
-            X690Value::from_explicit(&_encode_RevokedCertificateGroup(&v_1)?),
+            X690Value::from_explicit(_encode_RevokedCertificateGroup(&v_1)?),
         ))
     }(&value_.revokedcertificateGroup)?);
     Ok(X690Element::new(
@@ -6091,7 +6091,7 @@ pub fn _encode_DistributionPoint(value_: &DistributionPoint) -> ASN1Result<X690E
         components_.push(|v_1: &DistributionPointName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_DistributionPointName(&v_1)?),
+                X690Value::from_explicit(_encode_DistributionPointName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -6514,7 +6514,7 @@ pub fn _encode_IssuingDistPointSyntax(value_: &IssuingDistPointSyntax) -> ASN1Re
         components_.push(|v_1: &DistributionPointName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_DistributionPointName(&v_1)?),
+                X690Value::from_explicit(_encode_DistributionPointName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -7358,7 +7358,7 @@ pub fn _encode_AAIssuingDistPointSyntax(
         components_.push(|v_1: &DistributionPointName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(&_encode_DistributionPointName(&v_1)?),
+                X690Value::from_explicit(_encode_DistributionPointName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8022,7 +8022,7 @@ pub fn _encode_CertificateAssertion(value_: &CertificateAssertion) -> ASN1Result
         components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8046,7 +8046,7 @@ pub fn _encode_CertificateAssertion(value_: &CertificateAssertion) -> ASN1Result
         components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8078,7 +8078,7 @@ pub fn _encode_CertificateAssertion(value_: &CertificateAssertion) -> ASN1Result
         components_.push(|v_1: &AltNameType| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(&_encode_AltNameType(&v_1)?),
+                X690Value::from_explicit(_encode_AltNameType(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8094,7 +8094,7 @@ pub fn _encode_CertificateAssertion(value_: &CertificateAssertion) -> ASN1Result
         components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 10),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -8102,7 +8102,7 @@ pub fn _encode_CertificateAssertion(value_: &CertificateAssertion) -> ASN1Result
         components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 11),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9263,7 +9263,7 @@ pub fn _encode_CertificateListAssertion(
         components_.push(|v_1: &DistributionPointName| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(&_encode_DistributionPointName(&v_1)?),
+                X690Value::from_explicit(_encode_DistributionPointName(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9920,7 +9920,7 @@ pub fn _encode_EnhancedCertificateAssertion(
         components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -9944,7 +9944,7 @@ pub fn _encode_EnhancedCertificateAssertion(
         components_.push(|v_1: &Time| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(&_encode_Time(&v_1)?),
+                X690Value::from_explicit(_encode_Time(&v_1)?),
             ))
         }(&v_)?);
     }
@@ -10000,7 +10000,7 @@ pub fn _encode_EnhancedCertificateAssertion(
         components_.push(|v_1: &Name| -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 11),
-                X690Value::from_explicit(&_encode_Name(&v_1)?),
+                X690Value::from_explicit(_encode_Name(&v_1)?),
             ))
         }(&v_)?);
     }

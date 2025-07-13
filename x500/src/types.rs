@@ -37,7 +37,6 @@ use wildboar_asn1::{
 use x690::{
     X690Element,
     write_x690_node,
-    ber_cst,
     BER,
     X690Codec,
 };
@@ -959,7 +958,7 @@ impl ParseX500AttributeType for DefaultX500ValueParser {  }
 pub fn parse_value <K: ParseX500AttributeType> (k: &K, attr_type: &AttributeType, s: &str) -> Result<Option<X690Element>, std::fmt::Error> {
     if s.starts_with("#") {
         let bytes = hex::decode(&s[1..]).map_err(|_| std::fmt::Error)?;
-        let cst = ber_cst(&bytes).map_err(|_| std::fmt::Error)?;
+        let cst = BER.decode_from_slice(&bytes).map_err(|_| std::fmt::Error)?;
         return Ok(Some(cst.1));
     }
     if attr_type.as_x690_slice().len() == 3 && attr_type.as_x690_slice().starts_with(&[ 0x55, 4 ]) {
