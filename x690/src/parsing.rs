@@ -34,11 +34,11 @@ pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
 }
 
 /// Parse a `SET`
-/// 
+///
 /// Returns a tuple containing a mapping of the recognized components by name
 /// to the corresponding `X690Element`, and a vector of the unrecognized
 /// elements, wrapped in an `ASN1Result`.
-/// 
+///
 /// The reason this doesn't use an iterator like `_parse_sequence` is because
 /// the `SET` components have to be checked for duplicates, and they can
 /// appear in any order. This involves creating a `HashMap` in the first place,
@@ -523,7 +523,7 @@ impl <'a> Iterator for X690StructureIterator<'a> {
             },
             X690StructureIterationPhase::EAL => {
                 self.phase = X690StructureIterationPhase::RCTL2;
-                debug_assert!(self.rctl2.len() == 0 || (self.i != self.start_of_rctl2),
+                debug_assert!(self.rctl2.len() == 0 || (self.i == self.start_of_rctl2),
                     "After processing all X.690-encoded extensions, we were not at the start of RCTL2");
 
                 debug_assert!(self.rctl2.len() > 0 || (self.i == self.elements.len()),
@@ -533,7 +533,7 @@ impl <'a> Iterator for X690StructureIterator<'a> {
                 return self.next();
             },
             X690StructureIterationPhase::RCTL2 => {
-                debug_assert!(self.rctl2.len() == 0 || (self.i != self.start_of_rctl2),
+                debug_assert!(self.rctl2.len() == 0 || self.i == self.elements.len(),
                     "After processing all X.690-encoded elements in RCTL2, we were not at the end");
                 return None;
             },
@@ -541,34 +541,6 @@ impl <'a> Iterator for X690StructureIterator<'a> {
     }
 
 }
-
-// TODO: Why is this commented out?
-// pub fn _decode_choice (
-//     el: &mut X690Element,
-//     handlers: AlternativeHandlers,
-//     unrecognized_handler: Option<ComponentHandler>,
-// ) -> ASN1Result<()> {
-//     let tag = Tag::new(el.tag.tag_class, el.tag.tag_number);
-//     match handlers.get(&tag) {
-//         Some((name, handler)) => {
-//             el.name = Some(String::from(*name));
-//             if !handler(&el) {
-//                 return Err(Error::from(ErrorKind::InvalidInput));
-//             }
-//         },
-//         None => {
-//             if let Some(handler) = unrecognized_handler {
-//                 if !handler(&el) {
-//                     return Err(Error::from(ErrorKind::InvalidInput));
-//                 }
-//             } else {
-//                 return Err(Error::from(ErrorKind::InvalidInput));
-
-//             }
-//         }
-//     }
-//     Ok(())
-// }
 
 pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
     let elements = el.value.components()
@@ -622,304 +594,243 @@ pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
     Ok(el.clone())
 }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use crate::*;
-//     use wildboar_asn1::types::{
-//         ASN1Value, TagClass, UNIV_TAG_BMP_STRING, UNIV_TAG_NULL,
-//         UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE,
-//         UNIV_TAG_UTF8_STRING, OBJECT_IDENTIFIER,
-//     };
-//     use std::sync::Arc;
+    use crate::*;
+    use wildboar_asn1::{
+        ASN1Value, TagClass, UNIV_TAG_NULL,
+        UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE,
+        UNIV_TAG_UTF8_STRING, OBJECT_IDENTIFIER,
+    };
+    use std::sync::Arc;
+    use crate::parsing::X690StructureIterator;
+    use crate::ber::BER;
 
-//     use crate::ber::{
-//         ber_decode_any, ber_decode_bmp_string, ber_decode_object_identifier, ber_decode_utf8_string,
-//     };
+    use super::*;
 
-//     use super::*;
+    struct AlgorithmIdentifier {
+        pub algorithm: OBJECT_IDENTIFIER,
+        pub parameters: Option<ASN1Value>,
+    }
 
-//     struct AlgorithmIdentifier {
-//         pub algorithm: OBJECT_IDENTIFIER,
-//         pub parameters: Option<ASN1Value>,
-//     }
+    const _rctl1_components_for_AlgorithmIdentifier: &[ComponentSpec; 2] = &[
+        ComponentSpec::new(
+            "algorithm",
+            false,
+            TagSelector::tag((
+                TagClass::UNIVERSAL,
+                UNIV_TAG_OBJECT_IDENTIFIER,
+            )),
+            None,
+            None,
+        ),
+        ComponentSpec::new("parameters", true, TagSelector::any, None, None),
+        // ComponentSpec::new(
+        //     "asdf",
+        //     true,
+        //     TagSelector::or(&[&TagSelector::any, &TagSelector::any]),
+        //     None,
+        //     None,
+        // ),
+    ];
 
-//     const _rctl1_components_for_AlgorithmIdentifier: &[ComponentSpec; 3] = &[
-//         ComponentSpec::new(
-//             "algorithm",
-//             false,
-//             TagSelector::tag((
-//                 TagClass::UNIVERSAL,
-//                 UNIV_TAG_OBJECT_IDENTIFIER,
-//             )),
-//             None,
-//             None,
-//         ),
-//         ComponentSpec::new("parameters", true, TagSelector::any, None, None),
-//         ComponentSpec::new(
-//             "asdf",
-//             true,
-//             TagSelector::or(&[&TagSelector::any, &TagSelector::any]),
-//             None,
-//             None,
-//         ),
-//     ];
+    const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
+    const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
 
-//     const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
-//     const _rctl2_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
+    fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
+        let elements = el.components()?;
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            _rctl1_components_for_AlgorithmIdentifier,
+            _eal_components_for_AlgorithmIdentifier,
+            _rctl2_components_for_AlgorithmIdentifier,
+        );
+        let mut maybe_algorithm: Option<OBJECT_IDENTIFIER> = None;
+        let mut parameters: Option<ASN1Value> = None;
+        for (i, component) in seq_iter.enumerate() {
+            match component.unwrap() {
+                "algorithm" => {
+                    maybe_algorithm = Some(BER.decode_object_identifier(&elements[i])?);
+                },
+                "parameters" => {
+                    parameters = Some(BER.decode_any(&elements[i])?);
+                }
+                _ => {
+                    return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_components_in_inextensible_type));
+                }
+            }
+        }
+        let algorithm: OBJECT_IDENTIFIER = maybe_algorithm.unwrap();
+        let parameters: Option<ASN1Value> = parameters;
+        Ok(AlgorithmIdentifier {
+            algorithm,
+            parameters,
+        })
+    }
 
-//     fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
-//         let elements = match &el.value {
-//             X690Value::Constructed(children) => children,
-//             _ => panic!(),
-//         };
-//         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
-//         let (components, _) = _parse_sequence(
-//             el_refs.as_slice(),
-//             _rctl1_components_for_AlgorithmIdentifier,
-//             _eal_components_for_AlgorithmIdentifier,
-//             _rctl2_components_for_AlgorithmIdentifier,
-//         )?;
-//         // NOTE: unwrap() should be fine, because we validate that there is such a component in `_parse_sequence`.
-//         let algorithm: OBJECT_IDENTIFIER =
-//             ber_decode_object_identifier(components.get("algorithm").unwrap())?;
-//         let parameters: Option<ASN1Value> = match components.get("parameters") {
-//             Some(c) => Some(ber_decode_any(c)?),
-//             _ => None,
-//         };
-//         Ok(AlgorithmIdentifier {
-//             algorithm,
-//             parameters,
-//         })
-//     }
+    enum DirectoryString {
+        UTF8String(String),
+    }
 
-//     enum DirectoryString {
-//         UTF8String(String),
-//         BMPString(String),
-//     }
+    fn decode_DirectoryString(el: &X690Element) -> ASN1Result<DirectoryString> {
+        match (el.tag.tag_class, el.tag.tag_number) {
+            (TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING) => {
+                let v = BER.decode_utf8_string(&el)?;
+                return Ok(DirectoryString::UTF8String(v));
+            }
+            // (TagClass::UNIVERSAL, UNIV_TAG_BMP_STRING) => {
+            //     let v = BER.decode_bmp_string(&el)?;
+            //     return Ok(DirectoryString::BMPString(v));
+            // }
+            _ => {
+                return Err(ASN1Error::new(
+                    ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                ))
+            }
+        }
+    }
 
-//     fn decode_DirectoryString(el: &X690Element) -> ASN1Result<DirectoryString> {
-//         match (el.tag.tag_class, el.tag.tag_number) {
-//             (TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING) => {
-//                 let v = ber_decode_utf8_string(&el)?;
-//                 return Ok(DirectoryString::UTF8String(v));
-//             }
-//             (TagClass::UNIVERSAL, UNIV_TAG_BMP_STRING) => {
-//                 let v = ber_decode_bmp_string(&el)?;
-//                 return Ok(DirectoryString::BMPString(v));
-//             }
-//             _ => {
-//                 return Err(ASN1Error::new(
-//                     ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-//                 ))
-//             }
-//         }
-//     }
+    #[test]
+    fn test_decode_algorithm_identifier() {
+        let root: X690Element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
+            X690Value::Constructed(Arc::new(vec![
+                X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
+                    X690Value::Primitive(Bytes::copy_from_slice(&[0x55, 0x04, 0x03])),
+                ),
+                X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
+                    X690Value::Primitive(Bytes::copy_from_slice(&[])),
+                ),
+            ])),
+        );
+        let alg_id = decode_AlgorithmIdentifier(&root).unwrap();
+        assert_eq!(alg_id.algorithm.to_dot_delim_string(), "2.5.4.3");
+        if let Some(p) = alg_id.parameters {
+            match p {
+                ASN1Value::NullValue => (),
+                _ => panic!(),
+            }
+        } else {
+            panic!();
+        }
+    }
 
-//     #[test]
-//     fn test_decode_sequence() {
-//         let rctl1: Vec<ComponentSpec> = vec![
-//             ComponentSpec::new(
-//                 "algorithm",
-//                 false,
-//                 TagSelector::tag((
-//                     TagClass::UNIVERSAL,
-//                     UNIV_TAG_OBJECT_IDENTIFIER,
-//                 )),
-//                 None,
-//                 None,
-//             ),
-//             ComponentSpec::new("parameters", true, TagSelector::any, None, None),
-//         ];
-//         let eal: Vec<ComponentSpec> = vec![];
-//         let rctl2: Vec<ComponentSpec> = vec![];
+    #[test]
+    fn test_decode_directory_string() {
+        let root: X690Element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
+            X690Value::Primitive(Bytes::from("Better Call Saul!")),
+        );
+        let ds = decode_DirectoryString(&root).unwrap();
+        let DirectoryString::UTF8String(s) = ds;
+        assert_eq!(s, String::from("Better Call Saul!"));
+    }
 
-//         let root: X690Element = X690Element::new(
-//             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
-//             X690Value::Constructed(Arc::new(vec![
-//                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
-//                     X690Value::Primitive(Bytes::copy_from_slice(&[0x55, 0x04, 0x03])),
-//                 ),
-//                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
-//                     X690Value::Primitive(Bytes::copy_from_slice(&[])),
-//                 ),
-//             ])),
-//         );
-//         let elements = match &root.value {
-//             X690Value::Constructed(children) => children,
-//             _ => panic!(),
-//         };
-//         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
-//         let (components, unrecognized) = _parse_sequence(
-//             el_refs.as_slice(),
-//             rctl1.as_slice(),
-//             eal.as_slice(),
-//             rctl2.as_slice(),
-//         )
-//         .unwrap();
-//         let algorithm: OBJECT_IDENTIFIER =
-//             ber_decode_object_identifier(components.get("algorithm").unwrap()).unwrap();
-//         let parameters: Option<ASN1Value> = components
-//             .get("parameters")
-//             .and_then(|c| Some(ber_decode_any(c).unwrap()));
-//         assert_eq!(unrecognized.len(), 0);
-//         assert_eq!(
-//             algorithm
-//                 .0
-//                 .iter()
-//                 .map(|a| a.to_string())
-//                 .collect::<Vec<String>>()
-//                 .join("."),
-//             "2.5.4.3"
-//         );
-//         if let Some(p) = parameters {
-//             match p {
-//                 ASN1Value::NullValue => (),
-//                 _ => panic!(),
-//             }
-//         } else {
-//             panic!();
-//         }
-//     }
+    pub const rlrq_rctl1: [ComponentSpec; 1] = [ComponentSpec::new(
+        "reason",
+        true,
+        TagSelector::tag((TagClass::CONTEXT, 0)),
+        None,
+        None,
+    )];
+    pub const rlrq_rctl2: [ComponentSpec; 1] = [ComponentSpec::new(
+        "user-information",
+        true,
+        TagSelector::tag((TagClass::CONTEXT, 30)),
+        None,
+        None,
+    )];
+    pub const rlrq_eal: [ComponentSpec; 2] = [
+        ComponentSpec::new(
+            "aso-qualifier",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 13)),
+            None,
+            None,
+        ),
+        ComponentSpec::new(
+            "asoi-identifier",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 14)),
+            None,
+            None,
+        ),
+    ];
 
-//     #[test]
-//     fn test_decode_algorithm_identifier() {
-//         let root: X690Element = X690Element::new(
-//             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
-//             X690Value::Constructed(Arc::new(vec![
-//                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_IDENTIFIER),
-//                     X690Value::Primitive(Bytes::copy_from_slice(&[0x55, 0x04, 0x03])),
-//                 ),
-//                 X690Element::new(
-//                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
-//                     X690Value::Primitive(Bytes::copy_from_slice(&[])),
-//                 ),
-//             ])),
-//         );
-//         let alg_id = decode_AlgorithmIdentifier(&root).unwrap();
-//         assert_eq!(
-//             alg_id
-//                 .algorithm
-//                 .0
-//                 .iter()
-//                 .map(|a| a.to_string())
-//                 .collect::<Vec<String>>()
-//                 .join("."),
-//             "2.5.4.3"
-//         );
-//         if let Some(p) = alg_id.parameters {
-//             match p {
-//                 ASN1Value::NullValue => (),
-//                 _ => panic!(),
-//             }
-//         } else {
-//             panic!();
-//         }
-//     }
+    // RLRQ-apdu ::= [APPLICATION 2] IMPLICIT SEQUENCE {
+    //     reason              [0] IMPLICIT Release-request-reason OPTIONAL,
+    //     ...,
+    //     --  Extensions for higher level association FU
+    //     aso-qualifier       [13]  ASO-qualifier OPTIONAL,
+    //     asoi-identifier     [14] IMPLICIT ASOI-identifier OPTIONAL,
+    //     --  End of extensions for higher level association FU
+    //     ...,
+    //     user-information    [30] IMPLICIT Association-data OPTIONAL
+    //   }
 
-//     #[test]
-//     fn test_decode_directory_string() {
-//         let root: X690Element = X690Element::new(
-//             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
-//             X690Value::Primitive(Bytes::from("Better Call Saul!")),
-//         );
-//         let ds = decode_DirectoryString(&root).unwrap();
-//         if let DirectoryString::UTF8String(s) = ds {
-//             assert_eq!(s, String::from("Better Call Saul!"));
-//         } else {
-//             panic!();
-//         }
-//     }
+    #[test]
+    fn test_decode_ACSE_RLRQ_APDU() {
+        let encoded_data: Vec<u8> = vec![
+            0x62, 0x0f, // RLRQ APDU
+            0x80, 0x01, 0x00, // reason: [CONTEXT 0] 0 (normal)
+            0x04, 0x0a, 0x8e, 0x44, 0x22, 0x8c, 0x90, 0x52, 0x6d, 0x5a, 0xd3,
+            0x8a, // Some unrecognized extension.
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
 
-//     pub const rlrq_rctl1: [ComponentSpec; 1] = [ComponentSpec::new(
-//         "reason",
-//         true,
-//         TagSelector::tag((TagClass::CONTEXT, 0)),
-//         None,
-//         None,
-//     )];
-//     pub const rlrq_rctl2: [ComponentSpec; 1] = [ComponentSpec::new(
-//         "user-information",
-//         true,
-//         TagSelector::tag((TagClass::CONTEXT, 30)),
-//         None,
-//         None,
-//     )];
-//     pub const rlrq_eal: [ComponentSpec; 2] = [
-//         ComponentSpec::new(
-//             "aso-qualifier",
-//             true,
-//             TagSelector::tag((TagClass::CONTEXT, 13)),
-//             None,
-//             None,
-//         ),
-//         ComponentSpec::new(
-//             "asoi-identifier",
-//             true,
-//             TagSelector::tag((TagClass::CONTEXT, 14)),
-//             None,
-//             None,
-//         ),
-//     ];
+        let elements = root.components().unwrap();
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            rlrq_rctl1.as_slice(),
+            rlrq_eal.as_slice(),
+            rlrq_rctl2.as_slice(),
+        );
+        let mut known = 0;
+        let mut unknown = 0;
+        for component in seq_iter {
+            match component.unwrap() {
+                "reason" => known += 1,
+                "user-information" => known += 1,
+                _ => unknown += 1,
+            }
+        }
+        assert_eq!(known, 1);
+        assert_eq!(unknown, 1);
+    }
 
-//     #[test]
-//     fn test_decode_ACSE_RLRQ_APDU() {
-//         let encoded_data: Vec<u8> = vec![
-//             0x62, 0x0f, // RLRQ APDU
-//             0x80, 0x01, 0x00, // reason: [CONTEXT 0] 0 (normal)
-//             0x04, 0x0a, 0x8e, 0x44, 0x22, 0x8c, 0x90, 0x52, 0x6d, 0x5a, 0xd3,
-//             0x8a, // Some unrecognized extension.
-//         ];
-//         let (bytes_read, root) = match BER.decode_from_slice(encoded_data.as_slice()) {
-//             Err(_) => panic!("asdf"),
-//             Ok(result) => result,
-//         };
-//         assert_eq!(bytes_read, encoded_data.len());
-
-//         let elements = match &root.value {
-//             X690Value::Constructed(children) => children,
-//             _ => panic!(),
-//         };
-//         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
-
-//         let (components, unrecognized) = _parse_sequence(
-//             el_refs.as_slice(),
-//             rlrq_rctl1.as_slice(),
-//             rlrq_eal.as_slice(),
-//             rlrq_rctl2.as_slice(),
-//         )
-//         .unwrap();
-//         assert_eq!(components.len(), 1);
-//         assert_eq!(unrecognized.len(), 1);
-//     }
-
-//     #[test]
-//     #[should_panic]
-//     fn test_decode_ACSE_RLRQ_APDU_trailing_unrecognized_component() {
-//         let elements: Vec<X690Element> = vec![
-//             X690Element::new(
-//                 Tag::new(TagClass::CONTEXT, 0),
-//                 X690Value::Primitive(Bytes::new()),
-//             ),
-//             X690Element::new(
-//                 Tag::new(TagClass::CONTEXT, 30),
-//                 X690Value::Constructed(Arc::new(vec![])),
-//             ),
-//             X690Element::new(
-//                 Tag::new(TagClass::CONTEXT, 21),
-//                 X690Value::Primitive(Bytes::copy_from_slice(&[5])),
-//             ),
-//         ];
-//         let el_refs = elements.iter().collect::<Vec<&X690Element>>();
-//         let (_, _) = _parse_sequence(
-//             el_refs.as_slice(),
-//             rlrq_rctl1.as_slice(),
-//             rlrq_eal.as_slice(),
-//             rlrq_rctl2.as_slice(),
-//         )
-//         .unwrap();
-//     }
-// }
+    #[test]
+    #[should_panic]
+    fn test_decode_ACSE_RLRQ_APDU_trailing_unrecognized_component() {
+        let elements: Vec<X690Element> = vec![
+            X690Element::new(
+                Tag::new(TagClass::CONTEXT, 0),
+                X690Value::Primitive(Bytes::new()),
+            ),
+            X690Element::new(
+                Tag::new(TagClass::CONTEXT, 30),
+                X690Value::Constructed(Arc::new(vec![])),
+            ),
+            X690Element::new(
+                Tag::new(TagClass::CONTEXT, 21),
+                X690Value::Primitive(Bytes::copy_from_slice(&[5])),
+            ),
+        ];
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            rlrq_rctl1.as_slice(),
+            rlrq_eal.as_slice(),
+            rlrq_rctl2.as_slice(),
+        );
+        for component in seq_iter {
+            match component.unwrap() {
+                "reason" => (),
+                "user-information" => (),
+                _ => panic!(),
+            }
+        }
+    }
+}
