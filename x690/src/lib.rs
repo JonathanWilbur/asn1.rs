@@ -777,7 +777,10 @@ pub fn x690_encode_external_components (value: &EXTERNAL) -> Result<Vec<X690Elem
     };
     let mut data_value_bytes = BytesMut::new().writer();
     match &value.data_value {
-        ExternalEncoding::single_ASN1_type(t) => ber_encode(&mut data_value_bytes, t)?,
+        ExternalEncoding::single_ASN1_type(t) => {
+            let el = BER.encode_any(t)?;
+            write_x690_node(&mut data_value_bytes, &el)?
+        },
         ExternalEncoding::octet_aligned(o) => x690_write_octet_string_value(&mut data_value_bytes, o)?,
         ExternalEncoding::arbitrary(b) => x690_write_bit_string_value(&mut data_value_bytes, b)?,
     };
@@ -1516,14 +1519,6 @@ where
     bytes_written += x690_write_length(output, node.value.len())?;
     bytes_written += write_x690_encoding(output, &node.value)?;
     Ok(bytes_written)
-}
-
-pub fn ber_encode<W>(output: &mut W, value: &ASN1Value) -> Result<usize>
-where
-    W: Write,
-{
-    let root = create_x690_cst_node(value)?;
-    write_x690_node(output, &root)
 }
 
 // TODO: This needs testing.

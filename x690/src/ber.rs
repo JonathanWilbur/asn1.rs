@@ -762,6 +762,7 @@ impl X690Codec for BasicEncodingRules {
                 Ok(v) => Ok(ASN1Value::IA5String(v)),
                 Err(e) => Err(e),
             },
+            // FIXME: Downright missing
             // UNIV_TAG_UTC_TIME => {
             //     match el.value {
 
@@ -821,6 +822,76 @@ impl X690Codec for BasicEncodingRules {
                 Err(e) => Err(e),
             },
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+        }
+    }
+
+    fn encode_any(&self, value: &ASN1Value) -> ASN1Result<X690Element> {
+        match value {
+            ASN1Value::BooleanValue(v) => self.encode_boolean(v),
+            ASN1Value::IntegerValue(v) => self.encode_integer(v),
+            ASN1Value::BitStringValue(v) => self.encode_bit_string(v),
+            ASN1Value::OctetStringValue(v) => self.encode_octet_string(v),
+            ASN1Value::NullValue => self.encode_null(&()),
+            ASN1Value::ObjectIdentifierValue(v) => self.encode_object_identifier(v),
+            ASN1Value::ObjectDescriptor(v) => self.encode_object_descriptor(v),
+            ASN1Value::ExternalValue(v) => self.encode_external(v),
+            ASN1Value::RealValue(v) => self.encode_real(v),
+            ASN1Value::EnumeratedValue(v) => self.encode_enumerated(v),
+            ASN1Value::EmbeddedPDVValue(v) => self.encode_embedded_pdv(v),
+            ASN1Value::UTF8String(v) => self.encode_utf8_string(v),
+            ASN1Value::RelativeOIDValue(v) => self.encode_relative_oid(v),
+            ASN1Value::NumericString(v) => self.encode_numeric_string(v),
+            ASN1Value::PrintableString(v) => self.encode_printable_string(v),
+            ASN1Value::T61String(v) => self.encode_t61_string(v),
+            ASN1Value::VideotexString(v) => self.encode_videotex_string(v),
+            ASN1Value::IA5String(v) => self.encode_ia5_string(v),
+            ASN1Value::UTCTime(v) => self.encode_utc_time(v),
+            ASN1Value::GeneralizedTime(v) => self.encode_generalized_time(v),
+            ASN1Value::GraphicString(v) => self.encode_graphic_string(v),
+            ASN1Value::VisibleString(v) => self.encode_visible_string(v),
+            ASN1Value::GeneralString(v) => self.encode_general_string(v),
+            ASN1Value::UniversalString(v) => self.encode_universal_string(v),
+            ASN1Value::UnrestrictedCharacterStringValue(v) => {
+                BER.encode_character_string(v)
+            },
+            ASN1Value::BMPString(v) => self.encode_bmp_string(v),
+            ASN1Value::IRIValue(v) => self.encode_oid_iri(v),
+            ASN1Value::RelativeIRIValue(v) => self.encode_relative_oid_iri(v),
+            ASN1Value::TimeValue(v) => self.encode_time(v),
+            ASN1Value::UnknownBytes(_) => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
+            ASN1Value::ChoiceValue(v) => BER.encode_any(v),
+            ASN1Value::ISO646String(v) => self.encode_ia5_string(v),
+            ASN1Value::TeletexString(v) => self.encode_t61_string(v),
+            ASN1Value::DATE(v) => self.encode_date(v),
+            ASN1Value::TIME_OF_DAY(v) => self.encode_time_of_day(v),
+            ASN1Value::DATE_TIME(v) => self.encode_date_time(v),
+            ASN1Value::DURATION(v) => self.encode_duration(v),
+            ASN1Value::TaggedValue(v) => BER.encode_any(&v.value),
+            ASN1Value::SequenceValue(v)
+            | ASN1Value::SequenceOfValue(v) => {
+                let mut components: Vec<X690Element> = Vec::with_capacity(v.len());
+                for subv in v {
+                    let el = BER.encode_any(&subv)?;
+                    components.push(el);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
+                    X690Value::Constructed(Arc::new(components)),
+                ))
+            },
+            ASN1Value::SetValue(v)
+            | ASN1Value::SetOfValue(v) => {
+                let mut components: Vec<X690Element> = Vec::with_capacity(v.len());
+                for subv in v {
+                    let el = BER.encode_any(&subv)?;
+                    components.push(el);
+                }
+                Ok(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
+                    X690Value::Constructed(Arc::new(components)),
+                ))
+            },
+            ASN1Value::InstanceOfValue(v) => BER.encode_instance_of(&v),
         }
     }
 

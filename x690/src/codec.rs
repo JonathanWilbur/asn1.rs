@@ -755,6 +755,7 @@ pub trait X690Codec {
         }
     }
     fn decode_any(&self, el: &X690Element) -> ASN1Result<ASN1Value>;
+    fn encode_any(&self, value: &ASN1Value) -> ASN1Result<X690Element>;
     fn encode_boolean(&self, value: &BOOLEAN) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(1).writer();
         x690_write_boolean_value(&mut out, value)?;
