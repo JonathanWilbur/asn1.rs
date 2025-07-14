@@ -10,6 +10,7 @@ use wildboar_asn1::Tag;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use crate::utils::unlikely;
+use std::iter::FusedIterator;
 
 // Return `true` if successfully handled; `false` if error. Parsing will not continue if `false` returned.
 pub type ComponentHandler<'a> = &'a dyn FnMut(&X690Element) -> bool;
@@ -117,15 +118,8 @@ pub fn _parse_set<'a>(
     // Instead of iterating over every `ComponentSpec` for each component (O(n^2)),
     // we can pre-index the specs by (tag_class,tag_number)
     let mut tag_to_spec: HashMap<Tag, ComponentSpec> = HashMap::with_capacity(rctl1.len() + eal.len() + rctl2.len());
-    for spec in rctl1.iter().chain(eal).into_iter().chain(rctl2).into_iter() {
-        match spec.selector {
-            TagSelector::tag(tag) => {
-                tag_to_spec.insert(Tag::new(tag.0, tag.1), *spec);
-                ()
-            },
-            // FIXME: This is definitely wrong, actually.
-            _ => (), // There are other tag selector types, and I am not sure if they are relevant to SETs.
-        }
+    for spec in rctl1.iter().chain(eal).chain(rctl2) {
+        add_to_tag_mapping(&mut tag_to_spec, *spec, spec.selector, false);
     }
 
     let mut recognized_components = HashMap::with_capacity(elements.len());
@@ -152,7 +146,7 @@ pub fn _parse_set<'a>(
         }
     }
 
-    for spec in rctl1.iter().chain(rctl2).into_iter() {
+    for spec in rctl1.iter().chain(rctl2) {
         if spec.optional || recognized_components.contains_key(spec.name) {
             continue;
         }
@@ -304,6 +298,8 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
                                 let mut err =
                                     ASN1Error::new(ASN1ErrorCode::missing_required_components);
                                 err.component_name = Some(String::from(spec.name));
+                                self.s = usize::MAX; // To ensure no further iteration.
+                                self.e = usize::MAX; // To ensure no further iteration.
                                 return Some(Err(err));
                             } else {
                                 self.s += 1;
@@ -316,6 +312,8 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
                     } else {
                         let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
                         err.component_name = Some(String::from(spec.name));
+                        self.s = usize::MAX; // To ensure no further iteration.
+                        self.e = usize::MAX; // To ensure no further iteration.
                         return Some(Err(err));
                     }
                 }
@@ -330,6 +328,8 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
             } else if !spec.optional {
                 let mut err = ASN1Error::new(ASN1ErrorCode::missing_required_components);
                 err.component_name = Some(String::from(spec.name));
+                self.s = usize::MAX; // To ensure no further iteration.
+                self.e = usize::MAX; // To ensure no further iteration.
                 return Some(Err(err));
             }
             self.s += 1; // The component was optional, but it didn't match. So we just increment and move on.
@@ -343,7 +343,13 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
         None
     }
 
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.elements.len()))
+    }
+
 }
+
+impl <'a> FusedIterator for X690ComponentIterator<'a> {}
 
 pub fn _iter_component_type_list<'a>(
     ctl: &'a [ComponentSpec],
@@ -462,11 +468,7 @@ impl <'a> X690StructureIterator<'a> {
 
 }
 
-// TODO: Implement other iterator traits for this.
-// impl std::iter::FusedIterator for OidArcs<'_> {}
-// The provided implementations are sufficient.
-// impl std::iter::ExactSizeIterator for OidArcs<'_> {}
-// impl std::iter::DoubleEndedIterator for OidArcs<'_> {}
+impl <'a> FusedIterator for X690StructureIterator<'a> {}
 
 impl <'a> Iterator for X690StructureIterator<'a> {
     type Item = ASN1Result<&'a str>;
@@ -484,7 +486,7 @@ impl <'a> Iterator for X690StructureIterator<'a> {
                 // start of RCTL2, and only iterate over i..start_of_rctl2 as
                 // extensions.
                 if self.rctl2.len() == 0 {
-                    self.ctl_iterator = X690ComponentIterator::new(self.eal, &self.elements[self.i..], true).into_iter();
+                    self.ctl_iterator = X690ComponentIterator::new(self.eal, &self.elements[self.i..], true);
                 } else {
                     let end_of_possible_initial_rctl2_components = _get_possible_initial_components(self.rctl2);
                     let possible_initial_rctl2_components = &self.rctl2[0..end_of_possible_initial_rctl2_components];
@@ -510,12 +512,11 @@ impl <'a> Iterator for X690StructureIterator<'a> {
 
                     // NOTE: I deviated from the TypeScript implementation here. I don't see
                     // how the value `startOfExtensions` could ever be -1.
-                    // FIXME: I think the below needs to default to the end of elements.
                     self.start_of_rctl2 = match number_of_ext_components {
                         Some(num) => start_of_exts + num,
                         None => self.elements.len(),
                     };
-                    self.ctl_iterator = X690ComponentIterator::new(self.eal, &self.elements[self.i..self.start_of_rctl2], true).into_iter();
+                    self.ctl_iterator = X690ComponentIterator::new(self.eal, &self.elements[self.i..self.start_of_rctl2], true);
                 }
                 // This isn't really a recursion risk, because it only iterates
                 // three times: once for each of RCTL1, EAL, and RCTL2.
@@ -529,7 +530,7 @@ impl <'a> Iterator for X690StructureIterator<'a> {
                 debug_assert!(self.rctl2.len() > 0 || (self.i == self.elements.len()),
                     "After processing all X.690-encoded extensions, we were not at the end of the encoded elements, despite no RCTL2");
 
-                self.ctl_iterator = X690ComponentIterator::new(self.rctl2, &self.elements[self.i..], false).into_iter();
+                self.ctl_iterator = X690ComponentIterator::new(self.rctl2, &self.elements[self.i..], false);
                 return self.next();
             },
             X690StructureIterationPhase::RCTL2 => {
@@ -538,6 +539,10 @@ impl <'a> Iterator for X690StructureIterator<'a> {
                 return None;
             },
         };
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.elements.len()))
     }
 
 }
@@ -592,6 +597,32 @@ pub fn _encode_implicit(el: X690Element, tag: Tag) -> X690Element {
 // This works as an encode and decode function.
 pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
     Ok(el.clone())
+}
+
+fn add_to_tag_mapping <'a> (
+    map: &mut HashMap<Tag, ComponentSpec<'a>>,
+    spec: ComponentSpec<'a>,
+    selector: TagSelector<'a>,
+    remove: bool,
+) {
+    match selector {
+        TagSelector::tag(tag) => {
+            if remove {
+                map.remove(&Tag::new(tag.0, tag.1));
+            } else {
+                map.insert(Tag::new(tag.0, tag.1), spec);
+            }
+        },
+        TagSelector::or(subs) => {
+            for sub in subs {
+                add_to_tag_mapping(map, spec, **sub, remove);
+            }
+        },
+        TagSelector::not(sub) => {
+            add_to_tag_mapping(map, spec, *sub, !remove);
+        },
+        _ => (),
+    }
 }
 
 #[cfg(test)]
@@ -833,4 +864,670 @@ mod tests {
             }
         }
     }
+
+    const read_arg_data_rctl1: [ComponentSpec; 1] = [ComponentSpec::new(
+        "object",
+        false,
+        TagSelector::tag((TagClass::CONTEXT, 0)),
+        None,
+        None,
+    )];
+    const read_arg_data_rctl2: [ComponentSpec; 1] = [ComponentSpec::new(
+        "serviceControls",
+        true,
+        TagSelector::tag((TagClass::CONTEXT, 4)),
+        None,
+        None,
+    )];
+    const read_arg_data_eal: [ComponentSpec; 1] = [ComponentSpec::new(
+        "foobar",
+        true,
+        TagSelector::tag((TagClass::CONTEXT, 3)),
+        None,
+        None,
+    )];
+
+    // ReadArgumentData ::= SET {
+    //     object               [0]  Name,
+    //     selection            [1]  EntryInformationSelection DEFAULT {},
+    //     modifyRightsRequest  [2]  BOOLEAN DEFAULT FALSE,
+    //     ...,
+    //     ...,
+    //     COMPONENTS OF             CommonArguments }
+
+    #[test]
+    fn test_decode_read_argument_data_1() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x08,
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL
+            0xA4, 0x02, 0x05, 0x00, // [4] NULL
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 2);
+        let (recognized, unrecognized) = _parse_set(
+            &elements,
+            read_arg_data_rctl1.as_slice(),
+            read_arg_data_eal.as_slice(),
+            read_arg_data_rctl2.as_slice(),
+            elements.len(),
+        ).unwrap();
+        assert!(recognized.contains_key("object"));
+        assert!(recognized.contains_key("serviceControls"));
+        assert_eq!(unrecognized.len(), 0);
+    }
+
+    #[test]
+    fn test_decode_read_argument_data_2() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x04,
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 1);
+        let (recognized, unrecognized) = _parse_set(
+            &elements,
+            read_arg_data_rctl1.as_slice(),
+            read_arg_data_eal.as_slice(),
+            read_arg_data_rctl2.as_slice(),
+            elements.len(),
+        ).unwrap();
+        assert!(recognized.contains_key("object"));
+        assert!(!recognized.contains_key("serviceControls"));
+        assert_eq!(unrecognized.len(), 0);
+    }
+
+    // In this test, the ordering of components is reversed from #1.
+    #[test]
+    fn test_decode_read_argument_data_3() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x08,
+            0xA4, 0x02, 0x05, 0x00, // [4] NULL
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 2);
+        let (recognized, unrecognized) = _parse_set(
+            &elements,
+            read_arg_data_rctl1.as_slice(),
+            read_arg_data_eal.as_slice(),
+            read_arg_data_rctl2.as_slice(),
+            elements.len(),
+        ).unwrap();
+        assert!(recognized.contains_key("object"));
+        assert!(recognized.contains_key("serviceControls"));
+        assert_eq!(unrecognized.len(), 0);
+    }
+
+    #[test]
+    fn test_decode_read_argument_data_4() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x10,
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL
+            0xA2, 0x02, 0x05, 0x00, // [2] NULL
+            0xA3, 0x02, 0x05, 0x00, // [3] NULL
+            0xA4, 0x02, 0x05, 0x00, // [4] NULL
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 4);
+        let (recognized, unrecognized) = _parse_set(
+            &elements,
+            read_arg_data_rctl1.as_slice(),
+            read_arg_data_eal.as_slice(),
+            read_arg_data_rctl2.as_slice(),
+            elements.len(),
+        ).unwrap();
+        assert!(recognized.contains_key("object"));
+        assert!(recognized.contains_key("serviceControls"));
+        assert!(recognized.contains_key("foobar"));
+        assert_eq!(unrecognized.len(), 1);
+    }
+
+    #[test]
+    fn test_duplicate_tags_in_set() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x08,
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 2);
+        let parse_result = _parse_set(
+            &elements,
+            read_arg_data_rctl1.as_slice(),
+            read_arg_data_eal.as_slice(),
+            read_arg_data_rctl2.as_slice(),
+            elements.len(),
+        );
+        assert!(parse_result.is_err_and(|e| e.error_code == ASN1ErrorCode::duplicate_tags_in_set));
+    }
+
+    const _rctl1_components_for_TBSCertificate: &[ComponentSpec; 8] = &[
+        ComponentSpec::new(
+            "version",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 0)),
+            None,
+            None,
+        ),
+        ComponentSpec::new(
+            "serialNumber",
+            false,
+            TagSelector::tag((TagClass::UNIVERSAL, 2)),
+            None,
+            None,
+        ),
+        ComponentSpec::new(
+            "signature",
+            false,
+            TagSelector::tag((TagClass::UNIVERSAL, 16)),
+            None,
+            None,
+        ),
+        ComponentSpec::new("issuer", false, TagSelector::any, None, None),
+        ComponentSpec::new(
+            "validity",
+            false,
+            TagSelector::tag((TagClass::UNIVERSAL, 16)),
+            None,
+            None,
+        ),
+        ComponentSpec::new("subject", false, TagSelector::any, None, None),
+        ComponentSpec::new(
+            "subjectPublicKeyInfo",
+            false,
+            TagSelector::tag((TagClass::UNIVERSAL, 16)),
+            None,
+            None,
+        ),
+        ComponentSpec::new(
+            "issuerUniqueIdentifier",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 1)),
+            None,
+            None,
+        ),
+    ];
+    
+    const _rctl2_components_for_TBSCertificate: &[ComponentSpec; 0] = &[];
+    
+    const _eal_components_for_TBSCertificate: &[ComponentSpec; 2] = &[
+        ComponentSpec::new(
+            "subjectUniqueIdentifier",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 2)),
+            Some(0),
+            Some(2),
+        ),
+        ComponentSpec::new(
+            "extensions",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 3)),
+            Some(1),
+            Some(3),
+        ),
+    ];
+
+    #[test]
+    fn test_decode_tbs_certificate_1() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x23,
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL version
+            0x02, 0x01, 0x01, // serialNumber = 1
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL signature
+            0x05, 0x00, // NULL issuer
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL validity
+            0x05, 0x00, // NULL subject
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL subjectPublicKeyInfo
+            0xA1, 0x02, 0x05, 0x00, // [1] NULL issuerUniqueIdentifier
+            0xA2, 0x02, 0x05, 0x00, // [2] NULL subjectUniqueIdentifier
+            0xA3, 0x02, 0x05, 0x00, // [3] NULL extensions
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 10);
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            _rctl1_components_for_TBSCertificate.as_slice(),
+            _eal_components_for_TBSCertificate.as_slice(),
+            _rctl2_components_for_TBSCertificate.as_slice(),
+        );
+        let mut version = false;
+        let mut serialNumber = false;
+        let mut signature = false;
+        let mut issuer = false;
+        let mut validity = false;
+        let mut subject = false;
+        let mut subjectPublicKeyInfo = false;
+        let mut issuerUniqueIdentifier = false;
+        let mut subjectUniqueIdentifier = false;
+        let mut extensions = false;
+        for component in seq_iter {
+            match component.unwrap() {
+                "version" => version = true,
+                "serialNumber" => serialNumber = true,
+                "signature" => signature = true,
+                "issuer" => issuer = true,
+                "validity" => validity = true,
+                "subject" => subject = true,
+                "subjectPublicKeyInfo" => subjectPublicKeyInfo = true,
+                "issuerUniqueIdentifier" => issuerUniqueIdentifier = true,
+                "subjectUniqueIdentifier" => subjectUniqueIdentifier = true,
+                "extensions" => extensions = true,
+                _ => panic!(),
+            }
+        }
+        assert!(version);
+        assert!(serialNumber);
+        assert!(signature);
+        assert!(issuer);
+        assert!(validity);
+        assert!(subject);
+        assert!(subjectPublicKeyInfo);
+        assert!(issuerUniqueIdentifier);
+        assert!(subjectUniqueIdentifier);
+        assert!(extensions);
+    }
+
+    #[test]
+    fn test_decode_tbs_certificate_2() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x1B,
+            0xA0, 0x02, 0x05, 0x00, // [0] NULL version
+            0x02, 0x01, 0x01, // serialNumber = 1
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL signature
+            0x05, 0x00, // NULL issuer
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL validity
+            0x05, 0x00, // NULL subject
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL subjectPublicKeyInfo
+            0xA3, 0x02, 0x05, 0x00, // [3] NULL extensions
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 8);
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            _rctl1_components_for_TBSCertificate.as_slice(),
+            _eal_components_for_TBSCertificate.as_slice(),
+            _rctl2_components_for_TBSCertificate.as_slice(),
+        );
+        let mut version = false;
+        let mut serialNumber = false;
+        let mut signature = false;
+        let mut issuer = false;
+        let mut validity = false;
+        let mut subject = false;
+        let mut subjectPublicKeyInfo = false;
+        let mut issuerUniqueIdentifier = false;
+        let mut subjectUniqueIdentifier = false;
+        let mut extensions = false;
+        for component in seq_iter {
+            match component.unwrap() {
+                "version" => version = true,
+                "serialNumber" => serialNumber = true,
+                "signature" => signature = true,
+                "issuer" => issuer = true,
+                "validity" => validity = true,
+                "subject" => subject = true,
+                "subjectPublicKeyInfo" => subjectPublicKeyInfo = true,
+                "issuerUniqueIdentifier" => issuerUniqueIdentifier = true,
+                "subjectUniqueIdentifier" => subjectUniqueIdentifier = true,
+                "extensions" => extensions = true,
+                _ => panic!(),
+            }
+        }
+        assert!(version);
+        assert!(serialNumber);
+        assert!(signature);
+        assert!(issuer);
+        assert!(validity);
+        assert!(subject);
+        assert!(subjectPublicKeyInfo);
+        assert!(!issuerUniqueIdentifier);
+        assert!(!subjectUniqueIdentifier);
+        assert!(extensions);
+    }
+
+    #[test]
+    fn test_decode_tbs_certificate_3() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x13,
+            0x02, 0x01, 0x01, // serialNumber = 1
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL signature
+            0x05, 0x00, // NULL issuer
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL validity
+            0x05, 0x00, // NULL subject
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL subjectPublicKeyInfo
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 6);
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            _rctl1_components_for_TBSCertificate.as_slice(),
+            _eal_components_for_TBSCertificate.as_slice(),
+            _rctl2_components_for_TBSCertificate.as_slice(),
+        );
+        let mut version = false;
+        let mut serialNumber = false;
+        let mut signature = false;
+        let mut issuer = false;
+        let mut validity = false;
+        let mut subject = false;
+        let mut subjectPublicKeyInfo = false;
+        let mut issuerUniqueIdentifier = false;
+        let mut subjectUniqueIdentifier = false;
+        let mut extensions = false;
+        for component in seq_iter {
+            match component.unwrap() {
+                "version" => version = true,
+                "serialNumber" => serialNumber = true,
+                "signature" => signature = true,
+                "issuer" => issuer = true,
+                "validity" => validity = true,
+                "subject" => subject = true,
+                "subjectPublicKeyInfo" => subjectPublicKeyInfo = true,
+                "issuerUniqueIdentifier" => issuerUniqueIdentifier = true,
+                "subjectUniqueIdentifier" => subjectUniqueIdentifier = true,
+                "extensions" => extensions = true,
+                _ => panic!(),
+            }
+        }
+        assert!(!version);
+        assert!(serialNumber);
+        assert!(signature);
+        assert!(issuer);
+        assert!(validity);
+        assert!(subject);
+        assert!(subjectPublicKeyInfo);
+        assert!(!issuerUniqueIdentifier);
+        assert!(!subjectUniqueIdentifier);
+        assert!(!extensions);
+    }
+
+    #[test]
+    fn test_decode_tbs_certificate_4() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x17,
+            0x02, 0x01, 0x01, // serialNumber = 1
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL signature
+            0x05, 0x00, // NULL issuer
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL validity
+            0x05, 0x00, // NULL subject
+            0x30, 0x02, 0x05, 0x00, // SEQUENCE NULL subjectPublicKeyInfo
+            0xA4, 0x02, 0x05, 0x00, // [4] NULL unrecognized component
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 7);
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            _rctl1_components_for_TBSCertificate.as_slice(),
+            _eal_components_for_TBSCertificate.as_slice(),
+            _rctl2_components_for_TBSCertificate.as_slice(),
+        );
+        let mut version = false;
+        let mut serialNumber = false;
+        let mut signature = false;
+        let mut issuer = false;
+        let mut validity = false;
+        let mut subject = false;
+        let mut subjectPublicKeyInfo = false;
+        let mut issuerUniqueIdentifier = false;
+        let mut subjectUniqueIdentifier = false;
+        let mut extensions = false;
+        let mut unrecognized = false;
+        for component in seq_iter {
+            match component.unwrap() {
+                "version" => version = true,
+                "serialNumber" => serialNumber = true,
+                "signature" => signature = true,
+                "issuer" => issuer = true,
+                "validity" => validity = true,
+                "subject" => subject = true,
+                "subjectPublicKeyInfo" => subjectPublicKeyInfo = true,
+                "issuerUniqueIdentifier" => issuerUniqueIdentifier = true,
+                "subjectUniqueIdentifier" => subjectUniqueIdentifier = true,
+                "extensions" => extensions = true,
+                "" => unrecognized = true,
+                _ => panic!(),
+            }
+        }
+        assert!(!version);
+        assert!(serialNumber);
+        assert!(signature);
+        assert!(issuer);
+        assert!(validity);
+        assert!(subject);
+        assert!(subjectPublicKeyInfo);
+        assert!(!issuerUniqueIdentifier);
+        assert!(!subjectUniqueIdentifier);
+        assert!(!extensions);
+        assert!(unrecognized);
+    }
+
+
+    // PartialOutcomeQualifier ::= SET {
+    //     limitProblem                  [0]  LimitProblem OPTIONAL,
+    //     unexplored                    [1]  SET SIZE (1..MAX) OF ContinuationReference OPTIONAL,
+    //     unavailableCriticalExtensions [2]  BOOLEAN DEFAULT FALSE,
+    //     unknownErrors                 [3]  SET SIZE (1..MAX) OF ABSTRACT-SYNTAX.&Type OPTIONAL,
+    //     queryReference                [4]  OCTET STRING OPTIONAL,
+    //     overspecFilter                [5]  Filter OPTIONAL,
+    //     notification                  [6]  SEQUENCE SIZE (1..MAX) OF
+    //                                          Attribute{{SupportedAttributes}} OPTIONAL,
+    //     entryCount                         CHOICE {
+    //       bestEstimate                  [7]  INTEGER,
+    //       lowEstimate                   [8]  INTEGER,
+    //       exact                         [9]  INTEGER,
+    //       ...} OPTIONAL
+    //     --                            [10] Not to be used -- }
+
+    const _rctl1_components_for_PartialOutcomeQualifier: &[ComponentSpec; 2] = &[
+        ComponentSpec::new(
+            "limitProblem",
+            true,
+            TagSelector::tag((TagClass::CONTEXT, 0)),
+            None,
+            None,
+        ),
+        ComponentSpec::new(
+            "entryCount",
+            true,
+            TagSelector::or(&[
+                &TagSelector::tag((TagClass::CONTEXT, 7)),
+                &TagSelector::tag((TagClass::CONTEXT, 8)),
+                &TagSelector::tag((TagClass::CONTEXT, 9)),
+            ]),
+            None,
+            None,
+        ),
+    ];
+    
+    const _rctl2_components_for_PartialOutcomeQualifier: &[ComponentSpec; 0] = &[];
+    
+    const _eal_components_for_PartialOutcomeQualifier: &[ComponentSpec; 0] = &[];
+
+    #[test]
+    fn test_duplicate_components_in_set() {
+        let encoded_data: Vec<u8> = vec![
+            0x31, 0x08,
+            0xA7, 0x02, 0x05, 0x00, // [7] NULL
+            0xA9, 0x02, 0x05, 0x00, // [9] NULL
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 2);
+        let parse_result = _parse_set(
+            &elements,
+            _rctl1_components_for_PartialOutcomeQualifier.as_slice(),
+            _eal_components_for_PartialOutcomeQualifier.as_slice(),
+            _rctl2_components_for_PartialOutcomeQualifier.as_slice(),
+            elements.len(),
+        );
+        assert!(parse_result.is_err_and(|e| e.error_code == ASN1ErrorCode::duplicate_components));
+    }
+
+    #[test]
+    fn test_fused_iterator_structure() {
+        let encoded_data: Vec<u8> = vec![
+            0x30, 0x05,
+            0x06, 0x03, 0x55, 0x04, 0x03 // OBJECT IDENTIFIER 2.5.4.3
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 1);
+        let mut seq_iter = X690StructureIterator::new(
+            &elements,
+            _rctl1_components_for_AlgorithmIdentifier,
+            _eal_components_for_AlgorithmIdentifier,
+            _rctl2_components_for_AlgorithmIdentifier,
+        );
+        let it1 = seq_iter.next();
+        let it2 = seq_iter.next();
+        let it3 = seq_iter.next();
+        let it4 = seq_iter.next();
+        let it5 = seq_iter.next();
+        let it6 = seq_iter.next();
+        let it7 = seq_iter.next();
+        assert!(it1.is_some());
+        assert!(it2.is_none());
+        assert!(it3.is_none());
+        assert!(it4.is_none());
+        assert!(it5.is_none());
+        assert!(it6.is_none());
+        assert!(it7.is_none());
+    }
+
+    #[test]
+    fn test_fused_iterator_components() {
+        let encoded_data: Vec<u8> = vec![
+            0x30, 0x05,
+            0x06, 0x03, 0x55, 0x04, 0x03 // OBJECT IDENTIFIER 2.5.4.3
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 1);
+        let mut seq_iter = X690ComponentIterator::new(
+            _rctl1_components_for_AlgorithmIdentifier,
+            &elements,
+            false,
+        );
+        let it1 = seq_iter.next();
+        let it2 = seq_iter.next();
+        let it3 = seq_iter.next();
+        let it4 = seq_iter.next();
+        let it5 = seq_iter.next();
+        let it6 = seq_iter.next();
+        let it7 = seq_iter.next();
+        assert!(it1.is_some());
+        assert!(it2.is_none());
+        assert!(it3.is_none());
+        assert!(it4.is_none());
+        assert!(it5.is_none());
+        assert!(it6.is_none());
+        assert!(it7.is_none());
+    }
+
+
+    const read_arg_data_rctl1_optional: [ComponentSpec; 1] = [ComponentSpec::new(
+        "object",
+        true,
+        TagSelector::tag((TagClass::CONTEXT, 0)),
+        None,
+        None,
+    )];
+
+    #[test]
+    fn test_empty_set() {
+        let encoded_data: Vec<u8> = vec![0x31, 0x00];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 0);
+        let (recognized, unrecognized) = _parse_set(
+            &elements,
+            read_arg_data_rctl1_optional.as_slice(),
+            read_arg_data_eal.as_slice(),
+            read_arg_data_rctl2.as_slice(),
+            elements.len(),
+        ).unwrap();
+        assert_eq!(recognized.len(), 0);
+        assert_eq!(unrecognized.len(), 0);
+    }
+
+    #[test]
+    fn test_empty_seq() {
+        let encoded_data: Vec<u8> = vec![0x30, 0x00];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+        let elements = root.components().unwrap();
+        assert_eq!(elements.len(), 0);
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            rlrq_rctl1.as_slice(),
+            rlrq_eal.as_slice(),
+            rlrq_rctl2.as_slice(),
+        );
+        let results = seq_iter.collect::<Vec<_>>();
+        assert_eq!(results.len(), 0);
+    }
+
+    // Just one more to be sure...
+    #[test]
+    fn test_decode_ACSE_RLRQ_APDU_2() {
+        let encoded_data: Vec<u8> = vec![
+            0x62, 0x0B, // RLRQ APDU
+            0x80, 0x01, 0x00, // reason: [CONTEXT 0] 0 (normal)
+            0xA0 | 13, 0x02, 0x05, 0x00, // aso-qualifier: [13] NULL
+            // Skipping asoi-identifier 
+            0xA0 | 30, 0x02, 0x05, 0x00, // user-information: [30] NULL
+        ];
+        let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
+        assert_eq!(bytes_read, encoded_data.len());
+
+        let elements = root.components().unwrap();
+        let seq_iter = X690StructureIterator::new(
+            &elements,
+            rlrq_rctl1.as_slice(),
+            rlrq_eal.as_slice(),
+            rlrq_rctl2.as_slice(),
+        );
+        // let mut known = 0;
+        // let mut unknown = 0;
+        let mut reason: bool = false;
+        let mut user_info: bool = false;
+        let mut aso_qualifier: bool = false;
+        let mut aso_identifier: bool = false;
+        for component in seq_iter {
+            match component.unwrap() {
+                "reason" => reason = true,
+                "aso-qualifier" => aso_qualifier = true,
+                "aso-identifier" => aso_identifier = true,
+                "user-information" => user_info = true,
+                _ => (),
+            }
+        }
+        assert!(reason);
+        assert!(aso_qualifier);
+        assert!(!aso_identifier);
+        assert!(user_info);
+    }
+
 }

@@ -762,17 +762,14 @@ impl X690Codec for BasicEncodingRules {
                 Ok(v) => Ok(ASN1Value::IA5String(v)),
                 Err(e) => Err(e),
             },
-            // FIXME: Downright missing
-            // UNIV_TAG_UTC_TIME => {
-            //     match el.value {
-
-            //     }
-            // },
-            // UNIV_TAG_GENERALIZED_TIME => {
-            //     match el.value {
-
-            //     }
-            // },
+            UNIV_TAG_UTC_TIME => {
+                let content_octets = el.content_octets()?;
+                Ok(ASN1Value::UTCTime(UTCTime::try_from(content_octets.as_ref())?))
+            },
+            UNIV_TAG_GENERALIZED_TIME => {
+                let content_octets = el.content_octets()?;
+                Ok(ASN1Value::GeneralizedTime(GeneralizedTime::try_from(content_octets.as_ref())?))
+            },
             UNIV_TAG_GRAPHIC_STRING => match self.decode_graphic_string(el) {
                 Ok(v) => Ok(ASN1Value::GraphicString(v)),
                 Err(e) => Err(e),
