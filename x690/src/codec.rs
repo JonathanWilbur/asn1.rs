@@ -118,127 +118,13 @@ use bytes::{Bytes, BytesMut, BufMut};
 use std::sync::Arc;
 use std::mem::size_of;
 
-pub fn decode_presentation_context_switching_type_id(
-    codec: impl X690Codec,
-    el: &X690Element,
-) -> ASN1Result<PresentationContextSwitchingTypeIdentification> {
-    if el.tag.tag_class != TagClass::CONTEXT {
-        let mut err =
-            ASN1Error::new(ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice);
-        err.component_name = Some(String::from("identification"));
-        err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
-        err.length = Some(el.len());
-        err.constructed = Some(el.is_constructed());
-        return Err(err);
-    }
-    match el.tag.tag_number {
-        0 => {
-            // syntaxes
-            let children = el.value.components()?;
-            if children.len() != 2 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-            }
-            let r#abstract = codec.decode_object_identifier(&children[0])?;
-            let transfer = codec.decode_object_identifier(&children[1])?;
-            Ok(PresentationContextSwitchingTypeIdentification::syntaxes(
-                IdentificationSyntaxes {
-                    r#abstract,
-                    transfer,
-                },
-            ))
-        }
-        1 => {
-            // syntax
-            let v = codec.decode_object_identifier(el)?;
-            Ok(PresentationContextSwitchingTypeIdentification::syntax(v))
-        }
-        2 => {
-            // presentation-context-id
-            let v = codec.decode_integer(el)?;
-            Ok(PresentationContextSwitchingTypeIdentification::presentation_context_id(v))
-        }
-        3 => {
-            // context-negotiation
-            let children = el.value.components()?;
-            if children.len() != 2 {
-                return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
-            }
-            let presentation_context_id = codec.decode_integer(&children[0])?;
-            let transfer_syntax = codec.decode_object_identifier(&children[1])?;
-            Ok(
-                PresentationContextSwitchingTypeIdentification::context_negotiation(
-                    ContextNegotiation {
-                        presentation_context_id,
-                        transfer_syntax,
-                    },
-                ),
-            )
-        }
-        4 => {
-            // transfer-syntax
-            let v = codec.decode_object_identifier(el)?;
-            Ok(PresentationContextSwitchingTypeIdentification::transfer_syntax(v))
-        }
-        5 => {
-            // fixed
-            codec.decode_null(el)?;
-            Ok(PresentationContextSwitchingTypeIdentification::fixed)
-        }
-        _ => Err(ASN1Error::new(
-            ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-        )),
-    }
-}
-
-pub fn validate_presentation_context_switching_type_id<C: X690Codec + ?Sized>(
-    codec: &C,
-    id_el: &X690Element,
-) -> ASN1Result<()> {
-    let invalid_cons = || {
-        let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
-        err.relate_tag(&id_el.tag);
-        err.constructed = Some(id_el.is_constructed());
-        err
-    };
-    match id_el.tag.tag_number {
-        0 => { // syntaxes
-            let subs = id_el.value.components()?;
-            if
-                subs.len() != 2
-                || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
-                || subs[0].tag.tag_number != 0
-                || subs[1].tag.tag_number != 1
-            {
-                return Err(invalid_cons());
-            }
-            for sub in subs.iter() {
-                codec.validate_object_identifier(sub)?;
-            }
-        },
-        1 | 4 => codec.validate_object_identifier(id_el)?, // syntax or transfer-syntax
-        2 => codec.validate_integer(id_el)?, // presentation-context-id
-        3 => { // context-negotiation
-            let subs = id_el.value.components()?;
-            if
-                subs.len() != 2
-                || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
-                || subs[0].tag.tag_number != 0
-                || subs[1].tag.tag_number != 1
-            {
-                return Err(invalid_cons());
-            }
-            codec.validate_integer(&subs[0])?;
-            codec.validate_object_identifier(&subs[1])?;
-        },
-        5 => codec.validate_null(id_el)?,
-        _ => return Err(invalid_cons()),
-    }
-    Ok(())
-}
-
-// Default implementations are defined where commonalities exist between BER, CER, and DER.
+/// Any codec defined in ITU-T Recommendation X.690.
+///
+/// Default implementations are defined where commonalities exist between BER, CER, and DER.
 pub trait X690Codec {
 
+    /// Decode the `identification` field of a context switching type, such as
+    /// a `EMBEDDED PDV` or `CHARACTER STRING`.
     fn decode_presentation_context_switching_type_id(
         &self,
         el: &X690Element,
@@ -311,34 +197,105 @@ pub trait X690Codec {
         }
     }
 
+    /// Validate the `identification` field of a context switching type, such as
+    /// a `EMBEDDED PDV` or `CHARACTER STRING`.
+    fn validate_presentation_context_switching_type_id(
+        &self,
+        id_el: &X690Element,
+    ) -> ASN1Result<()> {
+        let invalid_cons = || {
+            let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
+            err.relate_tag(&id_el.tag);
+            err.constructed = Some(id_el.is_constructed());
+            err
+        };
+        match id_el.tag.tag_number {
+            0 => { // syntaxes
+                let subs = id_el.value.components()?;
+                if
+                    subs.len() != 2
+                    || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
+                    || subs[0].tag.tag_number != 0
+                    || subs[1].tag.tag_number != 1
+                {
+                    return Err(invalid_cons());
+                }
+                for sub in subs.iter() {
+                    self.validate_object_identifier(sub)?;
+                }
+            },
+            1 | 4 => self.validate_object_identifier(id_el)?, // syntax or transfer-syntax
+            2 => self.validate_integer(id_el)?, // presentation-context-id
+            3 => { // context-negotiation
+                let subs = id_el.value.components()?;
+                if
+                    subs.len() != 2
+                    || !subs.iter().all(|s| s.tag.tag_class != TagClass::CONTEXT)
+                    || subs[0].tag.tag_number != 0
+                    || subs[1].tag.tag_number != 1
+                {
+                    return Err(invalid_cons());
+                }
+                self.validate_integer(&subs[0])?;
+                self.validate_object_identifier(&subs[1])?;
+            },
+            5 => self.validate_null(id_el)?,
+            _ => return Err(invalid_cons()),
+        }
+        Ok(())
+    }
+
+    /// Decode X.690 elements from a slice of bytes
     fn decode_from_slice(&self, bytes: ByteSlice) -> ASN1Result<(usize, X690Element)>;
+
+    /// Decode X.690 elements from a `bytes::Bytes`
     fn decode_from_bytes(&self, bytes: Bytes) -> ASN1Result<(usize, X690Element)> {
         self.decode_from_slice(&bytes[..])
     }
+
+    /// Write an X.690 element
     fn write<W>(&self, output: &mut W, el: &X690Element) -> Result<usize> where W: Write {
         write_x690_node(output, el)
     }
+
+    /// Decode a `BOOLEAN` from content octets
     fn decode_boolean_value(&self, value_bytes: ByteSlice) -> ASN1Result<BOOLEAN>;
+
+    /// Decode an `INTEGER` from content octets
     fn decode_integer_value(&self, value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
         Ok(Vec::from(value_bytes))
     }
+
+    /// Decode an `ENUMERATED` from content octets
     fn decode_enum_value(&self, value_bytes: ByteSlice) -> ASN1Result<ENUMERATED> {
         match read_i64(value_bytes) {
             Some(v) => Ok(v),
             None => Err(ASN1Error::new(ASN1ErrorCode::value_too_big)),
         }
     }
+
+    /// Decode a `BIT STRING` from content octets
     fn decode_bit_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<BIT_STRING>;
+
+    /// Decode an `OCTET STRING` from content octets
     fn decode_octet_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<OCTET_STRING> {
         Ok(Vec::from(value_bytes))
     }
+
+    /// Decode an `OBJECT IDENTIFIER` from content octets
     fn decode_object_identifier_value(&self, value_bytes: ByteSlice) -> ASN1Result<OBJECT_IDENTIFIER> {
         x690_read_object_identifier_value(value_bytes)
     }
+
+    /// Decode a `RELATIVE-OID` from content octets
     fn decode_relative_oid_value(&self, value_bytes: ByteSlice) -> ASN1Result<RELATIVE_OID> {
         RELATIVE_OID::from_x690_encoding_slice(value_bytes)
     }
+
+    /// Decode a `REAL` from content octets
     fn decode_real_value(&self, value_bytes: ByteSlice) -> ASN1Result<REAL>;
+
+    /// Decode a `NumericString` from content octets
     fn decode_numeric_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<NumericString> {
         for (i, byte) in value_bytes.iter().enumerate() {
             if !byte.is_ascii_digit() && *byte != 0x20 {
@@ -350,6 +307,8 @@ pub trait X690Codec {
         }
         unsafe { Ok(String::from_utf8_unchecked(value_bytes.to_vec())) }
     }
+
+    /// Decode a `PrintableString` from content octets
     fn decode_printable_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<PrintableString> {
         for (i, byte) in value_bytes.iter().enumerate() {
             let b = *byte as char;
@@ -369,6 +328,8 @@ pub trait X690Codec {
         }
         unsafe { Ok(String::from_utf8_unchecked(value_bytes.to_vec())) }
     }
+
+    /// Decode an `IA5String` from content octets
     fn decode_ia5_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<IA5String> {
         for (i, byte) in value_bytes.iter().enumerate() {
             if *byte > 127 {
@@ -380,8 +341,14 @@ pub trait X690Codec {
         }
         unsafe { Ok(String::from_utf8_unchecked(value_bytes.to_vec())) }
     }
+
+    /// Decode a `UTCTime` from content octets
     fn decode_utc_time_value(&self, value_bytes: ByteSlice) -> ASN1Result<UTCTime>;
+
+    /// Decode a `GeneralizedTime` from content octets
     fn decode_generalized_time_value(&self, value_bytes: ByteSlice) -> ASN1Result<GeneralizedTime>;
+
+    /// Decode a `GraphicString` from content octets
     fn decode_graphic_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<GraphicString> {
         for (i, byte) in value_bytes.iter().enumerate() {
             if !byte.is_ascii_graphic() && (*byte as char != ' ') {
@@ -393,6 +360,8 @@ pub trait X690Codec {
         }
         unsafe { Ok(String::from_utf8_unchecked(value_bytes.to_vec())) }
     }
+
+    /// Decode a `VisibleString` / `ISO646String` from content octets
     fn decode_visible_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<VisibleString> {
         for (i, byte) in value_bytes.iter().enumerate() {
             if !byte.is_ascii() || *byte == 0x7F {
@@ -404,6 +373,8 @@ pub trait X690Codec {
         }
         unsafe { Ok(String::from_utf8_unchecked(value_bytes.to_vec())) }
     }
+
+    /// Decode a `GeneralString` from content octets
     fn decode_general_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<GeneralString> {
         for (i, byte) in value_bytes.iter().enumerate() {
             if !byte.is_ascii() {
@@ -415,6 +386,8 @@ pub trait X690Codec {
         }
         unsafe { Ok(String::from_utf8_unchecked(value_bytes.to_vec())) }
     }
+
+    /// Decode a `UniversalString` from content octets
     fn decode_universal_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<UniversalString> {
         if (value_bytes.len() % 4) != 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -435,6 +408,8 @@ pub trait X690Codec {
         }
         Ok(ret)
     }
+
+    /// Decode a `BMPString` from content octets
     fn decode_bmp_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<BMPString> {
         if (value_bytes.len() % 2) != 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
@@ -450,16 +425,26 @@ pub trait X690Codec {
         }
         Ok(ret)
     }
+
+    /// Decode a `DATE` from content octets
     fn decode_date_value(&self, value_bytes: ByteSlice) -> ASN1Result<DATE> {
         DATE::try_from(value_bytes)
     }
+
+    /// Decode a `TIME-OF-DAY` from content octets
     fn decode_time_of_day_value(&self, value_bytes: ByteSlice) -> ASN1Result<TIME_OF_DAY> {
         TIME_OF_DAY::try_from(value_bytes)
     }
+
+    /// Decode a `DATE-TIME` from content octets
     fn decode_date_time_value(&self, value_bytes: ByteSlice) -> ASN1Result<DATE_TIME> {
         DATE_TIME::try_from(value_bytes)
     }
+
+    /// Decode a `DURATION` from content octets
     fn decode_duration_value(&self, value_bytes: ByteSlice) -> ASN1Result<DURATION>;
+
+    /// Decode a `BOOLEAN` value from an X.690 encoding
     fn decode_boolean(&self, el: &X690Element) -> ASN1Result<BOOLEAN> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_boolean_value(bytes),
@@ -470,6 +455,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode an `INTEGER` value from an X.690 encoding
     fn decode_integer(&self, el: &X690Element) -> ASN1Result<INTEGER> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_integer_value(bytes),
@@ -480,6 +467,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode an `ENUMERATED` value from an X.690 encoding
     fn decode_enumerated(&self, el: &X690Element) -> ASN1Result<ENUMERATED> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_enum_value(bytes),
@@ -490,8 +479,14 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `BIT STRING` value from an X.690 encoding
     fn decode_bit_string(&self, el: &X690Element) -> ASN1Result<BIT_STRING>;
+
+    /// Decode an `OCTET STRING` value from an X.690 encoding
     fn decode_octet_string(&self, el: &X690Element) -> ASN1Result<OCTET_STRING>;
+
+    /// Decode a `NULL` value from an X.690 encoding
     fn decode_null(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(bytes) => {
@@ -507,6 +502,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode an `OBJECT IDENTIFIER` value from an X.690 encoding
     fn decode_object_identifier(&self, el: &X690Element) -> ASN1Result<OBJECT_IDENTIFIER> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_object_identifier_value(bytes),
@@ -517,6 +514,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode an `EXTERNAL` value from an X.690 encoding
     fn decode_external(&self, el: &X690Element) -> ASN1Result<EXTERNAL> {
         let elements = el.value.components()?;
         let it = X690StructureIterator::new(
@@ -579,6 +578,7 @@ pub trait X690Codec {
         })
     }
 
+    /// Decode an `INSTANCE OF` value from an X.690 encoding
     fn decode_instance_of(&self, el: &X690Element) -> ASN1Result<InstanceOf> {
         let elements = el.value.components()?;
         if elements.len() != 2 {
@@ -599,6 +599,8 @@ pub trait X690Codec {
             value: Arc::new(value),
         })
     }
+
+    /// Decode an `EMBEDDED PDV` value from an X.690 encoding
     fn decode_embedded_pdv(&self, el: &X690Element) -> ASN1Result<EMBEDDED_PDV> {
         let elements = el.value.components()?;
         if elements.len() != 2 {
@@ -619,6 +621,8 @@ pub trait X690Codec {
             data_value,
         })
     }
+
+    /// Decode a `CHARACTER STRING` value from an X.690 encoding
     fn decode_character_string(&self, el: &X690Element) -> ASN1Result<CHARACTER_STRING> {
         let elements = el.value.components()?;
         if elements.len() != 2 {
@@ -639,6 +643,8 @@ pub trait X690Codec {
             string_value,
         })
     }
+
+    /// Decode a `RELATIVE-OID` value from an X.690 encoding
     fn decode_relative_oid(&self, el: &X690Element) -> ASN1Result<RELATIVE_OID> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_relative_oid_value(bytes),
@@ -649,10 +655,20 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `SEQUENCE` value from an X.690 encoding
     fn decode_sequence(&self, el: &X690Element) -> ASN1Result<SEQUENCE>;
+
+    /// Decode a `SET` value from an X.690 encoding
     fn decode_set(&self, el: &X690Element) -> ASN1Result<SET>;
+
+    /// Decode an `ObjectDescriptor` value from an X.690 encoding
     fn decode_object_descriptor(&self, el: &X690Element) -> ASN1Result<ObjectDescriptor>;
+
+    /// Decode a `UTF8String` value from an X.690 encoding
     fn decode_utf8_string(&self, el: &X690Element) -> ASN1Result<UTF8String>;
+
+    /// Decode a `REAL` value from an X.690 encoding
     fn decode_real(&self, el: &X690Element) -> ASN1Result<REAL> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_real_value(bytes),
@@ -663,18 +679,44 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `NumericString` value from an X.690 encoding
     fn decode_numeric_string(&self, el: &X690Element) -> ASN1Result<NumericString>;
+
+    /// Decode a `PrintableString` value from an X.690 encoding
     fn decode_printable_string(&self, el: &X690Element) -> ASN1Result<PrintableString>;
+
+    /// Decode a `T61String` / `TeletexString` value from an X.690 encoding
     fn decode_t61_string(&self, el: &X690Element) -> ASN1Result<T61String>;
+
+    /// Decode a `VideotexString` value from an X.690 encoding
     fn decode_videotex_string(&self, el: &X690Element) -> ASN1Result<VideotexString>;
+
+    /// Decode an `IA5String` value from an X.690 encoding
     fn decode_ia5_string(&self, el: &X690Element) -> ASN1Result<IA5String>;
+
+    /// Decode a `UTCTime` value from an X.690 encoding
     fn decode_utc_time(&self, el: &X690Element) -> ASN1Result<UTCTime>;
+
+    /// Decode a `GeneralizedTime` value from an X.690 encoding
     fn decode_generalized_time(&self, el: &X690Element) -> ASN1Result<GeneralizedTime>;
+
+    /// Decode a `GraphicString` value from an X.690 encoding
     fn decode_graphic_string(&self, el: &X690Element) -> ASN1Result<GraphicString>;
+
+    /// Decode a `VisibleString` / `ISO646String` value from an X.690 encoding
     fn decode_visible_string(&self, el: &X690Element) -> ASN1Result<VisibleString>;
+
+    /// Decode a `GeneralString` value from an X.690 encoding
     fn decode_general_string(&self, el: &X690Element) -> ASN1Result<GeneralString>;
+
+    /// Decode a `UniversalString` value from an X.690 encoding
     fn decode_universal_string(&self, el: &X690Element) -> ASN1Result<UniversalString>;
+
+    /// Decode a `BMPString` value from an X.690 encoding
     fn decode_bmp_string(&self, el: &X690Element) -> ASN1Result<BMPString>;
+
+    /// Decode a `DATE` value from an X.690 encoding
     fn decode_date(&self, el: &X690Element) -> ASN1Result<DATE> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_date_value(bytes),
@@ -685,6 +727,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `TIME-OF-DAY` value from an X.690 encoding
     fn decode_time_of_day(&self, el: &X690Element) -> ASN1Result<TIME_OF_DAY> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_time_of_day_value(bytes),
@@ -695,6 +739,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `DATE-TIME` value from an X.690 encoding
     fn decode_date_time(&self, el: &X690Element) -> ASN1Result<DATE_TIME> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_date_time_value(bytes),
@@ -705,6 +751,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `DURATION` value from an X.690 encoding
     fn decode_duration(&self, el: &X690Element) -> ASN1Result<DURATION> {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_duration_value(bytes),
@@ -715,6 +763,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode an `OID-IRI` value from an X.690 encoding
     fn decode_oid_iri(&self, el: &X690Element) -> ASN1Result<OID_IRI> {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
@@ -728,6 +778,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `RELATIVE-OID-IRI` value from an X.690 encoding
     fn decode_relative_oid_iri(&self, el: &X690Element) -> ASN1Result<OID_IRI> {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
@@ -741,6 +793,8 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode a `TIME` value from an X.690 encoding
     fn decode_time(&self, el: &X690Element) -> ASN1Result<TIME> {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
@@ -754,8 +808,14 @@ pub trait X690Codec {
             _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
         }
     }
+
+    /// Decode any ASN.1 value from an X.690 encoding
     fn decode_any(&self, el: &X690Element) -> ASN1Result<ASN1Value>;
+
+    /// Encode any ASN.1 value into an X.690 encoding
     fn encode_any(&self, value: &ASN1Value) -> ASN1Result<X690Element>;
+
+    /// Encode a `BOOLEAN` value into an X.690 encoding
     fn encode_boolean(&self, value: &BOOLEAN) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(1).writer();
         x690_write_boolean_value(&mut out, value)?;
@@ -764,6 +824,8 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode an `INTEGER` value into an X.690 encoding
     fn encode_integer(&self, value: &INTEGER) -> ASN1Result<X690Element> {
         let mut out = BytesMut::new().writer();
         x690_write_integer_value(&mut out, &value)?;
@@ -772,6 +834,8 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode an `ENUMERATED` value into an X.690 encoding
     fn encode_enumerated(&self, value: &ENUMERATED) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(2).writer(); // Most enums are small.
         x690_write_enum_value(&mut out, &value)?;
@@ -780,14 +844,22 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode a `BIT STRING` value into an X.690 encoding
     fn encode_bit_string(&self, value: &BIT_STRING) -> ASN1Result<X690Element>;
+
+    /// Encode an `OCTET STRING` value into an X.690 encoding
     fn encode_octet_string(&self, value: &OCTET_STRING) -> ASN1Result<X690Element>;
+
+    /// Encode a `NULL` value into an X.690 encoding
     fn encode_null(&self, _value: &NULL) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
             X690Value::Primitive(Bytes::new()),
         ))
     }
+
+    /// Encode an `OBJECT IDENTIFIER` value into an X.690 encoding
     fn encode_object_identifier(&self, value: &OBJECT_IDENTIFIER) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.as_x690_slice().len()).writer();
         x690_write_object_identifier_value(&mut out, &value)?;
@@ -796,6 +868,8 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode an `EXTERNAL` value into an X.690 encoding
     fn encode_external(&self, value: &EXTERNAL) -> ASN1Result<X690Element> {
         let components = x690_encode_external_components(value)?;
         Ok(X690Element::new(
@@ -803,6 +877,8 @@ pub trait X690Codec {
             X690Value::Constructed(Arc::new(components)),
         ))
     }
+
+    /// Encode an `INSTANCE OF` value into an X.690 encoding
     fn encode_instance_of(&self, value: &INSTANCE_OF) -> ASN1Result<X690Element> {
         let external = EXTERNAL {
             identification: ExternalIdentification::syntax(value.type_id.clone()),
@@ -815,7 +891,11 @@ pub trait X690Codec {
             X690Value::Constructed(Arc::new(components)),
         ))
     }
+
+    /// Encode a `REAL` value into an X.690 encoding
     fn encode_real(&self, value: &REAL) -> ASN1Result<X690Element>;
+
+    /// Encode an `EMBEDDED PDV` value into an X.690 encoding
     fn encode_embedded_pdv(&self, value: &EMBEDDED_PDV) -> ASN1Result<X690Element> {
         let components = x690_encode_embedded_pdv_components(value)?;
         Ok(X690Element::new(
@@ -823,6 +903,8 @@ pub trait X690Codec {
             X690Value::Constructed(Arc::new(components)),
         ))
     }
+
+    /// Encode a `CHARACTER STRING` value into an X.690 encoding
     fn encode_character_string(&self, value: &CHARACTER_STRING) -> ASN1Result<X690Element> {
         let components = x690_encode_character_string_components(value)?;
         Ok(X690Element::new(
@@ -830,6 +912,8 @@ pub trait X690Codec {
             X690Value::Constructed(Arc::new(components)),
         ))
     }
+
+    /// Encode a `RELATIVE-OID` value into an X.690 encoding
     fn encode_relative_oid(&self, value: &RELATIVE_OID) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.as_x690_slice().len()).writer();
         x690_write_relative_oid_value(&mut out, &value)?;
@@ -838,17 +922,42 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+
+    /// Encode an `ObjectDescriptor` value into an X.690 encoding
     fn encode_object_descriptor(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `UTF8String` value into an X.690 encoding
     fn encode_utf8_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `NumericString` value into an X.690 encoding
     fn encode_numeric_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `PrintableString` value into an X.690 encoding
     fn encode_printable_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `T61String` / `TeletexString` value into an X.690 encoding
     fn encode_t61_string(&self, value: &T61String) -> ASN1Result<X690Element>;
+
+    /// Encode a `VideotexString` value into an X.690 encoding
     fn encode_videotex_string(&self, value: &VideotexString) -> ASN1Result<X690Element>;
+
+    /// Encode an `IA5String` value into an X.690 encoding
     fn encode_ia5_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `UTCTime` value into an X.690 encoding
     fn encode_utc_time(&self, value: &UTCTime) -> ASN1Result<X690Element>;
+
+    /// Encode a `GeneralizedTime` value into an X.690 encoding
     fn encode_generalized_time(&self, value: &GeneralizedTime) -> ASN1Result<X690Element>;
+
+    /// Encode a `GraphicString` value into an X.690 encoding
     fn encode_graphic_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `VisibleString` / `ISO646String` value into an X.690 encoding
     fn encode_visible_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `GeneralString` value into an X.690 encoding
     fn encode_general_string(&self, value: &str) -> ASN1Result<X690Element>;
 
     /// This is defined for efficiency: instead of _copying_ the the string into
@@ -868,8 +977,14 @@ pub trait X690Codec {
     // NOTE: There is no encode_owned_universal_string or
     // encode_owned_bmp_string, because there is no efficiency benefit, because
     // the underlying buffer cannot be written directly to the encoding buffer.
+
+    /// Encode a `UniversalString` value into an X.690 encoding
     fn encode_universal_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `BMPString` value into an X.690 encoding
     fn encode_bmp_string(&self, value: &str) -> ASN1Result<X690Element>;
+
+    /// Encode a `DATE` value into an X.690 encoding
     fn encode_date(&self, value: &DATE) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(10).writer(); // YYYY-MM-DD
         x690_write_date_value(&mut out, &value)?;
@@ -878,6 +993,8 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode a `TIME-OF-DAY` value into an X.690 encoding
     fn encode_time_of_day(&self, value: &TIME_OF_DAY) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(8).writer(); // HH:MM:SS
         x690_write_time_of_day_value(&mut out, &value)?;
@@ -886,6 +1003,8 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode a `DATE-TIME` value into an X.690 encoding
     fn encode_date_time(&self, value: &DATE_TIME) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(19).writer(); // 1951-10-14T15:30:00
         x690_write_date_time_value(&mut out, &value)?;
@@ -894,7 +1013,11 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode a `DURATION` value into an X.690 encoding
     fn encode_duration(&self, value: &DURATION) -> ASN1Result<X690Element>;
+
+    /// Encode an `OID-IRI` value into an X.690 encoding
     fn encode_oid_iri(&self, value: &OID_IRI) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
@@ -903,6 +1026,8 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode a `RELATIVE-OID-IRI` value into an X.690 encoding
     fn encode_relative_oid_iri(&self, value: &OID_IRI) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_string_value(&mut out, &value)?;
@@ -911,6 +1036,8 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Encode a `TIME` value into an X.690 encoding
     fn encode_time(&self, value: &TIME) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_time_value(&mut out, &value)?;
@@ -919,7 +1046,11 @@ pub trait X690Codec {
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
+
+    /// Validate an encoded `BOOLEAN` value from content octets
     fn validate_boolean_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `INTEGER` value from content octets
     fn validate_integer_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
@@ -933,38 +1064,95 @@ pub trait X690Codec {
         }
         return Ok(());
     }
+
+    /// Validate an encoded `BIT STRING` value from content octets
     fn validate_bit_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `OCTET STRING` value from content octets
     fn validate_octet_string_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `NULL` value from content octets
     fn validate_null_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `OBJECT IDENTIFIER` value from content octets
     fn validate_object_identifier_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `ObjectDescriptor` value from content octets
     fn validate_object_descriptor_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `REAL` value from content octets
     fn validate_real_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `ENUMERATED` value from content octets
     #[inline]
     fn validate_enumerated_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         self.validate_integer_value(content_octets)
     }
+
+    /// Validate an encoded `UTF8String` value from content octets
     fn validate_utf8_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `RELATIVE-OID` value from content octets
     fn validate_relative_object_identifier_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `TIME` value from content octets
     fn validate_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `NumericString` value from content octets
     fn validate_numeric_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `PrintableString` value from content octets
     fn validate_printable_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `T61String` / `TeletexString` value from content octets
     fn validate_t61_string_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `VideotexString` value from content octets
     fn validate_videotex_string_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `IA5String` value from content octets
     fn validate_ia5_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `UTCTime` value from content octets
     fn validate_utc_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `GeneralizedTime` value from content octets
     fn validate_generalized_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `GraphicString` value from content octets
     fn validate_graphic_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `VisibleString` value from content octets
     fn validate_visible_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `GeneralString` value from content octets
     fn validate_general_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `UniversalString` value from content octets
     fn validate_universal_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `BMPString` value from content octets
     fn validate_bmp_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `DATE` value from content octets
     fn validate_date_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `TIME-OF-DAY` value from content octets
     fn validate_time_of_day_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `DATE-TIME` value from content octets
     fn validate_date_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `DURATION` value from content octets
     fn validate_duration_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `OID-IRI` value from content octets
     fn validate_oid_iri_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+
+    /// Validate an encoded `RELATIVE-OID-IRI` value from content octets
     fn validate_relative_oid_iri_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
 
+    /// Validate an encoded `BOOLEAN`
     fn validate_boolean(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_boolean_value(&v),
@@ -980,6 +1168,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `INTEGER`
     fn validate_integer(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_integer_value(&v),
@@ -995,8 +1185,14 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `BIT STRING`
     fn validate_bit_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `OCTET STRING`
     fn validate_octet_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `NULL`
     fn validate_null(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_null_value(&v),
@@ -1012,6 +1208,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `OBJECT IDENTIFIER`
     fn validate_object_identifier(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_object_identifier_value(&v),
@@ -1027,7 +1225,11 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `ObjectDescriptor`
     fn validate_object_descriptor(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `REAL`
     fn validate_real(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_real_value(&v),
@@ -1043,6 +1245,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `ENUMERATED`
     fn validate_enumerated(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_enumerated_value(&v),
@@ -1058,7 +1262,11 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `UTF8String`
     fn validate_utf8_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `RELATIVE-OID`
     fn validate_relative_object_identifier(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_relative_object_identifier_value(&v),
@@ -1074,6 +1282,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `TIME`
     fn validate_time(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_time_value(&v),
@@ -1089,18 +1299,44 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `NumericString`
     fn validate_numeric_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `PrintableString`
     fn validate_printable_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `T61String` / `TeletexString`
     fn validate_t61_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `VideotexString`
     fn validate_videotex_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `IA5String`
     fn validate_ia5_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `UTCTime`
     fn validate_utc_time(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `GeneralizedTime`
     fn validate_generalized_time(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `GraphicString`
     fn validate_graphic_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `VisibleString` / `ISO646String`
     fn validate_visible_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `GeneralString`
     fn validate_general_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `UniversalString`
     fn validate_universal_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `BMPString`
     fn validate_bmp_string(&self, el: &X690Element) -> ASN1Result<()>;
+
+    /// Validate an encoded `DATE`
     fn validate_date(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_date_value(&v),
@@ -1116,6 +1352,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `TIME-OF-DAY`
     fn validate_time_of_day(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_time_of_day_value(&v),
@@ -1131,6 +1369,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `DATE-TIME`
     fn validate_date_time(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_date_time_value(&v),
@@ -1146,6 +1386,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `DURATION`
     fn validate_duration(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_duration_value(&v),
@@ -1161,6 +1403,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `OID-IRI`
     fn validate_oid_iri(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_oid_iri_value(&v),
@@ -1176,6 +1420,8 @@ pub trait X690Codec {
             },
         }
     }
+
+    /// Validate an encoded `RELATIVE-OID-IRI`
     fn validate_relative_oid_iri(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_relative_oid_iri_value(&v),
@@ -1192,6 +1438,7 @@ pub trait X690Codec {
         }
     }
 
+    /// Validate an encoded `EXTERNAL`
     fn validate_external(&self, el: &X690Element) -> ASN1Result<()> {
         let invalid_cons = || {
             let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
@@ -1246,6 +1493,7 @@ pub trait X690Codec {
         Ok(())
     }
 
+    /// Validate an encoded `EMBEDDED PDV`
     fn validate_embedded_pdv(&self, el: &X690Element) -> ASN1Result<()> {
         // you can use the same code for parsing the
         let children = el.value.components()?;
@@ -1258,7 +1506,7 @@ pub trait X690Codec {
         for (i, fallible_component_name) in it.enumerate() {
             let component_name = fallible_component_name?;
             match component_name {
-                "identification" => validate_presentation_context_switching_type_id(self, &children[i])?,
+                "identification" => self.validate_presentation_context_switching_type_id(&children[i])?,
                 "data-value-descriptor" => self.validate_object_descriptor(&children[i])?,
                 "data-value" => self.validate_octet_string(&children[i])?,
                 _ => { // This type is NOT extensible.
@@ -1272,6 +1520,7 @@ pub trait X690Codec {
         Ok(())
     }
 
+    /// Validate an encoded `CHARACTER STRING`
     fn validate_character_string(&self, el: &X690Element) -> ASN1Result<()> {
         // you can use the same code for parsing the
         let children: Arc<Vec<X690Element>> = el.components()?;
@@ -1284,7 +1533,7 @@ pub trait X690Codec {
         for (i, fallible_component_name) in it.enumerate() {
             let component_name = fallible_component_name?;
             match component_name {
-                "identification" => validate_presentation_context_switching_type_id(self, &children[i])?,
+                "identification" => self.validate_presentation_context_switching_type_id(&children[i])?,
                 "string-value" => self.validate_octet_string(&children[i])?,
                 _ => { // This type is NOT extensible.
                     let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);
@@ -1297,6 +1546,7 @@ pub trait X690Codec {
         Ok(())
     }
 
+    /// Validate any encoded ASN.1 value
     fn validate_any (&self, el: &X690Element) -> ASN1Result<()> {
         if el.tag.tag_class != TagClass::UNIVERSAL {
             match &el.value {
@@ -1360,143 +1610,211 @@ pub trait X690Codec {
         }
     }
 
+    /// Write a `BOOLEAN` value as an X.690 encoding to a writable stream
     fn write_boolean<W>(&self, output: &mut W, value: &BOOLEAN) -> Result<usize> where W: Write {
         let enc = self.encode_boolean(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `INTEGER` value as an X.690 encoding to a writable stream
     fn write_integer<W>(&self, output: &mut W, value: &INTEGER) -> Result<usize> where W: Write {
         let enc = self.encode_integer(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `ENUMERATED` value as an X.690 encoding to a writable stream
     fn write_enumerated<W>(&self, output: &mut W, value: &ENUMERATED) -> Result<usize> where W: Write {
         let enc = self.encode_enumerated(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `BIT STRING` value as an X.690 encoding to a writable stream
     fn write_bit_string<W>(&self, output: &mut W, value: &BIT_STRING) -> Result<usize> where W: Write {
         let enc = self.encode_bit_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `OCTET STRING` value as an X.690 encoding to a writable stream
     fn write_octet_string<W>(&self, output: &mut W, value: &OCTET_STRING) -> Result<usize> where W: Write {
         let enc = self.encode_octet_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `NULL` value as an X.690 encoding to a writable stream
     fn write_null<W>(&self, output: &mut W, value: &NULL) -> Result<usize> where W: Write {
         let enc = self.encode_null(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `OBJECT IDENTIFIER` value as an X.690 encoding to a writable stream
     fn write_object_identifier<W>(&self, output: &mut W, value: &OBJECT_IDENTIFIER) -> Result<usize> where W: Write {
         let enc = self.encode_object_identifier(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `EXTERNAL` value as an X.690 encoding to a writable stream
     fn write_external<W>(&self, output: &mut W, value: &EXTERNAL) -> Result<usize> where W: Write {
         let enc = self.encode_external(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `INSTANCE OF` value as an X.690 encoding to a writable stream
     fn write_instance_of<W>(&self, output: &mut W, value: &INSTANCE_OF) -> Result<usize> where W: Write {
         let enc = self.encode_instance_of(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `REAL` value as an X.690 encoding to a writable stream
     fn write_real<W>(&self, output: &mut W, value: &REAL) -> Result<usize> where W: Write {
         let enc = self.encode_real(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `EMBEDDED PDV` value as an X.690 encoding to a writable stream
     fn write_embedded_pdv<W>(&self, output: &mut W, value: &EMBEDDED_PDV) -> Result<usize> where W: Write {
         let enc = self.encode_embedded_pdv(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `CHARACTER STRING` value as an X.690 encoding to a writable stream
     fn write_character_string<W>(&self, output: &mut W, value: &CHARACTER_STRING) -> Result<usize> where W: Write {
         let enc = self.encode_character_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `RELATIVE-OID` value as an X.690 encoding to a writable stream
     fn write_relative_oid<W>(&self, output: &mut W, value: &RELATIVE_OID) -> Result<usize> where W: Write {
         let enc = self.encode_relative_oid(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `ObjectDescriptor` value as an X.690 encoding to a writable stream
     fn write_object_descriptor<W>(&self, output: &mut W, value: &ObjectDescriptor) -> Result<usize> where W: Write {
         let enc = self.encode_object_descriptor(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `UTF8String` value as an X.690 encoding to a writable stream
     fn write_utf8_string<W>(&self, output: &mut W, value: &str) -> Result<usize> where W: Write {
         let enc = self.encode_utf8_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `NumericString` value as an X.690 encoding to a writable stream
     fn write_numeric_string<W>(&self, output: &mut W, value: &str) -> Result<usize> where W: Write {
         let enc = self.encode_numeric_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `PrintableString` value as an X.690 encoding to a writable stream
     fn write_printable_string<W>(&self, output: &mut W, value: &str) -> Result<usize> where W: Write {
         let enc = self.encode_printable_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `T61String` / `TeletexString` value as an X.690 encoding to a writable stream
     fn write_t61_string<W>(&self, output: &mut W, value: &T61String) -> Result<usize> where W: Write {
         let enc = self.encode_t61_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `VideotexString` value as an X.690 encoding to a writable stream
     fn write_videotex_string<W>(&self, output: &mut W, value: &VideotexString) -> Result<usize> where W: Write {
         let enc = self.encode_videotex_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `IA5String` value as an X.690 encoding to a writable stream
     fn write_ia5_string<W>(&self, output: &mut W, value: &IA5String) -> Result<usize> where W: Write {
         let enc = self.encode_ia5_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `UTCTime` value as an X.690 encoding to a writable stream
     fn write_utc_time<W>(&self, output: &mut W, value: &UTCTime) -> Result<usize> where W: Write {
         let enc = self.encode_utc_time(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `GeneralizedTime` value as an X.690 encoding to a writable stream
     fn write_generalized_time<W>(&self, output: &mut W, value: &GeneralizedTime) -> Result<usize> where W: Write {
         let enc = self.encode_generalized_time(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `GraphicString` value as an X.690 encoding to a writable stream
     fn write_graphic_string<W>(&self, output: &mut W, value: &GraphicString) -> Result<usize> where W: Write {
         let enc = self.encode_graphic_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `VisibleString` / `ISO646String` value as an X.690 encoding to a writable stream
     fn write_visible_string<W>(&self, output: &mut W, value: &VisibleString) -> Result<usize> where W: Write {
         let enc = self.encode_visible_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `GeneralString` value as an X.690 encoding to a writable stream
     fn write_general_string<W>(&self, output: &mut W, value: &GeneralString) -> Result<usize> where W: Write {
         let enc = self.encode_general_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `UniversalString` value as an X.690 encoding to a writable stream
     fn write_universal_string<W>(&self, output: &mut W, value: &UniversalString) -> Result<usize> where W: Write {
         let enc = self.encode_universal_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `BMPString` value as an X.690 encoding to a writable stream
     fn write_bmp_string<W>(&self, output: &mut W, value: &BMPString) -> Result<usize> where W: Write {
         let enc = self.encode_bmp_string(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `DATE` value as an X.690 encoding to a writable stream
     fn write_date<W>(&self, output: &mut W, value: &DATE) -> Result<usize> where W: Write {
         let enc = self.encode_date(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `TIME-OF-DAY` value as an X.690 encoding to a writable stream
     fn write_time_of_day<W>(&self, output: &mut W, value: &TIME_OF_DAY) -> Result<usize> where W: Write {
         let enc = self.encode_time_of_day(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `DATE-TIME` value as an X.690 encoding to a writable stream
     fn write_date_time<W>(&self, output: &mut W, value: &DATE_TIME) -> Result<usize> where W: Write {
         let enc = self.encode_date_time(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `DURATION` value as an X.690 encoding to a writable stream
     fn write_duration<W>(&self, output: &mut W, value: &DURATION) -> Result<usize> where W: Write {
         let enc = self.encode_duration(value)?;
         self.write(output, &enc)
     }
+
+    /// Write an `OID-IRI` value as an X.690 encoding to a writable stream
     fn write_oid_iri<W>(&self, output: &mut W, value: &OID_IRI) -> Result<usize> where W: Write {
         let enc = self.encode_oid_iri(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `RELATIVE-OID-IRI` value as an X.690 encoding to a writable stream
     fn write_relative_oid_iri<W>(&self, output: &mut W, value: &OID_IRI) -> Result<usize> where W: Write {
         let enc = self.encode_relative_oid_iri(value)?;
         self.write(output, &enc)
     }
+
+    /// Write a `TIME` value as an X.690 encoding to a writable stream
     fn write_time<W>(&self, output: &mut W, value: &TIME) -> Result<usize> where W: Write {
         let enc = self.encode_time(value)?;
         self.write(output, &enc)
     }
 
+    /// Encode an `i8` value as an X.690 encoding of an `INTEGER`
     fn encode_i8 (&self, value: i8) -> ASN1Result<X690Element> {
         let mut content = BytesMut::with_capacity(1);
         content.put_i8(value);
@@ -1506,6 +1824,7 @@ pub trait X690Codec {
         ))
     }
 
+    /// Decode an `i8` from an X.690-encoded `INTEGER`
     fn decode_i8 (&self, el: &X690Element) -> ASN1Result<i8> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1513,6 +1832,7 @@ pub trait X690Codec {
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `i8`
     fn validate_i8 (&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(x) => if x.len() == 1 {
@@ -1530,10 +1850,12 @@ pub trait X690Codec {
         }
     }
 
+    /// Encode a `u8` value as an X.690 encoding of an `INTEGER`
     fn encode_u8 (&self, value: u8) -> ASN1Result<X690Element> {
         self.encode_i16(value.into())
     }
 
+    /// Decode a `u8` from an X.690-encoded `INTEGER`
     fn decode_u8 (&self, el: &X690Element) -> ASN1Result<u8> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1541,6 +1863,7 @@ pub trait X690Codec {
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `u8`
     fn validate_u8 (&self, el: &X690Element) -> ASN1Result<()> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1550,6 +1873,7 @@ pub trait X690Codec {
         Ok(())
     }
 
+    /// Encode an `i16` value as an X.690 encoding of an `INTEGER`
     fn encode_i16 (&self, value: i16) -> ASN1Result<X690Element> {
         let possible_i8 = value.try_into();
         match possible_i8 {
@@ -1565,6 +1889,7 @@ pub trait X690Codec {
         }
     }
 
+    /// Decode an `i16` from an X.690-encoded `INTEGER`
     fn decode_i16 (&self, el: &X690Element) -> ASN1Result<i16> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1572,6 +1897,7 @@ pub trait X690Codec {
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `i16`
     fn validate_i16 (&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => {
@@ -1588,10 +1914,12 @@ pub trait X690Codec {
         }
     }
 
+    /// Encode a `u16` value as an X.690 encoding of an `INTEGER`
     fn encode_u16 (&self, value: u16) -> ASN1Result<X690Element> {
         self.encode_i32(value.into())
     }
 
+    /// Decode a `u16` from an X.690-encoded `INTEGER`
     fn decode_u16 (&self, el: &X690Element) -> ASN1Result<u16> {
         let int_bytes = match &el.value {
             X690Value::Primitive(v) => v,
@@ -1613,6 +1941,7 @@ pub trait X690Codec {
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `u16`
     fn validate_u16 (&self, el: &X690Element) -> ASN1Result<()> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1622,6 +1951,7 @@ pub trait X690Codec {
         Ok(())
     }
 
+    /// Encode an `i32` value as an X.690 encoding of an `INTEGER`
     fn encode_i32 (&self, value: i32) -> ASN1Result<X690Element> {
         let possible_i16 = value.try_into();
         match possible_i16 {
@@ -1649,6 +1979,7 @@ pub trait X690Codec {
         }
     }
 
+    /// Decode an `i32` from an X.690-encoded `INTEGER`
     fn decode_i32 (&self, el: &X690Element) -> ASN1Result<i32> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1656,6 +1987,7 @@ pub trait X690Codec {
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `i32`
     fn validate_i32 (&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => {
@@ -1672,10 +2004,12 @@ pub trait X690Codec {
         }
     }
 
+    /// Encode a `u32` value as an X.690 encoding of an `INTEGER`
     fn encode_u32 (&self, value: u32) -> ASN1Result<X690Element> {
         self.encode_i64(value.into())
     }
 
+    /// Decode a `u32`
     fn decode_u32 (&self, el: &X690Element) -> ASN1Result<u32> {
         let int_bytes = match &el.value {
             X690Value::Primitive(v) => v,
@@ -1699,6 +2033,7 @@ pub trait X690Codec {
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `u32`
     fn validate_u32 (&self, el: &X690Element) -> ASN1Result<()> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1708,6 +2043,7 @@ pub trait X690Codec {
         Ok(())
     }
 
+    /// Encode an `i64` value as an X.690 encoding of an `INTEGER`
     fn encode_i64 (&self, value: i64) -> ASN1Result<X690Element> {
         let bytes: [u8; 8] = value.to_be_bytes();
         let padding_byte: u8 = if value >= 0 { 0x00 } else { 0xFF };
@@ -1734,12 +2070,14 @@ pub trait X690Codec {
         ));
     }
 
+    /// Decode an `i64` from an X.690-encoded `INTEGER`
     fn decode_i64 (&self, el: &X690Element) -> ASN1Result<i64> {
         let int_bytes = self.decode_integer(el)?;
         read_i64(&int_bytes)
             .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `i64`
     fn validate_i64 (&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => {
@@ -1756,6 +2094,7 @@ pub trait X690Codec {
         }
     }
 
+    /// Encode a `u64` value as an X.690 encoding of an `INTEGER`
     fn encode_u64 (&self, value: u64) -> ASN1Result<X690Element> {
         let bytes: [u8; 8] = value.to_be_bytes();
         let padding_byte: u8 = 0x00;
@@ -1781,6 +2120,7 @@ pub trait X690Codec {
         ));
     }
 
+    /// Decode a `u64` from an X.690-encoded `INTEGER`
     fn decode_u64 (&self, el: &X690Element) -> ASN1Result<u64> {
         let int_bytes = match &el.value {
             X690Value::Primitive(v) => v,
@@ -1808,6 +2148,7 @@ pub trait X690Codec {
         i.try_into().map_err(|_| el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `u64`
     fn validate_u64 (&self, el: &X690Element) -> ASN1Result<()> {
         let int_bytes = self.decode_integer(el)?;
         let i = read_i64(&int_bytes)
@@ -1817,6 +2158,7 @@ pub trait X690Codec {
         Ok(())
     }
 
+    /// Encode an `i128` value as an X.690 encoding of an `INTEGER`
     fn encode_i128 (&self, value: i128) -> ASN1Result<X690Element> {
         let bytes: [u8; 16] = value.to_be_bytes();
         let padding_byte: u8 = if value >= 0 { 0x00 } else { 0xFF };
@@ -1843,11 +2185,13 @@ pub trait X690Codec {
         ));
     }
 
+    /// Decode an `i128` from an X.690-encoded `INTEGER`
     fn decode_i128 (&self, el: &X690Element) -> ASN1Result<i128> {
         read_i128(&el.content_octets()?.as_ref())
             .ok_or(el.to_asn1_error(ASN1ErrorCode::value_too_big))
     }
 
+    /// Validate an encoded `i128`
     fn validate_i128 (&self, el: &X690Element) -> ASN1Result<()> {
         let content_octets = el.content_octets()?;
         if content_octets.len() > 16 {
@@ -1857,6 +2201,7 @@ pub trait X690Codec {
         }
     }
 
+    /// Encode a `u128` value as an X.690 encoding of an `INTEGER`
     fn encode_u128 (&self, value: u128) -> ASN1Result<X690Element> {
         let bytes: [u8; 16] = value.to_be_bytes();
         let padding_byte: u8 = 0x00;
@@ -1882,6 +2227,7 @@ pub trait X690Codec {
         ));
     }
 
+    /// Decode a `u128` from an X.690-encoded `INTEGER`
     fn decode_u128 (&self, el: &X690Element) -> ASN1Result<u128> {
         let int_bytes = match &el.value {
             X690Value::Primitive(v) => v,
@@ -1917,6 +2263,7 @@ pub trait X690Codec {
         Ok(i as u128)
     }
 
+    /// Validate an encoded `u128`
     fn validate_u128 (&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => {
@@ -1935,23 +2282,31 @@ pub trait X690Codec {
 
 }
 
+/// The Basic Encoding Rules (BER)
 pub struct BasicEncodingRules;
+
+/// The Canonical Encoding Rules (CER)
 pub struct CanonicalEncodingRules;
+
+/// The Distinguished Encoding Rules (DER)
 pub struct DistinguishedEncodingRules;
 
 impl BasicEncodingRules {
+    /// Instantiate the Basic Encoding Rules (BER)
     pub const fn new() -> Self {
         BasicEncodingRules {}
     }
 }
 
 impl CanonicalEncodingRules {
+    /// Instantiate the Canonical Encoding Rules (CER)
     pub const fn new() -> Self {
         CanonicalEncodingRules {}
     }
 }
 
 impl DistinguishedEncodingRules {
+    /// Instantiate the Distinguished Encoding Rules (DER)
     pub const fn new() -> Self {
         DistinguishedEncodingRules {}
     }

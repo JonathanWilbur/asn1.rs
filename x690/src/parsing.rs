@@ -12,17 +12,32 @@ use std::sync::Arc;
 use crate::utils::unlikely;
 use std::iter::FusedIterator;
 
-// Return `true` if successfully handled; `false` if error. Parsing will not continue if `false` returned.
+/// A function type for handling components during parsing.
+/// 
+/// Returns `true` if successfully handled; `false` if error. 
+/// Parsing will not continue if `false` is returned.
 pub type ComponentHandler<'a> = &'a dyn FnMut(&X690Element) -> bool;
 
+/// A mapping of component names to their handler functions.
 pub type ComponentHandlers<'a> = HashMap<&'a str, ComponentHandler<'a>>;
 
+/// A mapping of tags to component names and their handler functions for alternative parsing.
 pub type AlternativeHandlers<'a> = HashMap<Tag, (&'a str, ComponentHandler<'a>)>;
 
+/// A function type for decoding ASN.1 elements into a specific type.
 pub type Decoder<T> = fn(el: &X690Element) -> ASN1Result<T>;
 
+/// A tuple containing recognized components (by name) and unrecognized components.
 pub type IndexedComponents<'a> = (HashMap<&'a str, X690Element>, Vec<X690Element>);
 
+/// Determines if an element matches a given tag selector.
+/// 
+/// # Arguments
+/// * `el` - The X.690 element to check
+/// * `sel` - The tag selector to match against
+/// 
+/// # Returns
+/// `true` if the element matches the selector, `false` otherwise.
 pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
     match sel {
         TagSelector::tag((tc, tn)) => (el.tag.tag_class == tc) && (el.tag.tag_number == tn),
@@ -34,9 +49,21 @@ pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
     }
 }
 
-/// Parse a `SET`
+/// Parse a `SET` structure according to X.690 rules.
 ///
-/// Returns a tuple containing a mapping of the recognized components by name
+/// This function parses a SET by matching elements against component specifications
+/// and checking for duplicate tags. It handles required/optional components and
+/// extension additions.
+///
+/// # Arguments
+/// * `elements` - The encoded elements to parse
+/// * `rctl1` - Root component type list 1
+/// * `eal` - Extension additions list
+/// * `rctl2` - Root component type list 2
+/// * `max_elements` - Maximum number of elements allowed
+///
+/// # Returns
+/// A tuple containing a mapping of the recognized components by name
 /// to the corresponding `X690Element`, and a vector of the unrecognized
 /// elements, wrapped in an `ASN1Result`.
 ///
@@ -177,6 +204,18 @@ pub fn _parse_set<'a>(
     Ok((recognized_components, unrecognized_components))
 }
 
+/// Parse a component type list according to X.690 rules.
+///
+/// This function parses components in order, handling optional components
+/// and extension additions groups.
+///
+/// # Arguments
+/// * `ctl` - Component type list to parse against
+/// * `elements` - The encoded elements to parse
+/// * `is_extensions` - Whether this is parsing extension additions
+///
+/// # Returns
+/// A tuple containing the number of elements processed and the parsed components.
 pub fn _parse_component_type_list<'a>(
     ctl: &'a [ComponentSpec],
     elements: &'a [&'a X690Element],
@@ -241,10 +280,16 @@ pub fn _parse_component_type_list<'a>(
     Ok((e, ret))
 }
 
-
+/// An iterator over components in a component type list.
+///
+/// This iterator yields component names as it processes encoded elements
+/// according to the component specifications.
 pub struct X690ComponentIterator <'a> {
+    /// The component type list to parse against
     pub ctl: &'a [ComponentSpec<'a>],
+    /// The encoded elements to iterate over
     pub elements: &'a [X690Element],
+    /// Whether this is parsing extension additions
     pub is_extensions: bool,
     e: usize,
     s: usize,
@@ -253,6 +298,12 @@ pub struct X690ComponentIterator <'a> {
 
 impl <'a> X690ComponentIterator<'a> {
 
+    /// Create a new component iterator.
+    ///
+    /// # Arguments
+    /// * `ctl` - Component type list to parse against
+    /// * `elements` - The encoded elements to iterate over
+    /// * `is_extensions` - Whether this is parsing extension additions
     pub fn new (
         ctl: &'a [ComponentSpec],
         elements: &'a [X690Element],
@@ -351,6 +402,19 @@ impl <'a> Iterator for X690ComponentIterator<'a> {
 
 impl <'a> FusedIterator for X690ComponentIterator<'a> {}
 
+/// Parse a component type list using iteration.
+///
+/// This is an alternative implementation that uses iteration to parse
+/// component type lists. It provides the same functionality as
+/// `_parse_component_type_list` but with a different approach.
+///
+/// # Arguments
+/// * `ctl` - Component type list to parse against
+/// * `elements` - The encoded elements to parse
+/// * `is_extensions` - Whether this is parsing extension additions
+///
+/// # Returns
+/// A tuple containing the number of elements processed and the parsed components.
 pub fn _iter_component_type_list<'a>(
     ctl: &'a [ComponentSpec],
     elements: &'a [&'a X690Element],
@@ -415,6 +479,16 @@ pub fn _iter_component_type_list<'a>(
     Ok((e, ret))
 }
 
+/// Get the number of possible initial components in a component type list.
+///
+/// This function counts the number of required components at the beginning
+/// of a component type list.
+///
+/// # Arguments
+/// * `ctl` - The component type list to analyze
+///
+/// # Returns
+/// The number of possible initial components
 fn _get_possible_initial_components(ctl: &[ComponentSpec]) -> usize {
     let mut i = 0;
     while i < ctl.len() {
@@ -427,18 +501,29 @@ fn _get_possible_initial_components(ctl: &[ComponentSpec]) -> usize {
     i
 }
 
+/// Represents the current phase of structure iteration.
 enum X690StructureIterationPhase {
+    /// Processing root component type list 1
     RCTL1,
+    /// Processing extension additions list
     EAL,
+    /// Processing root component type list 2
     RCTL2,
 }
 
-/// Used for parsing `SEQUENCE`
-/// Returned name is "" for unrecognized extensions.
+/// An iterator over components in a SEQUENCE structure.
+///
+/// This iterator handles the complex parsing of SEQUENCE structures that
+/// may contain extension additions between required and optional components.
+/// The returned name is "" for unrecognized extensions.
 pub struct X690StructureIterator <'a> {
+    /// The encoded elements to iterate over
     pub elements: &'a [X690Element],
+    /// Root component type list 1 (required components)
     pub rctl1: &'a [ComponentSpec<'a>],
+    /// Extension additions list (optional extensions)
     pub eal: &'a [ComponentSpec<'a>],
+    /// Root component type list 2 (optional components after extensions)
     pub rctl2: &'a [ComponentSpec<'a>],
     ctl_iterator: X690ComponentIterator<'a>,
     phase: X690StructureIterationPhase,
@@ -448,6 +533,13 @@ pub struct X690StructureIterator <'a> {
 
 impl <'a> X690StructureIterator<'a> {
 
+    /// Create a new structure iterator.
+    ///
+    /// # Arguments
+    /// * `elements` - The encoded elements to iterate over
+    /// * `rctl1` - Root component type list 1
+    /// * `eal` - Extension additions list
+    /// * `rctl2` - Root component type list 2
     pub fn new (
         elements: &'a [X690Element],
         rctl1: &'a [ComponentSpec<'a>],
@@ -547,6 +639,17 @@ impl <'a> Iterator for X690StructureIterator<'a> {
 
 }
 
+/// Decode a SEQUENCE OF structure.
+///
+/// This function decodes a SEQUENCE OF by applying the item decoder
+/// to each element in the sequence.
+///
+/// # Arguments
+/// * `el` - The SEQUENCE OF element to decode
+/// * `item_decoder` - Function to decode individual items
+///
+/// # Returns
+/// A vector of decoded items
 pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
     let elements = el.value.components()
         .map_err(|e| {
@@ -564,6 +667,17 @@ pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN
     Ok(ret)
 }
 
+/// Decode a SET OF structure.
+///
+/// This function decodes a SET OF by applying the item decoder
+/// to each element in the set.
+///
+/// # Arguments
+/// * `el` - The SET OF element to decode
+/// * `item_decoder` - Function to decode individual items
+///
+/// # Returns
+/// A vector of decoded items
 pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
     let elements = el.value.components()
         .map_err(|e| {
@@ -581,6 +695,16 @@ pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Resu
     Ok(ret)
 }
 
+/// Encode an element with an explicit tag.
+///
+/// This function wraps an element in a constructed value with the specified tag.
+///
+/// # Arguments
+/// * `el` - The element to encode
+/// * `tag` - The explicit tag to apply
+///
+/// # Returns
+/// The encoded element with explicit tagging
 pub fn _encode_explicit(el: X690Element, tag: Tag) -> X690Element {
     X690Element::new(
         tag,
@@ -588,17 +712,47 @@ pub fn _encode_explicit(el: X690Element, tag: Tag) -> X690Element {
     )
 }
 
+/// Encode an element with an implicit tag.
+///
+/// This function changes the tag of an element without wrapping it
+/// in a constructed value.
+///
+/// # Arguments
+/// * `el` - The element to encode
+/// * `tag` - The implicit tag to apply
+///
+/// # Returns
+/// The encoded element with implicit tagging
 pub fn _encode_implicit(el: X690Element, tag: Tag) -> X690Element {
     let mut ret = el.clone();
     ret.tag = tag;
     ret
 }
 
-// This works as an encode and decode function.
+/// Identity function for X.690 elements.
+///
+/// This function works as both an encode and decode function,
+/// simply returning a clone of the input element.
+///
+/// # Arguments
+/// * `el` - The element to process
+///
+/// # Returns
+/// A clone of the input element
 pub fn x690_identity(el: &X690Element) -> ASN1Result<X690Element> {
     Ok(el.clone())
 }
 
+/// Add or remove component specifications from a tag mapping.
+///
+/// This helper function recursively processes tag selectors to build
+/// or modify a mapping from tags to component specifications.
+///
+/// # Arguments
+/// * `map` - The tag mapping to modify
+/// * `spec` - The component specification to add/remove
+/// * `selector` - The tag selector to process
+/// * `remove` - Whether to remove (true) or add (false) the specification
 fn add_to_tag_mapping <'a> (
     map: &mut HashMap<Tag, ComponentSpec<'a>>,
     spec: ComponentSpec<'a>,

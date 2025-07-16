@@ -1,3 +1,27 @@
+//! # X.690 Encoding Rules Library
+//! 
+//! This library provides comprehensive support for X.690 encoding rules, which define how ASN.1
+//! (Abstract Syntax Notation One) data structures are encoded for transmission and storage.
+//! 
+//! ## Overview
+//! 
+//! X.690 defines several encoding rules:
+//! - **BER (Basic Encoding Rules)**: The most flexible encoding, supporting both definite and indefinite lengths
+//! - **CER (Canonical Encoding Rules)**: A restricted form of BER that produces canonical encodings
+//! - **DER (Distinguished Encoding Rules)**: A restricted form of BER that produces unique encodings
+//! 
+//! This library focuses on BER encoding and decoding, providing a complete implementation
+//! of the X.690 specification.
+//! 
+//! ## Key Features
+//! 
+//! - Complete BER encoding and decoding support
+//! - Support for all ASN.1 universal types
+//! - Efficient memory management with zero-copy operations where possible
+//! - Comprehensive error handling with detailed error information
+//! - Support for both definite and indefinite length encoding
+//! - Tag and length encoding/decoding utilities
+
 pub mod ber;
 pub mod codec;
 pub mod parsing;
@@ -41,52 +65,123 @@ use std::mem::size_of;
 use std::sync::Arc;
 use bytes::{Bytes, BytesMut, BufMut};
 
+/// Tag class bits for `UNIVERSAL` tags in X.690 encoding
 pub const X690_TAG_CLASS_UNIVERSAL: u8 = 0b0000_0000;
-pub const X690_TAG_CLASS_APPLICATION: u8 = 0b0100_0000;
-pub const X690_TAG_CLASS_CONTEXT: u8 = 0b1000_0000;
-pub const X690_TAG_CLASS_PRIVATE: u8 = 0b1100_0000;
-pub const X690_SPECIAL_REAL_PLUS_INFINITY: u8 = 0b0000_0000;
-pub const X690_SPECIAL_REAL_MINUS_INFINITY: u8 = 0b0000_0001;
-pub const X690_SPECIAL_REAL_NOT_A_NUMBER: u8 = 0b0000_0010;
-pub const X690_SPECIAL_REAL_MINUS_ZERO: u8 = 0b0000_0011;
-pub const X690_REAL_SPECIAL: u8 = 0b0100_0000;
-pub const X690_REAL_BASE10: u8 = 0b0000_0000;
-pub const X690_REAL_BINARY: u8 = 0b1000_0000;
-pub const X690_REAL_POSITIVE: u8 = 0b0000_0000;
-pub const X690_REAL_NEGATIVE: u8 = 0b0100_0000;
-pub const X690_REAL_SIGN_MASK: u8 = 0b0100_0000;
-pub const X690_REAL_BASE_MASK: u8 = 0b0011_0000;
-pub const X690_REAL_BASE_2: u8 = 0b0000_0000;
-pub const X690_REAL_BASE_8: u8 = 0b0001_0000;
-pub const X690_REAL_BASE_16: u8 = 0b0010_0000;
-pub const X690_REAL_BASE_RESERVED: u8 = 0b0011_0000;
-pub const X690_REAL_BINARY_SCALING_MASK: u8 = 0b0000_1100;
-pub const X690_REAL_EXPONENT_FORMAT_MASK: u8 = 0b0000_0011;
-pub const X690_REAL_EXPONENT_FORMAT_1_OCTET: u8 = 0b0000_0000;
-pub const X690_REAL_EXPONENT_FORMAT_2_OCTET: u8 = 0b0000_0001;
-pub const X690_REAL_EXPONENT_FORMAT_3_OCTET: u8 = 0b0000_0010;
-pub const X690_REAL_EXPONENT_FORMAT_VAR_OCTET: u8 = 0b0000_0011;
-pub const X690_REAL_NR1: u8 = 1;
-pub const X690_REAL_NR2: u8 = 2;
-pub const X690_REAL_NR3: u8 = 3;
-// const IEEE_754_DPFP_SIGN_MASK
 
+/// Tag class bits for `APPLICATION` tags in X.690 encoding
+pub const X690_TAG_CLASS_APPLICATION: u8 = 0b0100_0000;
+
+/// Tag class bits for `CONTEXT` tags in X.690 encoding
+pub const X690_TAG_CLASS_CONTEXT: u8 = 0b1000_0000;
+
+/// Tag class bits for `PRIVATE` tags in X.690 encoding
+pub const X690_TAG_CLASS_PRIVATE: u8 = 0b1100_0000;
+
+/// Special `REAL` value constant for positive infinity
+pub const X690_SPECIAL_REAL_PLUS_INFINITY: u8 = 0b0000_0000;
+
+/// Special `REAL` value constant for negative infinity
+pub const X690_SPECIAL_REAL_MINUS_INFINITY: u8 = 0b0000_0001;
+
+/// Special `REAL` value constant for Not-a-Number (NaN)
+pub const X690_SPECIAL_REAL_NOT_A_NUMBER: u8 = 0b0000_0010;
+
+/// Special `REAL` value constant for negative zero
+pub const X690_SPECIAL_REAL_MINUS_ZERO: u8 = 0b0000_0011;
+
+/// Flag indicating a special `REAL` value
+pub const X690_REAL_SPECIAL: u8 = 0b0100_0000;
+
+/// Base encoding constant for base-10 `REAL` values
+pub const X690_REAL_BASE10: u8 = 0b0000_0000;
+
+/// Base encoding constant for binary `REAL` values
+pub const X690_REAL_BINARY: u8 = 0b1000_0000;
+
+/// Sign bit constant for positive `REAL` values
+pub const X690_REAL_POSITIVE: u8 = 0b0000_0000;
+
+/// Sign bit constant for negative `REAL` values
+pub const X690_REAL_NEGATIVE: u8 = 0b0100_0000;
+
+/// Bit mask for extracting the sign bit from `REAL` encoding
+pub const X690_REAL_SIGN_MASK: u8 = 0b0100_0000;
+
+/// Bit mask for extracting the base bits from `REAL` encoding
+pub const X690_REAL_BASE_MASK: u8 = 0b0011_0000;
+
+/// Base encoding constant for base-2 `REAL` values
+pub const X690_REAL_BASE_2: u8 = 0b0000_0000;
+
+/// Base encoding constant for base-8 `REAL` values
+pub const X690_REAL_BASE_8: u8 = 0b0001_0000;
+
+/// Base encoding constant for base-16 `REAL` values
+pub const X690_REAL_BASE_16: u8 = 0b0010_0000;
+
+/// Reserved base encoding constant for `REAL` values
+pub const X690_REAL_BASE_RESERVED: u8 = 0b0011_0000;
+
+/// Bit mask for extracting binary scaling factor from `REAL` encoding
+pub const X690_REAL_BINARY_SCALING_MASK: u8 = 0b0000_1100;
+
+/// Bit mask for extracting exponent format from `REAL` encoding
+pub const X690_REAL_EXPONENT_FORMAT_MASK: u8 = 0b0000_0011;
+
+/// Exponent format constant for 1-octet exponent
+pub const X690_REAL_EXPONENT_FORMAT_1_OCTET: u8 = 0b0000_0000;
+
+/// Exponent format constant for 2-octet exponent
+pub const X690_REAL_EXPONENT_FORMAT_2_OCTET: u8 = 0b0000_0001;
+
+/// Exponent format constant for 3-octet exponent
+pub const X690_REAL_EXPONENT_FORMAT_3_OCTET: u8 = 0b0000_0010;
+
+/// Exponent format constant for variable-length exponent
+pub const X690_REAL_EXPONENT_FORMAT_VAR_OCTET: u8 = 0b0000_0011;
+
+/// ISO 6093 NR1 format constant for `REAL` encoding
+pub const X690_REAL_NR1: u8 = 1;
+
+/// ISO 6093 NR2 format constant for `REAL` encoding
+pub const X690_REAL_NR2: u8 = 2;
+
+/// ISO 6093 NR3 format constant for `REAL` encoding
+pub const X690_REAL_NR3: u8 = 3;
+
+/// Represents the length of an X.690 encoded element
+/// 
+/// In X.690 encoding, lengths can be either definite (a specific number of octets)
+/// or indefinite (marked with a special value and terminated by end-of-content markers).
 #[derive(Clone, Debug, Hash, Copy, PartialEq, Eq)]
 pub enum X690Length {
+    /// Definite length with a specific number of octets
     Definite(usize),
+    /// Indefinite length, terminated by end-of-content markers
     Indefinite,
 }
 
+/// Represents the value content of an X.690 encoded element
+/// 
+/// X.690 values can be stored in different forms depending on how they were created
+/// and whether they need to be serialized for transmission.
 #[derive(Clone, Debug, Hash)]
 pub enum X690Value {
+    /// A primitive value stored as raw bytes
     Primitive(Bytes),
+    /// A constructed value containing child elements
     Constructed(Arc<Vec<X690Element>>),
+    /// A value that has been serialized to bytes (for lazy decoding or faster encoding)
     Serialized(Bytes),
 }
 
 impl X690Value {
 
-    // Returns the length of the content octets in bytes.
+    /// Returns the length of the content octets in bytes
+    /// 
+    /// For primitive values, this is the length of the raw bytes.
+    /// For constructed values, this is the sum of all child element lengths.
+    /// For serialized values, this decodes the serialized data to determine the length.
     pub fn len(&self) -> usize {
         match self {
             X690Value::Primitive(v) => v.len(),
@@ -104,10 +199,18 @@ impl X690Value {
         }
     }
 
+    /// Creates a constructed value from a single explicit element
+    /// 
+    /// This is used when an element needs to be wrapped in an explicit tag.
     pub fn from_explicit(inner: X690Element) -> Self {
         X690Value::Constructed(Arc::new(Vec::from([ inner ])))
     }
 
+    /// Returns the components of a constructed value
+    /// 
+    /// For constructed values, returns the child elements.
+    /// For serialized values, decodes the serialized data and returns the components.
+    /// For primitive values, returns an error.
     pub fn components(&self) -> ASN1Result<Arc<Vec<X690Element>>> {
         match self {
             X690Value::Constructed(components) => Ok(components.clone()),
@@ -121,18 +224,29 @@ impl X690Value {
 
 }
 
+/// Represents a complete X.690 encoded element with tag and value
+/// 
+/// An `X690Element` contains a tag that identifies the type and class of the element,
+/// and a value that contains the actual data. The value can be primitive (raw bytes),
+/// constructed (containing child elements), or serialized (encoded bytes).
 #[derive(Clone, Debug, Hash)]
 pub struct X690Element {
+    /// The tag identifying the type and class of this element
     pub tag: Tag,
+    /// The value content of this element
     pub value: X690Value,
 }
 
 impl X690Element {
 
+    /// Creates a new `X690Element` with the specified tag and value
     pub fn new(tag: Tag, value: X690Value) -> X690Element {
         X690Element { tag, value }
     }
 
+    /// Returns the total length of this element in bytes when encoded
+    /// 
+    /// This includes the tag bytes, length bytes, and value bytes.
     pub fn len(&self) -> usize {
         let tag_length: usize = get_written_x690_tag_length(self.tag.tag_number);
         let value_length = self.value.len();
@@ -141,6 +255,11 @@ impl X690Element {
         ret
     }
 
+    /// Returns true if this element is constructed (contains child elements)
+    /// 
+    /// For serialized values, this checks the constructed bit in the tag.
+    /// For constructed values, this always returns true.
+    /// For primitive values, this always returns false.
     pub fn is_constructed (&self) -> bool {
         if let X690Value::Serialized(v) = &self.value {
             return v.get(0).is_some_and(|b| (*b & 0b0010_0000) == 0b0010_0000);
@@ -152,10 +271,17 @@ impl X690Element {
         }
     }
 
+    /// Returns the components of this element if it is constructed
+    /// 
+    /// This is a convenience method that delegates to the value's [`X690Value::components`] method.
     pub fn components (&self) -> ASN1Result<Arc<Vec<X690Element>>> {
         self.value.components()
     }
 
+    /// Returns the inner element if this is an explicit wrapper
+    /// 
+    /// For explicit tagged values, this returns the single child element.
+    /// For other values, this returns an error.
     pub fn inner(&self) -> ASN1Result<X690Element> {
         match &self.value {
             X690Value::Constructed(components) => {
@@ -172,6 +298,11 @@ impl X690Element {
         }
     }
 
+    /// Returns the content octets of this element
+    /// 
+    /// For primitive values, returns the raw bytes.
+    /// For constructed values, serializes the child elements and returns the bytes.
+    /// For serialized values, decodes and returns the content octets.
     pub fn content_octets <'a> (&'a self) -> ASN1Result<Cow<'a, [u8]>> {
         match &self.value {
             X690Value::Primitive(v) => Ok(Cow::Borrowed(&v)),
@@ -195,6 +326,10 @@ impl X690Element {
         }
     }
 
+    /// Creates an `ASN1Error` with information from this element
+    /// 
+    /// This is useful for creating detailed error messages that include
+    /// information about the element that caused the error.
     pub fn to_asn1_error (&self, errcode: ASN1ErrorCode) -> ASN1Error {
         ASN1Error {
             error_code: errcode,
@@ -209,6 +344,10 @@ impl X690Element {
         }
     }
 
+    /// Creates an `ASN1Error` with information from this element and a component name
+    /// 
+    /// This is useful for creating detailed error messages that include
+    /// information about the element and the specific component that caused the error.
     pub fn to_asn1_err_named (&self, errcode: ASN1ErrorCode, name: &str) -> ASN1Error {
         ASN1Error {
             error_code: errcode,
@@ -223,6 +362,11 @@ impl X690Element {
         }
     }
 
+    /// Returns `true` if this element is empty
+    /// 
+    /// For primitive values, checks if the byte length is zero.
+    /// For constructed values, checks if there are no child elements.
+    /// For serialized values, checks if the serialized data is minimal (just tag and length).
     pub fn is_empty (&self) -> bool {
         match &self.value {
             X690Value::Primitive(v) => v.len() == 0,
@@ -234,6 +378,7 @@ impl X690Element {
 }
 
 impl From<i8> for X690Element {
+    /// Converts an `i8` to an `X690Element` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: i8) -> Self {
         BER.encode_i8(value).unwrap()
@@ -241,6 +386,7 @@ impl From<i8> for X690Element {
 }
 
 impl From<i16> for X690Element {
+    /// Converts an `i16` to an `X690Element` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: i16) -> Self {
         BER.encode_i16(value).unwrap()
@@ -248,6 +394,7 @@ impl From<i16> for X690Element {
 }
 
 impl From<i32> for X690Element {
+    /// Converts an `i32` to an `X690Element` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: i32) -> Self {
         BER.encode_i32(value).unwrap()
@@ -255,6 +402,7 @@ impl From<i32> for X690Element {
 }
 
 impl From<i64> for X690Element {
+    /// Converts an `i64` to an `X690Element` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: i64) -> Self {
         BER.encode_i64(value).unwrap()
@@ -262,6 +410,7 @@ impl From<i64> for X690Element {
 }
 
 impl From<u8> for X690Element {
+    /// Converts a `u8` to an `X690Element` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: u8) -> Self {
         BER.encode_u8(value).unwrap()
@@ -269,6 +418,7 @@ impl From<u8> for X690Element {
 }
 
 impl From<u16> for X690Element {
+    /// Converts a `u16` to an `X690Element` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: u16) -> Self {
         BER.encode_u16(value).unwrap()
@@ -276,6 +426,7 @@ impl From<u16> for X690Element {
 }
 
 impl From<u32> for X690Element {
+    /// Converts a `u32` to an `X690Element` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: u32) -> Self {
         BER.encode_u32(value).unwrap()
@@ -283,6 +434,7 @@ impl From<u32> for X690Element {
 }
 
 impl From<u64> for X690Element {
+    /// Converts a `u64` to an ``X690Element`` by encoding it as an `INTEGER`
     #[inline]
     fn from(value: u64) -> Self {
         BER.encode_u64(value).unwrap()
@@ -290,6 +442,7 @@ impl From<u64> for X690Element {
 }
 
 impl From<OBJECT_IDENTIFIER> for X690Element {
+    /// Converts an `OBJECT_IDENTIFIER` to an `X690Element` by encoding it
     #[inline]
     fn from(value: OBJECT_IDENTIFIER) -> Self {
         X690Element::from(&value)
@@ -297,6 +450,7 @@ impl From<OBJECT_IDENTIFIER> for X690Element {
 }
 
 impl From<&OBJECT_IDENTIFIER> for X690Element {
+    /// Converts a reference to an `OBJECT_IDENTIFIER` to an `X690Element` by encoding it
     #[inline]
     fn from(value: &OBJECT_IDENTIFIER) -> Self {
         BER.encode_object_identifier(value).unwrap()
@@ -304,6 +458,7 @@ impl From<&OBJECT_IDENTIFIER> for X690Element {
 }
 
 impl From<bool> for X690Element {
+    /// Converts a bool to an X690Element by encoding it as a BOOLEAN
     #[inline]
     fn from(value: bool) -> Self {
         BER.encode_boolean(&value).unwrap()
@@ -311,6 +466,7 @@ impl From<bool> for X690Element {
 }
 
 impl From<DATE> for X690Element {
+    /// Converts a `DATE` to an `X690Element` by encoding it
     #[inline]
     fn from(value: DATE) -> Self {
         BER.encode_date(&value).unwrap()
@@ -318,6 +474,7 @@ impl From<DATE> for X690Element {
 }
 
 impl From<TIME_OF_DAY> for X690Element {
+    /// Converts a `TIME_OF_DAY` to an `X690Element` by encoding it
     #[inline]
     fn from(value: TIME_OF_DAY) -> Self {
         BER.encode_time_of_day(&value).unwrap()
@@ -325,6 +482,7 @@ impl From<TIME_OF_DAY> for X690Element {
 }
 
 impl From<DATE_TIME> for X690Element {
+    /// Converts a `DATE_TIME` to an `X690Element` by encoding it
     #[inline]
     fn from(value: DATE_TIME) -> Self {
         BER.encode_date_time(&value).unwrap()
@@ -332,6 +490,7 @@ impl From<DATE_TIME> for X690Element {
 }
 
 impl From<TIME> for X690Element {
+    /// Converts a `TIME` to an `X690Element` by encoding it
     #[inline]
     fn from(value: TIME) -> Self {
         BER.encode_time(&value).unwrap()
@@ -339,6 +498,7 @@ impl From<TIME> for X690Element {
 }
 
 impl From<DURATION> for X690Element {
+    /// Converts a `DURATION` to an `X690Element` by encoding it
     #[inline]
     fn from(value: DURATION) -> Self {
         BER.encode_duration(&value).unwrap()
@@ -347,6 +507,7 @@ impl From<DURATION> for X690Element {
 
 impl TryInto<i8> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as an `i8` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<i8> {
         BER.decode_i8(&self)
@@ -355,6 +516,7 @@ impl TryInto<i8> for X690Element {
 
 impl TryInto<i16> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as an `i16` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<i16> {
         BER.decode_i16(&self)
@@ -363,6 +525,7 @@ impl TryInto<i16> for X690Element {
 
 impl TryInto<i32> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as an `i32` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<i32> {
         BER.decode_i32(&self)
@@ -371,6 +534,7 @@ impl TryInto<i32> for X690Element {
 
 impl TryInto<i64> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as an `i64` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<i64> {
         BER.decode_i64(&self)
@@ -379,6 +543,7 @@ impl TryInto<i64> for X690Element {
 
 impl TryInto<i128> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as an `i128` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<i128> {
         BER.decode_i128(&self)
@@ -387,6 +552,7 @@ impl TryInto<i128> for X690Element {
 
 impl TryInto<u8> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as a `u8` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<u8> {
         BER.decode_u8(&self)
@@ -395,6 +561,7 @@ impl TryInto<u8> for X690Element {
 
 impl TryInto<u16> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as a `u16` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<u16> {
         BER.decode_u16(&self)
@@ -403,6 +570,7 @@ impl TryInto<u16> for X690Element {
 
 impl TryInto<u32> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as a `u32` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<u32> {
         BER.decode_u32(&self)
@@ -411,6 +579,7 @@ impl TryInto<u32> for X690Element {
 
 impl TryInto<u64> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as a `u64` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<u64> {
         BER.decode_u64(&self)
@@ -419,6 +588,7 @@ impl TryInto<u64> for X690Element {
 
 impl TryInto<u128> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as a `u128` `INTEGER`
     #[inline]
     fn try_into(self) -> ASN1Result<u128> {
         BER.decode_u128(&self)
@@ -427,6 +597,7 @@ impl TryInto<u128> for X690Element {
 
 impl TryInto<BOOLEAN> for X690Element {
     type Error = ASN1Error;
+    /// Attempts to decode an X690Element as a `BOOLEAN`
     #[inline]
     fn try_into(self) -> ASN1Result<BOOLEAN> {
         BER.decode_boolean(&self)
@@ -434,6 +605,11 @@ impl TryInto<BOOLEAN> for X690Element {
 }
 
 impl PartialEq for X690Element {
+    /// Compares two X690Elements for equality
+    /// 
+    /// For serialized values, this decodes them first before comparison.
+    /// Primitive values are compared by their raw bytes.
+    /// Constructed values are compared by their child elements.
     fn eq(&self, other: &Self) -> bool {
         // Helper to decode if serialized, else return reference to self
         fn as_decoded<'a>(el: &'a X690Element) -> Cow<'a, X690Element> {
@@ -468,6 +644,14 @@ impl PartialEq for X690Element {
 
 impl Eq for X690Element {}
 
+/// Decodes an X.690 tag from a byte slice
+/// 
+/// Returns a tuple containing:
+/// - The number of bytes read
+/// - The decoded tag
+/// - Whether the tag is constructed
+/// 
+/// This function handles both short and long tag formats as specified in X.690.
 pub fn x690_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
     if bytes.len() == 0 {
         return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
@@ -516,6 +700,10 @@ pub fn x690_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
     Ok((bytes_read, tag, constructed))
 }
 
+/// Calculates the total length of tag and length bytes in an X.690 encoding
+/// 
+/// This function examines the first few bytes to determine how many bytes
+/// are used for the tag and length encoding, without actually decoding the values.
 pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
     if bytes.len() == 0 {
         return 0;
@@ -542,6 +730,10 @@ pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
     (length_byte_0 & 0b0111_1111) as usize
 }
 
+/// Calculates the number of bytes needed to encode a number in base-128 format
+/// 
+/// Base-128 encoding is used for long tag numbers and other variable-length `INTEGER`s
+/// in X.690 encoding.
 fn base_128_len(num: u32) -> usize {
     if likely(num < 128) {
         return 1;
@@ -555,6 +747,10 @@ fn base_128_len(num: u32) -> usize {
     return l;
 }
 
+/// Writes a number in base-128 format to a writer
+/// 
+/// Base-128 encoding uses 7 bits per byte with a continuation bit in the high bit.
+/// This is used for encoding long tag numbers and other variable-length `INTEGER`s.
 fn write_base_128<W>(output: &mut W, mut num: u32) -> Result<usize>
 where
     W: Write,
@@ -576,7 +772,10 @@ where
     output.write(&encoded[0..byte_count+1])
 }
 
-// Just gets the theoretical length of the written tag.
+/// Calculates the number of bytes needed to encode a tag number
+/// 
+/// Tag numbers less than 31 use the short form (1 byte).
+/// Tag numbers 31 and above use the long form with base-128 encoding.
 pub fn get_written_x690_tag_length(tagnum: TagNumber) -> usize {
     if tagnum < 31 {
         // See ITU Rec. X.690 (2021), Section 8.1.2.4.
@@ -585,7 +784,10 @@ pub fn get_written_x690_tag_length(tagnum: TagNumber) -> usize {
     base_128_len(tagnum.into()) + 1
 }
 
-// Just gets the length of the length bytes for an element
+/// Calculates the number of bytes needed to encode a length value
+/// 
+/// Lengths 0-127 use the short form (1 byte).
+/// Longer lengths use the long form with a length indicator byte followed by the length value.
 pub fn get_written_x690_length_length(len: usize) -> usize {
     if len <= 127 {
         // See ITU Rec. X.690 (2021), Section 8.1.3.3, "NOTE"
@@ -601,6 +803,10 @@ pub fn get_written_x690_length_length(len: usize) -> usize {
     octets_needed + 1
 }
 
+/// Writes an X.690 tag to a writer
+/// 
+/// This function handles both short and long tag formats as specified in X.690.
+/// The tag includes the class, constructed bit, and tag number.
 pub fn x690_write_tag<W>(
     output: &mut W,
     class: TagClass,
@@ -640,6 +846,10 @@ where
     }
 }
 
+/// Writes an X.690 length to a writer
+/// 
+/// This function handles both short and long length formats as specified in X.690.
+/// Lengths 0-127 use the short form, longer lengths use the long form.
 pub fn x690_write_length<W>(output: &mut W, length: usize) -> Result<usize>
 where
     W: Write,
@@ -663,6 +873,9 @@ where
     }
 }
 
+/// Writes a `BOOLEAN` value in X.690 format
+/// 
+/// `BOOLEAN` values are encoded as a single octet: 0xFF for true, 0x00 for false.
 pub fn x690_write_boolean_value<W>(output: &mut W, value: &BOOLEAN) -> Result<usize>
 where
     W: Write,
@@ -674,6 +887,9 @@ where
     }
 }
 
+/// Writes an `INTEGER` value in X.690 format
+/// 
+/// `INTEGER` values are written as raw bytes in big-endian format.
 pub fn x690_write_integer_value<W>(output: &mut W, value: &INTEGER) -> Result<usize>
 where
     W: Write,
@@ -681,6 +897,10 @@ where
     output.write(value)
 }
 
+/// Writes an i64 value in X.690 `INTEGER` format
+/// 
+/// This function handles the encoding of i64 values as `INTEGER` types,
+/// including proper handling of sign extension and padding.
 pub fn x690_write_i64_value<W>(output: &mut W, value: i64) -> Result<usize>
 where
     W: Write,
@@ -705,6 +925,9 @@ where
     Ok(bytes_written)
 }
 
+/// Writes an `ENUMERATED` value in X.690 format
+/// 
+/// `ENUMERATED` values are encoded the same as `INTEGER` values.
 pub fn x690_write_enum_value<W>(output: &mut W, value: &ENUMERATED) -> Result<usize>
 where
     W: Write,
@@ -712,6 +935,9 @@ where
     x690_write_i64_value(output, *value)
 }
 
+/// Writes a `BIT STRING` value in X.690 format
+/// 
+/// `BIT STRING` values include a trailing bits count byte followed by the actual bits.
 pub fn x690_write_bit_string_value<W>(output: &mut W, value: &BIT_STRING) -> Result<usize>
 where
     W: Write,
@@ -721,6 +947,9 @@ where
     Ok(bytes_written + 1)
 }
 
+/// Writes an `OCTET STRING` value in X.690 format
+/// 
+/// OCTET STRING values are written as raw bytes.
 pub fn x690_write_octet_string_value<W>(output: &mut W, value: &OCTET_STRING) -> Result<usize>
 where
     W: Write,
@@ -728,6 +957,9 @@ where
     output.write(value)
 }
 
+/// Writes an `OBJECT IDENTIFIER` value in X.690 format
+/// 
+/// `OBJECT IDENTIFIER` values are encoded using the X.690 encoding format.
 pub fn x690_write_object_identifier_value<W>(
     output: &mut W,
     value: &OBJECT_IDENTIFIER,
@@ -738,6 +970,9 @@ where
     output.write(value.as_x690_slice())
 }
 
+/// Writes an `ObjectDescriptor` value in X.690 format
+/// 
+/// `ObjectDescriptor` values are written as UTF-8 encoded strings.
 pub fn x690_write_object_descriptor_value<W>(
     output: &mut W,
     value: &str,
