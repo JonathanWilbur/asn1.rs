@@ -1544,7 +1544,6 @@ where
     Ok(bytes_written)
 }
 
-// TODO: This needs testing.
 pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
     match &el.value {
         X690Value::Primitive(bytes) => Ok(Cow::Borrowed(bytes)),
@@ -1718,17 +1717,6 @@ mod tests {
         assert_eq!(output.len(), 255);
     }
 
-    // #[test]
-    // fn test_x690_write_bit_string_value () {
-    //     use bitvec::prelude::*;
-    //     let mut output = BytesMut::new();
-    //     let mut bits = bitvec![usize, Lsb0; 0, 1, 0, 0, 1];
-    //     crate::x690_write_bit_string_value(&mut output, &mut bits).unwrap();
-    //     // assert_eq!(output.len(), 2);
-    //     assert_eq!(output[0], 3);
-    //     assert_eq!(output[1], 0b0100_1000);
-    // }
-
     #[test]
     fn test_x690_write_octet_string_value() {
         let mut output = BytesMut::new().writer();
@@ -1769,81 +1757,6 @@ mod tests {
         crate::x690_write_real_value(&mut output.writer(), &value).unwrap();
     }
 
-    // #[test]
-    // fn test_ber_encode() {
-    //     let mut output = BytesMut::new().writer();
-    //     let val = TaggedASN1Value {
-    //         tag: Tag::new(TagClass::APPLICATION, 5),
-    //         explicit: true,
-    //         value: Arc::new(ASN1Value::BooleanValue(true)),
-    //     };
-    //     let value: ASN1Value = ASN1Value::TaggedValue(val);
-    //     let result = crate::ber_encode(&mut output, &value).unwrap();
-    //     let output: Bytes = output.into_inner().into();
-    //     assert_eq!(result, output.len());
-    //     assert_eq!(result, 5);
-    // }
-
-    // #[test]
-    // fn test_ber_encode_deep_tagging_1() {
-    //     let inner_val = TaggedASN1Value {
-    //         tag: Tag::new(TagClass::CONTEXT, 7),
-    //         explicit: true,
-    //         value: Arc::from(ASN1Value::BooleanValue(false)),
-    //     };
-    //     let outer_val = TaggedASN1Value {
-    //         tag: Tag::new(TagClass::APPLICATION, 5),
-    //         explicit: true,
-    //         value: Arc::from(ASN1Value::TaggedValue(inner_val)),
-    //     };
-    //     let mut output = BytesMut::new().writer();
-    //     let value: ASN1Value = ASN1Value::TaggedValue(outer_val);
-    //     let result = crate::ber_encode(&mut output, &value).unwrap();
-    //     let output: Bytes = output.into_inner().into();
-    //     assert_eq!(result, output.len());
-    //     assert_eq!(result, 7);
-    //     assert!(output.starts_with(&[
-    //         X690_TAG_CLASS_APPLICATION
-    //         | 0b0010_0000 // Constructed
-    //         | 5,
-    //         0x05, // Length = 5
-    //         X690_TAG_CLASS_CONTEXT
-    //         | 0b0010_0000 // Constructed
-    //         | 7,
-    //         0x03, // Length = 3
-    //         UNIV_TAG_BOOLEAN as u8,
-    //         0x01, // Length = 1
-    //         0x00, // FALSE
-    //     ]));
-    // }
-
-    // #[test]
-    // fn test_ber_encode_deep_tagging_2() {
-    //     let mut output = BytesMut::new().writer();
-    //     let inner_val = TaggedASN1Value {
-    //         tag: Tag::new(TagClass::CONTEXT, 7),
-    //         explicit: false,
-    //         value: Arc::new(ASN1Value::BooleanValue(false)),
-    //     };
-    //     let outer_val = TaggedASN1Value {
-    //         tag: Tag::new(TagClass::APPLICATION, 5),
-    //         explicit: false,
-    //         value: Arc::new(ASN1Value::TaggedValue(inner_val)),
-    //     };
-    //     let value: ASN1Value = ASN1Value::TaggedValue(outer_val);
-    //     let result = crate::ber_encode(&mut output, &value).unwrap();
-    //     let output: Bytes = output.into_inner().into();
-    //     assert_eq!(result, output.len());
-    //     assert_eq!(result, 3);
-    //     assert!(output.starts_with(&[
-    //         X690_TAG_CLASS_APPLICATION
-    //         | 0b0000_0000 // Primitive
-    //         | 5,
-    //         0x01, // Length = 5
-    //         0x00, // FALSE
-    //     ]));
-    // }
-
     #[test]
     fn test_constructed_encoding() {
         let asn1_data = X690Element::new(
@@ -1880,33 +1793,6 @@ mod tests {
             0x03,
         ]));
     }
-
-    // #[test]
-    // fn test_ber_encode_2() {
-    //     let asn1_data = ASN1Value::SequenceValue(vec![
-    //         ASN1Value::BooleanValue(true),
-    //         ASN1Value::IntegerValue(vec![127]),
-    //     ]);
-    //     let mut output = Vec::new();
-    //     match ber_encode(&mut output, &asn1_data) {
-    //         Ok(bytes_written) => {
-    //             assert_eq!(bytes_written, 8);
-    //         }
-    //         Err(e) => panic!("{}", e),
-    //     }
-    //     assert!(output.starts_with(&[
-    //         X690_TAG_CLASS_UNIVERSAL
-    //         | 0b0010_0000 // Constructed
-    //         | UNIV_TAG_SEQUENCE as u8,
-    //         0x06,
-    //         0x01,
-    //         0x01,
-    //         0xFF,
-    //         0x02,
-    //         0x01,
-    //         0x7F,
-    //     ]));
-    // }
 
     #[test]
     fn test_ber_decode_definite_short() {
@@ -1975,6 +1861,256 @@ mod tests {
             Err(e) => panic!("{}", e),
         };
     }
-}
 
-// TODO: Tests to verify that my error handling from nested matches actually works.
+    #[test]
+    fn test_deconstruct_primitive() {
+        // Test deconstructing a primitive value
+        let bytes = Bytes::copy_from_slice(&[0x01, 0x02, 0x03, 0x04]);
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(bytes.clone()),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
+        // Should be borrowed since it's a primitive
+        assert!(matches!(result, Cow::Borrowed(_)));
+    }
+
+    #[test]
+    fn test_deconstruct_constructed_valid() {
+        // Test deconstructing a constructed value with valid OCTET STRING children
+        let child1 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        let child2 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
+        );
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![child1, child2])),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
+        // Should be owned since it's constructed
+        assert!(matches!(result, Cow::Owned(_)));
+    }
+
+    #[test]
+    fn test_deconstruct_constructed_invalid_tag_class() {
+        // Test deconstructing a constructed value with invalid tag class
+        let child = X690Element::new(
+            Tag::new(TagClass::APPLICATION, UNIV_TAG_OCTET_STRING), // Wrong tag class
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![child])),
+        );
+        
+        let result = deconstruct(&element);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.error_code, ASN1ErrorCode::string_constructed_with_invalid_tagging);
+    }
+
+    #[test]
+    fn test_deconstruct_constructed_invalid_tag_number() {
+        // Test deconstructing a constructed value with invalid tag number
+        let child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER), // Wrong tag number
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![child])),
+        );
+        
+        let result = deconstruct(&element);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.error_code, ASN1ErrorCode::string_constructed_with_invalid_tagging);
+    }
+
+    #[test]
+    fn test_deconstruct_constructed_nested() {
+        // Test deconstructing a constructed value with nested constructed children
+        let grandchild1 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        let grandchild2 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
+        );
+        
+        let child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![grandchild1, grandchild2])),
+        );
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![child])),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
+    }
+
+    #[test]
+    fn test_deconstruct_constructed_empty() {
+        // Test deconstructing a constructed value with no children
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![])),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &[]);
+    }
+
+    #[test]
+    fn test_deconstruct_serialized() {
+        // Test deconstructing a serialized value
+        let inner_bytes = Bytes::copy_from_slice(&[0x01, 0x02, 0x03, 0x04]);
+        let inner_element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(inner_bytes),
+        );
+        
+        // Create a serialized version by encoding the inner element
+        let mut serialized = Vec::new();
+        write_x690_node(&mut serialized, &inner_element).unwrap();
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Serialized(Bytes::copy_from_slice(&serialized)),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
+        // Should be owned since it's serialized
+        assert!(matches!(result, Cow::Owned(_)));
+    }
+
+    #[test]
+    fn test_deconstruct_serialized_constructed() {
+        // Test deconstructing a serialized constructed value
+        let child1 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        let child2 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
+        );
+        
+        let inner_element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![child1, child2])),
+        );
+        
+        // Create a serialized version by encoding the inner element
+        let mut serialized = Vec::new();
+        write_x690_node(&mut serialized, &inner_element).unwrap();
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Serialized(Bytes::copy_from_slice(&serialized)),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
+    }
+
+    #[test]
+    fn test_deconstruct_mixed_constructed() {
+        // Test deconstructing a constructed value with mixed primitive and constructed children
+        let primitive_child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        
+        let grandchild1 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
+        );
+        let grandchild2 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x05, 0x06])),
+        );
+        
+        let constructed_child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![grandchild1, grandchild2])),
+        );
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![primitive_child, constructed_child])),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
+    }
+
+    #[test]
+    fn test_deconstruct_large_data() {
+        // Test deconstructing with larger data to ensure performance
+        let mut children = Vec::new();
+        let mut expected = Vec::new();
+        
+        for i in 0..100 {
+            let data = vec![i as u8, (i + 1) as u8, (i + 2) as u8];
+            expected.extend_from_slice(&data);
+            
+            let child = X690Element::new(
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+                X690Value::Primitive(Bytes::copy_from_slice(&data)),
+            );
+            children.push(child);
+        }
+        
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(children)),
+        );
+        
+        let result = deconstruct(&element).unwrap();
+        assert_eq!(result.as_ref(), &expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_deconstruct_serialized_invalid_data() {
+        // Test deconstructing a serialized value with invalid data
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Serialized(Bytes::copy_from_slice(&[0x01, 0x02, 0x03])), // Invalid BER
+        );
+        
+        let result = deconstruct(&element);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_element_equality_1() {
+        let element1 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        let element2 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+        assert_eq!(element1, element2);
+    }
+
+}
