@@ -433,17 +433,40 @@ impl TryInto<BOOLEAN> for X690Element {
     }
 }
 
-// impl PartialEq for X690Element {
-//     fn eq(&self, other: &Self) -> bool {
-//         let Ok(thing1) = (self) else {
-//             return false;
-//         };
-//         let Ok(thing2) = ber_decode_any(other) else {
-//             return false;
-//         };
-//         thing1 == thing2
-//     }
-// }
+impl PartialEq for X690Element {
+    fn eq(&self, other: &Self) -> bool {
+        // Helper to decode if serialized, else return reference to self
+        fn as_decoded<'a>(el: &'a X690Element) -> Cow<'a, X690Element> {
+            match &el.value {
+                X690Value::Serialized(bytes) => {
+                    match BER.decode_from_slice(bytes) {
+                        Ok((_, decoded)) => Cow::Owned(decoded),
+                        Err(_) => Cow::Borrowed(el), // fallback: treat as not equal
+                    }
+                }
+                _ => Cow::Borrowed(el),
+            }
+        }
+
+        let left = as_decoded(self);
+        let right = as_decoded(other);
+
+        match (&left.value, &right.value) {
+            (X690Value::Primitive(a), X690Value::Primitive(b)) => a == b,
+            (X690Value::Constructed(a), X690Value::Constructed(b)) => {
+                if a.len() != b.len() {
+                    return false;
+                }
+                a.iter().zip(b.iter()).all(|(x, y)| x == y)
+            }
+            (X690Value::Primitive(_), _) | (X690Value::Constructed(_), _) | (_, X690Value::Primitive(_)) | (_, X690Value::Constructed(_)) => false,
+            // Should not reach here, as all Serialized are decoded above
+            _ => false,
+        }
+    }
+}
+
+impl Eq for X690Element {}
 
 pub fn x690_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
     if bytes.len() == 0 {
