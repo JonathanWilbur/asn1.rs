@@ -28,7 +28,7 @@ use wildboar_asn1::{
     read_i128,
     Tag,
     OPTIONAL,
-   TagClass,
+    TagClass,
     ASN1Codec,
     ASN1Value,
     BMPString,
@@ -394,7 +394,7 @@ pub trait X690Codec {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         let char_length = value_bytes.len() / 4;
-        let mut ret = String::with_capacity(char_length);
+        let mut ret = Vec::with_capacity(char_length);
         for i in 0..char_length {
             let code_point = u32::from_be_bytes([
                 value_bytes[(i * 4) + 0],
@@ -402,12 +402,9 @@ pub trait X690Codec {
                 value_bytes[(i * 4) + 2],
                 value_bytes[(i * 4) + 3],
             ]);
-            match char::from_u32(code_point) {
-                Some(c) => ret.push(c),
-                None => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-            };
+            ret.push(code_point);
         }
-        Ok(ret)
+        Ok(UniversalString(ret))
     }
 
     /// Decode a `BMPString` from content octets
@@ -415,16 +412,13 @@ pub trait X690Codec {
         if (value_bytes.len() % 2) != 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        let char_length = value_bytes.len() / 4;
-        let mut ret = String::with_capacity(char_length);
+        let char_length = value_bytes.len() / 2;
+        let mut ret = Vec::with_capacity(char_length);
         for i in 0..char_length {
-            let code_point = u16::from_be_bytes([value_bytes[(i * 4) + 0], value_bytes[(i * 4) + 1]]);
-            match char::from_u32(code_point as u32) {
-                Some(c) => ret.push(c),
-                None => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-            };
+            let code_point = u16::from_be_bytes([value_bytes[(i * 2) + 0], value_bytes[(i * 2) + 1]]);
+            ret.push(code_point);
         }
-        Ok(ret)
+        Ok(BMPString(ret))
     }
 
     /// Decode a `DATE` from content octets
@@ -961,6 +955,7 @@ pub trait X690Codec {
     /// Encode a `GeneralString` value into an X.690 encoding
     fn encode_general_string(&self, value: &str) -> ASN1Result<X690Element>;
 
+    // TODO: Documentation comments
     /// This is defined for efficiency: instead of _copying_ the the string into
     /// the output buffer, this function exists so the underlying buffer can be
     /// appended to (or replace entirely) the output buffer.
@@ -974,16 +969,14 @@ pub trait X690Codec {
     fn encode_owned_graphic_string(&self, value: GraphicString) -> ASN1Result<X690Element>;
     fn encode_owned_visible_string(&self, value: VisibleString) -> ASN1Result<X690Element>;
     fn encode_owned_general_string(&self, value: GeneralString) -> ASN1Result<X690Element>;
-
-    // NOTE: There is no encode_owned_universal_string or
-    // encode_owned_bmp_string, because there is no efficiency benefit, because
-    // the underlying buffer cannot be written directly to the encoding buffer.
+    fn encode_owned_universal_string(&self, value: UniversalString) -> ASN1Result<X690Element>;
+    fn encode_owned_bmp_string(&self, value: BMPString) -> ASN1Result<X690Element>;
 
     /// Encode a `UniversalString` value into an X.690 encoding
-    fn encode_universal_string(&self, value: &str) -> ASN1Result<X690Element>;
+    fn encode_universal_string(&self, value: &[u32]) -> ASN1Result<X690Element>;
 
     /// Encode a `BMPString` value into an X.690 encoding
-    fn encode_bmp_string(&self, value: &str) -> ASN1Result<X690Element>;
+    fn encode_bmp_string(&self, value: &[u16]) -> ASN1Result<X690Element>;
 
     /// Encode a `DATE` value into an X.690 encoding
     fn encode_date(&self, value: &DATE) -> ASN1Result<X690Element> {
@@ -1763,13 +1756,13 @@ pub trait X690Codec {
 
     /// Write a `UniversalString` value as an X.690 encoding to a writable stream
     fn write_universal_string<W>(&self, output: &mut W, value: &UniversalString) -> Result<usize> where W: Write {
-        let enc = self.encode_universal_string(value)?;
+        let enc = self.encode_universal_string(&value.0)?;
         self.write(output, &enc)
     }
 
     /// Write a `BMPString` value as an X.690 encoding to a writable stream
     fn write_bmp_string<W>(&self, output: &mut W, value: &BMPString) -> Result<usize> where W: Write {
-        let enc = self.encode_bmp_string(value)?;
+        let enc = self.encode_bmp_string(&value.0)?;
         self.write(output, &enc)
     }
 

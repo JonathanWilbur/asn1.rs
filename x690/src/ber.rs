@@ -97,6 +97,7 @@ use std::mem::size_of;
 use std::sync::Arc;
 use simdutf8::basic::from_utf8;
 use std::str::FromStr;
+use crate::utils::{vec_u16_to_vec_u8, vec_u32_to_vec_u8};
 
 pub const BER: BasicEncodingRules = BasicEncodingRules::new();
 
@@ -848,11 +849,11 @@ impl X690Codec for BasicEncodingRules {
             ASN1Value::GraphicString(v) => self.encode_graphic_string(v),
             ASN1Value::VisibleString(v) => self.encode_visible_string(v),
             ASN1Value::GeneralString(v) => self.encode_general_string(v),
-            ASN1Value::UniversalString(v) => self.encode_universal_string(v),
+            ASN1Value::UniversalString(v) => self.encode_universal_string(&v.0),
             ASN1Value::UnrestrictedCharacterStringValue(v) => {
                 BER.encode_character_string(v)
             },
-            ASN1Value::BMPString(v) => self.encode_bmp_string(v),
+            ASN1Value::BMPString(v) => self.encode_bmp_string(&v.0),
             ASN1Value::IRIValue(v) => self.encode_oid_iri(v),
             ASN1Value::RelativeIRIValue(v) => self.encode_relative_oid_iri(v),
             ASN1Value::TimeValue(v) => self.encode_time(v),
@@ -1102,18 +1103,51 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
-    fn encode_universal_string(&self, value: &str) -> ASN1Result<X690Element> {
+    /// NOTE: This might not be faster on your system if it is little-endian.
+    fn encode_owned_universal_string(&self, value: UniversalString) -> ASN1Result<X690Element> {
+        let mut out = vec_u32_to_vec_u8(value.0);
+        debug_assert_eq!(out.len() % 4, 0);
+        if cfg!(target_endian = "little") {
+            // Swap every quartet of bytes in `out` to convert from little-endian to big-endian
+            for chunk in out.chunks_exact_mut(4) {
+                chunk.swap(0, 3);
+                chunk.swap(1, 2);
+            }
+        }
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UNIVERSAL_STRING),
+            X690Value::Primitive(out.into()),
+        ))
+    }
+
+    /// NOTE: This might not be faster on your system if it is little-endian.
+    fn encode_owned_bmp_string(&self, value: BMPString) -> ASN1Result<X690Element> {
+        let mut out = vec_u16_to_vec_u8(value.0);
+        debug_assert_eq!(out.len() % 2, 0);
+        if cfg!(target_endian = "little") {
+            // Swap every pair of bytes in `out` to convert from little-endian to big-endian
+            for chunk in out.chunks_exact_mut(2) {
+                chunk.swap(0, 1);
+            }
+        }
+        Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BMP_STRING),
+            X690Value::Primitive(out.into()),
+        ))
+    }
+
+    fn encode_universal_string(&self, value: &[u32]) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len() << 2).writer(); // Four bytes for every character
-        x690_write_universal_string_value(&mut out, &value)?;
+        x690_write_universal_string_value(&mut out, value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UNIVERSAL_STRING),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
 
-    fn encode_bmp_string(&self, value: &str) -> ASN1Result<X690Element> {
+    fn encode_bmp_string(&self, value: &[u16]) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len() << 1).writer(); // Two bytes for every character
-        x690_write_bmp_string_value(&mut out, &value)?;
+        x690_write_bmp_string_value(&mut out, value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BMP_STRING),
             X690Value::Primitive(out.into_inner().into()),

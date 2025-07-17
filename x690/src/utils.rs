@@ -152,3 +152,25 @@ pub(crate) fn likely (expr: bool) -> bool {
 pub(crate) fn unlikely (expr: bool) -> bool {
     expr
 }
+
+/// Convert a `Vec<u16>` to a `Vec<u8>` in place.
+pub(crate) fn vec_u16_to_vec_u8(mut vec: Vec<u16>) -> Vec<u8> {
+    let len = vec.len();
+    let capacity = vec.capacity();
+    let ptr = vec.as_mut_ptr();
+    std::mem::forget(vec); // Prevent dropping the original Vec<u16>
+    unsafe {
+        Vec::from_raw_parts(ptr.cast::<u8>(), len * 2, capacity * 2)
+    }
+}
+
+/// Convert a `Vec<u32>` to a `Vec<u8>` in place.
+pub(crate) fn vec_u32_to_vec_u8(mut vec: Vec<u32>) -> Vec<u8> {
+    let len = vec.len();
+    let capacity = vec.capacity();
+    let ptr = vec.as_mut_ptr();
+    std::mem::forget(vec); // Prevent dropping the original Vec<u32>
+    unsafe {
+        Vec::from_raw_parts(ptr.cast::<u8>(), len * 4, capacity * 4)
+    }
+}

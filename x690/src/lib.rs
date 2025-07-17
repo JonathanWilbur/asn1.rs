@@ -1408,24 +1408,15 @@ where
 #[inline]
 pub fn x690_write_universal_string_value<W>(
     output: &mut W,
-    value: &str,
+    value: &[u32],
 ) -> Result<usize>
 where
     W: Write,
 {
-    let bytes: Vec<u8> = value
-        .chars()
-        .map(|c| c as u32)
-        .flat_map(|c| {
-            [
-                ((c & 0xFF000000) >> 24) as u8,
-                ((c & 0x00FF0000) >> 16) as u8,
-                ((c & 0x0000FF00) >> 8) as u8,
-                (c & 0x000000FF) as u8,
-            ]
-        })
-        .collect();
-    output.write(bytes.as_slice())
+    for c in value {
+        output.write(&c.to_be_bytes())?;
+    }
+    Ok(value.len() * 4)
 }
 
 /// Encode the components of a `CharacterString` value as X.690-encoded elements
@@ -1480,23 +1471,14 @@ where
 }
 
 /// Write a `BMPString` value as an X.690-encoded element, returning the number of bytes written
-pub fn x690_write_bmp_string_value<W>(output: &mut W, value: &str) -> Result<usize>
+pub fn x690_write_bmp_string_value<W>(output: &mut W, value: &[u16]) -> Result<usize>
 where
     W: Write,
 {
-    let bytes: Vec<u8> = value
-        .chars()
-        .map(|c| c as u16)
-        .flat_map(|c| {
-            [
-                // ((c & 0xFF000000) >> 24) as u8,
-                // ((c & 0x00FF0000) >> 16) as u8,
-                ((c & 0x0000FF00) >> 8) as u8,
-                (c & 0x000000FF) as u8,
-            ]
-        })
-        .collect();
-    output.write(bytes.as_slice())
+    for c in value {
+        output.write(&c.to_be_bytes())?;
+    }
+    Ok(value.len() * 2)
 }
 
 /// Write a string value as an X.690-encoded element, returning the number of bytes written

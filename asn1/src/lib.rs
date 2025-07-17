@@ -204,16 +204,16 @@ pub type VisibleString = String;
 /// ASN.1 `GeneralString`
 pub type GeneralString = String;
 
-// FIXME: I think this should be a `Vec<u32>` instead.
 /// ASN.1 `UniversalString`
-pub type UniversalString = String;
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd, Default)]
+pub struct UniversalString(pub Vec<u32>);
 
 /// ASN.1 `CharacterString`
 pub type CHARACTER_STRING = crate::external::CharacterString;
 
-// FIXME: I think this should be a `Vec<u16>` instead.
 /// ASN.1 `BMPString`
-pub type BMPString = String;
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd, Default)]
+pub struct BMPString(pub Vec<u16>);
 
 /// ASN.1 `DURATION`
 pub type DURATION = crate::duration::DURATION_EQUIVALENT;

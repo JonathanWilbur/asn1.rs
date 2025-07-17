@@ -37,7 +37,11 @@
 //! ```
 //!
 use std::borrow::Cow;
+use std::fmt::Write;
 use crate::utils::likely;
+use crate::{BMPString, UniversalString};
+use std::str::FromStr;
+use std::fmt::Display;
 
 /// Return `true` if the character `b` is "printable" per the ASN.1 definition
 /// of a `PrintableString`.
@@ -169,6 +173,139 @@ pub const fn compare_numeric_string (a: &str, b: &str) -> bool {
         return false;
     }
     true
+}
+
+const UNICODE_REPLACEMENT_CHAR: char = '\u{FFFD}';
+
+impl BMPString {
+
+    /// Create a new empty `BMPString`
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Converts any unmappable characters to the Unicode replacement character
+    /// (`U+FFFD`).
+    pub fn to_string_lossy(&self) -> String {
+        self.0
+            .iter()
+            .map(|c| char::from_u32(*c as u32).unwrap_or(UNICODE_REPLACEMENT_CHAR))
+            .collect()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl From<Vec<u16>> for BMPString {
+    fn from(v: Vec<u16>) -> Self {
+        Self(v)
+    }
+}
+
+impl From<&[u16]> for BMPString {
+    fn from(v: &[u16]) -> Self {
+        Self(v.to_vec())
+    }
+}
+
+impl TryFrom<BMPString> for String {
+
+    type Error = u16;
+
+    fn try_from(v: BMPString) -> Result<Self, Self::Error> {
+        let mut ret = String::with_capacity(v.0.len());
+        for c in v.0.iter() {
+            ret.push(char::from_u32(*c as u32).ok_or(*c)?);
+        }
+        Ok(ret)
+    }
+}  
+
+impl FromStr for BMPString {
+
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.chars().map(|c| c as u16).collect()))
+    }
+}
+
+impl Display for BMPString {
+
+    /// Display `BMPString` as you would a string, with no surrounding quotes
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for c in self.0.iter() {
+            f.write_char(char::from_u32(*c as u32).ok_or(std::fmt::Error::default())?)?;
+        }
+        Ok(())
+    }
+}
+
+impl UniversalString {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Converts any unmappable characters to the Unicode replacement character
+    /// (`U+FFFD`).
+    pub fn to_string_lossy(&self) -> String {
+        self.0
+            .iter()
+            .map(|c| char::from_u32(*c).unwrap_or(UNICODE_REPLACEMENT_CHAR))
+            .collect()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+}
+
+impl From<Vec<u32>> for UniversalString {
+    fn from(v: Vec<u32>) -> Self {
+        Self(v)
+    }
+}
+
+impl From<&[u32]> for UniversalString {
+    fn from(v: &[u32]) -> Self {
+        Self(v.to_vec())
+    }
+}
+
+impl TryFrom<UniversalString> for String {
+
+    type Error = u32;
+
+    fn try_from(v: UniversalString) -> Result<Self, Self::Error> {
+        let mut ret = String::with_capacity(v.0.len());
+        for c in v.0.iter() {
+            ret.push(char::from_u32(*c).ok_or(*c)?);
+        }
+        Ok(ret)
+    }
+}
+
+impl FromStr for UniversalString {
+
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.chars().map(|c| c as u32).collect()))
+    }
+}
+
+impl Display for UniversalString {
+
+    /// Display `UniversalString` as you would a string, with no surrounding quotes
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for c in self.0.iter() {
+            f.write_char(char::from_u32(*c).ok_or(std::fmt::Error::default())?)?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -341,6 +478,50 @@ mod tests {
     #[test]
     fn test_normalize_num_bytes_3 () {
         assert_eq!(normalize_num_bytes(b" \x00 \x10 ").as_ref(), b"\x00\x10");
+    }
+
+    use super::{BMPString, UniversalString};
+    use std::str::FromStr;
+
+    #[test]
+    fn test_bmpstring_to_utf8_and_back() {
+        let original = "Hello, 世界!";
+        let bmp = BMPString::from_str(original).unwrap();
+        let utf8: String = bmp.clone().try_into().unwrap();
+        assert_eq!(utf8, original);
+        let bmp2 = BMPString::from_str(&utf8).unwrap();
+        assert_eq!(bmp.0, bmp2.0);
+    }
+
+    #[test]
+    fn test_universalstring_to_utf8_and_back() {
+        let original = "Hello, 世界! 👋";
+        let uni = UniversalString::from_str(original).unwrap();
+        let utf8: String = uni.clone().try_into().unwrap();
+        assert_eq!(utf8, original);
+        let uni2 = UniversalString::from_str(&utf8).unwrap();
+        assert_eq!(uni.0, uni2.0);
+    }
+
+    #[test]
+    fn test_bmpstring_invalid_codepoint() {
+        // BMPString only supports codepoints up to 0xFFFF
+        // Emoji 👋 is U+1F44B, which is outside BMP
+        let s = "👋";
+        let bmp = BMPString::from_str(s).unwrap();
+        // The codepoint will be truncated to lower 16 bits
+        // So, round-trip will not be equal
+        let utf8: String = bmp.clone().try_into().unwrap();
+        assert_ne!(utf8, s);
+    }
+
+    #[test]
+    fn test_universalstring_surrogate_pair() {
+        // UniversalString supports all Unicode codepoints
+        let s = "𐍈"; // U+10348, outside BMP
+        let uni = UniversalString::from_str(s).unwrap();
+        let utf8: String = uni.clone().try_into().unwrap();
+        assert_eq!(utf8, s);
     }
 
 }

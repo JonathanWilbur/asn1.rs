@@ -1,6 +1,6 @@
 //! Implementations of `Display` and functions for displaying / printing
 use crate::{ASN1Value, INTEGER};
-use crate::utils::{read_i64, likely};
+use crate::utils::{read_i64, likely, unlikely};
 use crate::FractionalPart;
 use std::fmt::{Display, Write};
 
@@ -66,29 +66,9 @@ impl Display for ASN1Value {
                 v.value
             ),
             ASN1Value::IntegerValue(v) => write_int(v, f),
-            ASN1Value::IRIValue(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
             ASN1Value::NullValue => f.write_str("NULL"),
             ASN1Value::ObjectIdentifierValue(v) => std::fmt::Display::fmt(&v, f),
-            ASN1Value::ObjectDescriptor(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
-            ASN1Value::OctetStringValue(v) => {
-                f.write_char('\'')?;
-                write_hex(v, f)?;
-                f.write_str("'H")
-            }
             ASN1Value::RealValue(v) => std::fmt::Display::fmt(&v, f),
-            ASN1Value::RelativeIRIValue(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
             ASN1Value::RelativeOIDValue(v) => std::fmt::Display::fmt(&v, f),
             ASN1Value::SequenceValue(v) => {
                 let mut i = 0;
@@ -140,69 +120,57 @@ impl Display for ASN1Value {
             }
             ASN1Value::UnrestrictedCharacterStringValue(v) => std::fmt::Display::fmt(&v, f),
             ASN1Value::BMPString(v) => {
+                let s = v.to_string_lossy();
                 f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
+                // We only incur the replacement cost if we need to.
+                if unlikely(s.contains('"')) {
+                    f.write_str(s.replace("\"", "\"\"").as_str())?;
+                } else {
+                    f.write_str(s.as_str())?;
+                }
                 f.write_char('"')
-            }
-            ASN1Value::GeneralString(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
-            ASN1Value::GraphicString(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
-            ASN1Value::IA5String(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
-            ASN1Value::ISO646String(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
-            ASN1Value::NumericString(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
-            ASN1Value::PrintableString(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
-            }
-            ASN1Value::TeletexString(v) => {
-                f.write_char('\'')?;
-                write_hex(v, f)?;
-                f.write_str("'H")
-            }
-            ASN1Value::T61String(v) => {
-                f.write_char('\'')?;
-                write_hex(v, f)?;
-                f.write_str("'H")
             }
             ASN1Value::UniversalString(v) => {
+                let s = v.to_string_lossy();
                 f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
+                // We only incur the replacement cost if we need to.
+                if unlikely(s.contains('"')) {
+                    f.write_str(s.replace("\"", "\"\"").as_str())?;
+                } else {
+                    f.write_str(s.as_str())?;
+                }
                 f.write_char('"')
             }
-            ASN1Value::UTF8String(v) => {
+            ASN1Value::UTF8String(v)
+            | ASN1Value::VisibleString(v)
+            | ASN1Value::GeneralString(v)
+            | ASN1Value::GraphicString(v)
+            | ASN1Value::IA5String(v)
+            | ASN1Value::ISO646String(v)
+            | ASN1Value::NumericString(v)
+            | ASN1Value::PrintableString(v)
+            | ASN1Value::TimeValue(v)
+            | ASN1Value::RelativeIRIValue(v)
+            | ASN1Value::IRIValue(v)
+            | ASN1Value::ObjectDescriptor(v)
+            => {
                 f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
+                // We only incur the replacement cost if we need to.
+                if unlikely(v.contains('"')) {
+                    f.write_str(v.replace("\"", "\"\"").as_str())?;
+                } else {
+                    f.write_str(v.as_str())?;
+                }
                 f.write_char('"')
             }
-            ASN1Value::VideotexString(v) => {
+            ASN1Value::OctetStringValue(v)
+            | ASN1Value::TeletexString(v)
+            | ASN1Value::T61String(v)
+            | ASN1Value::VideotexString(v)
+            => {
                 f.write_char('\'')?;
                 write_hex(v, f)?;
                 f.write_str("'H")
-            }
-            ASN1Value::VisibleString(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
             }
             ASN1Value::TaggedValue(v) => {
                 if v.explicit {
@@ -210,11 +178,6 @@ impl Display for ASN1Value {
                 } else {
                     write!(f, "{} IMPLICIT {}", v.tag, v.value)
                 }
-            }
-            ASN1Value::TimeValue(v) => {
-                f.write_char('"')?;
-                f.write_str(v.replace("\"", "\"\"").as_str())?;
-                f.write_char('"')
             }
             ASN1Value::UTCTime(v) => std::fmt::Display::fmt(&v, f),
             ASN1Value::GeneralizedTime(v) => std::fmt::Display::fmt(&v, f),
