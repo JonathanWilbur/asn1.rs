@@ -1,3 +1,4 @@
+//! This module implements the Basic Encoding Rules (BER) for X.690.
 use wildboar_asn1::{
     join_bit_strings, ASN1Error, ASN1ErrorCode, ASN1Result, Tag, X690Validate, DATE, OBJECT_IDENTIFIER, RELATIVE_OID, TIME_OF_DAY
 };
@@ -9,7 +10,7 @@ use crate::{
     X690Length,
     x690_write_bit_string_value,
     x690_write_string_value,
-    write_x690_node,
+    x690_write_tlv,
     X690_REAL_BASE_MASK,
     X690_REAL_BINARY_SCALING_MASK,
     X690_REAL_EXPONENT_FORMAT_MASK,
@@ -99,14 +100,12 @@ use std::str::FromStr;
 
 pub const BER: BasicEncodingRules = BasicEncodingRules::new();
 
-pub fn validate_any (el: &X690Element) -> ASN1Result<()> {
-    BER.validate_any(el)
-}
-
-// BIT STRING is constructed in a such a way that the octets of each subelement
-// cannot simply be concatenated. As such, this function deconstructed a
-// constructed BIT STRING to obtain a single BIT STRING.
-pub fn deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
+/// Deconstruct a constructed `BIT STRING` to obtain a single `BIT STRING`
+///
+/// `BIT STRING` is constructed in a such a way that the octets of each subelement
+/// cannot simply be concatenated. As such, this function deconstructed a
+/// constructed `BIT STRING` to obtain a single `BIT STRING`.
+pub fn ber_deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
     match &el.value {
         X690Value::Primitive(bytes) => Ok(BER.decode_bit_string_value(bytes)?),
         X690Value::Constructed(children) => {
@@ -120,19 +119,19 @@ pub fn deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
                     err.constructed = Some(true);
                     return Err(err);
                 }
-                let deconstructed_child = deconstruct_bit_string(&child)?;
+                let deconstructed_child = ber_deconstruct_bit_string(&child)?;
                 substituent_bit_strings.push(deconstructed_child);
             }
             return Ok(join_bit_strings(&substituent_bit_strings.as_slice()));
         },
         X690Value::Serialized(v) => {
             let (_, el) = BER.decode_from_slice(&v).unwrap();
-            deconstruct_bit_string(&el)
+            ber_deconstruct_bit_string(&el)
         }
     }
 }
 
-// Non-terminal BIT STRINGs in a constructed BIT STRING are not allowed to have
+// Non-terminal `BIT STRING`s in a constructed `BIT STRING` are not allowed to have
 // a non-zero number of trailing bits.
 fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
     match &el.value {
@@ -169,7 +168,9 @@ pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
     }
 }
 
-
+/// Decode the length of an X.690-encoded element from a byte slice
+/// 
+/// This starts at the first byte.
 pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     if bytes.len() == 0 {
         // Truncated.
@@ -215,6 +216,7 @@ pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     Ok((bytes_read, X690Length::Definite(len)))
 }
 
+/// BER-decode a variable-length `u64` from a byte slice
 pub fn ber_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
     match bytes.len() {
         0 => Some(0),
@@ -237,7 +239,6 @@ pub fn ber_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
         _ => None,
     }
 }
-
 
 impl X690Codec for BasicEncodingRules {
 
@@ -406,7 +407,7 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn write<W>(&self, output: &mut W, el: &X690Element) -> Result<usize> where W: Write {
-        write_x690_node(output, el)
+        x690_write_tlv(output, el)
     }
 
     fn decode_boolean_value(&self, value_bytes: ByteSlice) -> ASN1Result<BOOLEAN> {
@@ -560,7 +561,7 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn decode_bit_string(&self, el: &X690Element) -> ASN1Result<BIT_STRING> {
-        deconstruct_bit_string(&el)
+        ber_deconstruct_bit_string(&el)
     }
 
     fn decode_octet_string(&self, el: &X690Element) -> ASN1Result<OCTET_STRING> {
@@ -1963,102 +1964,92 @@ impl X690Codec for BasicEncodingRules {
 
 }
 
+#[cfg(test)]
+mod tests {
 
-// #[cfg(test)]
-// mod tests {
+    use super::*;
+    use super::X690Value;
+    use crate::X690_TAG_CLASS_UNIVERSAL;
 
-//     use super::*;
-//     use super::X690Value;
-//     use crate::{X690_TAG_CLASS_UNIVERSAL};
+    #[test]
+    fn test_ber_decode_algorithm_identifier() {
+        let encoded_data: Vec<u8> = vec![
+            X690_TAG_CLASS_UNIVERSAL
+            | 0b0010_0000 // Constructed
+            | UNIV_TAG_SEQUENCE as u8,
+            0x07,
+            0x06,
+            0x03,
+            0x55,
+            0x04,
+            0x03,
+            0x05,
+            0x00,
+        ];
+        let (bytes_read, el) = match BER.decode_from_slice(encoded_data.as_slice()) {
+            Err(_) => panic!("asdf"),
+            Ok(result) => result,
+        };
+        assert_eq!(bytes_read, 9);
+        assert_eq!(el.tag.tag_class, TagClass::UNIVERSAL);
+        assert_eq!(el.tag.tag_number, UNIV_TAG_SEQUENCE);
+        if let X690Value::Constructed(children) = &el.value {
+            assert_eq!(children.len(), 2);
+            assert_eq!(children[0].tag.tag_class, TagClass::UNIVERSAL);
+            assert_eq!(
+                children[0].tag.tag_number,
+                UNIV_TAG_OBJECT_IDENTIFIER
+            );
+            assert_eq!(children[1].tag.tag_class, TagClass::UNIVERSAL);
+            assert_eq!(children[1].tag.tag_number, UNIV_TAG_NULL);
+            if let X690Value::Primitive(oid_bytes) = &children[0].value {
+                let oid = match BER.decode_object_identifier_value(&oid_bytes) {
+                    Err(_) => panic!("woriyjh"),
+                    Ok(result) => result,
+                };
+                assert_eq!(oid.to_dot_delim_string(), "2.5.4.3");
+                // let alg_id = AlgorithmIdentifier{
+                //     algorithm: oid,
+                //     parameters: Some(children[1]),
+                // };
+            } else {
+                panic!("teuye");
+            }
+        } else {
+            panic!("zxcv");
+        }
+    }
 
-//     // pub struct AlgorithmIdentifier {
-//     //     pub algorithm: OBJECT_IDENTIFIER,
-//     //     pub parameters: OPTIONAL<ASN1Value>,
-//     // }
+    #[test]
+    fn test_ber_decode_utc_time() {
+        let time = "\x17\x11991105223344+0523";
+        let value_bytes = Vec::from(time);
+        let cst = match BER.decode_from_slice(&value_bytes) {
+            Ok((_, el)) => el,
+            Err(e) => panic!("{}", e),
+        };
+        if let X690Value::Primitive(bytes) = &cst.value {
+            let utc_time = BER.decode_utc_time_value(&bytes);
+            let decoded_value = match utc_time {
+                Ok(v) => v,
+                Err(e) => panic!("{}", e),
+            };
+            assert_eq!(decoded_value.year, 99);
+            assert_eq!(decoded_value.month, 11);
+            assert_eq!(decoded_value.day, 5);
+            assert_eq!(decoded_value.hour, 22);
+            assert_eq!(decoded_value.minute, 33);
+            assert_eq!(decoded_value.second, 44);
+            assert_eq!(decoded_value.utc_offset.hour, 5);
+            assert_eq!(decoded_value.utc_offset.minute, 23);
+        } else {
+            panic!();
+        }
+    }
 
-//     #[test]
-//     fn test_ber_decode_algorithm_identifier() {
-//         let encoded_data: Vec<u8> = vec![
-//             X690_TAG_CLASS_UNIVERSAL
-//             | 0b0010_0000 // Constructed
-//             | UNIV_TAG_SEQUENCE as u8,
-//             0x07,
-//             0x06,
-//             0x03,
-//             0x55,
-//             0x04,
-//             0x03,
-//             0x05,
-//             0x00,
-//         ];
-//         let (bytes_read, el) = match BER.decode_from_slice(encoded_data.as_slice()) {
-//             Err(_) => panic!("asdf"),
-//             Ok(result) => result,
-//         };
-//         assert_eq!(bytes_read, 9);
-//         assert_eq!(el.tag.tag_class, TagClass::UNIVERSAL);
-//         assert_eq!(el.tag.tag_number, UNIV_TAG_SEQUENCE);
-//         if let X690Value::Constructed(children) = &el.value {
-//             assert_eq!(children.len(), 2);
-//             assert_eq!(children[0].tag.tag_class, TagClass::UNIVERSAL);
-//             assert_eq!(
-//                 children[0].tag.tag_number,
-//                 UNIV_TAG_OBJECT_IDENTIFIER
-//             );
-//             assert_eq!(children[1].tag.tag_class, TagClass::UNIVERSAL);
-//             assert_eq!(children[1].tag.tag_number, UNIV_TAG_NULL);
-//             if let X690Value::Primitive(oid_bytes) = &children[0].value {
-//                 let oid = match ber_decode_object_identifier_value(&oid_bytes) {
-//                     Err(_) => panic!("woriyjh"),
-//                     Ok(result) => result,
-//                 };
-//                 assert!(oid.0.starts_with(&[2, 5, 4, 3]));
-//                 // let alg_id = AlgorithmIdentifier{
-//                 //     algorithm: oid,
-//                 //     parameters: Some(children[1]),
-//                 // };
-//             } else {
-//                 panic!("teuye");
-//             }
-//         } else {
-//             panic!("zxcv");
-//         }
-//     }
-
-//     #[test]
-//     fn test_ber_decode_utc_time() {
-//         let time = "\x17\x11991105223344+0523";
-//         let value_bytes = Vec::from(time);
-//         let cst = match BER.decode_from_slice(&value_bytes) {
-//             Ok((_, el)) => el,
-//             Err(e) => panic!("{}", e),
-//         };
-//         if let X690Value::Primitive(bytes) = &cst.value {
-//             let utc_time = ber_decode_utc_time_value(&bytes);
-//             let decoded_value = match utc_time {
-//                 Ok(v) => v,
-//                 Err(e) => panic!("{}", e),
-//             };
-//             assert_eq!(decoded_value.year, 99);
-//             assert_eq!(decoded_value.month, 11);
-//             assert_eq!(decoded_value.day, 5);
-//             assert_eq!(decoded_value.hour, 22);
-//             assert_eq!(decoded_value.minute, 33);
-//             assert_eq!(decoded_value.second, Some(44));
-//             if let Some(offset) = decoded_value.utc_offset {
-//                 assert_eq!(offset.hour, 5);
-//                 assert_eq!(offset.minute, 23);
-//             } else {
-//                 panic!();
-//             }
-//         } else {
-//             panic!();
-//         }
-//     }
-
-//     #[test]
-//     fn make_sure_u8_from_str_handles_leading_zeros () {
-//         let num = u8::from_str("05").unwrap();
-//         assert_eq!(num, 5);
-//     }
-// }
+    #[test]
+    fn make_sure_u8_from_str_handles_leading_zeros () {
+        let num = u8::from_str("05").unwrap();
+        assert_eq!(num, 5);
+    }
+}

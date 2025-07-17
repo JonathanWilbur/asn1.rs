@@ -36,7 +36,7 @@ use std::io::{Error, ErrorKind, Result};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::{oneshot, Mutex};
 use x500::{CommonProtocolSpecification::InvokeId, IDMProtocolSpecification::*};
-use x690::{write_x690_node, X690Element, BER};
+use x690::{x690_write_tlv, X690Element, BER};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -133,7 +133,7 @@ async fn write_idm_pdu<W: AsyncWriteExt + AsyncReadExt + Unpin + Send + Sync>(
     match _encode_IDM_PDU(&pdu) {
         Ok(element) => {
             let mut bytes: Vec<u8> = Vec::new();
-            if let Err(_e) = write_x690_node(&mut bytes, &element) {
+            if let Err(_e) = x690_write_tlv(&mut bytes, &element) {
                 return Err(Error::from(ErrorKind::InvalidInput));
             }
             let mut idm_stream = stream.idm.lock().await;

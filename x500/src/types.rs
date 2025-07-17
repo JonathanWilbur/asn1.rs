@@ -36,7 +36,7 @@ use wildboar_asn1::{
 };
 use x690::{
     X690Element,
-    write_x690_node,
+    x690_write_tlv,
     BER,
     X690Codec,
 };
@@ -620,7 +620,7 @@ impl DisplayX500Value<X690Element> for DefaultX500ValueDisplayer {
 
     fn unrecognized_value_to_string (self: &Self, value: &X690Element) -> String {
         let mut encoding: Vec<u8> = Vec::new();
-        write_x690_node(&mut encoding, &value).unwrap_or_default();
+        x690_write_tlv(&mut encoding, &value).unwrap_or_default();
         format!("#{}", hex::encode(&encoding))
     }
 

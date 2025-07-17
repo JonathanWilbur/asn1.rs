@@ -53,6 +53,7 @@ impl DATE {
         self.year == 0 && self.month <= 1 && self.day <= 1
     }
 
+    // FIXME: This could use a name change: it sounds like it would return a &str.
     /// Convert to a string of decimal digits only.
     ///
     /// This is intentionally designed to be suitable as an encoding of this

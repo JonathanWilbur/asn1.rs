@@ -204,12 +204,14 @@ pub type VisibleString = String;
 /// ASN.1 `GeneralString`
 pub type GeneralString = String;
 
+// FIXME: I think this should be a `Vec<u32>` instead.
 /// ASN.1 `UniversalString`
 pub type UniversalString = String;
 
 /// ASN.1 `CharacterString`
 pub type CHARACTER_STRING = crate::external::CharacterString;
 
+// FIXME: I think this should be a `Vec<u16>` instead.
 /// ASN.1 `BMPString`
 pub type BMPString = String;
 

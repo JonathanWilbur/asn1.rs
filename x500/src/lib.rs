@@ -52,7 +52,7 @@ mod tests {
     use super::DirectoryIDMProtocols::id_idm_dap;
     use super::IDMProtocolSpecification::{IdmBind, _encode_IDM_PDU, IDM_PDU};
     use wildboar_asn1::{UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE};
-    use x690::{write_x690_node, X690_TAG_CLASS_CONTEXT};
+    use x690::{x690_write_tlv, X690_TAG_CLASS_CONTEXT};
 
     #[test]
     fn it_works() {
@@ -67,7 +67,7 @@ mod tests {
         let idm_pdu = IDM_PDU::bind(IdmBind::new(id_idm_dap(), None, None, bind_arg, vec![]));
         let element = _encode_IDM_PDU(&idm_pdu).unwrap();
         let mut output: Vec<u8> = Vec::new();
-        let bytes_written = write_x690_node(&mut output, &element).unwrap();
+        let bytes_written = x690_write_tlv(&mut output, &element).unwrap();
 
         assert_eq!(bytes_written, 13);
         assert_eq!(output.len(), 13);

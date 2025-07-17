@@ -1,9 +1,10 @@
+//! Functionality for parsing structured types, such as `SEQUENCE` and `SET`
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 #![allow(soft_unstable)]
 
 use crate::{X690Element, X690Value};
-use wildboar_asn1::TagClass;
+use wildboar_asn1::{TagClass, SET_OF, SEQUENCE_OF};
 use wildboar_asn1::construction::{ComponentSpec, TagSelector};
 use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use wildboar_asn1::Tag;
@@ -650,7 +651,7 @@ impl <'a> Iterator for X690StructureIterator<'a> {
 ///
 /// # Returns
 /// A vector of decoded items
-pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
+pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<SEQUENCE_OF<T>> {
     let elements = el.value.components()
         .map_err(|e| {
             let mut err = ASN1Error::new(e.error_code);
@@ -678,7 +679,7 @@ pub fn _decode_sequence_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN
 ///
 /// # Returns
 /// A vector of decoded items
-pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<Vec<T>> {
+pub fn _decode_set_of<T>(el: &X690Element, item_decoder: Decoder<T>) -> ASN1Result<SET_OF<T>> {
     let elements = el.value.components()
         .map_err(|e| {
             let mut err = ASN1Error::new(e.error_code);

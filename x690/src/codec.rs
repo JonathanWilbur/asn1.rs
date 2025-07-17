@@ -1,3 +1,4 @@
+//! `X690Codec` trait, which is implemented by all X.690 codecs
 use std::io::{Write, Result};
 use crate::{
     X690Element,
@@ -12,7 +13,7 @@ use crate::{
     x690_write_string_value,
     x690_write_date_time_value,
     x690_write_time_value, x690_read_object_identifier_value,
-    write_x690_node,
+    x690_write_tlv,
     x690_encode_external_components,
     x690_encode_character_string_components,
     x690_encode_embedded_pdv_components,
@@ -255,7 +256,7 @@ pub trait X690Codec {
 
     /// Write an X.690 element
     fn write<W>(&self, output: &mut W, el: &X690Element) -> Result<usize> where W: Write {
-        write_x690_node(output, el)
+        x690_write_tlv(output, el)
     }
 
     /// Decode a `BOOLEAN` from content octets

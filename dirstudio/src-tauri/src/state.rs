@@ -8,7 +8,7 @@ use x500::types::{
     parse_value,
     value_to_string,
 };
-use x690::{X690Element, write_x690_node};
+use x690::{X690Element, x690_write_tlv};
 use wildboar_asn1::{ObjectIdentifierIntoDescriptor, ObjectIdentifierFromDescriptor};
 use std::sync::Arc;
 use tauri::async_runtime::Mutex;
@@ -63,7 +63,7 @@ impl DisplayX500Value<X690Element> for ServerSideState {
 
     fn unrecognized_value_to_string (self: &Self, value: &X690Element) -> String {
         let mut bytes = Vec::new();
-        write_x690_node(&mut bytes, &value).unwrap_or_default();
+        x690_write_tlv(&mut bytes, &value).unwrap_or_default();
         format!("#{}", hex::encode(&bytes))
     }
 
