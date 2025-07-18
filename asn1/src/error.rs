@@ -187,6 +187,18 @@ pub enum ASN1ErrorCode {
     /// An OID arc was negative or the first OID arc was not 0, 1, or 2, or the
     /// second OID arc was greater than 39 whent he first was 0 or 1.
     invalid_oid_arc,
+
+    /// Indefinite length was used where not allowed, such as in DER.
+    indefinite_length_prohibited,
+
+    /// A `BIT STRING` had trailing bits set, which is not allowed.
+    bit_string_trailing_bits_set,
+
+    /// A `REAL` was encoded using a format that is not allowed.
+    real_format_prohibited,
+
+    /// A `REAL` was encoded using a base that is not allowed.
+    real_base_prohibited,
 }
 
 /// An ASN.1-related error

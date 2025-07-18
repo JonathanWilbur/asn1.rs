@@ -4,6 +4,7 @@
 //! the compiler optimize code paths. When the `likely_stable` feature is enabled,
 //! these functions use the `likely_stable` crate for branch prediction hints.
 //! When the feature is disabled, they simply return the input expression unchanged.
+use wildboar_asn1::ByteSlice;
 
 /// Indicates that a boolean expression is likely to be true.
 /// 
@@ -172,5 +173,42 @@ pub(crate) fn vec_u32_to_vec_u8(mut vec: Vec<u32>) -> Vec<u8> {
     std::mem::forget(vec); // Prevent dropping the original Vec<u32>
     unsafe {
         Vec::from_raw_parts(ptr.cast::<u8>(), len * 4, capacity * 4)
+    }
+}
+
+/// Get the number of days in a month.
+///
+/// This is not a time library.
+#[inline]
+pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
+    let is_leap_year = ((year % 4) == 0) && (((year % 100) > 0) || ((year % 400) == 0));
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        2 => if is_leap_year { 29 } else { 28 },
+        _ => 30,
+    }
+}
+
+/// Decode a variable-length `u64` from a byte slice
+pub fn x690_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
+    match bytes.len() {
+        0 => Some(0),
+        1 => Some(bytes[0] as u8 as u64),
+        2 => Some(u16::from_be_bytes([bytes[0], bytes[1]]) as u64),
+        3 => Some(u32::from_be_bytes([0x00, bytes[0], bytes[1], bytes[2]]) as u64),
+        4 => Some(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as u64),
+        5 => Some(u64::from_be_bytes([
+            0x00, 0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4],
+        ])),
+        6 => Some(u64::from_be_bytes([
+            0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5],
+        ])),
+        7 => Some(u64::from_be_bytes([
+            0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
+        ])),
+        8 => Some(u64::from_be_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+        ])),
+        _ => None,
     }
 }

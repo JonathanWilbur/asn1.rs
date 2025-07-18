@@ -1,6 +1,6 @@
 //! This module implements the Basic Encoding Rules (BER) for X.690.
 use wildboar_asn1::{
-    join_bit_strings, ASN1Error, ASN1ErrorCode, ASN1Result, Tag, X690Validate, DATE, OBJECT_IDENTIFIER, RELATIVE_OID, TIME_OF_DAY
+    join_bit_strings, ASN1Error, ASN1ErrorCode, ASN1Result, Tag
 };
 use crate::codec::{BasicEncodingRules, X690Codec};
 use std::io::{Write, Result};
@@ -97,7 +97,7 @@ use std::mem::size_of;
 use std::sync::Arc;
 use simdutf8::basic::from_utf8;
 use std::str::FromStr;
-use crate::utils::{vec_u16_to_vec_u8, vec_u32_to_vec_u8};
+use crate::utils::{vec_u16_to_vec_u8, vec_u32_to_vec_u8, get_days_in_month, x690_read_var_length_u64};
 
 pub const BER: BasicEncodingRules = BasicEncodingRules::new();
 
@@ -158,17 +158,6 @@ fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
     }
 }
 
-/// This is not a time library.
-#[inline]
-pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
-    let is_leap_year = ((year % 4) == 0) && (((year % 100) > 0) || ((year % 400) == 0));
-    match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        2 => if is_leap_year { 29 } else { 28 },
-        _ => 30,
-    }
-}
-
 /// Decode the length of an X.690-encoded element from a byte slice
 /// 
 /// This starts at the first byte.
@@ -215,30 +204,6 @@ pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
         _ => 0, // This should never happen.
     };
     Ok((bytes_read, X690Length::Definite(len)))
-}
-
-/// BER-decode a variable-length `u64` from a byte slice
-pub fn ber_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
-    match bytes.len() {
-        0 => Some(0),
-        1 => Some(bytes[0] as u8 as u64),
-        2 => Some(u16::from_be_bytes([bytes[0], bytes[1]]) as u64),
-        3 => Some(u32::from_be_bytes([0x00, bytes[0], bytes[1], bytes[2]]) as u64),
-        4 => Some(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as u64),
-        5 => Some(u64::from_be_bytes([
-            0x00, 0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4],
-        ])),
-        6 => Some(u64::from_be_bytes([
-            0x00, 0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5],
-        ])),
-        7 => Some(u64::from_be_bytes([
-            0x00, bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6],
-        ])),
-        8 => Some(u64::from_be_bytes([
-            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
-        ])),
-        _ => None,
-    }
 }
 
 impl X690Codec for BasicEncodingRules {
@@ -407,6 +372,7 @@ impl X690Codec for BasicEncodingRules {
         }
     }
 
+    #[inline]
     fn write<W>(&self, output: &mut W, el: &X690Element) -> Result<usize> where W: Write {
         x690_write_tlv(output, el)
     }
@@ -433,6 +399,7 @@ impl X690Codec for BasicEncodingRules {
         Ok(BIT_STRING::from_parts_borrowed(&value_bytes[1..], trailing_bits))
     }
 
+    #[inline]
     fn decode_octet_string_value(&self, value_bytes: ByteSlice) -> ASN1Result<OCTET_STRING> {
         Ok(Vec::from(value_bytes))
     }
@@ -484,7 +451,7 @@ impl X690Codec for BasicEncodingRules {
                             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                         }
                         exponent = value_bytes[1] as i8 as i32;
-                        mantissa = ber_read_var_length_u64(&value_bytes[2..])
+                        mantissa = x690_read_var_length_u64(&value_bytes[2..])
                             .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_2_OCTET => {
@@ -496,7 +463,7 @@ impl X690Codec for BasicEncodingRules {
                             return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                         }
                         exponent = i32::from_be_bytes([0, 0, value_bytes[1], value_bytes[2]]);
-                        mantissa = ber_read_var_length_u64(&value_bytes[3..])
+                        mantissa = x690_read_var_length_u64(&value_bytes[3..])
                             .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_3_OCTET => {
@@ -509,7 +476,7 @@ impl X690Codec for BasicEncodingRules {
                         }
                         exponent =
                             i32::from_be_bytes([0, value_bytes[1], value_bytes[2], value_bytes[3]]);
-                        mantissa = ber_read_var_length_u64(&value_bytes[4..])
+                        mantissa = x690_read_var_length_u64(&value_bytes[4..])
                             .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_VAR_OCTET => {
@@ -526,12 +493,12 @@ impl X690Codec for BasicEncodingRules {
                         }
                         if exponent_len == 1 {
                             exponent = value_bytes[2] as i8 as i32;
-                            mantissa = ber_read_var_length_u64(&value_bytes[3..])
+                            mantissa = x690_read_var_length_u64(&value_bytes[3..])
                                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                         } else {
                             // The exponent must have length 2.
                             exponent = i32::from_be_bytes([0, 0, value_bytes[2], value_bytes[3]]);
-                            mantissa = ber_read_var_length_u64(&value_bytes[4..])
+                            mantissa = x690_read_var_length_u64(&value_bytes[4..])
                                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                         }
                     }
@@ -549,22 +516,27 @@ impl X690Codec for BasicEncodingRules {
         }
     }
 
+    #[inline]
     fn decode_utc_time_value(&self, value_bytes: ByteSlice) -> ASN1Result<UTCTime> {
         UTCTime::try_from(value_bytes)
     }
 
+    #[inline]
     fn decode_generalized_time_value(&self, value_bytes: ByteSlice) -> ASN1Result<GeneralizedTime> {
         GeneralizedTime::try_from(value_bytes)
     }
 
+    #[inline]
     fn decode_duration_value(&self, value_bytes: ByteSlice) -> ASN1Result<DURATION> {
         DURATION::try_from(value_bytes)
     }
 
+    #[inline]
     fn decode_bit_string(&self, el: &X690Element) -> ASN1Result<BIT_STRING> {
         ber_deconstruct_bit_string(&el)
     }
 
+    #[inline]
     fn decode_octet_string(&self, el: &X690Element) -> ASN1Result<OCTET_STRING> {
         Ok(deconstruct(el)?.into_owned())
     }
@@ -603,59 +575,73 @@ impl X690Codec for BasicEncodingRules {
         }
     }
 
+    #[inline]
     fn decode_object_descriptor(&self, el: &X690Element) -> ASN1Result<ObjectDescriptor> {
         self.decode_graphic_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_utf8_string(&self, el: &X690Element) -> ASN1Result<UTF8String> {
         String::from_utf8(deconstruct(el)?.into_owned())
             .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))
     }
 
+    #[inline]
     fn decode_numeric_string(&self, el: &X690Element) -> ASN1Result<NumericString> {
         self.decode_numeric_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_printable_string(&self, el: &X690Element) -> ASN1Result<PrintableString> {
         self.decode_printable_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_t61_string(&self, el: &X690Element) -> ASN1Result<T61String> {
         Ok(deconstruct(el)?.into_owned())
     }
 
+    #[inline]
     fn decode_videotex_string(&self, el: &X690Element) -> ASN1Result<VideotexString> {
         Ok(deconstruct(el)?.into_owned())
     }
 
+    #[inline]
     fn decode_ia5_string(&self, el: &X690Element) -> ASN1Result<IA5String> {
         self.decode_ia5_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_utc_time(&self, el: &X690Element) -> ASN1Result<UTCTime> {
         self.decode_utc_time_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_generalized_time(&self, el: &X690Element) -> ASN1Result<GeneralizedTime> {
         self.decode_generalized_time_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_graphic_string(&self, el: &X690Element) -> ASN1Result<GraphicString> {
         self.decode_graphic_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_visible_string(&self, el: &X690Element) -> ASN1Result<VisibleString> {
         self.decode_visible_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_general_string(&self, el: &X690Element) -> ASN1Result<GeneralString> {
         self.decode_general_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_universal_string(&self, el: &X690Element) -> ASN1Result<UniversalString> {
         self.decode_universal_string_value(deconstruct(el)?.as_ref())
     }
 
+    #[inline]
     fn decode_bmp_string(&self, el: &X690Element) -> ASN1Result<BMPString> {
         self.decode_bmp_string_value(deconstruct(el)?.as_ref())
     }
@@ -903,6 +889,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_octet_string(&self, value: &OCTET_STRING) -> ASN1Result<X690Element> {
         // Slight optimization to skip all this.
         // let mut out: Bytes = Vec::with_capacity(value.len());
@@ -1033,6 +1020,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_object_descriptor(&self, value: ObjectDescriptor) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OBJECT_DESCRIPTOR),
@@ -1040,6 +1028,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_utf8_string(&self, value: UTF8String) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
@@ -1047,6 +1036,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_numeric_string(&self, value: NumericString) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NUMERIC_STRING),
@@ -1054,6 +1044,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_printable_string(&self, value: PrintableString) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING),
@@ -1061,6 +1052,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_t61_string(&self, value: T61String) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_T61_STRING),
@@ -1068,6 +1060,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_videotex_string(&self, value: VideotexString) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_VIDEOTEX_STRING),
@@ -1075,6 +1068,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_ia5_string(&self, value: String) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_IA5_STRING),
@@ -1082,6 +1076,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_graphic_string(&self, value: GraphicString) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_GRAPHIC_STRING),
@@ -1089,6 +1084,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_visible_string(&self, value: VisibleString) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_VISIBLE_STRING),
@@ -1096,6 +1092,7 @@ impl X690Codec for BasicEncodingRules {
         ))
     }
 
+    #[inline]
     fn encode_owned_general_string(&self, value: GeneralString) -> ASN1Result<X690Element> {
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_GENERAL_STRING),
@@ -1182,30 +1179,6 @@ impl X690Codec for BasicEncodingRules {
             return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_remainder_but_no_bits));
         }
         return Ok(());
-    }
-
-    #[inline]
-    fn validate_octet_string_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
-        Ok(())
-    }
-
-    #[inline]
-    fn validate_null_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() == 0 {
-            Ok(())
-        } else {
-            Err(ASN1Error::new(ASN1ErrorCode::malformed_value))
-        }
-    }
-
-    #[inline]
-    fn validate_object_identifier_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        OBJECT_IDENTIFIER::validate_x690_encoding(content_octets)
-    }
-
-    #[inline]
-    fn validate_object_descriptor_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        self.validate_graphic_string_value(content_octets)
     }
 
     fn validate_real_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
@@ -1350,86 +1323,6 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    #[inline]
-    fn validate_enumerated_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        self.validate_integer_value(content_octets)
-    }
-
-    fn validate_utf8_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        from_utf8(content_octets)
-            .map(|_| ())
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))
-    }
-
-    #[inline]
-    fn validate_relative_object_identifier_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        RELATIVE_OID::validate_x690_encoding(content_octets)
-    }
-
-    fn validate_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_tstring_char(*b));
-        if let Some(bad_char_index) = maybe_bad_char {
-            let bad_char = content_octets[bad_char_index];
-            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-                bad_char as u32,
-                bad_char_index,
-            )));
-        }
-        Ok(())
-    }
-
-    fn validate_numeric_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_numeric_char(*b));
-        if let Some(bad_char_index) = maybe_bad_char {
-            let bad_char = content_octets[bad_char_index];
-            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-                bad_char as u32,
-                bad_char_index,
-            )));
-        }
-        Ok(())
-    }
-
-    fn validate_printable_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        for (i, byte) in content_octets.iter().enumerate() {
-            let b = *byte as char;
-            if byte.is_ascii_alphanumeric()
-                || (b >= '\x27' && b < '0' && b != '*') // '()+,-./ BUT NOT *
-                || b == ' '
-                || b == ':'
-                || b == '='
-                || b == '?'
-            {
-                continue;
-            }
-            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-                *byte as u32,
-                i,
-            )));
-        }
-        Ok(())
-    }
-
-    fn validate_t61_string_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
-        Ok(())
-    }
-
-    fn validate_videotex_string_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
-        Ok(())
-    }
-
-    fn validate_ia5_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii());
-        if let Some(bad_char_index) = maybe_bad_char {
-            let bad_char = content_octets[bad_char_index];
-            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-                bad_char as u32,
-                bad_char_index,
-            )));
-        }
-        Ok(())
-    }
-
     // 9604152030Z
     fn validate_utc_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() > 17 {
@@ -1525,100 +1418,6 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    // YYYYMMDDHH[MM[SS[.fff]]] e.g. 19960415203000.0-0600
-    // pub fn validate_generalized_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-    //     if content_octets.len() > 32 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
-    //     }
-    //     if content_octets.len() < 10 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
-    //     }
-    //     let maybe_bad_char = content_octets[0..10].iter().position(|b| b.is_ascii_digit());
-    //     if let Some(bad_char_index) = maybe_bad_char {
-    //         let bad_char = content_octets[bad_char_index];
-    //         return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-    //             bad_char as u32,
-    //             bad_char_index,
-    //         )));
-    //     }
-    //     let s = unsafe { String::from_utf8_unchecked(content_octets[0..10].to_vec()) };
-    //     let year = u16::from_str(&s[0..4])
-    //         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
-    //     // I confirmed in a unit test below that u8::from_str() will tolerate leading zeros.
-    //     let month = u8::from_str(&s[4..6])
-    //         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
-    //     let day = u8::from_str(&s[6..8])
-    //         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
-    //     let hour = u8::from_str(&s[8..10])
-    //         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
-    //     // let minute = u8::from_str(&s[8..10])
-    //     //     .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
-    //     if month > 12 || month == 0 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
-    //     }
-    //     let max_day = match month {
-    //         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-    //         // This isn't technically correct leap-year handling, but it should be good for the next 175 years or so.
-    //         2 => if year % 4 > 0 { 28 } else { 29 },
-    //         _ => 30,
-    //     };
-    //     if day == 0 || day > max_day {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_day));
-    //     }
-    //     if hour > 23 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
-    //     }
-    //     if minute > 59 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
-    //     }
-    //     let mut start_of_time_zone = 10;
-    //     if content_octets[10].is_ascii_digit() {
-    //         if content_octets.len() < 12 || !content_octets[11].is_ascii_digit() {
-    //             return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-    //         }
-    //         let second = u8::from_str(&s[10..12])
-    //             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
-    //         if second > 59 {
-    //             return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
-    //         }
-    //         start_of_time_zone = 12;
-    //     }
-    //     if content_octets.len() < start_of_time_zone + 1 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-    //     }
-    //     if content_octets[start_of_time_zone] == b'Z' {
-    //         if content_octets.len() > start_of_time_zone + 1 {
-    //             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-    //         }
-    //         return Ok(());
-    //     }
-    //     if content_octets.len() != start_of_time_zone + 5 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-    //     }
-    //     if content_octets[start_of_time_zone] != b'+'
-    //         && content_octets[start_of_time_zone] != b'-' {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-    //     }
-
-    //     let maybe_bad_char = content_octets[start_of_time_zone + 1..].iter().position(|b| b.is_ascii_digit());
-    //     if let Some(bad_char_index) = maybe_bad_char {
-    //         let bad_char = content_octets[bad_char_index];
-    //         return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-    //             bad_char as u32,
-    //             bad_char_index,
-    //         )));
-    //     }
-    //     let offset_s = unsafe { String::from_utf8_unchecked(content_octets[start_of_time_zone + 1..].to_vec()) };
-    //     let offset_hour = u8::from_str(&offset_s[6..8])
-    //         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
-    //     let offset_minute = u8::from_str(&offset_s[8..10])
-    //         .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
-    //     if offset_hour > 23 || offset_minute > 59 {
-    //         return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
-    //     }
-    //     Ok(())
-    // }
-
     // Function produced by ChatGPT-4 before a few modifications by me.
     fn validate_generalized_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         let s = match from_utf8(content_octets) {
@@ -1660,8 +1459,8 @@ impl X690Codec for BasicEncodingRules {
         // Check timezone or fractions of seconds
         match &s[14..] {
             "Z" => Ok(()),
-            s if s.starts_with('.') => {
-                let (fraction, tz) = s.split_at(s.find(|c: char| !c.is_numeric()).unwrap_or(0));
+            s if s.starts_with('.') || s.starts_with(',') => {
+                let (fraction, tz) = s[1..].split_at(s.find(|c: char| !c.is_numeric()).unwrap_or(0));
 
                 if fraction.is_empty() {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds));
@@ -1670,7 +1469,8 @@ impl X690Codec for BasicEncodingRules {
                 match tz {
                     "Z" => Ok(()),
                     tz if tz.starts_with('+') || tz.starts_with('-') => {
-                        if tz.len() == 5 && tz[1..].chars().all(|c| c.is_numeric()) {
+                        // Minutes in the offset are optional.
+                        if (tz.len() == 5 || tz.len() == 3) && tz[1..].chars().all(|c| c.is_numeric()) {
                             Ok(())
                         } else {
                             Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds))
@@ -1680,7 +1480,8 @@ impl X690Codec for BasicEncodingRules {
                 }
             }
             tz if tz.starts_with('+') || tz.starts_with('-') => {
-                if tz.len() == 5 && tz[1..].chars().all(|c| c.is_numeric()) {
+                // Minutes in the offset are optional.
+                if (tz.len() == 5 || tz.len() == 3)  && tz[1..].chars().all(|c| c.is_numeric()) {
                     Ok(())
                 } else {
                     Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset))
@@ -1688,63 +1489,6 @@ impl X690Codec for BasicEncodingRules {
             }
             _ => Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
         }
-    }
-
-    fn validate_graphic_string_value (&self, _: ByteSlice) -> ASN1Result<()> {
-        Ok(())
-    }
-
-    fn validate_visible_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_visible_char(*b));
-        if let Some(bad_char_index) = maybe_bad_char {
-            let bad_char = content_octets[bad_char_index];
-            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
-                bad_char as u32,
-                bad_char_index,
-            )));
-        }
-        Ok(())
-    }
-
-    /// There's no validation here, because a `GeneralString` can be basically
-    /// anything.
-    fn validate_general_string_value (&self, _: ByteSlice) -> ASN1Result<()> {
-        Ok(())
-    }
-
-    fn validate_universal_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() % 4 > 0 {
-            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
-        }
-        // Theoretically, you could validate that every uint32 is a valid Unicode
-        // code point as well, but that might be overkill.
-        Ok(())
-    }
-
-    fn validate_bmp_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() % 2 > 0 {
-            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
-        }
-        Ok(())
-    }
-
-    #[inline]
-    fn validate_date_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        DATE::validate_x690_encoding(content_octets)
-    }
-
-    #[inline]
-    fn validate_time_of_day_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        TIME_OF_DAY::validate_x690_encoding(content_octets)
-    }
-
-    #[inline]
-    fn validate_date_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() != 14 { // 19511014153000 (X.690 strips the hyphens, colon and "T")
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        self.validate_date_value(&content_octets[0..8])?;
-        self.validate_time_of_day_value(&content_octets[8..])
     }
 
     // Before some tweaking, this was produced by ChatGPT.
@@ -1794,17 +1538,6 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    fn validate_oid_iri_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        if content_octets.len() < 2 || content_octets[0] != b'/' {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
-        Ok(())
-    }
-
-    fn validate_relative_oid_iri_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
-        Ok(())
-    }
-
     fn validate_bit_string(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_bit_string_value(&v),
@@ -1826,6 +1559,8 @@ impl X690Codec for BasicEncodingRules {
         }
     }
 
+    // FIXME: I just realized: you still have to check that it is composed of OCTET STRING if it is constructed.
+    #[inline]
     fn validate_octet_string(&self, _: &X690Element) -> ASN1Result<()> {
         Ok(())
     }

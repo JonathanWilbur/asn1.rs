@@ -21,6 +21,7 @@ use crate::{
     BER,
 };
 use wildboar_asn1::{
+    X690Validate,
     ASN1Result,
     ASN1Error,
     ASN1ErrorCode,
@@ -118,6 +119,7 @@ use crate::{
 use bytes::{Bytes, BytesMut, BufMut};
 use std::sync::Arc;
 use std::mem::size_of;
+use simdutf8::basic::from_utf8;
 
 /// Any codec defined in ITU-T Recommendation X.690.
 ///
@@ -918,7 +920,6 @@ pub trait X690Codec {
         ))
     }
 
-
     /// Encode an `ObjectDescriptor` value into an X.690 encoding
     fn encode_object_descriptor(&self, value: &str) -> ASN1Result<X690Element>;
 
@@ -980,7 +981,7 @@ pub trait X690Codec {
 
     /// Encode a `DATE` value into an X.690 encoding
     fn encode_date(&self, value: &DATE) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(10).writer(); // YYYY-MM-DD
+        let mut out = BytesMut::with_capacity(8).writer(); // YYYYMMDD
         x690_write_date_value(&mut out, &value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_DATE),
@@ -990,7 +991,7 @@ pub trait X690Codec {
 
     /// Encode a `TIME-OF-DAY` value into an X.690 encoding
     fn encode_time_of_day(&self, value: &TIME_OF_DAY) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(8).writer(); // HH:MM:SS
+        let mut out = BytesMut::with_capacity(6).writer(); // HHMMSS
         x690_write_time_of_day_value(&mut out, &value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_TIME_OF_DAY),
@@ -1000,7 +1001,7 @@ pub trait X690Codec {
 
     /// Encode a `DATE-TIME` value into an X.690 encoding
     fn encode_date_time(&self, value: &DATE_TIME) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(19).writer(); // 1951-10-14T15:30:00
+        let mut out = BytesMut::with_capacity(14).writer(); // 19511014153000
         x690_write_date_time_value(&mut out, &value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_DATE_TIME),
@@ -1059,20 +1060,116 @@ pub trait X690Codec {
         return Ok(());
     }
 
+    /// Validate an encoded `TIME` value from content octets
+    fn validate_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_tstring_char(*b));
+        if let Some(bad_char_index) = maybe_bad_char {
+            let bad_char = content_octets[bad_char_index];
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+                bad_char as u32,
+                bad_char_index,
+            )));
+        }
+        Ok(())
+    }
+
+    /// Validate an encoded `NumericString` value from content octets
+    fn validate_numeric_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_numeric_char(*b));
+        if let Some(bad_char_index) = maybe_bad_char {
+            let bad_char = content_octets[bad_char_index];
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+                bad_char as u32,
+                bad_char_index,
+            )));
+        }
+        Ok(())
+    }
+
+    /// Validate an encoded `PrintableString` value from content octets
+    fn validate_printable_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        for (i, byte) in content_octets.iter().enumerate() {
+            let b = *byte as char;
+            if byte.is_ascii_alphanumeric()
+                || (b >= '\x27' && b < '0' && b != '*') // '()+,-./ BUT NOT *
+                || b == ' '
+                || b == ':'
+                || b == '='
+                || b == '?'
+            {
+                continue;
+            }
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+                *byte as u32,
+                i,
+            )));
+        }
+        Ok(())
+    }
+
+    /// Validate an encoded `T61String` / `TeletexString` value from content octets
+    #[inline]
+    fn validate_t61_string_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
+        Ok(())
+    }
+
+    /// Validate an encoded `VideotexString` value from content octets
+    #[inline]
+    fn validate_videotex_string_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
+        Ok(())
+    }
+
+    /// Validate an encoded `IA5String` value from content octets
+    fn validate_ia5_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii());
+        if let Some(bad_char_index) = maybe_bad_char {
+            let bad_char = content_octets[bad_char_index];
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+                bad_char as u32,
+                bad_char_index,
+            )));
+        }
+        Ok(())
+    }
+
+    /// Validate an encoded `UTF8String` value from content octets
+    #[inline]
+    fn validate_utf8_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        from_utf8(content_octets)
+            .map(|_| ())
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))
+    }
+
     /// Validate an encoded `BIT STRING` value from content octets
     fn validate_bit_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
 
     /// Validate an encoded `OCTET STRING` value from content octets
-    fn validate_octet_string_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_octet_string_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
+        Ok(())
+    }
 
     /// Validate an encoded `NULL` value from content octets
-    fn validate_null_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_null_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() == 0 {
+            Ok(())
+        } else {
+            Err(ASN1Error::new(ASN1ErrorCode::malformed_value))
+        }
+    }
 
     /// Validate an encoded `OBJECT IDENTIFIER` value from content octets
-    fn validate_object_identifier_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_object_identifier_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        OBJECT_IDENTIFIER::validate_x690_encoding(content_octets)
+    }
 
     /// Validate an encoded `ObjectDescriptor` value from content octets
-    fn validate_object_descriptor_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_object_descriptor_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        self.validate_graphic_string_value(content_octets)
+    }
 
     /// Validate an encoded `REAL` value from content octets
     fn validate_real_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
@@ -1083,29 +1180,11 @@ pub trait X690Codec {
         self.validate_integer_value(content_octets)
     }
 
-    /// Validate an encoded `UTF8String` value from content octets
-    fn validate_utf8_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
-
     /// Validate an encoded `RELATIVE-OID` value from content octets
-    fn validate_relative_object_identifier_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
-
-    /// Validate an encoded `TIME` value from content octets
-    fn validate_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
-
-    /// Validate an encoded `NumericString` value from content octets
-    fn validate_numeric_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
-
-    /// Validate an encoded `PrintableString` value from content octets
-    fn validate_printable_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
-
-    /// Validate an encoded `T61String` / `TeletexString` value from content octets
-    fn validate_t61_string_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
-
-    /// Validate an encoded `VideotexString` value from content octets
-    fn validate_videotex_string_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
-
-    /// Validate an encoded `IA5String` value from content octets
-    fn validate_ia5_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_relative_object_identifier_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        RELATIVE_OID::validate_x690_encoding(content_octets)
+    }
 
     /// Validate an encoded `UTCTime` value from content octets
     fn validate_utc_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
@@ -1114,37 +1193,88 @@ pub trait X690Codec {
     fn validate_generalized_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
 
     /// Validate an encoded `GraphicString` value from content octets
-    fn validate_graphic_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_graphic_string_value (&self, _: ByteSlice) -> ASN1Result<()> {
+        Ok(())
+    }
 
     /// Validate an encoded `VisibleString` value from content octets
-    fn validate_visible_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    fn validate_visible_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_visible_char(*b));
+        if let Some(bad_char_index) = maybe_bad_char {
+            let bad_char = content_octets[bad_char_index];
+            return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
+                bad_char as u32,
+                bad_char_index,
+            )));
+        }
+        Ok(())
+    }
 
     /// Validate an encoded `GeneralString` value from content octets
-    fn validate_general_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    ///
+    /// There's no validation here, because a `GeneralString` can be basically
+    /// anything.
+    #[inline]
+    fn validate_general_string_value (&self, _: ByteSlice) -> ASN1Result<()> {
+        Ok(())
+    }
 
     /// Validate an encoded `UniversalString` value from content octets
-    fn validate_universal_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    fn validate_universal_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() % 4 > 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
+        // Theoretically, you could validate that every uint32 is a valid Unicode
+        // code point as well, but that might be overkill.
+        Ok(())
+    }
 
     /// Validate an encoded `BMPString` value from content octets
-    fn validate_bmp_string_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    fn validate_bmp_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() % 2 > 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
+        Ok(())
+    }
 
     /// Validate an encoded `DATE` value from content octets
-    fn validate_date_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_date_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        DATE::validate_x690_encoding(content_octets)
+    }
 
     /// Validate an encoded `TIME-OF-DAY` value from content octets
-    fn validate_time_of_day_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_time_of_day_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        TIME_OF_DAY::validate_x690_encoding(content_octets)
+    }
 
     /// Validate an encoded `DATE-TIME` value from content octets
-    fn validate_date_time_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    fn validate_date_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() != 14 { // 19511014153000 (X.690 strips the hyphens, colon and "T")
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        self.validate_date_value(&content_octets[0..8])?;
+        self.validate_time_of_day_value(&content_octets[8..])
+    }
 
     /// Validate an encoded `DURATION` value from content octets
     fn validate_duration_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
 
     /// Validate an encoded `OID-IRI` value from content octets
-    fn validate_oid_iri_value(&self, content_octets: ByteSlice) -> ASN1Result<()>;
+    fn validate_oid_iri_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() < 2 || content_octets[0] != b'/' {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
+        Ok(())
+    }
 
     /// Validate an encoded `RELATIVE-OID-IRI` value from content octets
-    fn validate_relative_oid_iri_value(&self, _content_octets: ByteSlice) -> ASN1Result<()>;
+    #[inline]
+    fn validate_relative_oid_iri_value (&self, _content_octets: ByteSlice) -> ASN1Result<()> {
+        Ok(())
+    }
 
     /// Validate an encoded `BOOLEAN`
     fn validate_boolean(&self, el: &X690Element) -> ASN1Result<()> {

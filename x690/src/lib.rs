@@ -23,6 +23,7 @@
 //! - Tag and length encoding/decoding utilities
 
 pub mod ber;
+pub mod der;
 pub mod codec;
 pub mod parsing;
 pub(crate) mod utils;

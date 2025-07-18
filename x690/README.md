@@ -10,6 +10,7 @@ namely:
 
 ## To Do
 
+- [ ] Canonical Encoding Rules (CER) on hold pending more field-testing
 - [ ] Convert `OSString` directly to `BMPString` on Windows?
 - [ ] More efficient `BMPString` and `UniversalString` methods
 
