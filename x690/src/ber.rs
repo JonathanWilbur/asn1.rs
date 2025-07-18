@@ -95,6 +95,7 @@ use wildboar_asn1::{
 use bytes::{Bytes, BytesMut, BufMut};
 use std::mem::size_of;
 use std::sync::Arc;
+#[cfg(feature = "simdutf8")]
 use simdutf8::basic::from_utf8;
 use std::str::FromStr;
 use crate::utils::{vec_u16_to_vec_u8, vec_u32_to_vec_u8, get_days_in_month, x690_read_var_length_u64};
@@ -417,8 +418,12 @@ impl X690Codec for BasicEncodingRules {
                 _ => return Err(ASN1Error::new(ASN1ErrorCode::unrecognized_special_real)),
             },
             crate::X690_REAL_BASE10 => {
+                #[cfg(feature = "simdutf8")]
                 let s = from_utf8(&value_bytes[1..])
                     .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
+                #[cfg(not(feature = "simdutf8"))]
+                let s = std::str::from_utf8(&value_bytes[1..])
+                    .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e))))?;
                 let format = value_bytes[0] & 0b0011_1111;
                 return match format {
                     crate::X690_REAL_NR1 => iso6093::parse_nr1(s)
@@ -582,6 +587,11 @@ impl X690Codec for BasicEncodingRules {
 
     #[inline]
     fn decode_utf8_string(&self, el: &X690Element) -> ASN1Result<UTF8String> {
+        #[cfg(feature = "simdutf8")]
+        return from_utf8(deconstruct(el)?.as_ref())
+            .map(|s| s.to_owned())
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)));
+        #[cfg(not(feature = "simdutf8"))]
         String::from_utf8(deconstruct(el)?.into_owned())
             .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))
     }
@@ -1339,8 +1349,12 @@ impl X690Codec for BasicEncodingRules {
                 bad_char_index,
             )));
         }
+        #[cfg(feature = "simdutf8")]
         let s = from_utf8(&content_octets[0..10])
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
+                .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
+        #[cfg(not(feature = "simdutf8"))]
+        let s = String::from_utf8(content_octets[0..10].to_owned())
+                .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))?;
         let mut year = u16::from_str(&s[0..2])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
         if year > 75 { // I think this is specified in RFC 5280. I forgot where I saw it.
@@ -1420,10 +1434,12 @@ impl X690Codec for BasicEncodingRules {
 
     // Function produced by ChatGPT-4 before a few modifications by me.
     fn validate_generalized_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let s = match from_utf8(content_octets) {
-            Ok(v) => v,
-            Err(_) => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
-        };
+        #[cfg(feature = "simdutf8")]
+        let s = from_utf8(&content_octets[0..10])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
+        #[cfg(not(feature = "simdutf8"))]
+        let s = String::from_utf8(content_octets[0..10].to_owned())
+            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))?;
 
         // Check for basic length
         if s.len() < 15 {
@@ -1500,7 +1516,7 @@ impl X690Codec for BasicEncodingRules {
         if content_octets[0] == b'P' {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        if content_octets.ends_with(b'T') {
+        if content_octets.ends_with(b"T") {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
 

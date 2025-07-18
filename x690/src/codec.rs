@@ -119,6 +119,7 @@ use crate::{
 use bytes::{Bytes, BytesMut, BufMut};
 use std::sync::Arc;
 use std::mem::size_of;
+#[cfg(feature = "simdutf8")]
 use simdutf8::basic::from_utf8;
 
 /// Any codec defined in ITU-T Recommendation X.690.
@@ -1135,9 +1136,14 @@ pub trait X690Codec {
     /// Validate an encoded `UTF8String` value from content octets
     #[inline]
     fn validate_utf8_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        from_utf8(content_octets)
+        #[cfg(feature = "simdutf8")]
+        return from_utf8(content_octets)
             .map(|_| ())
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)));
+        #[cfg(not(feature = "simdutf8"))]
+        std::str::from_utf8(content_octets)
+            .map(|_| ())
+            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e))))
     }
 
     /// Validate an encoded `BIT STRING` value from content octets
@@ -2407,50 +2413,26 @@ pub trait X690Codec {
 }
 
 /// The Basic Encoding Rules (BER)
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct BasicEncodingRules;
 
-/// The Canonical Encoding Rules (CER)
-pub struct CanonicalEncodingRules;
-
 /// The Distinguished Encoding Rules (DER)
+#[cfg(feature = "der")]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct DistinguishedEncodingRules;
 
 impl BasicEncodingRules {
     /// Instantiate the Basic Encoding Rules (BER)
     pub const fn new() -> Self {
-        BasicEncodingRules {}
+        BasicEncodingRules{}
     }
 }
 
-impl CanonicalEncodingRules {
-    /// Instantiate the Canonical Encoding Rules (CER)
-    pub const fn new() -> Self {
-        CanonicalEncodingRules {}
-    }
-}
-
+#[cfg(feature = "der")]
 impl DistinguishedEncodingRules {
     /// Instantiate the Distinguished Encoding Rules (DER)
     pub const fn new() -> Self {
-        DistinguishedEncodingRules {}
-    }
-}
-
-impl Default for BasicEncodingRules {
-    fn default() -> Self {
-        BasicEncodingRules::new()
-    }
-}
-
-impl Default for CanonicalEncodingRules {
-    fn default() -> Self {
-        CanonicalEncodingRules::new()
-    }
-}
-
-impl Default for DistinguishedEncodingRules {
-    fn default() -> Self {
-        DistinguishedEncodingRules::new()
+        DistinguishedEncodingRules{}
     }
 }
 
@@ -2464,16 +2446,7 @@ impl ASN1Codec for BasicEncodingRules {
     }
 }
 
-impl ASN1Codec for CanonicalEncodingRules {
-    fn transfer_syntax_oid(&self) -> OBJECT_IDENTIFIER {
-        OBJECT_IDENTIFIER::try_from([2u32, 1, 2, 0].as_slice()).unwrap()
-    }
-
-    fn transfer_syntax_oid_iri(&self) -> Option<wildboar_asn1::OID_IRI> {
-        Some("/ASN.1/BER-Derived/Canonical-Encoding".into())
-    }
-}
-
+#[cfg(feature = "der")]
 impl ASN1Codec for DistinguishedEncodingRules {
     fn transfer_syntax_oid(&self) -> OBJECT_IDENTIFIER {
         OBJECT_IDENTIFIER::try_from([2u32, 1, 2, 1].as_slice()).unwrap()

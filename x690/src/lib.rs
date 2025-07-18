@@ -23,6 +23,7 @@
 //! - Tag and length encoding/decoding utilities
 
 pub mod ber;
+#[cfg(feature = "der")]
 pub mod der;
 pub mod codec;
 pub mod parsing;
