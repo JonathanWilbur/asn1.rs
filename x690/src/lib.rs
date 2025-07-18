@@ -276,7 +276,7 @@ impl X690Element {
         match &self.value {
             X690Value::Constructed(components) => {
                 if components.len() != 1 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction));
+                    return Err(self.to_asn1_error(ASN1ErrorCode::invalid_construction));
                 }
                 Ok(components[0].clone())
             },
@@ -284,7 +284,7 @@ impl X690Element {
                 let (_, el) = BER.decode_from_slice(&v).unwrap();
                 el.inner()
             },
-            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            _ => Err(self.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -695,7 +695,7 @@ pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
     let mut len: usize = 1;
     if (bytes[0] & 0b00011111) == 0b00011111 {
         // If it is a long tag...
-        for byte in bytes[1..].into_iter() {
+        for byte in bytes[1..].iter() {
             len += 1; // Even the byte without the continuation flag set should be counted.
             if ((*byte) & 0b1000_0000) == 0 {
                 break;
@@ -718,7 +718,7 @@ pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
 /// 
 /// Base-128 encoding is used for long tag numbers and other variable-length `INTEGER`s
 /// in X.690 encoding.
-fn base_128_len(num: u32) -> usize {
+const fn base_128_len(num: u32) -> usize {
     if likely(num < 128) {
         return 1;
     }
@@ -762,19 +762,19 @@ where
 /// 
 /// Tag numbers less than 31 use the short form (1 byte).
 /// Tag numbers 31 and above use the long form with base-128 encoding.
-pub fn get_written_x690_tag_length(tagnum: TagNumber) -> usize {
+pub const fn get_written_x690_tag_length(tagnum: TagNumber) -> usize {
     if tagnum < 31 {
         // See ITU Rec. X.690 (2021), Section 8.1.2.4.
         return 1;
     }
-    base_128_len(tagnum.into()) + 1
+    base_128_len(tagnum as u32) + 1
 }
 
 /// Calculates the number of bytes needed to encode a length value
 /// 
 /// Lengths 0-127 use the short form (1 byte).
 /// Longer lengths use the long form with a length indicator byte followed by the length value.
-pub fn get_written_x690_length_length(len: usize) -> usize {
+pub const fn get_written_x690_length_length(len: usize) -> usize {
     if len <= 127 {
         // See ITU Rec. X.690 (2021), Section 8.1.3.3, "NOTE"
         return 1;
@@ -868,6 +868,7 @@ where
 /// `BOOLEAN` values are encoded as a single octet: 0xFF for true, 0x00 for false.
 /// 
 /// Returns the number of bytes written.
+#[inline]
 pub fn x690_write_boolean_value<W>(output: &mut W, value: &BOOLEAN) -> Result<usize>
 where
     W: Write,
@@ -1608,7 +1609,7 @@ pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
 }
 
 /// Read a `BOOLEAN` value from an X.690-encoded element's content octets
-pub fn x690_read_boolean_value(value_bytes: ByteSlice) -> ASN1Result<BOOLEAN> {
+pub const fn x690_read_boolean_value(value_bytes: ByteSlice) -> ASN1Result<BOOLEAN> {
     if value_bytes.len() != 1 {
         let err = ASN1Error::new(ASN1ErrorCode::x690_boolean_not_one_byte);
         return Err(err);

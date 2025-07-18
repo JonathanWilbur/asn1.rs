@@ -4,7 +4,15 @@
 //! the compiler optimize code paths. When the `likely_stable` feature is enabled,
 //! these functions use the `likely_stable` crate for branch prediction hints.
 //! When the feature is disabled, they simply return the input expression unchanged.
-use wildboar_asn1::ByteSlice;
+use wildboar_asn1::{
+    ByteSlice,
+    ASN1Result,
+    ASN1ErrorCode,
+};
+use crate::{X690Element, X690Value};
+use crate::codec::X690Codec;
+use crate::ber::BER;
+use std::borrow::Cow;
 
 /// Indicates that a boolean expression is likely to be true.
 /// 
@@ -39,7 +47,7 @@ use wildboar_asn1::ByteSlice;
 /// ```
 #[cfg(feature = "likely_stable")]
 #[inline]
-pub(crate) fn likely (expr: bool) -> bool {
+pub(crate) const fn likely (expr: bool) -> bool {
     likely_stable::likely(expr)
 }
 
@@ -76,7 +84,7 @@ pub(crate) fn likely (expr: bool) -> bool {
 /// ```
 #[cfg(feature = "likely_stable")]
 #[inline]
-pub(crate) fn unlikely (expr: bool) -> bool {
+pub(crate) const fn unlikely (expr: bool) -> bool {
     likely_stable::unlikely(expr)
 }
 
@@ -113,7 +121,7 @@ pub(crate) fn unlikely (expr: bool) -> bool {
 /// ```
 #[cfg(not(feature = "likely_stable"))]
 #[inline]
-pub(crate) fn likely (expr: bool) -> bool {
+pub(crate) const fn likely (expr: bool) -> bool {
     expr
 }
 
@@ -150,7 +158,7 @@ pub(crate) fn likely (expr: bool) -> bool {
 /// ```
 #[cfg(not(feature = "likely_stable"))]
 #[inline]
-pub(crate) fn unlikely (expr: bool) -> bool {
+pub(crate) const fn unlikely (expr: bool) -> bool {
     expr
 }
 
@@ -190,7 +198,7 @@ pub(crate) const fn get_days_in_month (year: u16, month: u8) -> u8 {
 }
 
 /// Decode a variable-length `u64` from a byte slice
-pub fn x690_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
+pub const fn x690_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
     match bytes.len() {
         0 => Some(0),
         1 => Some(bytes[0] as u8 as u64),
@@ -210,5 +218,17 @@ pub fn x690_read_var_length_u64(bytes: ByteSlice) -> Option<u64> {
             bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
         ])),
         _ => None,
+    }
+}
+
+/// Get the primitive content octets of an X.690 element, or an error
+pub fn primitive<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
+    match &el.value {
+        X690Value::Primitive(bytes) => Ok(Cow::Borrowed(bytes)),
+        X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
+        X690Value::Serialized(v) => {
+            let (_, el2) = BER.decode_from_slice(&v).unwrap();
+            return Ok(Cow::Owned(primitive(&el2)?.into_owned()));
+        }
     }
 }

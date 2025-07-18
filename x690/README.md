@@ -14,6 +14,12 @@ namely:
 - [ ] Convert `OSString` directly to `BMPString` on Windows?
 - [ ] More efficient `BMPString` and `UniversalString` methods
 
+## Notes
+
+I decided that there were not enough uses cases for `SmallVec` to justify it,
+even as a feature flag. Most things stored in a dynamically-allocated array
+in this library are too large to fit in a `SmallVec`.
+
 ## AI / LLM Usage Statement
 
 All but a small fraction of the code in this library was produced by a human;

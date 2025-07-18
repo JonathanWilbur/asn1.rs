@@ -114,12 +114,7 @@ pub fn ber_deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
             let mut substituent_bit_strings: Vec<BIT_STRING> = Vec::new();
             for child in children.iter() {
                 if child.tag.tag_class != el.tag.tag_class || child.tag.tag_number != el.tag.tag_number {
-                    let mut err =
-                        ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
-                    err.tag = Some(Tag::new(el.tag.tag_class, el.tag.tag_number));
-                    err.length = Some(el.len());
-                    err.constructed = Some(true);
-                    return Err(err);
+                    return Err(el.to_asn1_error(ASN1ErrorCode::string_constructed_with_invalid_tagging));
                 }
                 let deconstructed_child = ber_deconstruct_bit_string(&child)?;
                 substituent_bit_strings.push(deconstructed_child);
@@ -127,7 +122,7 @@ pub fn ber_deconstruct_bit_string(el: &X690Element) -> ASN1Result<BIT_STRING> {
             return Ok(join_bit_strings(&substituent_bit_strings.as_slice()));
         },
         X690Value::Serialized(v) => {
-            let (_, el) = BER.decode_from_slice(&v).unwrap();
+            let (_, el) = BER.decode_from_slice(&v)?;
             ber_deconstruct_bit_string(&el)
         }
     }
@@ -139,10 +134,10 @@ fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
     match &el.value {
         X690Value::Primitive(v) => {
             if v.len() == 0 {
-                return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_zero_bytes));
+                return Err(el.to_asn1_error(ASN1ErrorCode::x690_bit_string_zero_bytes));
             }
             if v[0] != 0 {
-                return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_non_terminal_segment_with_trailing_bits));
+                return Err(el.to_asn1_error(ASN1ErrorCode::x690_bit_string_non_terminal_segment_with_trailing_bits));
             }
             Ok(())
         },
@@ -153,7 +148,7 @@ fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
             Ok(())
         },
         X690Value::Serialized(v) => {
-            let (_, el) = BER.decode_from_slice(&v).unwrap();
+            let (_, el) = BER.decode_from_slice(&v)?;
             validate_non_terminal_bit_strings(&el)
         }
     }
@@ -162,7 +157,7 @@ fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
 /// Decode the length of an X.690-encoded element from a byte slice
 /// 
 /// This starts at the first byte.
-pub fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
+pub const fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     if bytes.len() == 0 {
         // Truncated.
         return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
@@ -559,7 +554,7 @@ impl X690Codec for BasicEncodingRules {
                 let (_, el) = BER.decode_from_slice(&v).unwrap();
                 self.decode_sequence(&el)
             },
-            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -576,7 +571,7 @@ impl X690Codec for BasicEncodingRules {
                 let (_, el) = BER.decode_from_slice(&v).unwrap();
                 self.decode_set(&el)
             },
-            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -590,10 +585,10 @@ impl X690Codec for BasicEncodingRules {
         #[cfg(feature = "simdutf8")]
         return from_utf8(deconstruct(el)?.as_ref())
             .map(|s| s.to_owned())
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)));
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::invalid_utf8(None)));
         #[cfg(not(feature = "simdutf8"))]
         String::from_utf8(deconstruct(el)?.into_owned())
-            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))
+            .map_err(|e| el.to_asn1_error(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))
     }
 
     #[inline]
@@ -1575,7 +1570,7 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Constructed(subs) => {
                 let subs_len = subs.len();
                 if subs_len == 0 {
-                    return Err(ASN1Error::new(ASN1ErrorCode::x690_bit_string_zero_bytes));
+                    return Err(el.to_asn1_error(ASN1ErrorCode::x690_bit_string_zero_bytes));
                 }
                 for sub in subs[0..subs_len - 1].iter() {
                     validate_non_terminal_bit_strings(&sub)?;
@@ -1584,7 +1579,7 @@ impl X690Codec for BasicEncodingRules {
                 Ok(())
             }
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_bit_string(&el)
             }
         }
@@ -1621,7 +1616,7 @@ impl X690Codec for BasicEncodingRules {
                 Ok(())
             }
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_numeric_string(&el)
             }
         }
@@ -1640,7 +1635,7 @@ impl X690Codec for BasicEncodingRules {
                 Ok(())
             }
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_printable_string(&el)
             }
         }
@@ -1659,7 +1654,7 @@ impl X690Codec for BasicEncodingRules {
                 Ok(())
             },
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_t61_string(&el)
             }
         }
@@ -1678,7 +1673,7 @@ impl X690Codec for BasicEncodingRules {
                 Ok(())
             },
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_videotex_string(&el)
             }
         }
@@ -1697,7 +1692,7 @@ impl X690Codec for BasicEncodingRules {
                 Ok(())
             },
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_ia5_string(&el)
             }
         }

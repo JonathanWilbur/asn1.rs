@@ -2,7 +2,6 @@
 use wildboar_asn1::{
     ASN1Error, ASN1ErrorCode, ASN1Result, Tag
 };
-use std::borrow::Cow;
 use crate::codec::{DistinguishedEncodingRules, X690Codec};
 use std::io::{Write, Result};
 use crate::{
@@ -98,25 +97,14 @@ use std::sync::Arc;
 #[cfg(feature = "simdutf8")]
 use simdutf8::basic::from_utf8;
 use std::str::FromStr;
-use crate::utils::{vec_u16_to_vec_u8, vec_u32_to_vec_u8, get_days_in_month, unlikely, x690_read_var_length_u64};
+use crate::utils::{vec_u16_to_vec_u8, vec_u32_to_vec_u8, get_days_in_month, unlikely, x690_read_var_length_u64, primitive};
 
 pub const DER: DistinguishedEncodingRules = DistinguishedEncodingRules::new();
-
-fn primitive<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
-    match &el.value {
-        X690Value::Primitive(bytes) => Ok(Cow::Borrowed(bytes)),
-        X690Value::Constructed(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
-        X690Value::Serialized(v) => {
-            let (_, el2) = DER.decode_from_slice(&v).unwrap();
-            return Ok(Cow::Owned(primitive(&el2)?.into_owned()));
-        }
-    }
-}
 
 /// Decode the length of an X.690-encoded element from a byte slice
 /// 
 /// This starts at the first byte.
-pub fn der_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
+pub const fn der_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     if bytes.len() == 0 {
         // Truncated.
         return Err(ASN1Error::new(ASN1ErrorCode::tlv_truncated));
@@ -463,7 +451,7 @@ impl X690Codec for DistinguishedEncodingRules {
                 let (_, el) = DER.decode_from_slice(&v).unwrap();
                 self.decode_sequence(&el)
             },
-            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -480,7 +468,7 @@ impl X690Codec for DistinguishedEncodingRules {
                 let (_, el) = DER.decode_from_slice(&v).unwrap();
                 self.decode_set(&el)
             },
-            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -493,11 +481,11 @@ impl X690Codec for DistinguishedEncodingRules {
     fn decode_utf8_string(&self, el: &X690Element) -> ASN1Result<UTF8String> {
         #[cfg(not(feature = "simdutf8"))]
         return String::from_utf8(primitive(el)?.into_owned())
-            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))));
+            .map_err(|e| el.to_asn1_error(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))));
         #[cfg(feature = "simdutf8")]
         return from_utf8(primitive(el)?.as_ref())
             .map(|s| s.to_owned())
-            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)));
+            .map_err(|_| el.to_asn1_error(ASN1ErrorCode::invalid_utf8(None)));
     }
 
     #[inline]
@@ -578,6 +566,7 @@ impl X690Codec for DistinguishedEncodingRules {
             };
         }
 
+        // TODO: Use more concise syntax.
         match el.tag.tag_number {
             UNIV_TAG_END_OF_CONTENT => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
             UNIV_TAG_BOOLEAN => match self.decode_boolean(el) {
@@ -718,7 +707,8 @@ impl X690Codec for DistinguishedEncodingRules {
                 Ok(v) => Ok(ASN1Value::RelativeIRIValue(v)),
                 Err(e) => Err(e),
             },
-            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            // FIXME: Type for this.
+            _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -870,6 +860,7 @@ impl X690Codec for DistinguishedEncodingRules {
         ))
     }
 
+    // FIXME: Use &[u8]
     fn encode_videotex_string(&self, value: &VideotexString) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len()).writer();
         x690_write_octet_string_value(&mut out, &value)?;
@@ -1362,7 +1353,7 @@ impl X690Codec for DistinguishedEncodingRules {
     fn validate_bit_string(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
             X690Value::Primitive(v) => self.validate_bit_string_value(&v),
-            X690Value::Constructed(_) => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
                 let (_, el) = DER.decode_from_slice(&v).unwrap();
                 self.validate_bit_string(&el)

@@ -305,7 +305,7 @@ impl <'a> X690ComponentIterator<'a> {
     /// * `ctl` - Component type list to parse against
     /// * `elements` - The encoded elements to iterate over
     /// * `is_extensions` - Whether this is parsing extension additions
-    pub fn new (
+    pub const fn new (
         ctl: &'a [ComponentSpec],
         elements: &'a [X690Element],
         is_extensions: bool,
@@ -541,7 +541,7 @@ impl <'a> X690StructureIterator<'a> {
     /// * `rctl1` - Root component type list 1
     /// * `eal` - Extension additions list
     /// * `rctl2` - Root component type list 2
-    pub fn new (
+    pub const fn new (
         elements: &'a [X690Element],
         rctl1: &'a [ComponentSpec<'a>],
         eal: &'a [ComponentSpec<'a>],
