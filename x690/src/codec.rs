@@ -1631,7 +1631,7 @@ pub trait X690Codec {
             let component_name = fallible_component_name?;
             match component_name {
                 "identification" => self.validate_presentation_context_switching_type_id(&children[i])?,
-                "data-value-descriptor" => self.validate_object_descriptor(&children[i])?,
+                "data-value-descriptor" => return Err(ASN1Error::new(ASN1ErrorCode::constraint_violation)),
                 "data-value" => self.validate_octet_string(&children[i])?,
                 _ => { // This type is NOT extensible.
                     let mut err = ASN1Error::new(ASN1ErrorCode::invalid_construction);

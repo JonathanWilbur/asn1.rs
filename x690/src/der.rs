@@ -1285,7 +1285,6 @@ impl X690Codec for DistinguishedEncodingRules {
         }
     }
 
-    // FIXME: This doesn't handle fractional components.
     // Before some tweaking, this was produced by ChatGPT.
     fn validate_duration_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() < 3 {
@@ -1295,9 +1294,13 @@ impl X690Codec for DistinguishedEncodingRules {
         if content_octets[0] == b'P' {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
+        if content_octets.ends_with(b'T') {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
 
         let mut idx = 0;
         let mut has_time_component = false;
+        let mut encountered_fraction: bool = false;
         while idx < content_octets.len() {
             match content_octets[idx] {
                 b'T' => {
@@ -1323,6 +1326,17 @@ impl X690Codec for DistinguishedEncodingRules {
                         b'Y' | b'M' if !has_time_component => idx += 1,
                         b'D' if !has_time_component => idx += 1,
                         b'H' | b'M' | b'S' if has_time_component => idx += 1,
+                        b'.' => {
+                            if encountered_fraction {
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+                            }
+                            idx += 1;
+                            // Consume all consecutive digits
+                            while idx < content_octets.len() && content_octets[idx].is_ascii_digit() {
+                                idx += 1;
+                            }
+                            encountered_fraction = true;
+                        }
                         _ => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
                     }
                 }
@@ -1345,7 +1359,8 @@ impl X690Codec for DistinguishedEncodingRules {
     }
 
     #[inline]
-    fn validate_octet_string(&self, _: &X690Element) -> ASN1Result<()> {
+    fn validate_octet_string(&self, el: &X690Element) -> ASN1Result<()> {
+        primitive(el)?;
         Ok(())
     }
 

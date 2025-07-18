@@ -1493,16 +1493,20 @@ impl X690Codec for BasicEncodingRules {
 
     // Before some tweaking, this was produced by ChatGPT.
     fn validate_duration_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let mut idx = 0;
-
-        // The duration should start with 'P' (ASCII 80)
-        if idx >= content_octets.len() || content_octets[idx] != b'P' {
+        if content_octets.len() < 3 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
+        // The duration should NOT start with 'P' (ASCII 80)
+        if content_octets[0] == b'P' {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        idx += 1;
+        if content_octets.ends_with(b'T') {
+            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+        }
 
+        let mut idx = 0;
         let mut has_time_component = false;
-
+        let mut encountered_fraction: bool = false;
         while idx < content_octets.len() {
             match content_octets[idx] {
                 b'T' => {
@@ -1528,6 +1532,17 @@ impl X690Codec for BasicEncodingRules {
                         b'Y' | b'M' if !has_time_component => idx += 1,
                         b'D' if !has_time_component => idx += 1,
                         b'H' | b'M' | b'S' if has_time_component => idx += 1,
+                        b'.' | b',' => {
+                            if encountered_fraction {
+                                return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+                            }
+                            idx += 1;
+                            // Consume all consecutive digits
+                            while idx < content_octets.len() && content_octets[idx].is_ascii_digit() {
+                                idx += 1;
+                            }
+                            encountered_fraction = true;
+                        }
                         _ => return Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
                     }
                 }
@@ -1559,9 +1574,9 @@ impl X690Codec for BasicEncodingRules {
         }
     }
 
-    // FIXME: I just realized: you still have to check that it is composed of OCTET STRING if it is constructed.
     #[inline]
-    fn validate_octet_string(&self, _: &X690Element) -> ASN1Result<()> {
+    fn validate_octet_string(&self, el: &X690Element) -> ASN1Result<()> {
+        deconstruct(el)?;
         Ok(())
     }
 
@@ -1582,6 +1597,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_numeric_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_numeric_string(sub)?;
                 }
                 Ok(())
@@ -1598,6 +1616,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_printable_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_printable_string(sub)?;
                 }
                 Ok(())
@@ -1614,6 +1635,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_t61_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_t61_string(sub)?;
                 }
                 Ok(())
@@ -1630,6 +1654,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_videotex_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_videotex_string(sub)?;
                 }
                 Ok(())
@@ -1646,6 +1673,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_ia5_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_ia5_string(sub)?;
                 }
                 Ok(())
@@ -1672,6 +1702,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_graphic_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_graphic_string(sub)?;
                 }
                 Ok(())
@@ -1688,6 +1721,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_visible_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_visible_string(sub)?;
                 }
                 Ok(())
@@ -1704,6 +1740,9 @@ impl X690Codec for BasicEncodingRules {
             X690Value::Primitive(v) => self.validate_general_string_value(&v),
             X690Value::Constructed(subs) => {
                 for sub in subs.iter() {
+                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
+                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
+                    }
                     self.validate_general_string(sub)?;
                 }
                 Ok(())

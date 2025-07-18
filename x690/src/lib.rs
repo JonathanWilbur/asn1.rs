@@ -1309,12 +1309,10 @@ pub fn x690_encode_context_switching_identification(
     }
 }
 
-// FIXME: `data-value-descriptor` is not allowed.
 /// Encode the components of an `EMBEDDED PDV` value as X.690-encoded elements
 /// 
 /// This function encodes the components of an `EMBEDDED PDV` value as X.690-encoded elements.
-/// It handles the encoding of the `identification`, data value descriptor,
-/// and `data-value`.
+/// It handles the encoding of the `identification` and `data-value`.
 /// 
 /// # Arguments
 /// * `value` - The `EMBEDDED PDV` value to encode
