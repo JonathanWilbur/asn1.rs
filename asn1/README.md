@@ -68,6 +68,21 @@ pub struct ASN1Error {
 
 Of course, they implement `std::error::Error`.
 
+There is a fluent API for elegantly creating errors, which is used like so:
+
+```rust,ignore
+let e = ASN1Error::new(super::ASN1ErrorCode::malformed_value)
+    .with_tag(Tag::new(TagClass::UNIVERSAL, 10))
+    .with_bytes_read(10)
+    .with_values_read(5)
+    .with_component_name("chunky")
+    .with_construction(true)
+    .with_preview("fogqwirg")
+    .with_length(7)
+    .with_source(src)
+    ;
+```
+
 ### ASN.1 Types and Values
 
 ASN.1 abstract values can be represented via `ASN1Value`. This is a pretty large
