@@ -1753,12 +1753,6 @@ mod tests {
     }
 
     #[test]
-    fn make_sure_u8_from_str_handles_leading_zeros () {
-        let num = u8::from_str("05").unwrap();
-        assert_eq!(num, 5);
-    }
-
-    #[test]
     fn test_ber_decode_length_short_form() {
         // Test short form (length < 128)
         let bytes = [0x05]; // Length 5
@@ -2137,8 +2131,6 @@ mod tests {
     fn test_ber_validate_utc_time_value() {
         // Valid UTC time values
         assert!(BER.validate_utc_time_value(b"991205223344Z").is_ok());
-        let r = BER.validate_utc_time_value(b"991205223344+0523");
-        dbg!(&r);
         assert!(BER.validate_utc_time_value(b"991205223344+0523").is_ok());
         assert!(BER.validate_utc_time_value(b"9912052233Z").is_ok());
 
@@ -2356,7 +2348,6 @@ mod tests {
             fraction: 0,
         };
         let encoded = BER.encode_generalized_time(&gen_value).unwrap();
-        dbg!(&encoded);
         assert!(BER.validate_generalized_time(&encoded).is_ok());
     }
 
