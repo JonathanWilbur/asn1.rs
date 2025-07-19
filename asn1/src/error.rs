@@ -199,6 +199,9 @@ pub enum ASN1ErrorCode {
 
     /// A `REAL` was encoded using a base that is not allowed.
     real_base_prohibited,
+
+    /// An unrecognized universal type was encountered.
+    unrecognized_universal_type,
 }
 
 /// An ASN.1-related error

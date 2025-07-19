@@ -179,7 +179,7 @@ impl X690Value {
                 sum
             },
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 el.len()
             }
         }
@@ -281,7 +281,7 @@ impl X690Element {
                 Ok(components[0].clone())
             },
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 el.inner()
             },
             _ => Err(self.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1544,7 +1544,7 @@ where
             Ok(sum)
         },
         X690Value::Serialized(v) => {
-            let (_, el) = BER.decode_from_slice(&v).unwrap();
+            let (_, el) = BER.decode_from_slice(&v)?;
             x690_write_value(output, &el.value)
         }
     }
@@ -1602,7 +1602,7 @@ pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
             Ok(Cow::Owned(Vec::<u8>::from(deconstructed_value)))
         },
         X690Value::Serialized(v) => {
-            let (_, el) = BER.decode_from_slice(&v).unwrap();
+            let (_, el) = BER.decode_from_slice(&v)?;
             Ok(Cow::Owned(deconstruct(&el)?.into_owned()))
         }
     }

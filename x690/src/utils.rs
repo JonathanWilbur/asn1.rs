@@ -227,7 +227,7 @@ pub fn primitive<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
         X690Value::Primitive(bytes) => Ok(Cow::Borrowed(bytes)),
         X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         X690Value::Serialized(v) => {
-            let (_, el2) = BER.decode_from_slice(&v).unwrap();
+            let (_, el2) = BER.decode_from_slice(&v)?;
             return Ok(Cow::Owned(primitive(&el2)?.into_owned()));
         }
     }

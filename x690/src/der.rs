@@ -448,7 +448,7 @@ impl X690Codec for DistinguishedEncodingRules {
                 Ok(ret)
             },
             X690Value::Serialized(v) => {
-                let (_, el) = DER.decode_from_slice(&v).unwrap();
+                let (_, el) = DER.decode_from_slice(&v)?;
                 self.decode_sequence(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -465,7 +465,7 @@ impl X690Codec for DistinguishedEncodingRules {
                 Ok(ret)
             },
             X690Value::Serialized(v) => {
-                let (_, el) = DER.decode_from_slice(&v).unwrap();
+                let (_, el) = DER.decode_from_slice(&v)?;
                 self.decode_set(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -560,155 +560,57 @@ impl X690Codec for DistinguishedEncodingRules {
                     return Ok(ASN1Value::SequenceValue(values));
                 },
                 X690Value::Serialized(v) => {
-                    let (_, el) = DER.decode_from_slice(&v).unwrap();
+                    let (_, el) = DER.decode_from_slice(&v)?;
                     self.decode_any(&el)
                 }
             };
         }
 
-        // TODO: Use more concise syntax.
         match el.tag.tag_number {
             UNIV_TAG_END_OF_CONTENT => Err(ASN1Error::new(ASN1ErrorCode::nonsense)),
-            UNIV_TAG_BOOLEAN => match self.decode_boolean(el) {
-                Ok(v) => Ok(ASN1Value::BooleanValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_INTEGER => match self.decode_integer(el) {
-                Ok(v) => Ok(ASN1Value::IntegerValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_BIT_STRING => match self.decode_bit_string(el) {
-                Ok(v) => Ok(ASN1Value::BitStringValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_OCTET_STRING => match self.decode_octet_string(el) {
-                Ok(v) => Ok(ASN1Value::OctetStringValue(v)),
-                Err(e) => Err(e),
-            },
+            UNIV_TAG_BOOLEAN => Ok(ASN1Value::BooleanValue(self.decode_boolean(el)?)),
+            UNIV_TAG_INTEGER => Ok(ASN1Value::IntegerValue(self.decode_integer(el)?)),
+            UNIV_TAG_BIT_STRING => Ok(ASN1Value::BitStringValue(self.decode_bit_string(el)?)),
+            UNIV_TAG_OCTET_STRING => Ok(ASN1Value::OctetStringValue(self.decode_octet_string(el)?)),
             UNIV_TAG_NULL => Ok(ASN1Value::NullValue),
-            UNIV_TAG_OBJECT_IDENTIFIER => match self.decode_object_identifier(el) {
-                Ok(v) => Ok(ASN1Value::ObjectIdentifierValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_OBJECT_DESCRIPTOR => match self.decode_object_descriptor(el) {
-                Ok(v) => Ok(ASN1Value::ObjectDescriptor(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_EXTERNAL => match self.decode_external(el) {
-                Ok(v) => Ok(ASN1Value::ExternalValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_REAL => match self.decode_real(el) {
-                Ok(v) => Ok(ASN1Value::RealValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_ENUMERATED => match self.decode_enumerated(el) {
-                Ok(v) => Ok(ASN1Value::EnumeratedValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_EMBEDDED_PDV => match self.decode_embedded_pdv(el) {
-                Ok(v) => Ok(ASN1Value::EmbeddedPDVValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_UTF8_STRING => match self.decode_utf8_string(el) {
-                Ok(v) => Ok(ASN1Value::UTF8String(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_RELATIVE_OID => match self.decode_relative_oid(el) {
-                Ok(v) => Ok(ASN1Value::RelativeOIDValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_TIME => match self.decode_time(el) {
-                Ok(v) => Ok(ASN1Value::TimeValue(v)),
-                Err(e) => Err(e),
-            },
+            UNIV_TAG_OBJECT_IDENTIFIER => Ok(ASN1Value::ObjectIdentifierValue(self.decode_object_identifier(el)?)),
+            UNIV_TAG_OBJECT_DESCRIPTOR => Ok(ASN1Value::ObjectDescriptor(self.decode_object_descriptor(el)?)),
+            UNIV_TAG_EXTERNAL => Ok(ASN1Value::ExternalValue(self.decode_external(el)?)),
+            UNIV_TAG_REAL => Ok(ASN1Value::RealValue(self.decode_real(el)?)),
+            UNIV_TAG_ENUMERATED => Ok(ASN1Value::EnumeratedValue(self.decode_enumerated(el)?)),
+            UNIV_TAG_EMBEDDED_PDV => Ok(ASN1Value::EmbeddedPDVValue(self.decode_embedded_pdv(el)?)),
+            UNIV_TAG_UTF8_STRING => Ok(ASN1Value::UTF8String(self.decode_utf8_string(el)?)),
+            UNIV_TAG_RELATIVE_OID => Ok(ASN1Value::RelativeOIDValue(self.decode_relative_oid(el)?)),
+            UNIV_TAG_TIME => Ok(ASN1Value::TimeValue(self.decode_time(el)?)),
             // UNIV_TAG_RESERVED_15 => ()
-            UNIV_TAG_SEQUENCE => match self.decode_sequence(el) {
-                Ok(v) => Ok(ASN1Value::SequenceValue(v)),
-                Err(e) => Err(e),
-            },
+            UNIV_TAG_SEQUENCE => Ok(ASN1Value::SequenceValue(self.decode_sequence(el)?)),
             // UNIV_TAG_SEQUENCE_OF => ()
-            UNIV_TAG_SET => match self.decode_set(el) {
-                Ok(v) => Ok(ASN1Value::SetValue(v)),
-                Err(e) => Err(e),
-            },
+            UNIV_TAG_SET => Ok(ASN1Value::SetValue(self.decode_set(el)?)),
             // UNIV_TAG_SET_OF => ()
-            UNIV_TAG_NUMERIC_STRING => match self.decode_numeric_string(el) {
-                Ok(v) => Ok(ASN1Value::NumericString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_PRINTABLE_STRING => match self.decode_printable_string(el) {
-                Ok(v) => Ok(ASN1Value::PrintableString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_T61_STRING => match self.decode_t61_string(el) {
-                Ok(v) => Ok(ASN1Value::T61String(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_VIDEOTEX_STRING => match self.decode_videotex_string(el) {
-                Ok(v) => Ok(ASN1Value::VideotexString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_IA5_STRING => match self.decode_ia5_string(el) {
-                Ok(v) => Ok(ASN1Value::IA5String(v)),
-                Err(e) => Err(e),
-            },
+            UNIV_TAG_NUMERIC_STRING => Ok(ASN1Value::NumericString(self.decode_numeric_string(el)?)),
+            UNIV_TAG_PRINTABLE_STRING => Ok(ASN1Value::PrintableString(self.decode_printable_string(el)?)),
+            UNIV_TAG_T61_STRING => Ok(ASN1Value::T61String(self.decode_t61_string(el)?)),
+            UNIV_TAG_VIDEOTEX_STRING => Ok(ASN1Value::VideotexString(self.decode_videotex_string(el)?)),
+            UNIV_TAG_IA5_STRING => Ok(ASN1Value::IA5String(self.decode_ia5_string(el)?)),
             UNIV_TAG_UTC_TIME => {
                 Ok(ASN1Value::UTCTime(UTCTime::try_from(primitive(el)?.as_ref())?))
             },
             UNIV_TAG_GENERALIZED_TIME => {
                 Ok(ASN1Value::GeneralizedTime(GeneralizedTime::try_from(primitive(el)?.as_ref())?))
             },
-            UNIV_TAG_GRAPHIC_STRING => match self.decode_graphic_string(el) {
-                Ok(v) => Ok(ASN1Value::GraphicString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_VISIBLE_STRING => match self.decode_visible_string(el) {
-                Ok(v) => Ok(ASN1Value::VisibleString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_GENERAL_STRING => match self.decode_general_string(el) {
-                Ok(v) => Ok(ASN1Value::GeneralString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_UNIVERSAL_STRING => match self.decode_universal_string(el) {
-                Ok(v) => Ok(ASN1Value::UniversalString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_CHARACTER_STRING => match self.decode_character_string(el) {
-                Ok(v) => Ok(ASN1Value::UnrestrictedCharacterStringValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_BMP_STRING => match self.decode_bmp_string(el) {
-                Ok(v) => Ok(ASN1Value::BMPString(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_DATE => match self.decode_date(el) {
-                Ok(v) => Ok(ASN1Value::DATE(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_TIME_OF_DAY => match self.decode_time_of_day(el) {
-                Ok(v) => Ok(ASN1Value::TIME_OF_DAY(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_DATE_TIME => match self.decode_date_time(el) {
-                Ok(v) => Ok(ASN1Value::DATE_TIME(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_DURATION => match self.decode_duration(el) {
-                Ok(v) => Ok(ASN1Value::DURATION(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_OID_IRI => match self.decode_oid_iri(el) {
-                Ok(v) => Ok(ASN1Value::IRIValue(v)),
-                Err(e) => Err(e),
-            },
-            UNIV_TAG_RELATIVE_OID_IRI => match self.decode_relative_oid_iri(el) {
-                Ok(v) => Ok(ASN1Value::RelativeIRIValue(v)),
-                Err(e) => Err(e),
-            },
-            // FIXME: Type for this.
-            _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
+            UNIV_TAG_GRAPHIC_STRING => Ok(ASN1Value::GraphicString(self.decode_graphic_string(el)?)),
+            UNIV_TAG_VISIBLE_STRING => Ok(ASN1Value::VisibleString(self.decode_visible_string(el)?)),
+            UNIV_TAG_GENERAL_STRING => Ok(ASN1Value::GeneralString(self.decode_general_string(el)?)),
+            UNIV_TAG_UNIVERSAL_STRING => Ok(ASN1Value::UniversalString(self.decode_universal_string(el)?)),
+            UNIV_TAG_CHARACTER_STRING => Ok(ASN1Value::UnrestrictedCharacterStringValue(self.decode_character_string(el)?)),
+            UNIV_TAG_BMP_STRING => Ok(ASN1Value::BMPString(self.decode_bmp_string(el)?)),
+            UNIV_TAG_DATE => Ok(ASN1Value::DATE(self.decode_date(el)?)),
+            UNIV_TAG_TIME_OF_DAY => Ok(ASN1Value::TIME_OF_DAY(self.decode_time_of_day(el)?)),
+            UNIV_TAG_DATE_TIME => Ok(ASN1Value::DATE_TIME(self.decode_date_time(el)?)),
+            UNIV_TAG_DURATION => Ok(ASN1Value::DURATION(self.decode_duration(el)?)),
+            UNIV_TAG_OID_IRI => Ok(ASN1Value::IRIValue(self.decode_oid_iri(el)?)),
+            UNIV_TAG_RELATIVE_OID_IRI => Ok(ASN1Value::RelativeIRIValue(self.decode_relative_oid_iri(el)?)),
+            _ => Err(el.to_asn1_error(ASN1ErrorCode::unrecognized_universal_type)),
         }
     }
 
@@ -1275,7 +1177,7 @@ impl X690Codec for DistinguishedEncodingRules {
             X690Value::Primitive(v) => self.validate_bit_string_value(&v),
             X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = DER.decode_from_slice(&v).unwrap();
+                let (_, el) = DER.decode_from_slice(&v)?;
                 self.validate_bit_string(&el)
             }
         }

@@ -438,7 +438,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_boolean_value(bytes),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_boolean(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -450,7 +450,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_integer_value(bytes),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_integer(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -462,7 +462,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => self.decode_enum_value(bytes),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_enumerated(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -757,7 +757,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
                 Ok(x) => Ok(x),
-                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
+                Err(e) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
             },
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
@@ -772,13 +772,13 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
                 Ok(x) => Ok(x),
-                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
+                Err(e) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
             },
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_relative_oid_iri(&el)
             },
-            _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
     }
 
@@ -787,7 +787,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(bytes) => match String::from_utf8(bytes.to_vec()) {
                 Ok(x) => Ok(x),
-                Err(e) => Err(ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
+                Err(e) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error())))),
             },
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
@@ -1264,7 +1264,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_boolean_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_boolean(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1276,7 +1276,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_integer_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_integer(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1294,7 +1294,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_null_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_null(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1408,7 +1408,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_date_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_date(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1420,7 +1420,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_time_of_day_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_time_of_day(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1432,7 +1432,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_date_time_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_date_time(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1444,7 +1444,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_duration_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_duration(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1456,7 +1456,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_oid_iri_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_oid_iri(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1468,7 +1468,7 @@ pub trait X690Codec {
         match &el.value {
             X690Value::Primitive(v) => self.validate_relative_oid_iri_value(&v),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_relative_oid_iri(&el)
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
@@ -1865,7 +1865,7 @@ pub trait X690Codec {
             },
             X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_i8(&el)
             }
         }
@@ -1929,7 +1929,7 @@ pub trait X690Codec {
             },
             X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_i16(&el)
             }
         }
@@ -1946,7 +1946,7 @@ pub trait X690Codec {
             X690Value::Primitive(v) => v,
             X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 return self.decode_u16(&el)
             }
         };
@@ -2019,7 +2019,7 @@ pub trait X690Codec {
             },
             X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_i32(&el)
             }
         }
@@ -2036,7 +2036,7 @@ pub trait X690Codec {
             X690Value::Primitive(v) => v,
             X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 return self.decode_u32(&el)
             }
         };
@@ -2109,7 +2109,7 @@ pub trait X690Codec {
             },
             X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_i64(&el)
             }
         }
@@ -2147,7 +2147,7 @@ pub trait X690Codec {
             X690Value::Primitive(v) => v,
             X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 return self.decode_u64(&el);
             }
         };
@@ -2254,7 +2254,7 @@ pub trait X690Codec {
             X690Value::Primitive(v) => v,
             X690Value::Constructed(_) => return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 return self.decode_u128(&el);
             }
         };
@@ -2295,7 +2295,7 @@ pub trait X690Codec {
             },
             X690Value::Constructed(_) => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v).unwrap();
+                let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_u128(&el)
             }
         }
