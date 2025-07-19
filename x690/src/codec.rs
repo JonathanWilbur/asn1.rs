@@ -436,10 +436,12 @@ pub trait X690Codec {
     /// Decode a `BOOLEAN` value from an X.690 encoding
     fn decode_boolean(&self, el: &X690Element) -> ASN1Result<BOOLEAN> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_boolean_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_boolean_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_boolean(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -448,10 +450,12 @@ pub trait X690Codec {
     /// Decode an `INTEGER` value from an X.690 encoding
     fn decode_integer(&self, el: &X690Element) -> ASN1Result<INTEGER> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_integer_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_integer_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_integer(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -460,10 +464,12 @@ pub trait X690Codec {
     /// Decode an `ENUMERATED` value from an X.690 encoding
     fn decode_enumerated(&self, el: &X690Element) -> ASN1Result<ENUMERATED> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_enum_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_enum_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_enumerated(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -487,6 +493,7 @@ pub trait X690Codec {
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_null(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -495,10 +502,12 @@ pub trait X690Codec {
     /// Decode an `OBJECT IDENTIFIER` value from an X.690 encoding
     fn decode_object_identifier(&self, el: &X690Element) -> ASN1Result<OBJECT_IDENTIFIER> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_object_identifier_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_object_identifier_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_object_identifier(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -558,7 +567,7 @@ pub trait X690Codec {
             (Some(d), Some(i)) => ExternalIdentification::context_negotiation(ContextNegotiation::new(i, d)),
             (Some(d), None) => ExternalIdentification::syntax(d),
             (None, Some(i)) => ExternalIdentification::presentation_context_id(i),
-            (None, None) => return Err(ASN1Error::new(ASN1ErrorCode::invalid_construction)),
+            (None, None) => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "EXTERNAL.identification")),
         };
         Ok(EXTERNAL {
             identification,
@@ -635,10 +644,12 @@ pub trait X690Codec {
     /// Decode a `RELATIVE-OID` value from an X.690 encoding
     fn decode_relative_oid(&self, el: &X690Element) -> ASN1Result<RELATIVE_OID> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_relative_oid_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_relative_oid_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_relative_oid(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -659,10 +670,12 @@ pub trait X690Codec {
     /// Decode a `REAL` value from an X.690 encoding
     fn decode_real(&self, el: &X690Element) -> ASN1Result<REAL> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_real_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_real_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_real(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -707,10 +720,12 @@ pub trait X690Codec {
     /// Decode a `DATE` value from an X.690 encoding
     fn decode_date(&self, el: &X690Element) -> ASN1Result<DATE> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_date_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_date_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_date(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -719,10 +734,12 @@ pub trait X690Codec {
     /// Decode a `TIME-OF-DAY` value from an X.690 encoding
     fn decode_time_of_day(&self, el: &X690Element) -> ASN1Result<TIME_OF_DAY> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_time_of_day_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_time_of_day_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_time_of_day(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -731,10 +748,12 @@ pub trait X690Codec {
     /// Decode a `DATE-TIME` value from an X.690 encoding
     fn decode_date_time(&self, el: &X690Element) -> ASN1Result<DATE_TIME> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_date_time_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_date_time_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_date_time(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -743,10 +762,12 @@ pub trait X690Codec {
     /// Decode a `DURATION` value from an X.690 encoding
     fn decode_duration(&self, el: &X690Element) -> ASN1Result<DURATION> {
         match &el.value {
-            X690Value::Primitive(bytes) => self.decode_duration_value(bytes),
+            X690Value::Primitive(bytes) => self.decode_duration_value(bytes)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_duration(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -762,6 +783,7 @@ pub trait X690Codec {
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_oid_iri(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -777,6 +799,7 @@ pub trait X690Codec {
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_relative_oid_iri(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -792,6 +815,7 @@ pub trait X690Codec {
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.decode_time(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -1262,10 +1286,12 @@ pub trait X690Codec {
     /// Validate an encoded `BOOLEAN`
     fn validate_boolean(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_boolean_value(&v),
+            X690Value::Primitive(v) => self.validate_boolean_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_boolean(&el)
+                    .map_err(|e| el.to_asn1_error(e.error_code))
             },
             _ => Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction)),
         }
@@ -1274,7 +1300,8 @@ pub trait X690Codec {
     /// Validate an encoded `INTEGER`
     fn validate_integer(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_integer_value(&v),
+            X690Value::Primitive(v) => self.validate_integer_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_integer(&el)
@@ -1292,7 +1319,8 @@ pub trait X690Codec {
     /// Validate an encoded `NULL`
     fn validate_null(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_null_value(&v),
+            X690Value::Primitive(v) => self.validate_null_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_null(&el)
@@ -1304,7 +1332,8 @@ pub trait X690Codec {
     /// Validate an encoded `OBJECT IDENTIFIER`
     fn validate_object_identifier(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_object_identifier_value(&v),
+            X690Value::Primitive(v) => self.validate_object_identifier_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_object_identifier(&el)
@@ -1319,7 +1348,8 @@ pub trait X690Codec {
     /// Validate an encoded `REAL`
     fn validate_real(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_real_value(&v),
+            X690Value::Primitive(v) => self.validate_real_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_real(&el)
@@ -1331,7 +1361,8 @@ pub trait X690Codec {
     /// Validate an encoded `ENUMERATED`
     fn validate_enumerated(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_enumerated_value(&v),
+            X690Value::Primitive(v) => self.validate_enumerated_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_enumerated(&el)
@@ -1346,7 +1377,8 @@ pub trait X690Codec {
     /// Validate an encoded `RELATIVE-OID`
     fn validate_relative_object_identifier(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_relative_object_identifier_value(&v),
+            X690Value::Primitive(v) => self.validate_relative_object_identifier_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_relative_object_identifier(&el)
@@ -1358,7 +1390,8 @@ pub trait X690Codec {
     /// Validate an encoded `TIME`
     fn validate_time(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_time_value(&v),
+            X690Value::Primitive(v) => self.validate_time_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_time(&el)
@@ -1406,7 +1439,8 @@ pub trait X690Codec {
     /// Validate an encoded `DATE`
     fn validate_date(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_date_value(&v),
+            X690Value::Primitive(v) => self.validate_date_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_date(&el)
@@ -1418,7 +1452,8 @@ pub trait X690Codec {
     /// Validate an encoded `TIME-OF-DAY`
     fn validate_time_of_day(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_time_of_day_value(&v),
+            X690Value::Primitive(v) => self.validate_time_of_day_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_time_of_day(&el)
@@ -1430,7 +1465,8 @@ pub trait X690Codec {
     /// Validate an encoded `DATE-TIME`
     fn validate_date_time(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_date_time_value(&v),
+            X690Value::Primitive(v) => self.validate_date_time_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_date_time(&el)
@@ -1442,7 +1478,8 @@ pub trait X690Codec {
     /// Validate an encoded `DURATION`
     fn validate_duration(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_duration_value(&v),
+            X690Value::Primitive(v) => self.validate_duration_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_duration(&el)
@@ -1454,7 +1491,8 @@ pub trait X690Codec {
     /// Validate an encoded `OID-IRI`
     fn validate_oid_iri(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_oid_iri_value(&v),
+            X690Value::Primitive(v) => self.validate_oid_iri_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_oid_iri(&el)
@@ -1466,7 +1504,8 @@ pub trait X690Codec {
     /// Validate an encoded `RELATIVE-OID-IRI`
     fn validate_relative_oid_iri(&self, el: &X690Element) -> ASN1Result<()> {
         match &el.value {
-            X690Value::Primitive(v) => self.validate_relative_oid_iri_value(&v),
+            X690Value::Primitive(v) => self.validate_relative_oid_iri_value(&v)
+                .map_err(|e| el.to_asn1_error(e.error_code)),
             X690Value::Serialized(v) => {
                 let (_, el) = BER.decode_from_slice(&v)?;
                 self.validate_relative_oid_iri(&el)
@@ -1584,7 +1623,7 @@ pub trait X690Codec {
             };
             return Ok(());
         }
-        match el.tag.tag_number {
+        let result = match el.tag.tag_number {
             UNIV_TAG_END_OF_CONTENT => self.validate_null(el),
             UNIV_TAG_BOOLEAN => self.validate_boolean(el),
             UNIV_TAG_INTEGER => self.validate_integer(el),
@@ -1628,7 +1667,8 @@ pub trait X690Codec {
             UNIV_TAG_OID_IRI => self.validate_oid_iri(el),
             UNIV_TAG_RELATIVE_OID_IRI => self.validate_relative_oid_iri(el),
             _ => Ok(()), // It's hard to say what to do here. Accepting is future-proof, but the value could be invalid.
-        }
+        };
+        result.map_err(|e| el.to_asn1_error(e.error_code))
     }
 
     /// Write a `BOOLEAN` value as an X.690 encoding to a writable stream

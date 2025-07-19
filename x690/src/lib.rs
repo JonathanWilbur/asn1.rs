@@ -179,8 +179,10 @@ impl X690Value {
                 sum
             },
             X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                el.len()
+                match BER.decode_from_slice(&v) {
+                    Ok((_, el)) => el.len(),
+                    Err(_) => return 0,
+                }
             }
         }
     }
@@ -2166,7 +2168,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_deconstruct_serialized_invalid_data() {
         // Test deconstructing a serialized value with invalid data
         let element = X690Element::new(
