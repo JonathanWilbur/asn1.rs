@@ -9,10 +9,14 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
+bytes = "1.4.0"
 
 [dependencies.wildboar-asn1]
 path = "../asn1"
 features = ["arbitrary"]
+
+[dependencies.x690]
+path = "../x690"
 
 [[bin]]
 name = "date"
@@ -73,6 +77,27 @@ bench = false
 [[bin]]
 name = "oid"
 path = "fuzz_targets/oid.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "timevalidate"
+path = "fuzz_targets/timevalidate.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "real"
+path = "fuzz_targets/real.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "x690fuzz"
+path = "fuzz_targets/x690fuzz.rs"
 test = false
 doc = false
 bench = false

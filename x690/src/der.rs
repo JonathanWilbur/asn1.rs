@@ -2292,4 +2292,21 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_real_fuzz_bug_1() {
+        let case = [ 2, 117 ];
+        let _ = DER.validate_real_value(case.as_slice());
+        let _ = DER.validate_real_value(case.as_slice());
+        let _ = DER.decode_real_value(case.as_slice());
+        let _ = DER.decode_real_value(case.as_slice());
+    }
+
+    #[test]
+    fn test_utc_time_fuzz_bug_1() {
+        let case: Vec<u8> = vec![23, 14, 49, 49, 49, 55, 55, 49, 49, 49, 49, 53, 149, 55, 48, 128, 48, 4, 0];
+        if let Ok((_, el)) = DER.decode_from_slice(case.as_slice()) {
+            let _ = DER.decode_any(&el);
+        }
+    }
+
 }

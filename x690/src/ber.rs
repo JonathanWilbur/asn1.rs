@@ -456,7 +456,7 @@ impl X690Codec for BasicEncodingRules {
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_2_OCTET => {
                         if value_bytes.len() < 4 {
-                            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+                            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                         }
                         if value_bytes.len() > 4 + 6 {
                             // Mantissa too big..
@@ -468,7 +468,7 @@ impl X690Codec for BasicEncodingRules {
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_3_OCTET => {
                         if value_bytes.len() < 5 {
-                            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+                            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                         }
                         if value_bytes.len() > 5 + 6 {
                             // Mantissa too big.
@@ -481,7 +481,7 @@ impl X690Codec for BasicEncodingRules {
                     }
                     crate::X690_REAL_EXPONENT_FORMAT_VAR_OCTET => {
                         if value_bytes.len() < 3 {
-                            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
+                            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                         }
                         let exponent_len = value_bytes[1];
                         if exponent_len > 2 {
@@ -496,6 +496,9 @@ impl X690Codec for BasicEncodingRules {
                             mantissa = x690_read_var_length_u64(&value_bytes[3..])
                                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                         } else {
+                            if value_bytes.len() < 4 {
+                                return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+                            }
                             // The exponent must have length 2.
                             exponent = i32::from_be_bytes([0, 0, value_bytes[2], value_bytes[3]]);
                             mantissa = x690_read_var_length_u64(&value_bytes[4..])
@@ -2666,6 +2669,15 @@ mod tests {
             let decoded = BER.decode_real(&encoded).unwrap();
             assert!((case - decoded).abs() < 0.001); // Little wiggle room for error.
         }
+    }
+
+    #[test]
+    fn test_real_fuzz_bug_1() {
+        let case = [ 2, 117 ];
+        let _ = BER.validate_real_value(case.as_slice());
+        let _ = BER.validate_real_value(case.as_slice());
+        let _ = BER.decode_real_value(case.as_slice());
+        let _ = BER.decode_real_value(case.as_slice());
     }
 
 }
