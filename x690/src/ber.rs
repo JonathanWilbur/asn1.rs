@@ -155,7 +155,7 @@ fn validate_non_terminal_bit_strings (el: &X690Element) -> ASN1Result<()> {
 }
 
 /// Decode the length of an X.690-encoded element from a byte slice
-/// 
+///
 /// This starts at the first byte.
 pub const fn ber_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     if bytes.len() == 0 {
@@ -1173,7 +1173,6 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    // 9604152030Z
     fn validate_utc_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
         if content_octets.len() > 17 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_big));
@@ -1181,7 +1180,7 @@ impl X690Codec for BasicEncodingRules {
         if content_octets.len() < 11 {
             return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
         }
-        let maybe_bad_char = content_octets[0..10].iter().position(|b| b.is_ascii_digit());
+        let maybe_bad_char = content_octets[0..10].iter().position(|b| !b.is_ascii_digit());
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1229,7 +1228,10 @@ impl X690Codec for BasicEncodingRules {
             if content_octets.len() < 12 || !content_octets[11].is_ascii_digit() {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
             }
-            let second = u8::from_str(&s[10..12])
+            let sstr = unsafe {
+                std::str::from_utf8_unchecked(&content_octets[10..12])
+            };
+            let second = u8::from_str(sstr)
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
             if second > 59 {
                 return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
@@ -1253,7 +1255,7 @@ impl X690Codec for BasicEncodingRules {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
 
-        let maybe_bad_char = content_octets[start_of_time_zone + 1..].iter().position(|b| b.is_ascii_digit());
+        let maybe_bad_char = content_octets[start_of_time_zone + 1..].iter().position(|b| !b.is_ascii_digit());
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1262,9 +1264,12 @@ impl X690Codec for BasicEncodingRules {
             )));
         }
         let offset_s = unsafe { std::str::from_utf8_unchecked(&content_octets[start_of_time_zone + 1..]) };
-        let offset_hour = u8::from_str(&offset_s[6..8])
+        if offset_s.len() < 4 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+        }
+        let offset_hour = u8::from_str(&offset_s[0..2])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
-        let offset_minute = u8::from_str(&offset_s[8..10])
+        let offset_minute = u8::from_str(&offset_s[2..4])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
         if offset_hour > 23 || offset_minute > 59 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
@@ -1272,27 +1277,24 @@ impl X690Codec for BasicEncodingRules {
         Ok(())
     }
 
-    // Function produced by ChatGPT-4 before a few modifications by me.
     fn validate_generalized_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() < 10 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
         #[cfg(feature = "simdutf8")]
-        let s = from_utf8(&content_octets[0..10])
+        let s = from_utf8(content_octets)
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
         #[cfg(not(feature = "simdutf8"))]
-        let s = String::from_utf8(content_octets[0..10].to_owned())
+        let s = std::str::from_utf8(content_octets)
             .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))?;
-
-        // Check for basic length
-        if s.len() < 15 {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
 
         // Extract and validate date and time parts
         let year: u32 = s[..4].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
         let month: u32 = s[4..6].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
         let day: u32 = s[6..8].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_day))?;
         let hour: u32 = s[8..10].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
-        let minute: u32 = s[10..12].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
-        let second: u32 = s[12..14].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
+        let minute: Option<u32> = s.get(10..12).map(|n| n.parse().ok()).flatten();
+        let second: Option<u32> = s.get(12..14).map(|n| n.parse().ok()).flatten();
 
         if month == 0 || month > 12 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
@@ -1305,18 +1307,22 @@ impl X690Codec for BasicEncodingRules {
         if hour >= 24 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_hour));
         }
-        if minute >= 60 {
+        if minute.is_some_and(|m| m >= 60) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
         }
-        if second >= 60 {
+        if second.is_some_and(|s| s >= 60) {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+        }
+
+        if s.len() <= 14 {
+            return Ok(());
         }
 
         // Check timezone or fractions of seconds
         match &s[14..] {
             "Z" => Ok(()),
             s if s.starts_with('.') || s.starts_with(',') => {
-                let (fraction, tz) = s[1..].split_at(s.find(|c: char| !c.is_numeric()).unwrap_or(0));
+                let (fraction, tz) = s[1..].split_at(s[1..].find(|c: char| !c.is_numeric()).unwrap_or(0));
 
                 if fraction.is_empty() {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds));
@@ -1334,7 +1340,7 @@ impl X690Codec for BasicEncodingRules {
                     }
                     _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
                 }
-            }
+            },
             tz if tz.starts_with('+') || tz.starts_with('-') => {
                 // Minutes in the offset are optional.
                 if (tz.len() == 5 || tz.len() == 3)  && tz[1..].chars().all(|c| c.is_numeric()) {
@@ -1342,7 +1348,7 @@ impl X690Codec for BasicEncodingRules {
                 } else {
                     Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset))
                 }
-            }
+            },
             _ => Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
         }
     }
@@ -1668,6 +1674,7 @@ mod tests {
     use super::*;
     use super::X690Value;
     use crate::X690_TAG_CLASS_UNIVERSAL;
+    use wildboar_asn1::{DATE, UTCTime, GeneralizedTime, DURATION, UTCOffset};
 
     #[test]
     fn test_ber_decode_algorithm_identifier() {
@@ -1749,5 +1756,861 @@ mod tests {
     fn make_sure_u8_from_str_handles_leading_zeros () {
         let num = u8::from_str("05").unwrap();
         assert_eq!(num, 5);
+    }
+
+    #[test]
+    fn test_ber_decode_length_short_form() {
+        // Test short form (length < 128)
+        let bytes = [0x05]; // Length 5
+        let (bytes_read, length) = ber_decode_length(&bytes).unwrap();
+        assert_eq!(bytes_read, 1);
+        assert_eq!(length, X690Length::Definite(5));
+    }
+
+    #[test]
+    fn test_ber_decode_length_indefinite() {
+        // Test indefinite length
+        let bytes = [0x80]; // Indefinite length
+        let (bytes_read, length) = ber_decode_length(&bytes).unwrap();
+        assert_eq!(bytes_read, 1);
+        assert_eq!(length, X690Length::Indefinite);
+    }
+
+    #[test]
+    fn test_ber_decode_length_long_form() {
+        // Test long form with 1 byte length
+        let bytes = [0x81, 0xFF]; // Length 255
+        let (bytes_read, length) = ber_decode_length(&bytes).unwrap();
+        assert_eq!(bytes_read, 2);
+        assert_eq!(length, X690Length::Definite(255));
+    }
+
+    #[test]
+    fn test_ber_decode_length_long_form_2_bytes() {
+        // Test long form with 2 bytes length
+        let bytes = [0x82, 0x01, 0x00]; // Length 256
+        let (bytes_read, length) = ber_decode_length(&bytes).unwrap();
+        assert_eq!(bytes_read, 3);
+        assert_eq!(length, X690Length::Definite(256));
+    }
+
+    #[test]
+    fn test_ber_decode_length_truncated() {
+        // Test truncated length field
+        let bytes: [u8; 0] = [];
+        let result = ber_decode_length(&bytes);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_ber_decode_boolean_value() {
+        // Test true value
+        let bytes = [0xFF];
+        let result = BER.decode_boolean_value(&bytes).unwrap();
+        assert_eq!(result, true);
+
+        // Test false value
+        let bytes = [0x00];
+        let result = BER.decode_boolean_value(&bytes).unwrap();
+        assert_eq!(result, false);
+
+        // Test non-zero value (should be true)
+        let bytes = [0x01];
+        let result = BER.decode_boolean_value(&bytes).unwrap();
+        assert_eq!(result, true);
+    }
+
+    #[test]
+    fn test_ber_decode_boolean_value_invalid() {
+        // Test with wrong number of bytes
+        let bytes: [u8; 0] = [];
+        let result = BER.decode_boolean_value(&bytes);
+        assert!(result.is_err());
+
+        let bytes = [0x00, 0x01];
+        let result = BER.decode_boolean_value(&bytes);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_ber_decode_bit_string_value() {
+        // Test bit string with no trailing bits
+        let bytes = [0x00, 0xFF, 0xFF];
+        let result = BER.decode_bit_string_value(&bytes).unwrap();
+        assert_eq!(result.get_trailing_bits_count(), 0);
+        assert_eq!(result.get_bytes_ref(), &[0xFFu8, 0xFF]);
+
+        // Test bit string with trailing bits
+        let bytes = [0x03, 0xFF, 0xFF]; // 3 trailing bits
+        let result = BER.decode_bit_string_value(&bytes).unwrap();
+        assert_eq!(result.get_trailing_bits_count(), 3);
+        assert_eq!(result.get_bytes_ref(), &[0xFFu8, 0xFF]);
+    }
+
+    #[test]
+    fn test_ber_decode_bit_string_value_invalid() {
+        // Test empty bit string
+        let bytes: [u8; 0] = [];
+        let result = BER.decode_bit_string_value(&bytes);
+        assert!(result.is_err());
+
+        // Test invalid trailing bits (> 7)
+        let bytes = [0x08, 0xFF];
+        let result = BER.decode_bit_string_value(&bytes);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_ber_decode_octet_string_value() {
+        let bytes = [0x01, 0x02, 0x03, 0x04];
+        let result = BER.decode_octet_string_value(&bytes).unwrap();
+        assert_eq!(result, vec![0x01, 0x02, 0x03, 0x04]);
+    }
+
+    #[test]
+    fn test_ber_decode_real_value_special() {
+        // Test plus infinity
+        let bytes = [0x40]; // Special real, plus infinity
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert!(result.is_infinite() && result > 0.0);
+
+        // Test minus infinity
+        let bytes = [0x41]; // Special real, minus infinity
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert!(result.is_infinite() && result < 0.0);
+
+        // Test NaN
+        let bytes = [0x42]; // Special real, NaN
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert!(result.is_nan());
+
+        // Test minus zero
+        let bytes = [0x43]; // Special real, minus zero
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert_eq!(result, -0.0);
+    }
+
+    #[test]
+    fn test_ber_decode_real_value_base10() {
+        // Test NR1 format (integer)
+        let bytes = [0x01, b'1', b'2', b'3']; // NR1 format, value "123"
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert_eq!(result, 123.0);
+
+        // Test NR2 format (decimal)
+        let bytes = [0x02, b'1', b'2', b'3', b'.', b'4', b'5']; // NR2 format, value "123.45"
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert_eq!(result, 123.45);
+
+        // Test NR3 format (scientific notation)
+        let bytes = [0x03, b'1', b'2', b'3', b'.', b'4', b'5', b'E', b'+', b'2']; // NR3 format, value "123.45E+2"
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert_eq!(result, 12345.0);
+    }
+
+    #[test]
+    fn test_ber_decode_real_value_binary() {
+        // Test binary encoding with base 2
+        let bytes = [0x80, 0x02, 0x01]; // Binary, base 2, exponent 2, mantissa 1
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert_eq!(result, 4.0); // 1 * 2^2 = 4
+    }
+
+    #[test]
+    fn test_ber_decode_real_value_empty() {
+        // Test empty real value (should return 0.0)
+        let bytes: [u8; 0] = [];
+        let result = BER.decode_real_value(&bytes).unwrap();
+        assert_eq!(result, 0.0);
+    }
+
+    #[test]
+    fn test_ber_decode_generalized_time_value() {
+        let bytes = b"20231201120000Z";
+        let result = BER.decode_generalized_time_value(bytes).unwrap();
+        assert_eq!(result.date.year, 2023);
+        assert_eq!(result.date.month, 12);
+        assert_eq!(result.date.day, 1);
+        assert_eq!(result.hour, 12);
+        // TODO:
+        // assert_eq!(result.minute, 0);
+        // assert_eq!(result.second, 0);
+    }
+
+    #[test]
+    fn test_ber_decode_duration_value() {
+        let bytes = b"P1Y2M3DT4H5M6S";
+        let result = BER.decode_duration_value(bytes).unwrap();
+        assert_eq!(result.years,   1);
+        assert_eq!(result.months,  2);
+        assert_eq!(result.days,    3);
+        assert_eq!(result.hours,   4);
+        assert_eq!(result.minutes, 5);
+        assert_eq!(result.seconds, 6);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_boolean() {
+        let value = true;
+        let encoded = BER.encode_boolean(&value).unwrap();
+        let decoded = BER.decode_boolean(&encoded).unwrap();
+        assert_eq!(decoded, value);
+
+        let value = false;
+        let encoded = BER.encode_boolean(&value).unwrap();
+        let decoded = BER.decode_boolean(&encoded).unwrap();
+        assert_eq!(decoded, value);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_bit_string() {
+        let value = BIT_STRING::from_parts_borrowed(&[0xFF, 0x0F], 4);
+        let encoded = BER.encode_bit_string(&value).unwrap();
+        let decoded = BER.decode_bit_string(&encoded).unwrap();
+        assert_eq!(decoded.get_bytes_ref(), value.get_bytes_ref());
+        assert_eq!(decoded.get_trailing_bits_count(), value.get_trailing_bits_count());
+    }
+
+    #[test]
+    fn test_ber_encode_decode_octet_string() {
+        let value = vec![0x01, 0x02, 0x03, 0x04];
+        let encoded = BER.encode_octet_string(&value).unwrap();
+        let decoded = BER.decode_octet_string(&encoded).unwrap();
+        assert_eq!(decoded, value);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_real() {
+        let value = 123.456;
+        let encoded = BER.encode_real(&value).unwrap();
+        let decoded = BER.decode_real(&encoded).unwrap();
+        assert!((decoded - value).abs() < 0.001); // Allow small floating point differences
+
+        let value = f64::INFINITY;
+        let encoded = BER.encode_real(&value).unwrap();
+        let decoded = BER.decode_real(&encoded).unwrap();
+        assert!(decoded.is_infinite() && decoded > 0.0);
+
+        let value = f64::NEG_INFINITY;
+        let encoded = BER.encode_real(&value).unwrap();
+        let decoded = BER.decode_real(&encoded).unwrap();
+        assert!(decoded.is_infinite() && decoded < 0.0);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_utf8_string() {
+        let value = "Hello, 世界!";
+        let encoded = BER.encode_utf8_string(value).unwrap();
+        let decoded = BER.decode_utf8_string(&encoded).unwrap();
+        assert_eq!(decoded, value);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_numeric_string() {
+        let value = "1234567890";
+        let encoded = BER.encode_numeric_string(value).unwrap();
+        let decoded = BER.decode_numeric_string(&encoded).unwrap();
+        assert_eq!(decoded, value);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_printable_string() {
+        let value = "Hello World";
+        let encoded = BER.encode_printable_string(value).unwrap();
+        let decoded = BER.decode_printable_string(&encoded).unwrap();
+        assert_eq!(decoded, value);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_ia5_string() {
+        let value = "Hello World!";
+        let encoded = BER.encode_ia5_string(value).unwrap();
+        let decoded = BER.decode_ia5_string(&encoded).unwrap();
+        assert_eq!(decoded, value);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_utc_time() {
+        let value = UTCTime{
+            year: 23,
+            month: 12,
+            day: 1,
+            hour: 12,
+            minute: 0,
+            second: 0,
+            utc_offset: UTCOffset{hour: 0, minute: 0},
+        };
+        let encoded = BER.encode_utc_time(&value).unwrap();
+        let decoded = BER.decode_utc_time(&encoded).unwrap();
+        assert_eq!(decoded.year, value.year);
+        assert_eq!(decoded.month, value.month);
+        assert_eq!(decoded.day, value.day);
+        assert_eq!(decoded.hour, value.hour);
+        assert_eq!(decoded.minute, value.minute);
+        assert_eq!(decoded.second, value.second);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_generalized_time() {
+        let value = GeneralizedTime{
+            date: DATE{year: 2023, month: 12, day: 1},
+            utc_offset: None,
+            hour: 12,
+            min_and_sec: None,
+            flags: 0,
+            fraction: 0,
+        };
+        let encoded = BER.encode_generalized_time(&value).unwrap();
+        let decoded = BER.decode_generalized_time(&encoded).unwrap();
+        assert_eq!(decoded.date.year, value.date.year);
+        assert_eq!(decoded.date.month, value.date.month);
+        assert_eq!(decoded.date.day, value.date.day);
+        assert_eq!(decoded.hour, value.hour);
+        // TODO:
+        // assert_eq!(decoded.minute, value.minute);
+        // assert_eq!(decoded.second, value.second);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_universal_string() {
+        let value = UniversalString(vec![0x0048, 0x0065, 0x006C, 0x006C, 0x006F]); // "Hello"
+        let encoded = BER.encode_universal_string(&value.0).unwrap();
+        let decoded = BER.decode_universal_string(&encoded).unwrap();
+        assert_eq!(decoded.0, value.0);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_bmp_string() {
+        let value = BMPString(vec![0x0048, 0x0065, 0x006C, 0x006C, 0x006F]); // "Hello"
+        let encoded = BER.encode_bmp_string(&value.0).unwrap();
+        let decoded = BER.decode_bmp_string(&encoded).unwrap();
+        assert_eq!(decoded.0, value.0);
+    }
+
+    #[test]
+    fn test_ber_encode_decode_duration() {
+        let value = DURATION{
+            years: 1,
+            months: 2,
+            days: 3,
+            hours: 4,
+            minutes: 5,
+            seconds: 6,
+            weeks: 0,
+            fractional_part: None,
+        };
+        let encoded = BER.encode_duration(&value).unwrap();
+        let decoded = BER.decode_duration(&encoded).unwrap();
+        assert_eq!(decoded.years, value.years);
+        assert_eq!(decoded.months, value.months);
+        assert_eq!(decoded.days, value.days);
+        assert_eq!(decoded.hours, value.hours);
+        assert_eq!(decoded.minutes, value.minutes);
+        assert_eq!(decoded.seconds, value.seconds);
+    }
+
+    #[test]
+    fn test_ber_validate_boolean_value() {
+        // Valid boolean values
+        assert!(BER.validate_boolean_value(&[0x00]).is_ok());
+        assert!(BER.validate_boolean_value(&[0xFF]).is_ok());
+        assert!(BER.validate_boolean_value(&[0x01]).is_ok());
+
+        // Invalid boolean values
+        assert!(BER.validate_boolean_value(&[]).is_err());
+        assert!(BER.validate_boolean_value(&[0x00, 0x01]).is_err());
+    }
+
+    #[test]
+    fn test_ber_validate_bit_string_value() {
+        // Valid bit string values
+        assert!(BER.validate_bit_string_value(&[0x00, 0xFF]).is_ok());
+        assert!(BER.validate_bit_string_value(&[0x03, 0xFF]).is_ok());
+
+        // Invalid bit string values
+        assert!(BER.validate_bit_string_value(&[]).is_err());
+        assert!(BER.validate_bit_string_value(&[0x08]).is_err());
+        assert!(BER.validate_bit_string_value(&[0x08, 0xFF]).is_err());
+    }
+
+    #[test]
+    fn test_ber_validate_utc_time_value() {
+        // Valid UTC time values
+        assert!(BER.validate_utc_time_value(b"991205223344Z").is_ok());
+        let r = BER.validate_utc_time_value(b"991205223344+0523");
+        dbg!(&r);
+        assert!(BER.validate_utc_time_value(b"991205223344+0523").is_ok());
+        assert!(BER.validate_utc_time_value(b"9912052233Z").is_ok());
+
+        // Invalid UTC time values
+        assert!(BER.validate_utc_time_value(b"").is_err());
+        assert!(BER.validate_utc_time_value(b"991205223344").is_err()); // Missing timezone
+        assert!(BER.validate_utc_time_value(b"991205223344+9999").is_err()); // Invalid offset
+    }
+
+    #[test]
+    fn test_ber_validate_generalized_time_value() {
+        // Valid generalized time values
+        assert!(BER.validate_generalized_time_value(b"20231201120000Z").is_ok());
+        assert!(BER.validate_generalized_time_value(b"20231201120000.123Z").is_ok());
+        assert!(BER.validate_generalized_time_value(b"20231201120000+0500").is_ok());
+        assert!(BER.validate_generalized_time_value(b"20231201120000").is_ok()); // Local time
+
+        // Invalid generalized time values
+        assert!(BER.validate_generalized_time_value(b"").is_err());
+        assert!(BER.validate_generalized_time_value(b"20231301120000Z").is_err()); // Invalid month
+    }
+
+    #[test]
+    fn test_ber_validate_duration_value() {
+        // Valid duration values
+        assert!(BER.validate_duration_value(b"1Y2M3DT4H5M6S").is_ok());
+        assert!(BER.validate_duration_value(b"1Y2M3D").is_ok());
+        assert!(BER.validate_duration_value(b"T4H5M6S").is_ok());
+
+        // Invalid duration values
+        assert!(BER.validate_duration_value(b"").is_err());
+        assert!(BER.validate_duration_value(b"P").is_err()); // No components
+        assert!(BER.validate_duration_value(b"P1Y2M3DT").is_err()); // T without time components
+    }
+
+    #[test]
+    fn test_ber_decode_sequence() {
+        // Create a simple sequence with two elements
+        let seq_value = vec![
+            ASN1Value::BooleanValue(true),
+            ASN1Value::IntegerValue(vec![42]),
+        ];
+        let encoded = BER.encode_any(&ASN1Value::SequenceValue(seq_value.clone())).unwrap();
+        let decoded = BER.decode_sequence(&encoded).unwrap();
+        assert_eq!(decoded.len(), 2);
+
+        if let ASN1Value::BooleanValue(val) = &decoded[0] {
+            assert_eq!(*val, true);
+        } else {
+            panic!("Expected boolean value");
+        }
+
+        if let ASN1Value::IntegerValue(val) = &decoded[1] {
+            assert_eq!(*val, vec![42]);
+        } else {
+            panic!("Expected integer value");
+        }
+    }
+
+    #[test]
+    fn test_ber_decode_set() {
+        // Create a simple set with two elements
+        let set_value = vec![
+            ASN1Value::BooleanValue(false),
+            ASN1Value::IntegerValue(vec![123]),
+        ];
+        let encoded = BER.encode_any(&ASN1Value::SetValue(set_value.clone())).unwrap();
+        let decoded = BER.decode_set(&encoded).unwrap();
+        assert_eq!(decoded.len(), 2);
+
+        // Note: Set order is not guaranteed, so we check both possible orders
+        let has_bool = decoded.iter().any(|v| {
+            if let ASN1Value::BooleanValue(val) = v {
+                *val == false
+            } else {
+                false
+            }
+        });
+        let has_int = decoded.iter().any(|v| {
+            if let ASN1Value::IntegerValue(val) = v {
+                *val == vec![123]
+            } else {
+                false
+            }
+        });
+        assert!(has_bool);
+        assert!(has_int);
+    }
+
+    #[test]
+    fn test_ber_decode_any() {
+        // Test decoding various ASN.1 values
+        let bool_value = ASN1Value::BooleanValue(true);
+        let encoded = BER.encode_any(&bool_value).unwrap();
+        let decoded = BER.decode_any(&encoded).unwrap();
+        assert_eq!(decoded, bool_value);
+
+        let int_value = ASN1Value::IntegerValue(vec![42]);
+        let encoded = BER.encode_any(&int_value).unwrap();
+        let decoded = BER.decode_any(&encoded).unwrap();
+        assert_eq!(decoded, int_value);
+
+        let string_value = ASN1Value::UTF8String("Hello".to_string());
+        let encoded = BER.encode_any(&string_value).unwrap();
+        let decoded = BER.decode_any(&encoded).unwrap();
+        assert_eq!(decoded, string_value);
+    }
+
+    #[test]
+    fn test_ber_decode_from_bytes() {
+        // Test decoding from Bytes
+        let encoded_data = vec![
+            X690_TAG_CLASS_UNIVERSAL | UNIV_TAG_BOOLEAN as u8,
+            0x01,
+            0xFF,
+        ];
+        let bytes = Bytes::from(encoded_data);
+        let (bytes_read, el) = BER.decode_from_bytes(bytes).unwrap();
+        assert_eq!(bytes_read, 3);
+        assert_eq!(el.tag.tag_class, TagClass::UNIVERSAL);
+        assert_eq!(el.tag.tag_number, UNIV_TAG_BOOLEAN);
+    }
+
+    #[test]
+    fn test_ber_indefinite_length() {
+        // Test indefinite length encoding
+        let encoded_data = vec![
+            X690_TAG_CLASS_UNIVERSAL | 0b0010_0000 | UNIV_TAG_SEQUENCE as u8,
+            0x80, // Indefinite length
+            X690_TAG_CLASS_UNIVERSAL | UNIV_TAG_BOOLEAN as u8,
+            0x01,
+            0xFF,
+            X690_TAG_CLASS_UNIVERSAL | UNIV_TAG_END_OF_CONTENT as u8,
+            0x00,
+        ];
+        let (bytes_read, el) = BER.decode_from_slice(&encoded_data).unwrap();
+        assert_eq!(bytes_read, 7);
+        assert_eq!(el.tag.tag_class, TagClass::UNIVERSAL);
+        assert_eq!(el.tag.tag_number, UNIV_TAG_SEQUENCE);
+
+        if let X690Value::Constructed(children) = &el.value {
+            assert_eq!(children.len(), 1); // EOC element should not be included
+            assert_eq!(children[0].tag.tag_number, UNIV_TAG_BOOLEAN);
+        } else {
+            panic!("Expected constructed value");
+        }
+    }
+
+    #[test]
+    fn test_ber_constructed_bit_string() {
+        // Test constructed BIT STRING
+        let bit_string1 = BIT_STRING::from_parts_borrowed(&[0xFF], 0);
+        let bit_string2 = BIT_STRING::from_parts_borrowed(&[0x0F], 4);
+
+        let encoded1 = BER.encode_bit_string(&bit_string1).unwrap();
+        let encoded2 = BER.encode_bit_string(&bit_string2).unwrap();
+
+        // Create a constructed BIT STRING manually
+        let constructed = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BIT_STRING),
+            X690Value::Constructed(Arc::new(vec![encoded1, encoded2])),
+        );
+
+        let decoded = BER.decode_bit_string(&constructed).unwrap();
+        // The result should be the concatenation of the two bit strings
+        assert_eq!(decoded.get_bytes_ref(), &[0xFF, 0x00]);
+        assert_eq!(decoded.get_trailing_bits_count(), 4);
+    }
+
+    #[test]
+    fn test_ber_validate_string_types() {
+        // Test UTF8String validation
+        let utf8_value = "Hello, 世界!";
+        let encoded = BER.encode_utf8_string(utf8_value).unwrap();
+        assert!(BER.validate_utf8_string(&encoded).is_ok());
+
+        // Test NumericString validation
+        let numeric_value = "1234567890";
+        let encoded = BER.encode_numeric_string(numeric_value).unwrap();
+        assert!(BER.validate_numeric_string(&encoded).is_ok());
+
+        // Test PrintableString validation
+        let printable_value = "Hello World";
+        let encoded = BER.encode_printable_string(printable_value).unwrap();
+        assert!(BER.validate_printable_string(&encoded).is_ok());
+
+        // Test IA5String validation
+        let ia5_value = "Hello World!";
+        let encoded = BER.encode_ia5_string(ia5_value).unwrap();
+        assert!(BER.validate_ia5_string(&encoded).is_ok());
+    }
+
+    #[test]
+    fn test_ber_validate_time_types() {
+        // Test UTCTime validation
+        let utc_value = UTCTime{
+            year: 23,
+            month: 12,
+            day: 1,
+            hour: 12,
+            minute: 0,
+            second: 0,
+            utc_offset: UTCOffset{hour: 0, minute: 0},
+        };
+        let encoded = BER.encode_utc_time(&utc_value).unwrap();
+        assert!(BER.validate_utc_time(&encoded).is_ok());
+
+        // Test GeneralizedTime validation
+        let gen_value = GeneralizedTime{
+            date: DATE{year: 2023, month: 12, day: 1},
+            utc_offset: None,
+            hour: 12,
+            min_and_sec: None,
+            flags: 0,
+            fraction: 0,
+        };
+        let encoded = BER.encode_generalized_time(&gen_value).unwrap();
+        dbg!(&encoded);
+        assert!(BER.validate_generalized_time(&encoded).is_ok());
+    }
+
+    #[test]
+    fn test_ber_validate_bit_string() {
+        // Test primitive BIT STRING validation
+        let bit_string = BIT_STRING::from_parts_borrowed(&[0xFF, 0x0F], 4);
+        let encoded = BER.encode_bit_string(&bit_string).unwrap();
+        assert!(BER.validate_bit_string(&encoded).is_ok());
+
+        // Test constructed BIT STRING validation
+        let bit_string1 = BIT_STRING::from_parts_borrowed(&[0xFF], 0);
+        let bit_string2 = BIT_STRING::from_parts_borrowed(&[0x0F], 4);
+
+        let encoded1 = BER.encode_bit_string(&bit_string1).unwrap();
+        let encoded2 = BER.encode_bit_string(&bit_string2).unwrap();
+
+        let constructed = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BIT_STRING),
+            X690Value::Constructed(Arc::new(vec![encoded1, encoded2])),
+        );
+
+        assert!(BER.validate_bit_string(&constructed).is_ok());
+    }
+
+    #[test]
+    fn test_ber_validate_octet_string() {
+        let octet_string = vec![0x01, 0x02, 0x03, 0x04];
+        let encoded = BER.encode_octet_string(&octet_string).unwrap();
+        assert!(BER.validate_octet_string(&encoded).is_ok());
+    }
+
+    #[test]
+    fn test_ber_validate_object_descriptor() {
+        let descriptor = "Test Object Descriptor";
+        let encoded = BER.encode_object_descriptor(descriptor).unwrap();
+        assert!(BER.validate_object_descriptor(&encoded).is_ok());
+    }
+
+    #[test]
+    fn test_ber_validate_universal_string() {
+        let universal_string = UniversalString(vec![0x0048, 0x0065, 0x006C, 0x006C, 0x006F]);
+        let encoded = BER.encode_universal_string(&universal_string.0).unwrap();
+        assert!(BER.validate_universal_string(&encoded).is_ok());
+    }
+
+    #[test]
+    fn test_ber_validate_bmp_string() {
+        let bmp_string = BMPString(vec![0x0048, 0x0065, 0x006C, 0x006C, 0x006F]);
+        let encoded = BER.encode_bmp_string(&bmp_string.0).unwrap();
+        assert!(BER.validate_bmp_string(&encoded).is_ok());
+    }
+
+    #[test]
+    fn test_ber_error_cases() {
+        // Test truncated TLV
+        let truncated = [0x01]; // Just tag, no length or value
+        let result = BER.decode_from_slice(&truncated);
+        assert!(result.is_err());
+
+        // Test invalid length
+        let invalid_length = [0x01, 0x82, 0x01]; // Length says 2 bytes but only 1 provided
+        let result = BER.decode_from_slice(&invalid_length);
+        assert!(result.is_err());
+
+        // Test indefinite length with non-constructed tag
+        let invalid_indefinite = [
+            X690_TAG_CLASS_UNIVERSAL | UNIV_TAG_BOOLEAN as u8,
+            0x80, // Indefinite length
+        ];
+        let result = BER.decode_from_slice(&invalid_indefinite);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_ber_length_edge_cases() {
+        // Test maximum short form length
+        let max_short = [0x7F];
+        let (bytes_read, length) = ber_decode_length(&max_short).unwrap();
+        assert_eq!(bytes_read, 1);
+        assert_eq!(length, X690Length::Definite(127));
+
+        // Test minimum long form length
+        let min_long = [0x81, 0x80];
+        let (bytes_read, length) = ber_decode_length(&min_long).unwrap();
+        assert_eq!(bytes_read, 2);
+        assert_eq!(length, X690Length::Definite(128));
+
+        // Test large length values
+        let large_length = [0x84, 0x01, 0x00, 0x00, 0x00]; // 16777216
+        let (bytes_read, length) = ber_decode_length(&large_length).unwrap();
+        assert_eq!(bytes_read, 5);
+        assert_eq!(length, X690Length::Definite(16777216));
+    }
+
+    #[test]
+    fn test_ber_real_value_edge_cases() {
+        // Test zero value
+        let zero_bytes: [u8; 0] = [];
+        let result = BER.decode_real_value(&zero_bytes).unwrap();
+        assert_eq!(result, 0.0);
+
+        // Test negative zero
+        let neg_zero_bytes = [0x43]; // Special real, minus zero
+        let result = BER.decode_real_value(&neg_zero_bytes).unwrap();
+        assert_eq!(result, -0.0);
+
+        // Test very large numbers
+        let large_bytes = [0x80, 0x0A, 0x01]; // Binary, base 2, exponent 10, mantissa 1
+        let result = BER.decode_real_value(&large_bytes).unwrap();
+        assert_eq!(result, 1024.0); // 1 * 2^10 = 1024
+    }
+
+    #[test]
+    fn test_ber_string_encoding_edge_cases() {
+        // Test empty strings
+        let empty_utf8 = "";
+        let encoded = BER.encode_utf8_string(empty_utf8).unwrap();
+        let decoded = BER.decode_utf8_string(&encoded).unwrap();
+        assert_eq!(decoded, empty_utf8);
+
+        // Test strings with special characters
+        let special_chars = "Hello\n\t\r\0";
+        let encoded = BER.encode_utf8_string(special_chars).unwrap();
+        let decoded = BER.decode_utf8_string(&encoded).unwrap();
+        assert_eq!(decoded, special_chars);
+
+        // Test very long strings
+        let long_string = "A".repeat(1000);
+        let encoded = BER.encode_utf8_string(&long_string).unwrap();
+        let decoded = BER.decode_utf8_string(&encoded).unwrap();
+        assert_eq!(decoded, long_string);
+    }
+
+    #[test]
+    fn test_ber_sequence_encoding_edge_cases() {
+        // Test empty sequence
+        let empty_seq = vec![];
+        let encoded = BER.encode_any(&ASN1Value::SequenceValue(empty_seq.clone())).unwrap();
+        let decoded = BER.decode_sequence(&encoded).unwrap();
+        assert_eq!(decoded.len(), 0);
+
+        // Test sequence with many elements
+        let many_elements: Vec<ASN1Value> = (0..100)
+            .map(|i| ASN1Value::IntegerValue(vec![i as u8]))
+            .collect();
+        let encoded = BER.encode_any(&ASN1Value::SequenceValue(many_elements.clone())).unwrap();
+        let decoded = BER.decode_sequence(&encoded).unwrap();
+        assert_eq!(decoded.len(), 100);
+
+        for (i, val) in decoded.iter().enumerate() {
+            if let ASN1Value::IntegerValue(num) = val {
+                assert_eq!(*num, vec![i as u8]);
+            } else {
+                panic!("Expected integer value");
+            }
+        }
+    }
+
+    #[test]
+    fn test_ber_nested_structures() {
+        // Test nested sequences
+        let inner_seq = vec![
+            ASN1Value::BooleanValue(true),
+            ASN1Value::IntegerValue(vec![42]),
+        ];
+        let outer_seq = vec![
+            ASN1Value::UTF8String("Hello".to_string()),
+            ASN1Value::SequenceValue(inner_seq),
+        ];
+
+        let encoded = BER.encode_any(&ASN1Value::SequenceValue(outer_seq)).unwrap();
+        let decoded = BER.decode_sequence(&encoded).unwrap();
+
+        assert_eq!(decoded.len(), 2);
+
+        if let ASN1Value::UTF8String(s) = &decoded[0] {
+            assert_eq!(s, "Hello");
+        } else {
+            panic!("Expected UTF8String");
+        }
+
+        if let ASN1Value::SequenceValue(inner) = &decoded[1] {
+            assert_eq!(inner.len(), 2);
+        } else {
+            panic!("Expected SequenceValue");
+        }
+    }
+
+    #[test]
+    fn test_ber_round_trip_complex() {
+        // Test complex round-trip encoding/decoding
+        let complex_value = ASN1Value::SequenceValue(vec![
+            ASN1Value::BooleanValue(true),
+            ASN1Value::IntegerValue(vec![42]),
+            ASN1Value::UTF8String("Hello, 世界!".to_string()),
+            ASN1Value::OctetStringValue(vec![0x01, 0x02, 0x03, 0x04]),
+            ASN1Value::RealValue(3.14159),
+            ASN1Value::SetValue(vec![
+                ASN1Value::BooleanValue(false),
+                ASN1Value::IntegerValue(vec![123]),
+            ]),
+        ]);
+
+        let encoded = BER.encode_any(&complex_value).unwrap();
+        let decoded = BER.decode_any(&encoded).unwrap();
+
+        // Verify the structure matches
+        if let ASN1Value::SequenceValue(seq) = &decoded {
+            assert_eq!(seq.len(), 6);
+
+            // Check boolean
+            if let ASN1Value::BooleanValue(val) = &seq[0] {
+                assert_eq!(*val, true);
+            } else {
+                panic!("Expected boolean");
+            }
+
+            // Check integer
+            if let ASN1Value::IntegerValue(val) = &seq[1] {
+                assert_eq!(*val, vec![42]);
+            } else {
+                panic!("Expected integer");
+            }
+
+            // Check string
+            if let ASN1Value::UTF8String(val) = &seq[2] {
+                assert_eq!(val, "Hello, 世界!");
+            } else {
+                panic!("Expected UTF8String");
+            }
+
+            // Check octet string
+            if let ASN1Value::OctetStringValue(val) = &seq[3] {
+                assert_eq!(val, &[0x01, 0x02, 0x03, 0x04]);
+            } else {
+                panic!("Expected OctetStringValue");
+            }
+
+            // Check real
+            if let ASN1Value::RealValue(val) = &seq[4] {
+                assert!((*val - 3.14159).abs() < 0.001);
+            } else {
+                panic!("Expected RealValue");
+            }
+
+            // Check set
+            if let ASN1Value::SetValue(set) = &seq[5] {
+                assert_eq!(set.len(), 2);
+            } else {
+                panic!("Expected SetValue");
+            }
+        } else {
+            panic!("Expected SequenceValue");
+        }
     }
 }

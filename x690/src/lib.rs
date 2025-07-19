@@ -1,20 +1,20 @@
 //! # X.690 Encoding Rules Library
-//! 
+//!
 //! This library provides comprehensive support for X.690 encoding rules, which define how ASN.1
 //! (Abstract Syntax Notation One) data structures are encoded for transmission and storage.
-//! 
+//!
 //! ## Overview
-//! 
+//!
 //! X.690 defines several encoding rules:
 //! - **BER (Basic Encoding Rules)**: The most flexible encoding, supporting both definite and indefinite lengths
 //! - **CER (Canonical Encoding Rules)**: A restricted form of BER that produces canonical encodings
 //! - **DER (Distinguished Encoding Rules)**: A restricted form of BER that produces unique encodings
-//! 
+//!
 //! This library focuses on BER encoding and decoding, providing a complete implementation
 //! of the X.690 specification.
-//! 
+//!
 //! ## Key Features
-//! 
+//!
 //! - Complete BER encoding and decoding support
 //! - Support for all ASN.1 universal types
 //! - Efficient memory management with zero-copy operations where possible
@@ -136,7 +136,7 @@ pub const X690_REAL_NR2: u8 = 2;
 pub const X690_REAL_NR3: u8 = 3;
 
 /// Represents the length of an X.690 encoded element
-/// 
+///
 /// In X.690 encoding, lengths can be either definite (a specific number of octets)
 /// or indefinite (marked with a special value and terminated by end-of-content markers).
 #[derive(Clone, Debug, Hash, Copy, PartialEq, Eq)]
@@ -148,7 +148,7 @@ pub enum X690Length {
 }
 
 /// Represents the value content of an X.690 encoded element
-/// 
+///
 /// X.690 values can be stored in different forms depending on how they were created
 /// and whether they need to be serialized for transmission.
 #[derive(Clone, Debug, Hash)]
@@ -164,7 +164,7 @@ pub enum X690Value {
 impl X690Value {
 
     /// Returns the length of the content octets in bytes
-    /// 
+    ///
     /// For primitive values, this is the length of the raw bytes.
     /// For constructed values, this is the sum of all child element lengths.
     /// For serialized values, this decodes the serialized data to determine the length.
@@ -188,7 +188,7 @@ impl X690Value {
     }
 
     /// Creates a constructed value from a single explicit element
-    /// 
+    ///
     /// This is used when an element needs to be wrapped in an explicit tag.
     #[inline]
     pub fn from_explicit(inner: X690Element) -> Self {
@@ -196,7 +196,7 @@ impl X690Value {
     }
 
     /// Returns the components of a constructed value
-    /// 
+    ///
     /// For constructed values, returns the child elements.
     /// For serialized values, decodes the serialized data and returns the components.
     /// For primitive values, returns an error.
@@ -214,7 +214,7 @@ impl X690Value {
 }
 
 /// Represents a complete X.690 encoded element with tag and value
-/// 
+///
 /// An `X690Element` contains a tag that identifies the type and class of the element,
 /// and a value that contains the actual data. The value can be primitive (raw bytes),
 /// constructed (containing child elements), or serialized (encoded bytes).
@@ -235,7 +235,7 @@ impl X690Element {
     }
 
     /// Returns the total length of this element in bytes when encoded
-    /// 
+    ///
     /// This includes the tag bytes, length bytes, and value bytes.
     pub fn len(&self) -> usize {
         let tag_length: usize = get_written_x690_tag_length(self.tag.tag_number);
@@ -246,7 +246,7 @@ impl X690Element {
     }
 
     /// Returns true if this element is constructed (contains child elements)
-    /// 
+    ///
     /// For serialized values, this checks the constructed bit in the tag.
     /// For constructed values, this always returns true.
     /// For primitive values, this always returns false.
@@ -263,7 +263,7 @@ impl X690Element {
     }
 
     /// Returns the components of this element if it is constructed
-    /// 
+    ///
     /// This is a convenience method that delegates to the value's [`X690Value::components`] method.
     #[inline]
     pub fn components (&self) -> ASN1Result<Arc<Vec<X690Element>>> {
@@ -271,7 +271,7 @@ impl X690Element {
     }
 
     /// Returns the inner element if this is an explicit wrapper
-    /// 
+    ///
     /// For explicit tagged values, this returns the single child element.
     /// For other values, this returns an error.
     pub fn inner(&self) -> ASN1Result<X690Element> {
@@ -291,7 +291,7 @@ impl X690Element {
     }
 
     /// Returns the content octets of this element
-    /// 
+    ///
     /// For primitive values, returns the raw bytes.
     /// For constructed values, serializes the child elements and returns the bytes.
     /// For serialized values, decodes and returns the content octets.
@@ -319,7 +319,7 @@ impl X690Element {
     }
 
     /// Creates an `ASN1Error` with information from this element
-    /// 
+    ///
     /// This is useful for creating detailed error messages that include
     /// information about the element that caused the error.
     #[inline]
@@ -338,7 +338,7 @@ impl X690Element {
     }
 
     /// Creates an `ASN1Error` with information from this element and a component name
-    /// 
+    ///
     /// This is useful for creating detailed error messages that include
     /// information about the element and the specific component that caused the error.
     pub fn to_asn1_err_named (&self, errcode: ASN1ErrorCode, name: &str) -> ASN1Error {
@@ -348,7 +348,7 @@ impl X690Element {
     }
 
     /// Returns `true` if this element is empty
-    /// 
+    ///
     /// For primitive values, checks if the byte length is zero.
     /// For constructed values, checks if there are no child elements.
     /// For serialized values, checks if the serialized data is minimal (just tag and length).
@@ -592,7 +592,7 @@ impl TryInto<BOOLEAN> for X690Element {
 
 impl PartialEq for X690Element {
     /// Compares two X690Elements for equality
-    /// 
+    ///
     /// For serialized values, this decodes them first before comparison.
     /// Primitive values are compared by their raw bytes.
     /// Constructed values are compared by their child elements.
@@ -631,12 +631,12 @@ impl PartialEq for X690Element {
 impl Eq for X690Element {}
 
 /// Decodes an X.690 tag from a byte slice
-/// 
+///
 /// Returns a tuple containing:
 /// - The number of bytes read
 /// - The decoded tag
 /// - Whether the tag is constructed
-/// 
+///
 /// This function handles both short and long tag formats as specified in X.690.
 pub fn x690_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
     if bytes.len() == 0 {
@@ -687,7 +687,7 @@ pub fn x690_decode_tag(bytes: ByteSlice) -> ASN1Result<(usize, Tag, bool)> {
 }
 
 /// Calculates the total length of tag and length bytes in an X.690 encoding
-/// 
+///
 /// This function examines the first few bytes to determine how many bytes
 /// are used for the tag and length encoding, without actually decoding the values.
 pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
@@ -717,7 +717,7 @@ pub fn get_x690_tag_and_length_length(bytes: ByteSlice) -> usize {
 }
 
 /// Calculates the number of bytes needed to encode a number in base-128 format
-/// 
+///
 /// Base-128 encoding is used for long tag numbers and other variable-length `INTEGER`s
 /// in X.690 encoding.
 const fn base_128_len(num: u32) -> usize {
@@ -734,10 +734,10 @@ const fn base_128_len(num: u32) -> usize {
 }
 
 /// Writes a number in base-128 format to a writer
-/// 
+///
 /// Base-128 encoding uses 7 bits per byte with a continuation bit in the high bit.
 /// This is used for encoding long tag numbers and other variable-length `INTEGER`s.
-/// 
+///
 /// Returns the number of bytes written.
 fn write_base_128<W>(output: &mut W, mut num: u32) -> Result<usize>
 where
@@ -761,7 +761,7 @@ where
 }
 
 /// Calculates the number of bytes needed to encode a tag number
-/// 
+///
 /// Tag numbers less than 31 use the short form (1 byte).
 /// Tag numbers 31 and above use the long form with base-128 encoding.
 pub const fn get_written_x690_tag_length(tagnum: TagNumber) -> usize {
@@ -773,7 +773,7 @@ pub const fn get_written_x690_tag_length(tagnum: TagNumber) -> usize {
 }
 
 /// Calculates the number of bytes needed to encode a length value
-/// 
+///
 /// Lengths 0-127 use the short form (1 byte).
 /// Longer lengths use the long form with a length indicator byte followed by the length value.
 pub const fn get_written_x690_length_length(len: usize) -> usize {
@@ -792,10 +792,10 @@ pub const fn get_written_x690_length_length(len: usize) -> usize {
 }
 
 /// Writes an X.690 tag to a writer
-/// 
+///
 /// This function handles both short and long tag formats as specified in X.690.
 /// The tag includes the class, constructed bit, and tag number.
-/// 
+///
 /// Returns the number of bytes written.
 pub fn x690_write_tag<W>(
     output: &mut W,
@@ -837,10 +837,10 @@ where
 }
 
 /// Writes an X.690 length to a writer
-/// 
+///
 /// This function handles both short and long length formats as specified in X.690.
 /// Lengths 0-127 use the short form, longer lengths use the long form.
-/// 
+///
 /// Returns the number of bytes written.
 pub fn x690_write_length<W>(output: &mut W, length: usize) -> Result<usize>
 where
@@ -866,9 +866,9 @@ where
 }
 
 /// Writes a `BOOLEAN` value in X.690 format
-/// 
+///
 /// `BOOLEAN` values are encoded as a single octet: 0xFF for true, 0x00 for false.
-/// 
+///
 /// Returns the number of bytes written.
 #[inline]
 pub fn x690_write_boolean_value<W>(output: &mut W, value: &BOOLEAN) -> Result<usize>
@@ -883,9 +883,9 @@ where
 }
 
 /// Writes an `INTEGER` value in X.690 format
-/// 
+///
 /// `INTEGER` values are written as raw bytes in big-endian format.
-/// 
+///
 /// Returns the number of bytes written.
 #[inline]
 pub fn x690_write_integer_value<W>(output: &mut W, value: &INTEGER) -> Result<usize>
@@ -896,10 +896,10 @@ where
 }
 
 /// Writes an i64 value in X.690 `INTEGER` format
-/// 
+///
 /// This function handles the encoding of i64 values as `INTEGER` types,
 /// including proper handling of sign extension and padding.
-/// 
+///
 /// Returns the number of bytes written.
 pub fn x690_write_i64_value<W>(output: &mut W, value: i64) -> Result<usize>
 where
@@ -926,9 +926,9 @@ where
 }
 
 /// Writes an `ENUMERATED` value in X.690 format
-/// 
+///
 /// `ENUMERATED` values are encoded the same as `INTEGER` values.
-/// 
+///
 /// Returns the number of bytes written.
 #[inline]
 pub fn x690_write_enum_value<W>(output: &mut W, value: &ENUMERATED) -> Result<usize>
@@ -939,9 +939,9 @@ where
 }
 
 /// Writes a `BIT STRING` value in X.690 format
-/// 
+///
 /// `BIT STRING` values include a trailing bits count byte followed by the actual bits.
-/// 
+///
 /// Returns the number of bytes written.
 pub fn x690_write_bit_string_value<W>(output: &mut W, value: &BIT_STRING) -> Result<usize>
 where
@@ -953,9 +953,9 @@ where
 }
 
 /// Writes an `OCTET STRING` value in X.690 format
-/// 
+///
 /// `OCTET STRING` values are written as raw bytes.
-/// 
+///
 /// Returns the number of bytes written.
 #[inline]
 pub fn x690_write_octet_string_value<W>(output: &mut W, value: &OCTET_STRING) -> Result<usize>
@@ -966,9 +966,9 @@ where
 }
 
 /// Writes an `OBJECT IDENTIFIER` value in X.690 format
-/// 
+///
 /// `OBJECT IDENTIFIER` values are encoded using the X.690 encoding format.
-/// 
+///
 /// Returns the number of bytes written.
 #[inline]
 pub fn x690_write_object_identifier_value<W>(
@@ -982,9 +982,9 @@ where
 }
 
 /// Writes an `ObjectDescriptor` value in X.690 format
-/// 
+///
 /// `ObjectDescriptor` values are written as UTF-8 encoded strings.
-/// 
+///
 /// Returns the number of bytes written.
 #[inline]
 pub fn x690_write_object_descriptor_value<W>(
@@ -998,16 +998,16 @@ where
 }
 
 /// Encode the components of an `EXTERNAL` value as X.690-encoded elements
-/// 
+///
 /// This function encodes the components of an `EXTERNAL` value as X.690-encoded elements.
 /// It handles the encoding of the identification, data value descriptor, and data value.
-/// 
+///
 /// # Arguments
 /// * `value` - The `EXTERNAL` value to encode
-/// 
+///
 /// # Returns
 /// A vector of X.690-encoded elements representing the components of the `EXTERNAL` value
-/// 
+///
 /// To be a complete `EXTERNAL` value, these MUST be contained within a "parent" element
 /// having tag `[UNIVERSAL 8]` and it MUST be constructed.
 pub fn x690_encode_external_components (value: &EXTERNAL) -> Result<Vec<X690Element>> {
@@ -1078,17 +1078,17 @@ pub fn x690_encode_external_components (value: &EXTERNAL) -> Result<Vec<X690Elem
 }
 
 /// Write an `EXTERNAL` value as an X.690-encoded element
-/// 
+///
 /// This function writes an `EXTERNAL` value as an X.690-encoded element.
 /// It handles the encoding of the identification, data value descriptor,
 /// and data value.
-/// 
+///
 /// # Arguments
 /// * `output` - The writable stream to write the `EXTERNAL` value to
-/// 
+///
 /// # Returns
 /// The number of bytes written to the writable stream
-/// 
+///
 /// NOTE: This has to be encoded in a strange way that is detailed in ITU-T
 /// Recommendation X.690, Section 8.18.
 pub fn x690_write_external_value<W>(output: &mut W, value: &EXTERNAL) -> Result<usize>
@@ -1104,21 +1104,21 @@ where
 }
 
 /// Write a `REAL` value as an X.690-encoded element
-/// 
+///
 /// This function writes a `REAL` value as an X.690-encoded element.
 /// It handles the encoding of the value according to ITU Recommendation
 /// X.690, Section 8.5.
-/// 
+///
 /// This adheres to the Basic Encoding Rules (BER) encoding of `REAL` values,
 /// but not necessarily the Distinguished Encoding Rules (DER) encoding or
 /// the Canonical Encoding Rules (CER).
-/// 
+///
 /// # Arguments
 /// * `output` - The writable stream to write the `REAL` value to
-/// 
+///
 /// # Returns
 /// The number of bytes written to the writable stream
-/// 
+///
 pub fn x690_write_real_value<W>(output: &mut W, value: &REAL) -> Result<usize>
 where
     W: Write,
@@ -1133,16 +1133,16 @@ where
     }
     // If the real value is the value minus zero, then it shall be encoded as specified in 8.5.9.
     if is_zero && value.is_sign_negative() {
-        return output.write(&[X690_SPECIAL_REAL_MINUS_ZERO]);
+        return output.write(&[X690_REAL_SPECIAL | X690_SPECIAL_REAL_MINUS_ZERO]);
     }
 
     if value.is_nan() {
-        return output.write(&[X690_SPECIAL_REAL_NOT_A_NUMBER]);
+        return output.write(&[X690_REAL_SPECIAL | X690_SPECIAL_REAL_NOT_A_NUMBER]);
     }
 
     if value.is_infinite() {
         if value.is_sign_negative() {
-            return output.write(&[X690_SPECIAL_REAL_MINUS_INFINITY]);
+            return output.write(&[X690_REAL_SPECIAL | X690_SPECIAL_REAL_MINUS_INFINITY]);
         } else {
             return output.write(&[X690_REAL_SPECIAL | X690_SPECIAL_REAL_PLUS_INFINITY]);
         }
@@ -1155,25 +1155,25 @@ where
     };
     let base_bits: u8 = X690_REAL_BASE_2;
     let scaling_factor: u8 = 0;
-    let bytes = value.to_be_bytes();
-    let mut mantissa: u64 = u64::from_be_bytes([
-        0x00,
-        0x08 & bytes[1],
-        bytes[2],
-        bytes[3],
-        bytes[4],
-        bytes[5],
-        bytes[6],
-        bytes[7],
-    ]);
-    let mut exponent: u16 = u16::from_be_bytes([bytes[0] & 0x7F, bytes[1] & 0b1110_0000]) >> 5;
-    while (mantissa > 0) && !((mantissa % 2) > 0) {
-        mantissa = mantissa >> 1;
+    let bits = value.to_bits();
+    let mantissa_mask = (1u64 << 52) - 1;
+    let mantissa: u64 = bits & mantissa_mask;
+    // FIXME: Use bit shift instead
+    let biased_exp = ((bits >> 52) & 0x7FF) as u16;
+
+    // For normal numbers, add the implicit leading 1
+    let mut mantissa = if biased_exp != 0 { mantissa | (1u64 << 52) } else { mantissa };
+    let mut exponent = if biased_exp != 0 { biased_exp as i16 - 1023 - 52 } else { -1023 - 51 };
+
+    // Normalize - remove trailing zeros
+    while mantissa > 0 && mantissa & 1 == 0 {
+        mantissa >>= 1;
         exponent += 1;
     }
+
     let e_bytes = exponent.to_be_bytes();
     let mut bytes_written: usize = 0;
-    if exponent > u8::MAX as u16 {
+    if exponent > u8::MAX as i16 {
         let byte0: u8 = X690_REAL_BINARY
             | sign_bit
             | base_bits
@@ -1188,6 +1188,7 @@ where
             | X690_REAL_EXPONENT_FORMAT_1_OCTET;
         bytes_written += output.write(&[byte0, e_bytes[1]])?;
     };
+
     return match x690_write_i64_value(output, mantissa as i64) {
         Err(e) => return Err(e),
         Ok(wrote) => Ok(wrote + bytes_written),
@@ -1195,18 +1196,18 @@ where
 }
 
 /// Encode the `identification` field of a context-switching type
-/// 
+///
 /// This function encodes the `identification` field of a context-switching type,
 /// such as an `EXTERNAL` or `EMBEDDED PDV`, as an X.690-encoded element.
-/// 
+///
 /// Returns the X.690-encoded element.
-/// 
+///
 /// # Arguments
 /// * `id` - The `PresentationContextSwitchingTypeIdentification` value to convert
-/// 
+///
 /// # Returns
 /// The X.690-encoded element.
-/// 
+///
 pub fn x690_encode_context_switching_identification(
     id: &PresentationContextSwitchingTypeIdentification,
 ) -> Result<X690Element> {
@@ -1314,13 +1315,13 @@ pub fn x690_encode_context_switching_identification(
 }
 
 /// Encode the components of an `EMBEDDED PDV` value as X.690-encoded elements
-/// 
+///
 /// This function encodes the components of an `EMBEDDED PDV` value as X.690-encoded elements.
 /// It handles the encoding of the `identification` and `data-value`.
-/// 
+///
 /// # Arguments
 /// * `value` - The `EMBEDDED PDV` value to encode
-/// 
+///
 /// To be a complete `EMBEDDED PDV` value, these MUST be contained within a "parent" element
 /// having tag `[UNIVERSAL 11]` and it MUST be constructed.
 pub fn x690_encode_embedded_pdv_components (value: &EmbeddedPDV) -> Result<Vec<X690Element>> {
@@ -1335,18 +1336,18 @@ pub fn x690_encode_embedded_pdv_components (value: &EmbeddedPDV) -> Result<Vec<X
 }
 
 /// Write an `EMBEDDED PDV` value as an X.690-encoded element
-/// 
+///
 /// This function writes an `EMBEDDED PDV` value as an X.690-encoded element.
 /// It handles the encoding of the `identification`, data value descriptor,
 /// and `data-value`.
-/// 
+///
 /// # Arguments
 /// * `output` - The writable stream to write the `EMBEDDED PDV` value to
 /// * `value` - The `EMBEDDED PDV` value to write
-/// 
+///
 /// # Returns
 /// The number of bytes written to the writable stream
-/// 
+///
 pub fn x690_write_embedded_pdv_value<W>(output: &mut W, value: &EmbeddedPDV) -> Result<usize>
 where
     W: Write,
@@ -1423,16 +1424,16 @@ where
 }
 
 /// Encode the components of a `CharacterString` value as X.690-encoded elements
-/// 
+///
 /// This function encodes the components of a `CharacterString` value as X.690-encoded elements.
 /// It handles the encoding of the `identification` and `string-value` fields.
-/// 
+///
 /// # Arguments
 /// * `value` - The `CharacterString` value to encode
-/// 
+///
 /// # Returns
 /// A vector of X.690-encoded elements representing the components of the `CharacterString` value
-/// 
+///
 /// To be a complete `CharacterString` value, these MUST be contained within a "parent" element
 /// having tag `[UNIVERSAL 29]` and it MUST be constructed.
 pub fn x690_encode_character_string_components (value: &CharacterString) -> Result<Vec<X690Element>> {
@@ -1447,17 +1448,17 @@ pub fn x690_encode_character_string_components (value: &CharacterString) -> Resu
 }
 
 /// Write a `CharacterString` value as an X.690-encoded element, returning the number of bytes written
-/// 
+///
 /// This function writes a `CharacterString` value as an X.690-encoded element.
 /// It handles the encoding of the `identification` and `string-value` fields.
-/// 
+///
 /// # Arguments
 /// * `output` - The writable stream to write the `CharacterString` value to
 /// * `value` - The `CharacterString` value to write
-/// 
+///
 /// # Returns
 /// The number of bytes written to the writable stream
-/// 
+///
 pub fn x690_write_character_string_value<W>(
     output: &mut W,
     value: &CharacterString,
@@ -1568,16 +1569,16 @@ where
 }
 
 /// Deconstruct an X.690-encoded element that could be primitively-constructed
-/// 
+///
 /// The X.690 encoding rules allow for some universal types to be either
 /// primitively-constructed or constructed. However, for the purposes of
 /// validation or decoding, we may want to "deconstruct" such constructed
 /// values to a single primitive value.
-/// 
+///
 /// One such example is the `GeneralizedTime`. While it may be constructed,
 /// it might be difficult to implement parsing and validation when it is
 /// split across multiple X.690 tag-length-value (TLV) elements.
-/// 
+///
 /// If the element is already primitively constructed, this just returns a
 /// reference to it, so no copying overhead is incurred.
 pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
@@ -1695,9 +1696,9 @@ impl RelateTLV for ASN1Error {
 
 /// The Root Component Type List (RCTL) #1 for the X.690-specific encoding of
 /// an `EXTERNAL` value as described in ITU Recommendation X.690, Section 8.18.
-/// 
+///
 /// For reference, the full ASN.1 for this is:
-/// 
+///
 /// ```asn1
 /// [UNIVERSAL 8] IMPLICIT SEQUENCE {
 ///     direct-reference        OBJECT IDENTIFIER OPTIONAL,
@@ -1950,7 +1951,7 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(bytes.clone()),
         );
-        
+
         let result = deconstruct(&element).unwrap();
         assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
         // Should be borrowed since it's a primitive
@@ -1968,12 +1969,12 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
         );
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![child1, child2])),
         );
-        
+
         let result = deconstruct(&element).unwrap();
         assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
         // Should be owned since it's constructed
@@ -1987,12 +1988,12 @@ mod tests {
             Tag::new(TagClass::APPLICATION, UNIV_TAG_OCTET_STRING), // Wrong tag class
             X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
         );
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![child])),
         );
-        
+
         let result = deconstruct(&element);
         assert!(result.is_err());
         let err = result.unwrap_err();
@@ -2006,12 +2007,12 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER), // Wrong tag number
             X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
         );
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![child])),
         );
-        
+
         let result = deconstruct(&element);
         assert!(result.is_err());
         let err = result.unwrap_err();
@@ -2029,17 +2030,17 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
         );
-        
+
         let child = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![grandchild1, grandchild2])),
         );
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![child])),
         );
-        
+
         let result = deconstruct(&element).unwrap();
         assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
     }
@@ -2051,9 +2052,10 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![])),
         );
-        
+
         let result = deconstruct(&element).unwrap();
-        assert_eq!(result.as_ref(), &[]);
+        let empty: [u8; 0] = [];
+        assert_eq!(result.as_ref(), &empty);
     }
 
     #[test]
@@ -2064,16 +2066,16 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(inner_bytes),
         );
-        
+
         // Create a serialized version by encoding the inner element
         let mut serialized = Vec::new();
         x690_write_tlv(&mut serialized, &inner_element).unwrap();
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Serialized(Bytes::copy_from_slice(&serialized)),
         );
-        
+
         let result = deconstruct(&element).unwrap();
         assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
         // Should be owned since it's serialized
@@ -2091,21 +2093,21 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
         );
-        
+
         let inner_element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![child1, child2])),
         );
-        
+
         // Create a serialized version by encoding the inner element
         let mut serialized = Vec::new();
         x690_write_tlv(&mut serialized, &inner_element).unwrap();
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Serialized(Bytes::copy_from_slice(&serialized)),
         );
-        
+
         let result = deconstruct(&element).unwrap();
         assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04]);
     }
@@ -2117,7 +2119,7 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
         );
-        
+
         let grandchild1 = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
@@ -2126,17 +2128,17 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Primitive(Bytes::copy_from_slice(&[0x05, 0x06])),
         );
-        
+
         let constructed_child = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![grandchild1, grandchild2])),
         );
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(vec![primitive_child, constructed_child])),
         );
-        
+
         let result = deconstruct(&element).unwrap();
         assert_eq!(result.as_ref(), &[0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
     }
@@ -2146,23 +2148,23 @@ mod tests {
         // Test deconstructing with larger data to ensure performance
         let mut children = Vec::new();
         let mut expected = Vec::new();
-        
+
         for i in 0..100 {
             let data = vec![i as u8, (i + 1) as u8, (i + 2) as u8];
             expected.extend_from_slice(&data);
-            
+
             let child = X690Element::new(
                 Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
                 X690Value::Primitive(Bytes::copy_from_slice(&data)),
             );
             children.push(child);
         }
-        
+
         let element = X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Constructed(Arc::new(children)),
         );
-        
+
         let result = deconstruct(&element).unwrap();
         assert_eq!(result.as_ref(), &expected);
     }
@@ -2174,7 +2176,7 @@ mod tests {
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
             X690Value::Serialized(Bytes::copy_from_slice(&[0x01, 0x02, 0x03])), // Invalid BER
         );
-        
+
         let result = deconstruct(&element);
         assert!(result.is_err());
     }

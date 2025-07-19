@@ -1064,7 +1064,7 @@ pub trait X690Codec {
 
     /// Validate an encoded `TIME` value from content octets
     fn validate_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_tstring_char(*b));
+        let maybe_bad_char = content_octets.iter().position(|b| !wildboar_asn1::is_tstring_char(*b));
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1077,7 +1077,7 @@ pub trait X690Codec {
 
     /// Validate an encoded `NumericString` value from content octets
     fn validate_numeric_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_numeric_char(*b));
+        let maybe_bad_char = content_octets.iter().position(|b| !wildboar_asn1::is_numeric_char(*b));
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1123,7 +1123,7 @@ pub trait X690Codec {
 
     /// Validate an encoded `IA5String` value from content octets
     fn validate_ia5_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| b.is_ascii());
+        let maybe_bad_char = content_octets.iter().position(|b| !b.is_ascii());
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1207,7 +1207,7 @@ pub trait X690Codec {
 
     /// Validate an encoded `VisibleString` value from content octets
     fn validate_visible_string_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
-        let maybe_bad_char = content_octets.iter().position(|b| wildboar_asn1::is_visible_char(*b));
+        let maybe_bad_char = content_octets.iter().position(|b| !wildboar_asn1::is_visible_char(*b));
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(

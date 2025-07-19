@@ -102,7 +102,7 @@ use crate::utils::{vec_u16_to_vec_u8, vec_u32_to_vec_u8, get_days_in_month, unli
 pub const DER: DistinguishedEncodingRules = DistinguishedEncodingRules::new();
 
 /// Decode the length of an X.690-encoded element from a byte slice
-/// 
+///
 /// This starts at the first byte.
 pub const fn der_decode_length(bytes: ByteSlice) -> ASN1Result<(usize, X690Length)> {
     if bytes.len() == 0 {
@@ -1026,7 +1026,7 @@ impl X690Codec for DistinguishedEncodingRules {
         if !content_octets.last().is_some_and(|b| *b == b'Z') {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
         }
-        let maybe_bad_char = content_octets[0..10].iter().position(|b| b.is_ascii_digit());
+        let maybe_bad_char = content_octets[0..12].iter().position(|b| !b.is_ascii_digit());
         if let Some(bad_char_index) = maybe_bad_char {
             let bad_char = content_octets[bad_char_index];
             return Err(ASN1Error::new(ASN1ErrorCode::prohibited_character(
@@ -1056,6 +1056,8 @@ impl X690Codec for DistinguishedEncodingRules {
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_hour))?;
         let minute = u8::from_str(&s[8..10])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_minute))?;
+        let second = u8::from_str(&s[10..12])
+            .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_second))?;
         if month > 12 || month == 0 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_month));
         }
@@ -1069,22 +1071,22 @@ impl X690Codec for DistinguishedEncodingRules {
         if minute > 59 {
             return Err(ASN1Error::new(ASN1ErrorCode::invalid_minute));
         }
+        if second > 59 {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_second));
+        }
         Ok(())
     }
 
-    // Function produced by ChatGPT-4 before a few modifications by me.
     fn validate_generalized_time_value (&self, content_octets: ByteSlice) -> ASN1Result<()> {
+        if content_octets.len() < 15 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
         #[cfg(feature = "simdutf8")]
-        let s = from_utf8(&content_octets[0..10])
+        let s = from_utf8(&content_octets[0..14])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
         #[cfg(not(feature = "simdutf8"))]
-        let s = String::from_utf8(content_octets[0..10].to_owned())
+        let s = String::from_utf8(content_octets[0..14].to_owned())
             .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))?;
-
-        // Check for basic length
-        if s.len() < 15 {
-            return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
-        }
 
         // Extract and validate date and time parts
         let year: u32 = s[..4].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;
@@ -1116,15 +1118,15 @@ impl X690Codec for DistinguishedEncodingRules {
         match &s[14..] {
             "Z" => Ok(()),
             s if s.starts_with('.') => {
-                let (fraction, tz) = s[1..].split_at(s.find(|c: char| !c.is_numeric()).unwrap_or(0));
-                if fraction.is_empty() {
+                let (fraction, tz) = s[1..].split_at(s[1..].find(|c: char| !c.is_numeric()).unwrap_or(0));
+                if fraction.is_empty() || fraction.ends_with("0") {
                     return Err(ASN1Error::new(ASN1ErrorCode::invalid_fraction_of_seconds));
                 }
                 match tz {
                     "Z" => Ok(()),
                     _ => Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset)),
                 }
-            }
+            },
             _ => Err(ASN1Error::new(ASN1ErrorCode::malformed_value)),
         }
     }
