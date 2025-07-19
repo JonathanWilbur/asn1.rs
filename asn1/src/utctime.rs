@@ -187,7 +187,7 @@ impl TryFrom<&[u8]> for UTCTime {
         if unlikely(len > 17) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
-        if unlikely(!b[0..10].is_ascii()) {
+        if unlikely(!b.is_ascii()) {
             return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
         }
         // Note that we MUST check for ASCII before indexing into a string.
