@@ -237,8 +237,6 @@ pub struct ASN1Error {
     pub err_source: Option<Box<dyn std::error::Error + 'static>>,
 }
 
-// TODO: fluent API: e.g. with_tag()
-
 impl std::error::Error for ASN1Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         self.err_source.as_deref()
@@ -291,6 +289,54 @@ impl ASN1Error {
     #[inline]
     pub fn relate_spec (&mut self, spec: &ComponentSpec<'_>) {
         self.component_name = Some(String::from(spec.name));
+    }
+
+    #[inline]
+    pub fn with_tag (mut self, tag: Tag) -> Self {
+        self.relate_tag(&tag);
+        self
+    }
+
+    #[inline]
+    pub fn with_component_name (mut self, name: &str) -> Self {
+        self.component_name = Some(name.to_owned());
+        self
+    }
+
+    #[inline]
+    pub fn with_length (mut self, len: usize) -> Self {
+        self.length = Some(len);
+        self
+    }
+
+    #[inline]
+    pub fn with_construction (mut self, constructed: bool) -> Self {
+        self.constructed = Some(constructed);
+        self
+    }
+
+    #[inline]
+    pub fn with_preview (mut self, preview: &str) -> Self {
+        self.value_preview = Some(preview.to_owned());
+        self
+    }
+
+    #[inline]
+    pub fn with_bytes_read (mut self, bytes_read: usize) -> Self {
+        self.bytes_read = Some(bytes_read);
+        self
+    }
+
+    #[inline]
+    pub fn with_values_read (mut self, values_read: usize) -> Self {
+        self.values_read = Some(values_read);
+        self
+    }
+
+    #[inline]
+    pub fn with_source<E: std::error::Error + 'static> (mut self, source: E) -> Self {
+        self.err_source = Some(Box::new(source));
+        self
     }
 
 }
@@ -375,3 +421,34 @@ impl fmt::Display for ASN1Error {
 
 /// An ASN.1-related result
 pub type ASN1Result<T> = Result<T, ASN1Error>;
+
+#[cfg(test)]
+mod test {
+    use crate::{ASN1Error, TagClass, Tag};
+
+
+    #[test]
+    fn error_fluent_api() {
+        let src = ASN1Error::new(super::ASN1ErrorCode::malformed_value);
+        let e = ASN1Error::new(super::ASN1ErrorCode::malformed_value)
+            .with_tag(Tag::new(TagClass::UNIVERSAL, 10))
+            .with_bytes_read(10)
+            .with_values_read(5)
+            .with_component_name("chunky")
+            .with_construction(true)
+            .with_preview("fogqwirg")
+            .with_length(7)
+            .with_source(src)
+            ;
+
+        assert!(e.component_name.is_some());
+        assert!(e.tag.is_some());
+        assert!(e.length.is_some());
+        assert!(e.constructed.is_some());
+        assert!(e.value_preview.is_some());
+        assert!(e.bytes_read.is_some());
+        assert!(e.values_read.is_some());
+        assert!(e.err_source.is_some());
+    }
+
+}
