@@ -1926,9 +1926,7 @@ mod tests {
         assert_eq!(result.date.month, 12);
         assert_eq!(result.date.day, 1);
         assert_eq!(result.hour, 12);
-        // TODO:
-        // assert_eq!(result.minute, 0);
-        // assert_eq!(result.second, 0);
+        assert_eq!(result.min_and_sec, Some((0, Some(0))));
     }
 
     #[test]
@@ -2060,9 +2058,7 @@ mod tests {
         assert_eq!(decoded.date.month, value.date.month);
         assert_eq!(decoded.date.day, value.date.day);
         assert_eq!(decoded.hour, value.hour);
-        // TODO:
-        // assert_eq!(decoded.minute, value.minute);
-        // assert_eq!(decoded.second, value.second);
+        assert_eq!(decoded.min_and_sec, None);
     }
 
     #[test]
@@ -2602,6 +2598,69 @@ mod tests {
             }
         } else {
             panic!("Expected SequenceValue");
+        }
+    }
+
+    #[test]
+    fn test_ber_real_edge_cases() {
+        let cases = vec![
+            0.0,
+            -0.0,
+            (10.0 / 3.0), // Non-terminating decimal
+            (-10.0 / 3.0), // Negative non-terminating decimal
+            1.0,
+            -1.0,
+            2.718281828459045, // e
+            2.302585092994046, // ln(10)
+            0.6931471805599453, // ln(2)
+            0.4342944819032518, // Log10(e)
+            1.4426950408889634, // Log2(e)
+            3.141592653589793, //
+            0.7071067811865476, // sqrt(1/2)
+            1.4142135623730951,
+            (1.4142135623730951 / 2.0),
+            1.618033988749895, // GOLDEN_RATIO
+            0.57721,      // EULER_MASCHERONI_CONSTANT
+            0.2614972128, // MEISSEL_MERTENS_CONSTANT
+            0.2801694990, // BERNSTEINS_CONSTANT
+            0.3036630028, // GAUSS_KUZMIN_WIRSING_CONSTANT
+            0.3532363718, // HAFNER_SARNAK_MCCURLEY_CONSTANT
+            0.5671432904, // OMEGA_CONSTANT
+            0.6243299885, // GOLOMB_DICKMAN_CONSTANT
+            0.6434105462, // CAHENS_CONSTANT
+            0.6601618158, // TWIN_PRIME_CONSTANT
+            0.6627434193, // LAPLACE_LIMIT
+            0.70258,      // LANDAU_RAMANUJAN_CONSTANT
+            0.8093940205, // ALLADI_GRINSTEAD_CONSTANT
+            0.87058838,   // BRUNS_CONSTANT_FOR_PRIME_QUADRUPLETS
+            0.9159655941, // CATALANS_CONSTANT
+            1.0986858055, // LENGYELS_CONSTANT
+            1.13198824,   // VISWANATHS_CONSTANT
+            1.2020569,    // APERYS_CONSTANT
+            1.30357,      // CONWAYS_CONSTANT
+            1.3063778838, // MILLS_CONSTANT
+            1.3247179572, // PLASTIC_CONSTANT
+            1.4513692348, // RAMANUJAN_SOLDNER_CONSTANT
+            1.4560749485, // BACKHOUSES_CONSTANT
+            1.4670780794, // PORTERS_CONSTANT
+            1.5396007178, // LIEBS_SQUARE_ICE_CONSTANT
+            1.6066951524, // ERDOS_BORWEIN_CONSTANT
+            1.7052111401, // NIVENS_CONSTANT
+            1.9021605831, // BRUNS_CONSTANT_FOR_TWIN_PRIMES
+            2.2955871493, // UNIVERSAL_PARABOLIC_CONSTANT
+            2.5029078750, // FEIGENBAUM_CONSTANT_ALPHA
+            2.5849817595, // SIERPINSKIS_CONSTANT
+            2.6854520010, // KHINCHINS_CONSTANT
+            2.8077702420, // FRANSEN_ROBINSON_CONSTANT
+            3.2758229187, // LEVYS_CONSTANT
+            3.3598856662, // RECIPROCAL_FIBONACCI_CONSTANT
+            4.6692016091, // FEIGENBAUM_CONSTANT_DELTA
+            1.2824271291,  // GLAISHER_KINKELIN_CONSTANT
+        ];
+        for case in cases {
+            let encoded = BER.encode_real(&case).unwrap();
+            let decoded = BER.decode_real(&encoded).unwrap();
+            assert!((case - decoded).abs() < 0.001); // Little wiggle room for error.
         }
     }
 }
