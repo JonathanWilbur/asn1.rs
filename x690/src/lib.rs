@@ -1502,7 +1502,7 @@ where
     if value.month > 12 || value.month == 0 || value.day > 31 || value.day == 0 {
         return Err(Error::from(ErrorKind::InvalidData));
     }
-    output.write(value.to_num_str().as_bytes())
+    output.write(value.to_num_string().as_bytes())
 }
 
 /// Write a `TIME-OF-DAY` value as an X.690-encoded element, returning the number of bytes written
@@ -1513,7 +1513,7 @@ where
     if value.hour > 23 || value.minute > 59 || value.second > 59 {
         return Err(Error::from(ErrorKind::InvalidData));
     }
-    output.write(value.to_num_str().as_bytes())
+    output.write(value.to_num_string().as_bytes())
 }
 
 /// Write a `DATE-TIME` value as an X.690-encoded element, returning the number of bytes written
@@ -1521,7 +1521,7 @@ pub fn x690_write_date_time_value<W>(output: &mut W, value: &DATE_TIME) -> Resul
 where
     W: Write,
 {
-    output.write(value.to_num_str().as_bytes())
+    output.write(value.to_num_string().as_bytes())
 }
 
 /// Write a `DURATION` value as an X.690-encoded element, returning the number of bytes written

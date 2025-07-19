@@ -62,7 +62,7 @@ impl TIME_OF_DAY {
     /// abstract value as the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
-    pub fn to_num_str(&self) -> String {
+    pub fn to_num_string(&self) -> String {
         format!("{:02}{:02}{:02}", self.hour, self.minute, self.second)
     }
 
@@ -270,7 +270,7 @@ impl Display for TIME_OF_DAY {
     ///
     /// X.690 encoding does _not_ use the colons. This is the wrong function for
     /// encoding BER, CER, or DER-encoded `TIME-OF-DAY` values. Use
-    /// [TIME_OF_DAY::to_num_str] instead for X.690 encoding.
+    /// [TIME_OF_DAY::to_num_string] instead for X.690 encoding.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:02}:{:02}:{:02}", self.hour, self.minute, self.second)
     }
@@ -318,13 +318,13 @@ mod tests {
     #[test]
     fn test_time_of_day_to_and_from_str_1() {
         let tod = TIME_OF_DAY::from_num_str("151317").unwrap();
-        assert_eq!(tod.to_num_str(), "151317");
+        assert_eq!(tod.to_num_string(), "151317");
     }
 
     #[test]
     fn test_time_of_day_to_and_from_str_2() {
         let tod = TIME_OF_DAY::from_num_str("050307").unwrap();
-        assert_eq!(tod.to_num_str(), "050307");
+        assert_eq!(tod.to_num_string(), "050307");
     }
 
 }

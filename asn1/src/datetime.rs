@@ -65,7 +65,7 @@ impl DATE_TIME {
     /// abstract value as the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
-    pub fn to_num_str(&self) -> String {
+    pub fn to_num_string(&self) -> String {
         format!("{:04}{:02}{:02}{:02}{:02}{:02}",
             self.date.year,
             self.date.month,
@@ -231,7 +231,7 @@ impl Display for DATE_TIME {
     ///
     /// X.690 encoding does _not_ use the dashes, colons, or "T". This is the
     /// wrong function for encoding BER, CER, or DER-encoded `DATE-TIME` values.
-    /// Use [DATE_TIME::to_num_str] instead for X.690 encoding.
+    /// Use [DATE_TIME::to_num_string] instead for X.690 encoding.
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}T{}", self.date, self.time)
@@ -325,13 +325,13 @@ mod tests {
     #[test]
     fn test_date_to_and_from_str_1() {
         let dt = DATE_TIME::from_num_str("20220304050607").unwrap();
-        assert_eq!(dt.to_num_str(), "20220304050607");
+        assert_eq!(dt.to_num_string(), "20220304050607");
     }
 
     #[test]
     fn test_date_to_and_from_str_2() {
         let dt = DATE_TIME::from_num_str("02220304050607").unwrap();
-        assert_eq!(dt.to_num_str(), "02220304050607");
+        assert_eq!(dt.to_num_string(), "02220304050607");
     }
 
 }

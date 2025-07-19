@@ -102,7 +102,6 @@ pub struct External<Asn1Type: Sized = Arc<ASN1Value>> {
     pub data_value: ExternalEncoding<Asn1Type>,
 }
 
-// TODO: This name is just too dang long.
 /// Presentation syntax identification for an `EMBEDDED PDV` or
 /// `CharacterString` value
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]

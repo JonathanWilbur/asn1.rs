@@ -53,14 +53,13 @@ impl DATE {
         self.year == 0 && self.month <= 1 && self.day <= 1
     }
 
-    // FIXME: This could use a name change: it sounds like it would return a &str.
     /// Convert to a string of decimal digits only.
     ///
     /// This is intentionally designed to be suitable as an encoding of this
     /// abstract value as the content octets of a value according to the
     /// Basic Encoding Rules (BER), Distinguished Encoding Rules (DER), or
     /// Canonical Encoding Rules (CER) according to ITU-T Recommendation X.690.
-    pub fn to_num_str(&self) -> String {
+    pub fn to_num_string(&self) -> String {
         format!("{:04}{:02}{:02}", self.year % 10000, self.month, self.day)
     }
 
@@ -251,7 +250,7 @@ impl Display for DATE {
     /// include dashes in the date, such as `2001-01-24`.
     ///
     /// X.690 encoding does _not_ use the dashes. This is the wrong function for
-    /// encoding BER, CER, or DER-encoded `DATE` values. Use [DATE::to_num_str]
+    /// encoding BER, CER, or DER-encoded `DATE` values. Use [DATE::to_num_string]
     /// instead for X.690 encoding.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:04}-{:02}-{:02}", self.year % 10000, self.month, self.day)
@@ -345,13 +344,13 @@ mod tests {
     #[test]
     fn test_date_to_and_from_str_1() {
         let date = DATE::from_num_str("20220304").unwrap();
-        assert_eq!(date.to_num_str(), "20220304");
+        assert_eq!(date.to_num_string(), "20220304");
     }
 
     #[test]
     fn test_date_to_and_from_str_2() {
         let date = DATE::from_num_str("02220304").unwrap();
-        assert_eq!(date.to_num_str(), "02220304");
+        assert_eq!(date.to_num_string(), "02220304");
     }
 
 }

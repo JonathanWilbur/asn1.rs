@@ -134,7 +134,6 @@ impl PartialOrd for Tag {
     }
 }
 
-// TODO: Make generic?
 /// Tagged ASN.1 Value
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaggedASN1Value {
