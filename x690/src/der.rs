@@ -2280,6 +2280,10 @@ mod tests {
             3.3598856662, // RECIPROCAL_FIBONACCI_CONSTANT
             4.6692016091, // FEIGENBAUM_CONSTANT_DELTA
             1.2824271291,  // GLAISHER_KINKELIN_CONSTANT
+            5.59e123, // Huge number
+            5.59e-12, // Tiny number
+            -5.59e123, // Huge negative number
+            -5.59e-12, // Tiny negative number
         ];
         for case in cases {
             let encoded = DER.encode_real(&case).unwrap();
