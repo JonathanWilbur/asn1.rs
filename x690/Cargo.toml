@@ -1,6 +1,6 @@
 [package]
 name = "x690"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 authors = [
     "Jonathan M. Wilbur <jonathan@wilbur.space>",
@@ -30,5 +30,5 @@ name = "decode"
 harness = false
 
 [features]
-default = []
+default = ["der"]
 der = []

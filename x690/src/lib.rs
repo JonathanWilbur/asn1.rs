@@ -895,6 +895,18 @@ pub fn x690_write_integer_value<W>(output: &mut W, value: &INTEGER) -> Result<us
 where
     W: Write,
 {
+    if value.len() == 0 {
+        return Err(std::io::Error::from(ErrorKind::InvalidData));
+    }
+    if value.len() == 1 {
+        return output.write(value);
+    }
+    if value[0] == 0x00 && (value[1] & 0b1000_0000) == 0 {
+        return Err(std::io::Error::from(ErrorKind::InvalidData));
+    }
+    if value[0] == 0xFF && (value[1] & 0b1000_0000) > 0 {
+        return Err(std::io::Error::from(ErrorKind::InvalidData));
+    }
     output.write(value)
 }
 
@@ -950,8 +962,34 @@ pub fn x690_write_bit_string_value<W>(output: &mut W, value: &BIT_STRING) -> Res
 where
     W: Write,
 {
-    output.write(&[value.get_trailing_bits_count()])?;
-    let bytes_written = output.write(value.get_bytes_ref())?;
+    let trailing_bits = value.get_trailing_bits_count();
+    output.write(&[trailing_bits])?;
+    if trailing_bits == 0 {
+        let bytes_written = output.write(value.get_bytes_ref())?;
+        return Ok(bytes_written + 1);
+    }
+    // Otherwise, we check if the trailing bits are set and fix that.
+    let maybe_last_byte = value.get_bytes_ref().last();
+    let der_violated;
+    let bytes = value.get_bytes_ref();
+    let correct_last_byte: u8;
+    if let Some(last_byte) = maybe_last_byte {
+        let trailing_bits_mask = !(0xFFu8 << trailing_bits);
+        der_violated = (last_byte & trailing_bits_mask) > 0;
+        correct_last_byte = last_byte & (0xFFu8 << trailing_bits);
+    } else {
+        return Err(std::io::Error::from(ErrorKind::InvalidData));
+    }
+
+    // No violation? Just write the whole thing.
+    if likely(!der_violated) {
+        let bytes_written = output.write(value.get_bytes_ref())?;
+        return Ok(bytes_written + 1);
+    }
+
+    debug_assert!(maybe_last_byte.is_some());
+    let mut bytes_written = output.write(&bytes[..bytes.len() - 1])?;
+    bytes_written += output.write(&[ correct_last_byte ])?;
     Ok(bytes_written + 1)
 }
 
@@ -1161,7 +1199,6 @@ where
     let bits = value.to_bits();
     let mantissa_mask = (1u64 << 52) - 1;
     let mantissa: u64 = bits & mantissa_mask;
-    // FIXME: Use bit shift instead
     let biased_exp = ((bits >> 52) & 0x7FF) as u16;
 
     // For normal numbers, add the implicit leading 1

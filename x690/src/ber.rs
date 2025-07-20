@@ -1961,7 +1961,7 @@ mod tests {
 
     #[test]
     fn test_ber_encode_decode_bit_string() {
-        let value = BIT_STRING::from_parts_borrowed(&[0xFF, 0x0F], 4);
+        let value = BIT_STRING::from_parts_borrowed(&[0xFF, 0x70], 4);
         let encoded = BER.encode_bit_string(&value).unwrap();
         let decoded = BER.decode_bit_string(&encoded).unwrap();
         assert_eq!(decoded.get_bytes_ref(), value.get_bytes_ref());

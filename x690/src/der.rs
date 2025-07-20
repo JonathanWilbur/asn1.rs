@@ -705,7 +705,6 @@ impl X690Codec for DistinguishedEncodingRules {
 
     fn encode_bit_string(&self, value: &BIT_STRING) -> ASN1Result<X690Element> {
         let mut out = BytesMut::with_capacity(value.len_in_bytes() + 1).writer();
-        // FIXME: Clear trailing bits
         x690_write_bit_string_value(&mut out, &value)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BIT_STRING),
@@ -802,6 +801,9 @@ impl X690Codec for DistinguishedEncodingRules {
     }
 
     fn encode_utc_time(&self, value: &UTCTime) -> ASN1Result<X690Element> {
+        if !value.utc_offset.is_zero() {
+            return Err(ASN1Error::new(ASN1ErrorCode::invalid_time_offset));
+        }
         let mut out = BytesMut::with_capacity(17).writer(); // This is the max length of a UTCTime.
         x690_write_utc_time_value(&mut out, &value)?;
         Ok(X690Element::new(
@@ -811,9 +813,22 @@ impl X690Codec for DistinguishedEncodingRules {
     }
 
     fn encode_generalized_time(&self, value: &GeneralizedTime) -> ASN1Result<X690Element> {
+        // Ensure minutes and seconds are present, as required by DER.
+        let mut v = value.clone();
+        if let Some((min, maybe_sec)) = v.min_and_sec {
+            if maybe_sec.is_none() {
+                v.min_and_sec = Some((min, Some(0)))
+            }
+        } else {
+            v.min_and_sec = Some((0, Some(0)));
+        }
+
+        // We just delete the fraction. Sorry.
+        v.fraction = 0;
+        v.flags = 0;
+
         let mut out = BytesMut::with_capacity(32).writer(); // There is no defined max length, but this is very generous capacity.
-        // FIXME: Ensure minutes and seconds are present.
-        x690_write_generalized_time_value(&mut out, &value)?;
+        x690_write_generalized_time_value(&mut out, &v)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_GENERALIZED_TIME),
             X690Value::Primitive(out.into_inner().into()),

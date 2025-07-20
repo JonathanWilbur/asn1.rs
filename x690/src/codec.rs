@@ -258,6 +258,18 @@ pub trait X690Codec {
 
     /// Decode an `INTEGER` from content octets
     fn decode_integer_value(&self, value_bytes: ByteSlice) -> ASN1Result<INTEGER> {
+        if value_bytes.len() == 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
+        }
+        if value_bytes.len() == 1 {
+            return Ok(Vec::from(value_bytes));
+        }
+        if value_bytes[0] == 0x00 && (value_bytes[1] & 0b1000_0000) == 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::int_padding));
+        }
+        if value_bytes[0] == 0xFF && (value_bytes[1] & 0b1000_0000) > 0 {
+            return Err(ASN1Error::new(ASN1ErrorCode::int_padding));
+        }
         Ok(Vec::from(value_bytes))
     }
 
