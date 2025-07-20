@@ -1291,7 +1291,7 @@ impl X690Codec for BasicEncodingRules {
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
         #[cfg(not(feature = "simdutf8"))]
         let s = std::str::from_utf8(content_octets)
-            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))?;
+            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e))))?;
 
         // Extract and validate date and time parts
         let year: u32 = s[..4].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;

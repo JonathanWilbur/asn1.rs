@@ -1043,7 +1043,7 @@ impl X690Codec for DistinguishedEncodingRules {
                 .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
         #[cfg(not(feature = "simdutf8"))]
         let s = std::str::from_utf8(content_octets)
-                .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))?;
+                .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e))))?;
         let mut year = u16::from_str(&s[0..2])
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_month))?;
         if year > 75 { // I think this is specified in RFC 5280. I forgot where I saw it.
@@ -1090,7 +1090,7 @@ impl X690Codec for DistinguishedEncodingRules {
             .map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_utf8(None)))?;
         #[cfg(not(feature = "simdutf8"))]
         let s = std::str::from_utf8(content_octets)
-            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e.utf8_error()))))?;
+            .map_err(|e| ASN1Error::new(ASN1ErrorCode::invalid_utf8(Some(e))))?;
 
         // Extract and validate date and time parts
         let year: u32 = s[..4].parse().map_err(|_| ASN1Error::new(ASN1ErrorCode::invalid_year))?;

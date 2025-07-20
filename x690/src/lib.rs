@@ -28,9 +28,12 @@ pub mod der;
 pub mod codec;
 pub mod parsing;
 pub(crate) mod utils;
+
 pub use crate::ber::*;
 pub use crate::codec::*;
 pub use crate::parsing::*;
+pub use crate::utils::primitive;
+
 use crate::utils::likely;
 use wildboar_asn1::error::{ASN1Error, ASN1ErrorCode, ASN1Result};
 use wildboar_asn1::{
