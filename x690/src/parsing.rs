@@ -14,8 +14,8 @@ use crate::utils::unlikely;
 use std::iter::FusedIterator;
 
 /// A function type for handling components during parsing.
-/// 
-/// Returns `true` if successfully handled; `false` if error. 
+///
+/// Returns `true` if successfully handled; `false` if error.
 /// Parsing will not continue if `false` is returned.
 pub type ComponentHandler<'a> = &'a dyn FnMut(&X690Element) -> bool;
 
@@ -32,11 +32,11 @@ pub type Decoder<T> = fn(el: &X690Element) -> ASN1Result<T>;
 pub type IndexedComponents<'a> = (HashMap<&'a str, X690Element>, Vec<X690Element>);
 
 /// Determines if an element matches a given tag selector.
-/// 
+///
 /// # Arguments
 /// * `el` - The X.690 element to check
 /// * `sel` - The tag selector to match against
-/// 
+///
 /// # Returns
 /// `true` if the element matches the selector, `false` otherwise.
 pub fn component_is_selected(el: &X690Element, sel: TagSelector) -> bool {
@@ -203,6 +203,22 @@ pub fn _parse_set<'a>(
     }
 
     Ok((recognized_components, unrecognized_components))
+}
+
+/// Parse a `SEQUENCE` structure according to X.690 rules.
+///
+/// # Arguments
+/// * `elements` - The encoded elements to parse
+/// * `rctl1` - Root component type list 1
+/// * `eal` - Extension additions list
+/// * `rctl2` - Root component type list 2
+pub fn _parse_sequence<'a>(
+    elements: &'a [X690Element],
+    rctl1: &'a [ComponentSpec],
+    eal: &'a [ComponentSpec],
+    rctl2: &'a [ComponentSpec],
+) -> X690StructureIterator<'a> {
+    X690StructureIterator::new(elements, rctl1, eal, rctl2)
 }
 
 /// Parse a component type list according to X.690 rules.
@@ -790,7 +806,7 @@ mod tests {
         UNIV_TAG_UTF8_STRING, OBJECT_IDENTIFIER,
     };
     use std::sync::Arc;
-    use crate::parsing::X690StructureIterator;
+    use crate::parsing::{X690StructureIterator, _parse_sequence};
     use crate::ber::BER;
 
     use super::*;
@@ -812,13 +828,6 @@ mod tests {
             None,
         ),
         ComponentSpec::new("parameters", true, TagSelector::any, None, None),
-        // ComponentSpec::new(
-        //     "asdf",
-        //     true,
-        //     TagSelector::or(&[&TagSelector::any, &TagSelector::any]),
-        //     None,
-        //     None,
-        // ),
     ];
 
     const _eal_components_for_AlgorithmIdentifier: &[ComponentSpec; 0] = &[];
@@ -826,7 +835,7 @@ mod tests {
 
     fn decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIdentifier> {
         let elements = el.components()?;
-        let seq_iter = X690StructureIterator::new(
+        let seq_iter = _parse_sequence(
             &elements,
             _rctl1_components_for_AlgorithmIdentifier,
             _eal_components_for_AlgorithmIdentifier,
@@ -1212,9 +1221,9 @@ mod tests {
             None,
         ),
     ];
-    
+
     const _rctl2_components_for_TBSCertificate: &[ComponentSpec; 0] = &[];
-    
+
     const _eal_components_for_TBSCertificate: &[ComponentSpec; 2] = &[
         ComponentSpec::new(
             "subjectUniqueIdentifier",
@@ -1511,9 +1520,9 @@ mod tests {
             None,
         ),
     ];
-    
+
     const _rctl2_components_for_PartialOutcomeQualifier: &[ComponentSpec; 0] = &[];
-    
+
     const _eal_components_for_PartialOutcomeQualifier: &[ComponentSpec; 0] = &[];
 
     #[test]
@@ -1651,7 +1660,7 @@ mod tests {
             0x62, 0x0B, // RLRQ APDU
             0x80, 0x01, 0x00, // reason: [CONTEXT 0] 0 (normal)
             0xA0 | 13, 0x02, 0x05, 0x00, // aso-qualifier: [13] NULL
-            // Skipping asoi-identifier 
+            // Skipping asoi-identifier
             0xA0 | 30, 0x02, 0x05, 0x00, // user-information: [30] NULL
         ];
         let (bytes_read, root) = BER.decode_from_slice(encoded_data.as_slice()).unwrap();
