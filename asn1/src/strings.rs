@@ -132,7 +132,7 @@ pub fn normalize_num_bytes (mut input: &[u8]) -> Cow<[u8]> {
 /// trailing zeroes are significant, so `99` will not match `0099`.
 ///
 /// If you need to remove spaces from numeric strings, consider using the
-/// `cow-utils` crate: https://crates.io/crates/cow-utils.
+/// `cow-utils` crate: <https://crates.io/crates/cow-utils>.
 pub const fn compare_numeric_string (a: &str, b: &str) -> bool {
     // This function was made uglier so it could be const.
     let a_trim = a.as_bytes();

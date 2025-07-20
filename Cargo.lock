@@ -3187,7 +3187,7 @@ dependencies = [
 
 [[package]]
 name = "x690"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bytes",
  "criterion 0.5.1",
