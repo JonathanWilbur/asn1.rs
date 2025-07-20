@@ -1856,7 +1856,7 @@ pub fn _encode_Associate_source_diagnostic(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
                     X690Value::from_explicit(
-                        &_encode_Associate_source_diagnostic_acse_service_user(&v_1)?,
+                        _encode_Associate_source_diagnostic_acse_service_user(&v_1)?,
                     ),
                 ))
             }(&v)
@@ -1866,7 +1866,7 @@ pub fn _encode_Associate_source_diagnostic(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &_encode_Associate_source_diagnostic_acse_service_provider(&v_1)?,
+                        _encode_Associate_source_diagnostic_acse_service_provider(&v_1)?,
                     ),
                 ))
             }(&v)
@@ -4750,7 +4750,7 @@ pub fn _validate_OsiBind_mode_selector(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type OsiBind_normal_mode_parameters_protocol_version = BIT_STRING;
 
-pub const OsiBind_normal_mode_parameters_protocol_version_version_1: BIT = 0; /* LONG_NAMED_BIT */
+pub const OsiBind_normal_mode_parameters_protocol_version_version_1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
 pub fn _decode_OsiBind_normal_mode_parameters_protocol_version(
     el: &X690Element,
@@ -5571,7 +5571,7 @@ pub fn _validate_Context_list_Item(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type AARQ_apdu_protocol_version = BIT_STRING;
 
-pub const AARQ_apdu_protocol_version_version1: BIT = 0; /* LONG_NAMED_BIT */
+pub const AARQ_apdu_protocol_version_version1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
 pub fn _decode_AARQ_apdu_protocol_version(
     el: &X690Element,
@@ -5698,7 +5698,7 @@ pub fn _validate_OsiBindResult_mode_selector(el: &X690Element) -> ASN1Result<()>
 /// ```
 pub type OsiBindResult_normal_mode_parameters_protocol_version = BIT_STRING;
 
-pub const OsiBindResult_normal_mode_parameters_protocol_version_version_1: BIT = 0; /* LONG_NAMED_BIT */
+pub const OsiBindResult_normal_mode_parameters_protocol_version_version_1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
 pub fn _decode_OsiBindResult_normal_mode_parameters_protocol_version(
     el: &X690Element,
@@ -6422,7 +6422,7 @@ pub fn _validate_OsiBindResult_normal_mode_parameters(el: &X690Element) -> ASN1R
 /// ```
 pub type AARE_apdu_protocol_version = BIT_STRING;
 
-pub const AARE_apdu_protocol_version_version1: BIT = 0; /* LONG_NAMED_BIT */
+pub const AARE_apdu_protocol_version_version1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
 pub fn _decode_AARE_apdu_protocol_version(
     el: &X690Element,
@@ -6533,7 +6533,7 @@ pub fn _validate_Associate_source_diagnostic_acse_service_provider(
 /// ```
 pub type OsiBindError_normal_mode_parameters_protocol_version = BIT_STRING;
 
-pub const OsiBindError_normal_mode_parameters_protocol_version_version_1: BIT = 0; /* LONG_NAMED_BIT */
+pub const OsiBindError_normal_mode_parameters_protocol_version_version_1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
 pub fn _decode_OsiBindError_normal_mode_parameters_protocol_version(
     el: &X690Element,
@@ -7375,7 +7375,7 @@ pub fn _validate_Result_list_Item(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type AAREerr_apdu_protocol_version = BIT_STRING;
 
-pub const AAREerr_apdu_protocol_version_version1: BIT = 0; /* LONG_NAMED_BIT */
+pub const AAREerr_apdu_protocol_version_version1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
 pub fn _decode_AAREerr_apdu_protocol_version(
     el: &X690Element,

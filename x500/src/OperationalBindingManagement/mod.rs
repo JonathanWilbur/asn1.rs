@@ -1256,7 +1256,7 @@ pub fn _encode_EstablishOperationalBindingResultData(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -2373,7 +2373,7 @@ pub fn _encode_ModifyOperationalBindingResultData(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -3154,7 +3154,7 @@ pub fn _encode_TerminateOperationalBindingResultData(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -3595,7 +3595,7 @@ pub fn _encode_OpBindingErrorParam(value_: &OpBindingErrorParam) -> ASN1Result<X
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);

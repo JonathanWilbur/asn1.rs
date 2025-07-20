@@ -45,10 +45,6 @@ pub const TRUE: bool = true;
 /// Alias to make `false` look like ASN.1
 pub const FALSE: bool = false;
 
-
-/// How this library represents owned "bytes"
-pub type Bytes = Vec<u8>;
-
 /// How this library represents borrowed "bytes"
 pub type ByteSlice<'a> = &'a [u8];
 
@@ -127,10 +123,13 @@ impl FractionalPart {
 pub type BOOLEAN = bool;
 
 /// ASN.1 `INTEGER`
-pub type INTEGER = Bytes;
+pub type INTEGER = Vec<u8>;
+
+/// Index into an ASN.1 `BIT STRING`
+pub type BIT_INDEX = usize;
 
 /// An ASN.1 `OCTET STRING`
-pub type OCTET_STRING = Bytes;
+pub type OCTET_STRING = Vec<u8>;
 
 /// An ASN.1 `NULL` value
 pub type NULL = ();
@@ -184,13 +183,13 @@ pub type NumericString = String;
 pub type PrintableString = String;
 
 /// ASN.1 `T61String` / `TeletexString`
-pub type T61String = Bytes;
+pub type T61String = Vec<u8>;
 
 /// ASN.1 `T61String` / `TeletexString`
 pub type TeletexString = T61String;
 
 /// ASN.1 `VideotexString`
-pub type VideotexString = Bytes;
+pub type VideotexString = Vec<u8>;
 
 /// ASN.1 `IA5String`
 pub type IA5String = String;
@@ -286,7 +285,7 @@ pub enum ASN1Value {
     /* This is a type that stores the value bytes of values that were encoded
     with an implicit tag and decoded as ANY. Since we cannot know what the
     actual encoded ASN.1 value was, we just have to store raw bytes. */
-    UnknownBytes(std::sync::Arc<Bytes>),
+    UnknownBytes(std::sync::Arc<Vec<u8>>),
 }
 
 /// The `UNIVERSAL` tag number for `END-OF-CONTENT`

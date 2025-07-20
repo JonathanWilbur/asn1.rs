@@ -2,7 +2,8 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 use wildboar_asn1::{ASN1Value, INSTANCE_OF};
-use x690::ber_encode;
+use x690::ber::BER;
+use x690::{x690_write_tlv, X690Codec};
 use crate::types::{
     DefaultX500ValueDisplayer,
     DisplayX500AttributeType,
@@ -103,10 +104,10 @@ impl Display for UnboundedDirectoryString {
                 f.write_str(s)
             },
             UnboundedDirectoryString::bmpString(s) => {
-                f.write_str(s)
+                s.fmt(f)
             },
             UnboundedDirectoryString::universalString(s) => {
-                f.write_str(s)
+                s.fmt(f)
             },
             UnboundedDirectoryString::uTF8String(s) => {
                 f.write_str(s)
@@ -128,10 +129,10 @@ impl Display for DirectoryString {
                 f.write_str(s)
             },
             DirectoryString::bmpString(s) => {
-                f.write_str(s)
+                s.fmt(f)
             },
             DirectoryString::universalString(s) => {
-                f.write_str(s)
+                s.fmt(f)
             },
             DirectoryString::uTF8String(s) => {
                 f.write_str(s)
@@ -407,9 +408,13 @@ pub fn display_other_name (n: &INSTANCE_OF, f: &mut std::fmt::Formatter<'_>) -> 
             _ => Err(std::fmt::Error)
         };
     } else {
-        let mut ber: Vec<u8> = vec![];
-        match ber_encode(&mut ber, &n.value) {
-            Ok(_) => f.write_fmt(format_args!("{}:{}", n.type_id.to_string(), hex::encode(ber))),
+        match BER.encode_any(&n.value) {
+            Ok(any_el) => {
+                let mut ber: Vec<u8> = vec![];
+                let _ = x690_write_tlv(&mut ber, &any_el)
+                    .map_err(|_| std::fmt::Error)?;
+                f.write_fmt(format_args!("{}:{}", n.type_id.to_string(), hex::encode(ber)))
+            },
             Err(_) => f.write_fmt(format_args!("{}:{}", n.type_id.to_string(), n.value.as_ref())),
         }
     }

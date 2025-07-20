@@ -4702,7 +4702,7 @@ pub fn _encode_PresentationAddress(value_: &PresentationAddress) -> ASN1Result<X
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
             X690Value::from_explicit(
-                &|value_: &SET_OF<OCTET_STRING>| -> ASN1Result<X690Element> {
+                |value_: &SET_OF<OCTET_STRING>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(BER.encode_octet_string(&v)?);
@@ -5984,7 +5984,7 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<UiiFilter>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<UiiFilter>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_UiiFilter(&v)?);
@@ -6001,7 +6001,7 @@ pub fn _encode_UiiFilter(value_: &UiiFilter) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<UiiFilter>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<UiiFilter>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_UiiFilter(&v)?);
@@ -12166,7 +12166,7 @@ pub fn _encode_Period(value_: &Period) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<DayTimeBand>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<DayTimeBand>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_DayTimeBand(&v)?);
@@ -17063,19 +17063,19 @@ pub fn _validate_TimeSpecification_time(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type Period_days_bitDay = BIT_STRING;
 
-pub const Period_days_bitDay_sunday: BIT = 0; /* LONG_NAMED_BIT */
+pub const Period_days_bitDay_sunday: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const Period_days_bitDay_monday: BIT = 1; /* LONG_NAMED_BIT */
+pub const Period_days_bitDay_monday: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const Period_days_bitDay_tuesday: BIT = 2; /* LONG_NAMED_BIT */
+pub const Period_days_bitDay_tuesday: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const Period_days_bitDay_wednesday: BIT = 3; /* LONG_NAMED_BIT */
+pub const Period_days_bitDay_wednesday: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const Period_days_bitDay_thursday: BIT = 4; /* LONG_NAMED_BIT */
+pub const Period_days_bitDay_thursday: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const Period_days_bitDay_friday: BIT = 5; /* LONG_NAMED_BIT */
+pub const Period_days_bitDay_friday: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const Period_days_bitDay_saturday: BIT = 6; /* LONG_NAMED_BIT */
+pub const Period_days_bitDay_saturday: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
 pub fn _decode_Period_days_bitDay(el: &X690Element) -> ASN1Result<Period_days_bitDay> {
     BER.decode_bit_string(&el)
@@ -17186,15 +17186,15 @@ pub fn _validate_Period_days(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type Period_weeks_bitWeek = BIT_STRING;
 
-pub const Period_weeks_bitWeek_week1: BIT = 0; /* LONG_NAMED_BIT */
+pub const Period_weeks_bitWeek_week1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const Period_weeks_bitWeek_week2: BIT = 1; /* LONG_NAMED_BIT */
+pub const Period_weeks_bitWeek_week2: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const Period_weeks_bitWeek_week3: BIT = 2; /* LONG_NAMED_BIT */
+pub const Period_weeks_bitWeek_week3: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const Period_weeks_bitWeek_week4: BIT = 3; /* LONG_NAMED_BIT */
+pub const Period_weeks_bitWeek_week4: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const Period_weeks_bitWeek_week5: BIT = 4; /* LONG_NAMED_BIT */
+pub const Period_weeks_bitWeek_week5: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
 pub fn _decode_Period_weeks_bitWeek(el: &X690Element) -> ASN1Result<Period_weeks_bitWeek> {
     BER.decode_bit_string(&el)
@@ -17295,29 +17295,29 @@ pub fn _validate_Period_weeks(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type Period_months_bitMonth = BIT_STRING;
 
-pub const Period_months_bitMonth_january: BIT = 0; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_january: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_february: BIT = 1; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_february: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_march: BIT = 2; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_march: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_april: BIT = 3; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_april: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_may: BIT = 4; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_may: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_june: BIT = 5; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_june: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_july: BIT = 6; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_july: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_august: BIT = 7; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_august: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_september: BIT = 8; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_september: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_october: BIT = 9; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_october: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_november: BIT = 10; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_november: BIT_INDEX = 10; /* LONG_NAMED_BIT */
 
-pub const Period_months_bitMonth_december: BIT = 11; /* LONG_NAMED_BIT */
+pub const Period_months_bitMonth_december: BIT_INDEX = 11; /* LONG_NAMED_BIT */
 
 pub fn _decode_Period_months_bitMonth(el: &X690Element) -> ASN1Result<Period_months_bitMonth> {
     BER.decode_bit_string(&el)
@@ -17455,19 +17455,19 @@ pub fn _validate_NamedDay_intNamedDays(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type NamedDay_bitNamedDays = BIT_STRING;
 
-pub const NamedDay_bitNamedDays_sunday: BIT = 0; /* LONG_NAMED_BIT */
+pub const NamedDay_bitNamedDays_sunday: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const NamedDay_bitNamedDays_monday: BIT = 1; /* LONG_NAMED_BIT */
+pub const NamedDay_bitNamedDays_monday: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const NamedDay_bitNamedDays_tuesday: BIT = 2; /* LONG_NAMED_BIT */
+pub const NamedDay_bitNamedDays_tuesday: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const NamedDay_bitNamedDays_wednesday: BIT = 3; /* LONG_NAMED_BIT */
+pub const NamedDay_bitNamedDays_wednesday: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const NamedDay_bitNamedDays_thursday: BIT = 4; /* LONG_NAMED_BIT */
+pub const NamedDay_bitNamedDays_thursday: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const NamedDay_bitNamedDays_friday: BIT = 5; /* LONG_NAMED_BIT */
+pub const NamedDay_bitNamedDays_friday: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const NamedDay_bitNamedDays_saturday: BIT = 6; /* LONG_NAMED_BIT */
+pub const NamedDay_bitNamedDays_saturday: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
 pub fn _decode_NamedDay_bitNamedDays(el: &X690Element) -> ASN1Result<NamedDay_bitNamedDays> {
     BER.decode_bit_string(&el)

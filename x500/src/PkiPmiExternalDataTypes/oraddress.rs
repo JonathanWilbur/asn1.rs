@@ -32,8 +32,7 @@ use crate::SelectedAttributeTypes::{
     givenName, initials, organizationName, streetAddress, surname, PostalAddress, _decode_UnboundedDirectoryString,
 };
 use wildboar_asn1::{
-    compare_numeric_string, is_numeric_str, is_printable_str, oid, ASN1Error, ASN1ErrorCode,
-    NumericString,
+    compare_numeric_string, is_numeric_str, is_printable_str, oid, ASN1Error, ASN1ErrorCode, NumericString, Tag, TagClass, UNIV_TAG_NUMERIC_STRING, UNIV_TAG_PRINTABLE_STRING
 };
 use cow_utils::CowUtils;
 use std::borrow::Cow;
@@ -43,8 +42,9 @@ use std::error::Error;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
 use teletex::teletex_to_utf8;
-use x690::{X690Codec, BER};
+use x690::{X690Codec, X690Element, BER, X690Value};
 use isocountry::CountryCode;
+use bytes::Bytes;
 
 use super::_encode_ExtendedNetworkAddress;
 
@@ -405,7 +405,10 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
                 ));
             }
             {
-                let encoded = BER.encode_owned_numeric_string(format!("{:0>3}", country.numeric_id()))?;
+                let encoded = X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NUMERIC_STRING),
+                    X690Value::Primitive(Bytes::from(format!("{:0>3}", country.numeric_id()))),
+                );
                 rdn.push(AttributeTypeAndValue::new(
                     countryCode3n().id,
                     encoded,
@@ -606,7 +609,10 @@ impl TryFrom<ORAddressInfo> for RelativeDistinguishedName {
         }
         if let Some(isdn) = value.isdn.take() {
             // mHSExtendedNetworkAddress { 2 6 10 3 13 } (Actually, not clear what the syntax should be.)
-            let encoded = BER.encode_owned_numeric_string(isdn)?;
+            let encoded = X690Element::new(
+                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NUMERIC_STRING),
+                X690Value::Primitive(Bytes::from(isdn)),
+            );
             rdn.push(AttributeTypeAndValue::new(
                 internationalISDNNumber().id,
                 encoded,
@@ -1179,7 +1185,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_common_name => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        common_name = Some(v.to_str().into());
+                        common_name = Some(v.to_string());
                     }
                     id_teletex_organization_name => {
                         let v = BER.decode_t61_string(value)?;
@@ -1187,7 +1193,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_organization_name => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        org_name = Some(v.to_str().into());
+                        org_name = Some(v.to_string());
                     }
                     id_teletex_personal_name => {
                         let v = _decode_TeletexPersonalName(value)?;
@@ -1203,7 +1209,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_organizational_unit_names => {
                         let v = _decode_UniversalOrganizationalUnitNames(value)?;
-                        ous = v.iter().map(|s| s.to_str().into()).collect();
+                        ous = v.iter().map(|s| s.to_string()).collect();
                     }
                     id_teletex_domain_defined_attributes => {
                         let v = _decode_TeletexDomainDefinedAttributes(value)?;
@@ -1253,7 +1259,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_physical_delivery_office_name => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pdo_name = Some(v.to_str().to_owned());
+                        pdo_name = Some(v.to_string());
                     }
                     id_physical_delivery_office_number => {
                         let v = _decode_PDSParameter(value)?;
@@ -1261,7 +1267,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_physical_delivery_office_number => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pdo_number = Some(v.to_str().to_owned());
+                        pdo_number = Some(v.to_string());
                     }
                     id_extension_OR_address_components => {
                         let v = _decode_PDSParameter(value)?;
@@ -1269,7 +1275,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_extension_OR_address_components => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pd_ea = Some(v.to_str().to_owned());
+                        pd_ea = Some(v.to_string());
                     }
                     id_physical_delivery_personal_name => {
                         let v = _decode_PDSParameter(value)?;
@@ -1277,7 +1283,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_physical_delivery_personal_name => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pd_person = Some(v.to_str().to_owned());
+                        pd_person = Some(v.to_string());
                     }
                     id_physical_delivery_organization_name => {
                         let v = _decode_PDSParameter(value)?;
@@ -1285,7 +1291,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_physical_delivery_organization_name => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pd_org_name = Some(v.to_str().to_owned());
+                        pd_org_name = Some(v.to_string());
                     }
                     id_extension_physical_delivery_address_components => {
                         let v = _decode_PDSParameter(value)?;
@@ -1293,7 +1299,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_extension_physical_delivery_address_components => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pd_ed = Some(v.to_str().to_owned());
+                        pd_ed = Some(v.to_string());
                     }
                     id_unformatted_postal_address => {
                         let v = _decode_UnformattedPostalAddress(value)?;
@@ -1301,7 +1307,9 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_unformatted_postal_address => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pd_address = v.to_str().lines().map(|line| line.to_owned()).collect();
+                        pd_address = v.to_string()
+                            .lines()
+                            .map(|line| line.to_owned()).collect();
                     }
                     id_street_address => {
                         let v = _decode_PDSParameter(value)?;
@@ -1309,7 +1317,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_street_address => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        street = Some(v.to_str().to_owned());
+                        street = Some(v.to_string());
                     }
                     id_post_office_box_address => {
                         let v = _decode_PDSParameter(value)?;
@@ -1317,7 +1325,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_post_office_box_address => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        po_box_addr = Some(v.to_str().to_owned());
+                        po_box_addr = Some(v.to_string());
                     }
                     id_poste_restante_address => {
                         let v = _decode_PDSParameter(value)?;
@@ -1325,7 +1333,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_poste_restante_address => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        postal_restante_arr = Some(v.to_str().to_owned());
+                        postal_restante_arr = Some(v.to_string());
                     }
                     id_unique_postal_name => {
                         let v = _decode_PDSParameter(value)?;
@@ -1333,7 +1341,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_unique_postal_name => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pd_unique = Some(v.to_str().to_owned());
+                        pd_unique = Some(v.to_string());
                     }
                     id_local_postal_attributes => {
                         let v = _decode_PDSParameter(value)?;
@@ -1341,7 +1349,7 @@ impl TryFrom<&ORAddress> for ORAddressInfo {
                     }
                     id_universal_local_postal_attributes => {
                         let v = _decode_UniversalOrBMPString(value)?;
-                        pd_local = Some(v.to_str().to_owned());
+                        pd_local = Some(v.to_string());
                     }
                     id_extended_network_address => {
                         let v = _decode_ExtendedNetworkAddress(value)?;
@@ -1669,19 +1677,19 @@ impl From<&TeletexPersonalName> for PersonalNameInfo {
 
 impl From<&UniversalPersonalName> for PersonalNameInfo {
     fn from(value: &UniversalPersonalName) -> Self {
-        let surname: String = value.surname.to_str().to_owned();
+        let surname: String = value.surname.to_string();
         let given_name: Option<String> = value
             .given_name
             .as_ref()
-            .and_then(|n| Some(n.to_str().to_owned()));
+            .and_then(|n| Some(n.to_string()));
         let initials: Option<String> = value
             .initials
             .as_ref()
-            .and_then(|n| Some(n.to_str().to_owned()));
+            .and_then(|n| Some(n.to_string()));
         let generation_qualifier: Option<String> = value
             .generation_qualifier
             .as_ref()
-            .and_then(|n| Some(n.to_str().to_owned()));
+            .and_then(|n| Some(n.to_string()));
         PersonalNameInfo {
             surname,
             given_name,
@@ -1830,8 +1838,8 @@ impl From<&TeletexDomainDefinedAttribute> for DomainDefinedAttribute {
 
 impl From<&UniversalDomainDefinedAttribute> for DomainDefinedAttribute {
     fn from(value: &UniversalDomainDefinedAttribute) -> Self {
-        let type_ = value.type_.to_str().to_owned();
-        let value = value.value.to_str().to_owned();
+        let type_ = value.type_.to_string();
+        let value = value.value.to_string();
         DomainDefinedAttribute { type_, value }
     }
 }
@@ -2836,7 +2844,7 @@ impl TryFrom<ORAddressInfo> for ORAddress {
             let param = if is_numeric_str(&postal_code) {
                 BER.encode_numeric_string(&postal_code)?
             } else {
-                BER.encode_owned_printable_string(postal_code)?
+                BER.encode_printable_string(&postal_code)?
             };
             let ext = ExtensionAttribute::new(Vec::from([id_postal_code as u8]), param);
             ext_attrs.push(ext);
@@ -2844,7 +2852,10 @@ impl TryFrom<ORAddressInfo> for ORAddress {
         if let Some(pd_svc_name) = value.pd_svc_name {
             let ext = ExtensionAttribute::new(
                 Vec::from([id_pds_name as u8]),
-                BER.encode_owned_printable_string(pd_svc_name)?,
+                X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING),
+                    x690::X690Value::Primitive(Bytes::from(pd_svc_name)),
+                ),
             );
             ext_attrs.push(ext);
         }

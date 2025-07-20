@@ -283,7 +283,7 @@ pub fn _encode_DsaReferralData(value_: &DsaReferralData) -> ASN1Result<X690Eleme
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -1631,7 +1631,7 @@ pub fn _encode_ChainingResults(value_: &ChainingResults) -> ASN1Result<X690Eleme
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<CrossReference>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<CrossReference>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_CrossReference(&v)?);
@@ -2442,7 +2442,7 @@ pub fn _encode_AccessPoint(value_: &AccessPoint) -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ProtocolInformation(&v)?);
@@ -2711,7 +2711,7 @@ pub fn _encode_MasterOrShadowAccessPoint(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ProtocolInformation(&v)?);
@@ -3094,7 +3094,7 @@ pub fn _encode_AccessPointInformation(value_: &AccessPointInformation) -> ASN1Re
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ProtocolInformation(&v)?);
@@ -3716,7 +3716,7 @@ pub fn _encode_ContinuationReference(value_: &ContinuationReference) -> ASN1Resu
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<AccessPointInformation>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<AccessPointInformation>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_AccessPointInformation(&v)?);

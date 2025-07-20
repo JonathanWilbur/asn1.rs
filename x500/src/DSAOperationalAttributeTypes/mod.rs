@@ -100,41 +100,41 @@ pub mod dseType {
 /// ```
 pub type DSEType = BIT_STRING;
 
-pub const DSEType_root: BIT = 0; /* LONG_NAMED_BIT */
+pub const DSEType_root: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const DSEType_glue: BIT = 1; /* LONG_NAMED_BIT */
+pub const DSEType_glue: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const DSEType_cp: BIT = 2; /* LONG_NAMED_BIT */
+pub const DSEType_cp: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const DSEType_entry: BIT = 3; /* LONG_NAMED_BIT */
+pub const DSEType_entry: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const DSEType_alias: BIT = 4; /* LONG_NAMED_BIT */
+pub const DSEType_alias: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const DSEType_subr: BIT = 5; /* LONG_NAMED_BIT */
+pub const DSEType_subr: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const DSEType_nssr: BIT = 6; /* LONG_NAMED_BIT */
+pub const DSEType_nssr: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const DSEType_supr: BIT = 7; /* LONG_NAMED_BIT */
+pub const DSEType_supr: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const DSEType_xr: BIT = 8; /* LONG_NAMED_BIT */
+pub const DSEType_xr: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const DSEType_admPoint: BIT = 9; /* LONG_NAMED_BIT */
+pub const DSEType_admPoint: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
-pub const DSEType_subentry: BIT = 10; /* LONG_NAMED_BIT */
+pub const DSEType_subentry: BIT_INDEX = 10; /* LONG_NAMED_BIT */
 
-pub const DSEType_shadow: BIT = 11; /* LONG_NAMED_BIT */
+pub const DSEType_shadow: BIT_INDEX = 11; /* LONG_NAMED_BIT */
 
-pub const DSEType_immSupr: BIT = 13; /* LONG_NAMED_BIT */
+pub const DSEType_immSupr: BIT_INDEX = 13; /* LONG_NAMED_BIT */
 
-pub const DSEType_rhob: BIT = 14; /* LONG_NAMED_BIT */
+pub const DSEType_rhob: BIT_INDEX = 14; /* LONG_NAMED_BIT */
 
-pub const DSEType_sa: BIT = 15; /* LONG_NAMED_BIT */
+pub const DSEType_sa: BIT_INDEX = 15; /* LONG_NAMED_BIT */
 
-pub const DSEType_dsSubentry: BIT = 16; /* LONG_NAMED_BIT */
+pub const DSEType_dsSubentry: BIT_INDEX = 16; /* LONG_NAMED_BIT */
 
-pub const DSEType_familyMember: BIT = 17; /* LONG_NAMED_BIT */
+pub const DSEType_familyMember: BIT_INDEX = 17; /* LONG_NAMED_BIT */
 
-pub const DSEType_ditBridge: BIT = 18; /* LONG_NAMED_BIT */
+pub const DSEType_ditBridge: BIT_INDEX = 18; /* LONG_NAMED_BIT */
 
 pub fn _decode_DSEType(el: &X690Element) -> ASN1Result<DSEType> {
     BER.decode_bit_string(&el)
@@ -489,7 +489,7 @@ pub fn _encode_SupplierOrConsumer(value_: &SupplierOrConsumer) -> ASN1Result<X69
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ProtocolInformation(&v)?);
@@ -774,7 +774,7 @@ pub fn _encode_SupplierInformation(value_: &SupplierInformation) -> ASN1Result<X
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ProtocolInformation(&v)?);
@@ -1186,7 +1186,7 @@ pub fn _encode_SupplierAndConsumers(value_: &SupplierAndConsumers) -> ASN1Result
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ProtocolInformation>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ProtocolInformation(&v)?);

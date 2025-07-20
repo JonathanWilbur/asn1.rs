@@ -3141,6 +3141,7 @@ dependencies = [
 name = "x500"
 version = "0.1.0"
 dependencies = [
+ "bytes",
  "cow-utils",
  "hex",
  "isocountry",

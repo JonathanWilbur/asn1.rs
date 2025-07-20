@@ -880,18 +880,20 @@ impl X690Codec for DistinguishedEncodingRules {
         ))
     }
 
-    fn encode_universal_string(&self, value: &[u32]) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(value.len() << 2).writer(); // Four bytes for every character
-        x690_write_universal_string_value(&mut out, value)?;
+    fn encode_universal_string<T: AsRef<[u32]>>(&self, value: &T) -> ASN1Result<X690Element> {
+        let chars = value.as_ref();
+        let mut out = BytesMut::with_capacity(chars.len() << 2).writer(); // Four bytes for every character
+        x690_write_universal_string_value(&mut out, chars)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UNIVERSAL_STRING),
             X690Value::Primitive(out.into_inner().into()),
         ))
     }
 
-    fn encode_bmp_string(&self, value: &[u16]) -> ASN1Result<X690Element> {
-        let mut out = BytesMut::with_capacity(value.len() << 1).writer(); // Two bytes for every character
-        x690_write_bmp_string_value(&mut out, value)?;
+    fn encode_bmp_string<T: AsRef<[u16]>>(&self, value: &T) -> ASN1Result<X690Element> {
+        let chars = value.as_ref();
+        let mut out = BytesMut::with_capacity(chars.len() << 1).writer(); // Two bytes for every character
+        x690_write_bmp_string_value(&mut out, chars)?;
         Ok(X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BMP_STRING),
             X690Value::Primitive(out.into_inner().into()),

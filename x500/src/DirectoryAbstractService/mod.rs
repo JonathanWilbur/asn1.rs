@@ -1420,7 +1420,7 @@ pub fn _encode_CommonResults(value_: &CommonResults) -> ASN1Result<X690Element> 
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -1713,7 +1713,7 @@ pub fn _encode_CommonResultsSeq(value_: &CommonResultsSeq) -> ASN1Result<X690Ele
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -2310,35 +2310,35 @@ pub fn _validate_ServiceControls(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type ServiceControlOptions = BIT_STRING;
 
-pub const ServiceControlOptions_preferChaining: BIT = 0; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_preferChaining: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_chainingProhibited: BIT = 1; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_chainingProhibited: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_localScope: BIT = 2; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_localScope: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_dontUseCopy: BIT = 3; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_dontUseCopy: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_dontDereferenceAliases: BIT = 4; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_dontDereferenceAliases: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_subentries: BIT = 5; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_subentries: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_copyShallDo: BIT = 6; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_copyShallDo: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_partialNameResolution: BIT = 7; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_partialNameResolution: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_manageDSAIT: BIT = 8; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_manageDSAIT: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_noSubtypeMatch: BIT = 9; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_noSubtypeMatch: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_noSubtypeSelection: BIT = 10; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_noSubtypeSelection: BIT_INDEX = 10; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_countFamily: BIT = 11; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_countFamily: BIT_INDEX = 11; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_dontSelectFriends: BIT = 12; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_dontSelectFriends: BIT_INDEX = 12; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_dontMatchFriends: BIT = 13; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_dontMatchFriends: BIT_INDEX = 13; /* LONG_NAMED_BIT */
 
-pub const ServiceControlOptions_allowWriteableCopy: BIT = 14; /* LONG_NAMED_BIT */
+pub const ServiceControlOptions_allowWriteableCopy: BIT_INDEX = 14; /* LONG_NAMED_BIT */
 
 pub fn _decode_ServiceControlOptions(el: &X690Element) -> ASN1Result<ServiceControlOptions> {
     BER.decode_bit_string(&el)
@@ -4449,7 +4449,7 @@ pub fn _encode_MatchingRuleAssertion(value_: &MatchingRuleAssertion) -> ASN1Resu
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
             X690Value::from_explicit(
-                &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(BER.encode_object_identifier(&v)?);
@@ -6630,9 +6630,9 @@ pub fn _validate_TokenContent(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type Versions = BIT_STRING;
 
-pub const Versions_v1: BIT = 0; /* LONG_NAMED_BIT */
+pub const Versions_v1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const Versions_v2: BIT = 1; /* LONG_NAMED_BIT */
+pub const Versions_v2: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
 pub fn _decode_Versions(el: &X690Element) -> ASN1Result<Versions> {
     BER.decode_bit_string(&el)
@@ -8253,7 +8253,7 @@ pub fn _encode_ReadResultData(value_: &ReadResultData) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -9398,7 +9398,7 @@ pub fn _encode_CompareResultData(value_: &CompareResultData) -> ASN1Result<X690E
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -9974,7 +9974,7 @@ pub fn _encode_AbandonResultData(value_: &AbandonResultData) -> ASN1Result<X690E
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -10897,7 +10897,7 @@ pub fn _encode_ListResultData(value_: &ListResultData) -> ASN1Result<X690Element
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ListResult>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ListResult>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ListResult(&v)?);
@@ -11234,7 +11234,7 @@ pub fn _encode_PartialOutcomeQualifier(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<ContinuationReference>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<ContinuationReference>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_ContinuationReference(&v)?);
@@ -11264,7 +11264,7 @@ pub fn _encode_PartialOutcomeQualifier(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<X690Element>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<X690Element>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(x690_identity(&v)?);
@@ -11299,7 +11299,7 @@ pub fn _encode_PartialOutcomeQualifier(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -12323,7 +12323,7 @@ pub fn _encode_SearchArgumentData(value_: &SearchArgumentData) -> ASN1Result<X69
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 13),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<JoinArgument>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<JoinArgument>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_JoinArgument(&v)?);
@@ -12790,25 +12790,25 @@ pub fn _validate_SearchArgumentData(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type HierarchySelections = BIT_STRING;
 
-pub const HierarchySelections_self_: BIT = 0; /* LONG_NAMED_BIT */
+pub const HierarchySelections_self_: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_children: BIT = 1; /* LONG_NAMED_BIT */
+pub const HierarchySelections_children: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_parent: BIT = 2; /* LONG_NAMED_BIT */
+pub const HierarchySelections_parent: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_hierarchy: BIT = 3; /* LONG_NAMED_BIT */
+pub const HierarchySelections_hierarchy: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_top: BIT = 4; /* LONG_NAMED_BIT */
+pub const HierarchySelections_top: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_subtree: BIT = 5; /* LONG_NAMED_BIT */
+pub const HierarchySelections_subtree: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_siblings: BIT = 6; /* LONG_NAMED_BIT */
+pub const HierarchySelections_siblings: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_siblingChildren: BIT = 7; /* LONG_NAMED_BIT */
+pub const HierarchySelections_siblingChildren: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_siblingSubtree: BIT = 8; /* LONG_NAMED_BIT */
+pub const HierarchySelections_siblingSubtree: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const HierarchySelections_all: BIT = 9; /* LONG_NAMED_BIT */
+pub const HierarchySelections_all: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
 pub fn _decode_HierarchySelections(el: &X690Element) -> ASN1Result<HierarchySelections> {
     BER.decode_bit_string(&el)
@@ -12841,29 +12841,29 @@ pub fn _validate_HierarchySelections(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type SearchControlOptions = BIT_STRING;
 
-pub const SearchControlOptions_searchAliases: BIT = 0; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_searchAliases: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_matchedValuesOnly: BIT = 1; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_matchedValuesOnly: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_checkOverspecified: BIT = 2; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_checkOverspecified: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_performExactly: BIT = 3; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_performExactly: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_includeAllAreas: BIT = 4; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_includeAllAreas: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_noSystemRelaxation: BIT = 5; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_noSystemRelaxation: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_dnAttribute: BIT = 6; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_dnAttribute: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_matchOnResidualName: BIT = 7; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_matchOnResidualName: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_entryCount: BIT = 8; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_entryCount: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_useSubset: BIT = 9; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_useSubset: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_separateFamilyMembers: BIT = 10; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_separateFamilyMembers: BIT_INDEX = 10; /* LONG_NAMED_BIT */
 
-pub const SearchControlOptions_searchFamily: BIT = 11; /* LONG_NAMED_BIT */
+pub const SearchControlOptions_searchFamily: BIT_INDEX = 11; /* LONG_NAMED_BIT */
 
 pub fn _decode_SearchControlOptions(el: &X690Element) -> ASN1Result<SearchControlOptions> {
     BER.decode_bit_string(&el)
@@ -13111,7 +13111,7 @@ pub fn _encode_JoinArgument(value_: &JoinArgument) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<JoinAttPair>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<JoinAttPair>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_JoinAttPair(&v)?);
@@ -13542,7 +13542,7 @@ pub fn _encode_SearchResultData(value_: &SearchResultData) -> ASN1Result<X690Ele
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<SearchResult>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<SearchResult>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_SearchResult(&v)?);
@@ -14595,7 +14595,7 @@ pub fn _encode_AddEntryResultData(value_: &AddEntryResultData) -> ASN1Result<X69
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -15608,7 +15608,7 @@ pub fn _encode_RemoveEntryResultData(value_: &RemoveEntryResultData) -> ASN1Resu
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -16157,7 +16157,7 @@ pub fn _encode_ModifyEntryArgumentData(
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
             X690Value::from_explicit(
-                &|value_: &SEQUENCE_OF<EntryModification>| -> ASN1Result<X690Element> {
+                |value_: &SEQUENCE_OF<EntryModification>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_EntryModification(&v)?);
@@ -16752,7 +16752,7 @@ pub fn _encode_ModifyEntryResultData(value_: &ModifyEntryResultData) -> ASN1Resu
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -18056,7 +18056,7 @@ pub fn _encode_ModifyDNResultData(value_: &ModifyDNResultData) -> ASN1Result<X69
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -18686,7 +18686,7 @@ pub fn _encode_ChangePasswordResultData(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -19299,7 +19299,7 @@ pub fn _encode_AdministerPasswordResultData(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -20390,7 +20390,7 @@ pub fn _encode_LdapResultData(value_: &LdapResultData) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -21435,7 +21435,7 @@ pub fn _encode_AbandonedData(value_: &AbandonedData) -> ASN1Result<X690Element> 
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -21804,7 +21804,7 @@ pub fn _encode_AbandonFailedData(value_: &AbandonFailedData) -> ASN1Result<X690E
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -22227,7 +22227,7 @@ pub fn _encode_AttributeErrorData(value_: &AttributeErrorData) -> ASN1Result<X69
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -22632,7 +22632,7 @@ pub fn _encode_NameErrorData(value_: &NameErrorData) -> ASN1Result<X690Element> 
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -22991,7 +22991,7 @@ pub fn _encode_ReferralData(value_: &ReferralData) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -23370,7 +23370,7 @@ pub fn _encode_SecurityErrorData(value_: &SecurityErrorData) -> ASN1Result<X690E
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -23697,7 +23697,7 @@ pub fn _encode_EncPwdInfo(value_: &EncPwdInfo) -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 0),
                     X690Value::from_explicit(
-                        &|value_: &SEQUENCE_OF<AlgorithmIdentifier>| -> ASN1Result<X690Element> {
+                        |value_: &SEQUENCE_OF<AlgorithmIdentifier>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_AlgorithmIdentifier(&v)?);
@@ -23721,7 +23721,7 @@ pub fn _encode_EncPwdInfo(value_: &EncPwdInfo) -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
                     X690Value::from_explicit(
-                        &|value_: &SEQUENCE_OF<AttributeTypeAndValue>| -> ASN1Result<X690Element> {
+                        |value_: &SEQUENCE_OF<AttributeTypeAndValue>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_AttributeTypeAndValue(&v)?);
@@ -24040,7 +24040,7 @@ pub fn _encode_ServiceErrorData(value_: &ServiceErrorData) -> ASN1Result<X690Ele
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -24506,7 +24506,7 @@ pub fn _encode_UpdateErrorData(value_: &UpdateErrorData) -> ASN1Result<X690Eleme
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -24987,7 +24987,7 @@ pub fn _encode_EntryInformationSelection_attributes(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_AttributeType(&v)?);
@@ -25173,7 +25173,7 @@ pub fn _encode_EntryInformationSelection_extraAttributes(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_AttributeType(&v)?);
@@ -26753,13 +26753,13 @@ pub fn _validate_ModifyRights_Item_item(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type ModifyRights_Item_permission = BIT_STRING;
 
-pub const ModifyRights_Item_permission_add: BIT = 0; /* LONG_NAMED_BIT */
+pub const ModifyRights_Item_permission_add: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const ModifyRights_Item_permission_remove: BIT = 1; /* LONG_NAMED_BIT */
+pub const ModifyRights_Item_permission_remove: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const ModifyRights_Item_permission_rename: BIT = 2; /* LONG_NAMED_BIT */
+pub const ModifyRights_Item_permission_rename: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const ModifyRights_Item_permission_move_: BIT = 3; /* LONG_NAMED_BIT */
+pub const ModifyRights_Item_permission_move_: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
 pub fn _decode_ModifyRights_Item_permission(
     el: &X690Element,
@@ -27402,7 +27402,7 @@ pub fn _encode_ListResultData_listInfo(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -27956,7 +27956,7 @@ pub fn _encode_SearchResultData_searchInfo(
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
             X690Value::from_explicit(
-                &|value_: &SET_OF<EntryInformation>| -> ASN1Result<X690Element> {
+                |value_: &SET_OF<EntryInformation>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(_encode_EntryInformation(&v)?);
@@ -28018,7 +28018,7 @@ pub fn _encode_SearchResultData_searchInfo(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);

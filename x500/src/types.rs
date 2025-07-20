@@ -336,7 +336,7 @@ pub trait DisplayX500AttributeType {
                 .or(self.attr_type_to_descriptor(attr_type)))
     }
 
-    fn attr_type_to_descriptor (self: &Self, attr_type: &AttributeType) -> Option<String> {
+    fn attr_type_to_descriptor (self: &Self, _: &AttributeType) -> Option<String> {
         None
     }
 
@@ -464,8 +464,8 @@ pub struct DefaultX500ValueDisplayer;
 pub struct DefaultX500ValueParser;
 
 pub fn value_to_string <E, K> (
-    k: &K,
-    attr_type: &AttributeType,
+    _k: &K,
+    _attr_type: &AttributeType,
     value: &X690Element,
 ) -> Result<Option<String>, ASN1Error>
     where
@@ -485,7 +485,7 @@ pub fn value_to_string <E, K> (
         },
         UNIV_TAG_INTEGER => {
             let integ = BER.decode_integer(value)?;
-            if let Ok(i) = read_i64(&integ) {
+            if let Some(i) = read_i64(&integ) {
                 return Ok(Some(format!("{}", i).to_string()));
             } else {
                 return Ok(None);
@@ -574,12 +574,12 @@ pub fn value_to_string <E, K> (
         },
         UNIV_TAG_UNIVERSAL_STRING => {
             let v = BER.decode_universal_string(value)?;
-            Ok(Some(v))
+            Ok(Some(v.to_string_lossy()))
         },
         // UNIV_TAG_CHARACTER_STRING => {},
         UNIV_TAG_BMP_STRING => {
             let v = BER.decode_bmp_string(value)?;
-            Ok(Some(v))
+            Ok(Some(v.to_string_lossy()))
         },
         UNIV_TAG_DATE => {
             let v = BER.decode_date(value)?;
@@ -955,7 +955,7 @@ pub trait ParseGeneralName {
 impl ParseX500AttributeType for DefaultX500ValueParser {  }
 
 // Exported separately so it can be used by other implementations, if desired.
-pub fn parse_value <K: ParseX500AttributeType> (k: &K, attr_type: &AttributeType, s: &str) -> Result<Option<X690Element>, std::fmt::Error> {
+pub fn parse_value <K: ParseX500AttributeType> (_k: &K, attr_type: &AttributeType, s: &str) -> Result<Option<X690Element>, std::fmt::Error> {
     if s.starts_with("#") {
         let bytes = hex::decode(&s[1..]).map_err(|_| std::fmt::Error)?;
         let cst = BER.decode_from_slice(&bytes).map_err(|_| std::fmt::Error)?;

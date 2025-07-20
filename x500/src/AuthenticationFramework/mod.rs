@@ -3949,7 +3949,7 @@ pub fn _encode_SupportedPublicKeyAlgorithms(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<OidOrAttr>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<OidOrAttr>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_OidOrAttr(&v)?);

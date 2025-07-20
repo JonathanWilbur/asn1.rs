@@ -24,6 +24,7 @@ use crate::PKI_Stub::*;
 use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
+use x690::ber::BER;
 
 pub type WRAPPED_PROT = TYPE_IDENTIFIER;
 
@@ -769,7 +770,7 @@ pub fn _validate_TbsHandshakeReq(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type Version = BIT_STRING;
 
-pub const Version_v1: BIT = 0; /* LONG_NAMED_BIT */
+pub const Version_v1: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
 pub fn _decode_Version(el: &X690Element) -> ASN1Result<Version> {
     BER.decode_bit_string(&el)
@@ -3008,7 +3009,7 @@ pub fn _encode_DataTransferClientAE(value_: &DataTransferClientAE) -> ASN1Result
 }
 
 pub fn _validate_DataTransferClientAE(el: &X690Element) -> ASN1Result<()> {
-    _validate_AUTHEN_ENCRYPT::<AadClientAE, X690Element>(_validate_AadClientAE, validate_any, el)
+    _validate_AUTHEN_ENCRYPT::<AadClientAE, X690Element>(_validate_AadClientAE, |x| BER.validate_any(x), el)
 }
 
 /// ### ASN.1 Definition:
@@ -3832,7 +3833,11 @@ pub fn _encode_DataTransferServerAE(value_: &DataTransferServerAE) -> ASN1Result
 }
 
 pub fn _validate_DataTransferServerAE(el: &X690Element) -> ASN1Result<()> {
-    _validate_AUTHEN_ENCRYPT::<AadServerAE, X690Element>(_validate_AadServerAE, validate_any, el)
+    _validate_AUTHEN_ENCRYPT::<AadServerAE, X690Element>(
+        _validate_AadServerAE,
+        |a| BER.validate_any(a),
+        el
+    )
 }
 
 /// ### ASN.1 Definition:

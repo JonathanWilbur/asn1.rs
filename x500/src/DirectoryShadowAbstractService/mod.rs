@@ -2424,7 +2424,7 @@ pub fn _encode_CoordinateShadowUpdateResultData(
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 27),
                         X690Value::from_explicit(
-                            &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                            |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                                 let mut children: Vec<X690Element> =
                                     Vec::with_capacity(value_.len());
                                 for v in value_ {
@@ -3128,7 +3128,7 @@ pub fn _encode_RequestShadowUpdateResultData(
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 27),
                         X690Value::from_explicit(
-                            &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                            |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                                 let mut children: Vec<X690Element> =
                                     Vec::with_capacity(value_.len());
                                 for v in value_ {
@@ -3813,7 +3813,7 @@ pub fn _encode_UpdateShadowResultData(value_: &UpdateShadowResultData) -> ASN1Re
                     Ok(X690Element::new(
                         Tag::new(TagClass::CONTEXT, 27),
                         X690Value::from_explicit(
-                            &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                            |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                                 let mut children: Vec<X690Element> =
                                     Vec::with_capacity(value_.len());
                                 for v in value_ {
@@ -5761,7 +5761,7 @@ pub fn _encode_ShadowErrorData(value_: &ShadowErrorData) -> ASN1Result<X690Eleme
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 27),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);

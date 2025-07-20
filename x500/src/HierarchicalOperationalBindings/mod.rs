@@ -364,7 +364,7 @@ pub fn _encode_SuperiorToSubordinate(value_: &SuperiorToSubordinate) -> ASN1Resu
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -383,7 +383,7 @@ pub fn _encode_SuperiorToSubordinate(value_: &SuperiorToSubordinate) -> ASN1Resu
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -710,7 +710,7 @@ pub fn _encode_Vertex(value_: &Vertex) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -729,7 +729,7 @@ pub fn _encode_Vertex(value_: &Vertex) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<SubentryInfo>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<SubentryInfo>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_SubentryInfo(&v)?);
@@ -1247,7 +1247,7 @@ pub fn _encode_SubordinateToSuperior(value_: &SubordinateToSuperior) -> ASN1Resu
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<Attribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Attribute(&v)?);
@@ -1266,7 +1266,7 @@ pub fn _encode_SubordinateToSuperior(value_: &SubordinateToSuperior) -> ASN1Resu
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<SubentryInfo>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<SubentryInfo>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_SubentryInfo(&v)?);
@@ -1709,7 +1709,7 @@ pub fn _encode_NHOBSubordinateToSuperior(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<SubentryInfo>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<SubentryInfo>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_SubentryInfo(&v)?);

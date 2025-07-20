@@ -918,17 +918,17 @@ pub fn _validate_Clearance(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type ClassList = BIT_STRING;
 
-pub const ClassList_unmarked: BIT = 0; /* LONG_NAMED_BIT */
+pub const ClassList_unmarked: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const ClassList_unclassified: BIT = 1; /* LONG_NAMED_BIT */
+pub const ClassList_unclassified: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const ClassList_restricted: BIT = 2; /* LONG_NAMED_BIT */
+pub const ClassList_restricted: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const ClassList_confidential: BIT = 3; /* LONG_NAMED_BIT */
+pub const ClassList_confidential: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const ClassList_secret: BIT = 4; /* LONG_NAMED_BIT */
+pub const ClassList_secret: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const ClassList_topSecret: BIT = 5; /* LONG_NAMED_BIT */
+pub const ClassList_topSecret: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
 pub fn _decode_ClassList(el: &X690Element) -> ASN1Result<ClassList> {
     BER.decode_bit_string(&el)

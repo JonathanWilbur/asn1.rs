@@ -863,25 +863,25 @@ pub fn _validate_PKIFreeText(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type PKIFailureInfo = BIT_STRING;
 
-pub const PKIFailureInfo_badAlg: BIT = 0; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_badAlg: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_badRequest: BIT = 2; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_badRequest: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_badDataFormat: BIT = 5; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_badDataFormat: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_timeNotAvailable: BIT = 14; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_timeNotAvailable: BIT_INDEX = 14; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_unacceptedPolicy: BIT = 15; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_unacceptedPolicy: BIT_INDEX = 15; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_unacceptedExtension: BIT = 16; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_unacceptedExtension: BIT_INDEX = 16; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_addInfoNotAvailable: BIT = 17; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_addInfoNotAvailable: BIT_INDEX = 17; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_systemNotAvailable: BIT = 24; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_systemNotAvailable: BIT_INDEX = 24; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_systemFailure: BIT = 25; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_systemFailure: BIT_INDEX = 25; /* LONG_NAMED_BIT */
 
-pub const PKIFailureInfo_verificationFailure: BIT = 27; /* LONG_NAMED_BIT */
+pub const PKIFailureInfo_verificationFailure: BIT_INDEX = 27; /* LONG_NAMED_BIT */
 
 pub fn _decode_PKIFailureInfo(el: &X690Element) -> ASN1Result<PKIFailureInfo> {
     BER.decode_bit_string(&el)

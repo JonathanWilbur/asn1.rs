@@ -387,26 +387,26 @@ pub mod keyUsage {
 /// ```
 pub type KeyUsage = BIT_STRING;
 
-pub const KeyUsage_digitalSignature: BIT = 0; /* LONG_NAMED_BIT */
+pub const KeyUsage_digitalSignature: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_contentCommitment: BIT = 1; /* LONG_NAMED_BIT */
+pub const KeyUsage_contentCommitment: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
 // This is defined in IETF RFC 5280.
-pub const KeyUsage_nonRepudiation: BIT = KeyUsage_contentCommitment; /* LONG_NAMED_BIT */
+pub const KeyUsage_nonRepudiation: BIT_INDEX = KeyUsage_contentCommitment; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_keyEncipherment: BIT = 2; /* LONG_NAMED_BIT */
+pub const KeyUsage_keyEncipherment: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_dataEncipherment: BIT = 3; /* LONG_NAMED_BIT */
+pub const KeyUsage_dataEncipherment: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_keyAgreement: BIT = 4; /* LONG_NAMED_BIT */
+pub const KeyUsage_keyAgreement: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_keyCertSign: BIT = 5; /* LONG_NAMED_BIT */
+pub const KeyUsage_keyCertSign: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_cRLSign: BIT = 6; /* LONG_NAMED_BIT */
+pub const KeyUsage_cRLSign: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_encipherOnly: BIT = 7; /* LONG_NAMED_BIT */
+pub const KeyUsage_encipherOnly: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const KeyUsage_decipherOnly: BIT = 8; /* LONG_NAMED_BIT */
+pub const KeyUsage_decipherOnly: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
 pub fn _decode_KeyUsage(el: &X690Element) -> ASN1Result<KeyUsage> {
     BER.decode_bit_string(&el)
@@ -3358,11 +3358,11 @@ pub fn _validate_PerAuthorityScope(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type OnlyCertificateTypes = BIT_STRING;
 
-pub const OnlyCertificateTypes_user: BIT = 0; /* LONG_NAMED_BIT */
+pub const OnlyCertificateTypes_user: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const OnlyCertificateTypes_authority: BIT = 1; /* LONG_NAMED_BIT */
+pub const OnlyCertificateTypes_authority: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const OnlyCertificateTypes_attribute: BIT = 2; /* LONG_NAMED_BIT */
+pub const OnlyCertificateTypes_attribute: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
 pub fn _decode_OnlyCertificateTypes(el: &X690Element) -> ASN1Result<OnlyCertificateTypes> {
     BER.decode_bit_string(&el)
@@ -6263,25 +6263,25 @@ pub fn _validate_DistributionPointName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type ReasonFlags = BIT_STRING;
 
-pub const ReasonFlags_unused: BIT = 0; /* LONG_NAMED_BIT */
+pub const ReasonFlags_unused: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_keyCompromise: BIT = 1; /* LONG_NAMED_BIT */
+pub const ReasonFlags_keyCompromise: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_cACompromise: BIT = 2; /* LONG_NAMED_BIT */
+pub const ReasonFlags_cACompromise: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_affiliationChanged: BIT = 3; /* LONG_NAMED_BIT */
+pub const ReasonFlags_affiliationChanged: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_superseded: BIT = 4; /* LONG_NAMED_BIT */
+pub const ReasonFlags_superseded: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_cessationOfOperation: BIT = 5; /* LONG_NAMED_BIT */
+pub const ReasonFlags_cessationOfOperation: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_certificateHold: BIT = 6; /* LONG_NAMED_BIT */
+pub const ReasonFlags_certificateHold: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_privilegeWithdrawn: BIT = 7; /* LONG_NAMED_BIT */
+pub const ReasonFlags_privilegeWithdrawn: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_aACompromise: BIT = 8; /* LONG_NAMED_BIT */
+pub const ReasonFlags_aACompromise: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const ReasonFlags_weakAlgorithmOrKey: BIT = 9; /* LONG_NAMED_BIT */
+pub const ReasonFlags_weakAlgorithmOrKey: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
 pub fn _decode_ReasonFlags(el: &X690Element) -> ASN1Result<ReasonFlags> {
     BER.decode_bit_string(&el)

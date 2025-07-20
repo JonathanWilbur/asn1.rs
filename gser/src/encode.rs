@@ -91,8 +91,8 @@ pub fn gser_encode_GeneralizedTimeValue (value: &GeneralizedTime) -> String {
 
 pub fn gser_encode_IntegerValue (value: &INTEGER) -> String {
     match read_i128(&value) {
-        Ok(i) => i.to_string(),
-        Err(_) => hex::encode(&value),
+        Some(i) => i.to_string(),
+        None => hex::encode(&value),
     }
 }
 

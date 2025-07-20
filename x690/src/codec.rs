@@ -976,10 +976,10 @@ pub trait X690Codec {
     fn encode_owned_bmp_string(&self, value: BMPString) -> ASN1Result<X690Element>;
 
     /// Encode a `UniversalString` value into an X.690 encoding
-    fn encode_universal_string(&self, value: &[u32]) -> ASN1Result<X690Element>;
+    fn encode_universal_string<T: AsRef<[u32]>>(&self, value: &T) -> ASN1Result<X690Element>;
 
     /// Encode a `BMPString` value into an X.690 encoding
-    fn encode_bmp_string(&self, value: &[u16]) -> ASN1Result<X690Element>;
+    fn encode_bmp_string<T: AsRef<[u16]>>(&self, value: &T) -> ASN1Result<X690Element>;
 
     /// Encode a `DATE` value into an X.690 encoding
     fn encode_date(&self, value: &DATE) -> ASN1Result<X690Element> {

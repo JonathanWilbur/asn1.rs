@@ -221,7 +221,7 @@ impl TryFrom<BMPString> for String {
         }
         Ok(ret)
     }
-}  
+}
 
 impl FromStr for BMPString {
 
@@ -306,6 +306,22 @@ impl Display for UniversalString {
         }
         Ok(())
     }
+}
+
+impl AsRef<[u16]> for BMPString {
+
+    fn as_ref(&self) -> &[u16] {
+        &self.0
+    }
+
+}
+
+impl AsRef<[u32]> for UniversalString {
+
+    fn as_ref(&self) -> &[u32] {
+        &self.0
+    }
+
 }
 
 #[cfg(test)]

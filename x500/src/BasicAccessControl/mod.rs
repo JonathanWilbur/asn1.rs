@@ -742,7 +742,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_AttributeType(&v)?);
@@ -761,7 +761,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_AttributeType(&v)?);
@@ -789,7 +789,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 5),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<AttributeTypeAndValue>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<AttributeTypeAndValue>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_AttributeTypeAndValue(&v)?);
@@ -809,7 +809,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 6),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<AttributeType>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_AttributeType(&v)?);
@@ -836,7 +836,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 8),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<MaxValueCount>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<MaxValueCount>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_MaxValueCount(&v)?);
@@ -863,7 +863,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 10),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<RestrictedValue>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<RestrictedValue>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_RestrictedValue(&v)?);
@@ -882,7 +882,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 11),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<ContextAssertion>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<ContextAssertion>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_ContextAssertion(&v)?);
@@ -909,7 +909,7 @@ pub fn _encode_ProtectedItems(value_: &ProtectedItems) -> ASN1Result<X690Element
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 30),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -1677,7 +1677,7 @@ pub fn _encode_UserClasses(value_: &UserClasses) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<NameAndOptionalUID>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<NameAndOptionalUID>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_NameAndOptionalUID(&v)?);
@@ -1696,7 +1696,7 @@ pub fn _encode_UserClasses(value_: &UserClasses) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<NameAndOptionalUID>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<NameAndOptionalUID>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_NameAndOptionalUID(&v)?);
@@ -1716,7 +1716,7 @@ pub fn _encode_UserClasses(value_: &UserClasses) -> ASN1Result<X690Element> {
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<SubtreeSpecification>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<SubtreeSpecification>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_SubtreeSpecification(&v)?);
@@ -2232,57 +2232,57 @@ pub fn _validate_AuthenticationLevel(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type GrantsAndDenials = BIT_STRING;
 
-pub const GrantsAndDenials_grantAdd: BIT = 0; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantAdd: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyAdd: BIT = 1; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyAdd: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantDiscloseOnError: BIT = 2; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantDiscloseOnError: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyDiscloseOnError: BIT = 3; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyDiscloseOnError: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantRead: BIT = 4; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantRead: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyRead: BIT = 5; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyRead: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantRemove: BIT = 6; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantRemove: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyRemove: BIT = 7; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyRemove: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantBrowse: BIT = 8; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantBrowse: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyBrowse: BIT = 9; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyBrowse: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantExport: BIT = 10; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantExport: BIT_INDEX = 10; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyExport: BIT = 11; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyExport: BIT_INDEX = 11; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantImport: BIT = 12; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantImport: BIT_INDEX = 12; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyImport: BIT = 13; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyImport: BIT_INDEX = 13; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantModify: BIT = 14; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantModify: BIT_INDEX = 14; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyModify: BIT = 15; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyModify: BIT_INDEX = 15; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantRename: BIT = 16; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantRename: BIT_INDEX = 16; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyRename: BIT = 17; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyRename: BIT_INDEX = 17; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantReturnDN: BIT = 18; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantReturnDN: BIT_INDEX = 18; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyReturnDN: BIT = 19; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyReturnDN: BIT_INDEX = 19; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantCompare: BIT = 20; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantCompare: BIT_INDEX = 20; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyCompare: BIT = 21; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyCompare: BIT_INDEX = 21; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantFilterMatch: BIT = 22; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantFilterMatch: BIT_INDEX = 22; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyFilterMatch: BIT = 23; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyFilterMatch: BIT_INDEX = 23; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_grantInvoke: BIT = 24; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_grantInvoke: BIT_INDEX = 24; /* LONG_NAMED_BIT */
 
-pub const GrantsAndDenials_denyInvoke: BIT = 25; /* LONG_NAMED_BIT */
+pub const GrantsAndDenials_denyInvoke: BIT_INDEX = 25; /* LONG_NAMED_BIT */
 
 pub fn _decode_GrantsAndDenials(el: &X690Element) -> ASN1Result<GrantsAndDenials> {
     BER.decode_bit_string(&el)

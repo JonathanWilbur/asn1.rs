@@ -482,7 +482,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<RequestAttribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<RequestAttribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_RequestAttribute(&v)?);
@@ -511,7 +511,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<ResultAttribute>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<ResultAttribute>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_ResultAttribute(&v)?);
@@ -578,7 +578,7 @@ pub fn _encode_SearchRule(value_: &SearchRule) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 12),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<AttributeType>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<AttributeType>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_AttributeType(&v)?);
@@ -968,11 +968,11 @@ pub fn _validate_SearchRuleId(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type AllowedSubset = BIT_STRING;
 
-pub const AllowedSubset_baseObject: BIT = 0; /* LONG_NAMED_BIT */
+pub const AllowedSubset_baseObject: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const AllowedSubset_oneLevel: BIT = 1; /* LONG_NAMED_BIT */
+pub const AllowedSubset_oneLevel: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const AllowedSubset_wholeSubtree: BIT = 2; /* LONG_NAMED_BIT */
+pub const AllowedSubset_wholeSubtree: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
 pub fn _decode_AllowedSubset(el: &X690Element) -> ASN1Result<AllowedSubset> {
     BER.decode_bit_string(&el)
@@ -1299,7 +1299,7 @@ pub fn _encode_RequestAttribute(value_: &RequestAttribute) -> ASN1Result<X690Ele
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<X690Element>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<X690Element>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(x690_identity(&v)?);
@@ -1340,7 +1340,7 @@ pub fn _encode_RequestAttribute(value_: &RequestAttribute) -> ASN1Result<X690Ele
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<ContextProfile>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<ContextProfile>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_ContextProfile(&v)?);
@@ -1369,7 +1369,7 @@ pub fn _encode_RequestAttribute(value_: &RequestAttribute) -> ASN1Result<X690Ele
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 5),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<MatchingUse>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<MatchingUse>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_MatchingUse(&v)?);
@@ -1846,7 +1846,7 @@ pub fn _encode_ContextCombination(value_: &ContextCombination) -> ASN1Result<X69
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<ContextCombination>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<ContextCombination>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_ContextCombination(&v)?);
@@ -1863,7 +1863,7 @@ pub fn _encode_ContextCombination(value_: &ContextCombination) -> ASN1Result<X69
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<ContextCombination>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<ContextCombination>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_ContextCombination(&v)?);
@@ -2220,7 +2220,7 @@ pub fn _encode_AttributeCombination(value_: &AttributeCombination) -> ASN1Result
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
                     X690Value::from_explicit(
-                        &|value_: &SEQUENCE_OF<AttributeCombination>| -> ASN1Result<X690Element> {
+                        |value_: &SEQUENCE_OF<AttributeCombination>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_AttributeCombination(&v)?);
@@ -2242,7 +2242,7 @@ pub fn _encode_AttributeCombination(value_: &AttributeCombination) -> ASN1Result
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 2),
                     X690Value::from_explicit(
-                        &|value_: &SEQUENCE_OF<AttributeCombination>| -> ASN1Result<X690Element> {
+                        |value_: &SEQUENCE_OF<AttributeCombination>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_AttributeCombination(&v)?);
@@ -2464,7 +2464,7 @@ pub fn _encode_ResultAttribute(value_: &ResultAttribute) -> ASN1Result<X690Eleme
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<ContextProfile>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<ContextProfile>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_ContextProfile(&v)?);
@@ -3109,7 +3109,7 @@ pub fn _encode_RelaxationPolicy(value_: &RelaxationPolicy) -> ASN1Result<X690Ele
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<MRMapping>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<MRMapping>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_MRMapping(&v)?);
@@ -3128,7 +3128,7 @@ pub fn _encode_RelaxationPolicy(value_: &RelaxationPolicy) -> ASN1Result<X690Ele
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<MRMapping>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<MRMapping>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_MRMapping(&v)?);
@@ -3404,7 +3404,7 @@ pub fn _encode_MRMapping(value_: &MRMapping) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 0),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<Mapping>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<Mapping>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_Mapping(&v)?);
@@ -3423,7 +3423,7 @@ pub fn _encode_MRMapping(value_: &MRMapping) -> ASN1Result<X690Element> {
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SEQUENCE_OF<MRSubstitution>| -> ASN1Result<X690Element> {
+                    |value_: &SEQUENCE_OF<MRSubstitution>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(_encode_MRSubstitution(&v)?);

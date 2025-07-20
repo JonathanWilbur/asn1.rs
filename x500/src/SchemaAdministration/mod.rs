@@ -351,7 +351,7 @@ pub fn _encode_DITStructureRuleDescription(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 1),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<UnboundedDirectoryString>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<UnboundedDirectoryString>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_UnboundedDirectoryString(&v)?);
@@ -815,7 +815,7 @@ pub fn _encode_DITContentRuleDescription(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -834,7 +834,7 @@ pub fn _encode_DITContentRuleDescription(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -853,7 +853,7 @@ pub fn _encode_DITContentRuleDescription(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -873,7 +873,7 @@ pub fn _encode_DITContentRuleDescription(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 4),
                     X690Value::from_explicit(
-                        &|value_: &SET_OF<UnboundedDirectoryString>| -> ASN1Result<X690Element> {
+                        |value_: &SET_OF<UnboundedDirectoryString>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_UnboundedDirectoryString(&v)?);
@@ -2630,7 +2630,7 @@ pub fn _encode_ObjectClassInformation(value_: &ObjectClassInformation) -> ASN1Re
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 3),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -2649,7 +2649,7 @@ pub fn _encode_ObjectClassInformation(value_: &ObjectClassInformation) -> ASN1Re
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 4),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -3569,7 +3569,7 @@ pub fn _encode_MatchingRuleUseDescription(
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
             X690Value::from_explicit(
-                &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(BER.encode_object_identifier(&v)?);
@@ -4662,7 +4662,7 @@ pub fn _encode_DITContextUseInformation(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 1),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -4681,7 +4681,7 @@ pub fn _encode_DITContextUseInformation(
             Ok(X690Element::new(
                 Tag::new(TagClass::CONTEXT, 2),
                 X690Value::from_explicit(
-                    &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                    |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                         for v in value_ {
                             children.push(BER.encode_object_identifier(&v)?);
@@ -5038,7 +5038,7 @@ pub fn _encode_FriendsDescription(value_: &FriendsDescription) -> ASN1Result<X69
         Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
             X690Value::from_explicit(
-                &|value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
+                |value_: &SET_OF<OBJECT_IDENTIFIER>| -> ASN1Result<X690Element> {
                     let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                     for v in value_ {
                         children.push(BER.encode_object_identifier(&v)?);

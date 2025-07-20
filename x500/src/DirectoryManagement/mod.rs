@@ -116,9 +116,9 @@ pub fn _validate_ApplicationContext(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type AssociationEstablishment = BIT_STRING;
 
-pub const AssociationEstablishment_inward: BIT = 0; /* LONG_NAMED_BIT */
+pub const AssociationEstablishment_inward: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const AssociationEstablishment_outward: BIT = 1; /* LONG_NAMED_BIT */
+pub const AssociationEstablishment_outward: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
 pub fn _decode_AssociationEstablishment(el: &X690Element) -> ASN1Result<AssociationEstablishment> {
     BER.decode_bit_string(&el)
@@ -643,17 +643,17 @@ pub fn _validate_MgtPrintableString(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type PeerEntityAuthenticationPolicy = BIT_STRING;
 
-pub const PeerEntityAuthenticationPolicy_none: BIT = 0; /* LONG_NAMED_BIT */
+pub const PeerEntityAuthenticationPolicy_none: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const PeerEntityAuthenticationPolicy_nameOnly: BIT = 1; /* LONG_NAMED_BIT */
+pub const PeerEntityAuthenticationPolicy_nameOnly: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const PeerEntityAuthenticationPolicy_simpleUnprotected: BIT = 2; /* LONG_NAMED_BIT */
+pub const PeerEntityAuthenticationPolicy_simpleUnprotected: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const PeerEntityAuthenticationPolicy_simpleProtected: BIT = 3; /* LONG_NAMED_BIT */
+pub const PeerEntityAuthenticationPolicy_simpleProtected: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const PeerEntityAuthenticationPolicy_strong: BIT = 4; /* LONG_NAMED_BIT */
+pub const PeerEntityAuthenticationPolicy_strong: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const PeerEntityAuthenticationPolicy_external: BIT = 5; /* LONG_NAMED_BIT */
+pub const PeerEntityAuthenticationPolicy_external: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
 pub fn _decode_PeerEntityAuthenticationPolicy(
     el: &X690Element,
@@ -720,11 +720,11 @@ pub fn _validate_RemoteDSAList(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type RequestAuthenticationPolicy = BIT_STRING;
 
-pub const RequestAuthenticationPolicy_none: BIT = 0; /* LONG_NAMED_BIT */
+pub const RequestAuthenticationPolicy_none: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const RequestAuthenticationPolicy_simpleName: BIT = 1; /* LONG_NAMED_BIT */
+pub const RequestAuthenticationPolicy_simpleName: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const RequestAuthenticationPolicy_strong: BIT = 2; /* LONG_NAMED_BIT */
+pub const RequestAuthenticationPolicy_strong: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
 pub fn _decode_RequestAuthenticationPolicy(
     el: &X690Element,
@@ -3904,23 +3904,23 @@ pub fn id_mpa_opIdDN () -> OBJECT_IDENTIFIER {
 /// ```
 pub type DirectoryInformationServiceElement_operationType = BIT_STRING;
 
-pub const DirectoryInformationServiceElement_operationType_read: BIT = 0; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_read: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_compare: BIT = 1; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_compare: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_abandon: BIT = 2; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_abandon: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_list: BIT = 3; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_list: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_search: BIT = 4; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_search: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_addEntry: BIT = 5; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_addEntry: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_removeEntry: BIT = 6; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_removeEntry: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_modifyEntry: BIT = 7; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_modifyEntry: BIT_INDEX = 7; /* LONG_NAMED_BIT */
 
-pub const DirectoryInformationServiceElement_operationType_modifyDN: BIT = 8; /* LONG_NAMED_BIT */
+pub const DirectoryInformationServiceElement_operationType_modifyDN: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
 pub fn _decode_DirectoryInformationServiceElement_operationType(
     el: &X690Element,
@@ -4320,7 +4320,7 @@ pub fn _encode_SubSchemaSyntax_Item_subSchema(
                 Ok(X690Element::new(
                     Tag::new(TagClass::CONTEXT, 6),
                     X690Value::from_explicit(
-                        &|value_: &SEQUENCE_OF<NameFormDescription>| -> ASN1Result<X690Element> {
+                        |value_: &SEQUENCE_OF<NameFormDescription>| -> ASN1Result<X690Element> {
                             let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
                             for v in value_ {
                                 children.push(_encode_NameFormDescription(&v)?);

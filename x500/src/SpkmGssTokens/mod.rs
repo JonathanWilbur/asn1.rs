@@ -1412,19 +1412,19 @@ pub fn _validate_ChannelId(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type Options = BIT_STRING;
 
-pub const Options_delegation_state: BIT = 0; /* LONG_NAMED_BIT */
+pub const Options_delegation_state: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const Options_mutual_state: BIT = 1; /* LONG_NAMED_BIT */
+pub const Options_mutual_state: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const Options_replay_det_state: BIT = 2; /* LONG_NAMED_BIT */
+pub const Options_replay_det_state: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
-pub const Options_sequence_state: BIT = 3; /* LONG_NAMED_BIT */
+pub const Options_sequence_state: BIT_INDEX = 3; /* LONG_NAMED_BIT */
 
-pub const Options_conf_avail: BIT = 4; /* LONG_NAMED_BIT */
+pub const Options_conf_avail: BIT_INDEX = 4; /* LONG_NAMED_BIT */
 
-pub const Options_integ_avail: BIT = 5; /* LONG_NAMED_BIT */
+pub const Options_integ_avail: BIT_INDEX = 5; /* LONG_NAMED_BIT */
 
-pub const Options_target_certif_data_required: BIT = 6; /* LONG_NAMED_BIT */
+pub const Options_target_certif_data_required: BIT_INDEX = 6; /* LONG_NAMED_BIT */
 
 pub fn _decode_Options(el: &X690Element) -> ASN1Result<Options> {
     BER.decode_bit_string(&el)

@@ -739,11 +739,11 @@ pub mod pwdVocabulary {
 /// ```
 pub type PwdVocabulary = BIT_STRING;
 
-pub const PwdVocabulary_noDictionaryWords: BIT = 0; /* LONG_NAMED_BIT */
+pub const PwdVocabulary_noDictionaryWords: BIT_INDEX = 0; /* LONG_NAMED_BIT */
 
-pub const PwdVocabulary_noPersonNames: BIT = 1; /* LONG_NAMED_BIT */
+pub const PwdVocabulary_noPersonNames: BIT_INDEX = 1; /* LONG_NAMED_BIT */
 
-pub const PwdVocabulary_noGeographicalNames: BIT = 2; /* LONG_NAMED_BIT */
+pub const PwdVocabulary_noGeographicalNames: BIT_INDEX = 2; /* LONG_NAMED_BIT */
 
 pub fn _decode_PwdVocabulary(el: &X690Element) -> ASN1Result<PwdVocabulary> {
     BER.decode_bit_string(&el)

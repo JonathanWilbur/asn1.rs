@@ -31,7 +31,6 @@ mod oraddress;
 mod univ_or_bmp;
 pub use country::*;
 pub use oraddress::*;
-pub use univ_or_bmp::*;
 use std::str::FromStr;
 
 /// ### ASN.1 Definition:
@@ -794,53 +793,53 @@ pub fn id_ad_ocsp () -> OBJECT_IDENTIFIER {
 /// ```
 pub type G3FacsimileNonBasicParameters = BIT_STRING;
 
-pub const G3FacsimileNonBasicParameters_two_dimensional: BIT = 8; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_two_dimensional: BIT_INDEX = 8; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_fine_resolution: BIT = 9; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_fine_resolution: BIT_INDEX = 9; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_unlimited_length: BIT = 20; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_unlimited_length: BIT_INDEX = 20; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_b4_length: BIT = 21; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_b4_length: BIT_INDEX = 21; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_a3_width: BIT = 22; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_a3_width: BIT_INDEX = 22; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_b4_width: BIT = 23; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_b4_width: BIT_INDEX = 23; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_t6_coding: BIT = 25; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_t6_coding: BIT_INDEX = 25; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_uncompressed: BIT = 30; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_uncompressed: BIT_INDEX = 30; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_width_middle_864_of_1728: BIT = 37; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_width_middle_864_of_1728: BIT_INDEX = 37; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_width_middle_1216_of_1728: BIT = 38; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_width_middle_1216_of_1728: BIT_INDEX = 38; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_resolution_type: BIT = 44; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_resolution_type: BIT_INDEX = 44; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_resolution_400x400: BIT = 45; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_resolution_400x400: BIT_INDEX = 45; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_resolution_300x300: BIT = 46; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_resolution_300x300: BIT_INDEX = 46; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_resolution_8x15: BIT = 47; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_resolution_8x15: BIT_INDEX = 47; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_edi: BIT = 49; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_edi: BIT_INDEX = 49; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_dtm: BIT = 50; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_dtm: BIT_INDEX = 50; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_bft: BIT = 51; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_bft: BIT_INDEX = 51; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_mixed_mode: BIT = 58; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_mixed_mode: BIT_INDEX = 58; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_character_mode: BIT = 60; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_character_mode: BIT_INDEX = 60; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_twelve_bits: BIT = 65; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_twelve_bits: BIT_INDEX = 65; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_preferred_huffmann: BIT = 66; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_preferred_huffmann: BIT_INDEX = 66; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_full_colour: BIT = 67; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_full_colour: BIT_INDEX = 67; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_jpeg: BIT = 68; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_jpeg: BIT_INDEX = 68; /* LONG_NAMED_BIT */
 
-pub const G3FacsimileNonBasicParameters_processable_mode_26: BIT = 71; /* LONG_NAMED_BIT */
+pub const G3FacsimileNonBasicParameters_processable_mode_26: BIT_INDEX = 71; /* LONG_NAMED_BIT */
 
 pub fn _decode_G3FacsimileNonBasicParameters(
     el: &X690Element,
@@ -1618,7 +1617,7 @@ pub fn _encode_AdministrationDomainName(
         Ok(X690Element::new(
             Tag::new(TagClass::APPLICATION, 2),
             X690Value::from_explicit(
-                &|value_: &AdministrationDomainName| -> ASN1Result<X690Element> {
+                |value_: &AdministrationDomainName| -> ASN1Result<X690Element> {
                     match value_ {
                         AdministrationDomainName::numeric(v) => BER.encode_numeric_string(&v),
                         AdministrationDomainName::printable(v) => BER.encode_printable_string(&v),

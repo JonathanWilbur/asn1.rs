@@ -5,6 +5,7 @@
 use wildboar_asn1::*;
 use x690::*;
 use std::str::FromStr;
+use bytes::Bytes;
 
 /// ### ASN.1 Definition:
 ///
@@ -77,11 +78,20 @@ pub fn _encode_owned_UnboundedDirectoryString(
     value_: UnboundedDirectoryString,
 ) -> ASN1Result<X690Element> {
     match value_ {
-        UnboundedDirectoryString::teletexString(v) => BER.encode_owned_t61_string(v),
-        UnboundedDirectoryString::printableString(v) => BER.encode_owned_printable_string(v),
-        UnboundedDirectoryString::bmpString(ref v) => BER.encode_bmp_string(&v),
-        UnboundedDirectoryString::universalString(ref v) => BER.encode_universal_string(&v),
-        UnboundedDirectoryString::uTF8String(v) => BER.encode_owned_utf8_string(v),
+        UnboundedDirectoryString::teletexString(v) => Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_T61_STRING),
+            X690Value::Primitive(Bytes::from(v)),
+        )),
+        UnboundedDirectoryString::printableString(v) => Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING),
+            X690Value::Primitive(Bytes::from(v)),
+        )),
+        UnboundedDirectoryString::bmpString(v) => BER.encode_owned_bmp_string(v),
+        UnboundedDirectoryString::universalString(v) => BER.encode_owned_universal_string(v),
+        UnboundedDirectoryString::uTF8String(v) => Ok(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
+            X690Value::Primitive(Bytes::from(v)),
+        )),
     }
 }
 
@@ -117,10 +127,22 @@ impl FromStr for UnboundedDirectoryString {
             return Ok(UnboundedDirectoryString::printableString(String::from(&s[15..])));
         }
         else if lowercased.starts_with("universalstring:") {
-            return Ok(UnboundedDirectoryString::universalString(String::from(&s[15..])));
+            let mut v: Vec<u32> = Vec::with_capacity(s.len());
+            for (i, c) in s[15..].chars().enumerate() {
+                let wc: u32 = c.try_into()
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::prohibited_character(c as u32, i)))?;
+                v.push(wc);
+            }
+            return Ok(UnboundedDirectoryString::universalString(UniversalString(v)));
         }
         else if lowercased.starts_with("bmpstring:") {
-            return Ok(UnboundedDirectoryString::bmpString(String::from(&s[9..])));
+            let mut v: Vec<u16> = Vec::with_capacity(s.len());
+            for (i, c) in s[9..].chars().enumerate() {
+                let wc: u16 = c.try_into()
+                    .map_err(|_| ASN1Error::new(ASN1ErrorCode::prohibited_character(c as u32, i)))?;
+                v.push(wc);
+            }
+            return Ok(UnboundedDirectoryString::bmpString(BMPString(v)));
         }
         else if lowercased.starts_with("teletexstring:") {
             return Ok(UnboundedDirectoryString::teletexString(Vec::from(&s[13..])));
