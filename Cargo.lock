@@ -1402,6 +1402,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ldapdn"
+version = "0.1.0"
+
+[[package]]
 name = "libc"
 version = "0.2.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
