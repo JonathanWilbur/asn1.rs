@@ -1,8 +1,36 @@
 //! https://datatracker.ietf.org/doc/html/rfc4514
 //! 
-use std::{borrow::Cow, iter::{FusedIterator}};
+use std::iter::{FusedIterator, DoubleEndedIterator};
+#[cfg(feature = "std")]
+use std::error::Error;
+#[cfg(feature = "std")]
+use std::fmt::Display;
 
-// TODO: Would this API be a lot better if the DN iterator just returned an RDN
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub struct EmptyRdnError;
+
+#[cfg(feature = "std")]
+impl Display for EmptyRdnError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Empty RDN")
+    }
+}
+
+#[cfg(feature = "std")]
+impl Error for EmptyRdnError {}
+
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub struct BadAttrTypeAndValError;
+
+#[cfg(feature = "std")]
+impl Display for BadAttrTypeAndValError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Malformed attribute type and value")
+    }
+}
+
+#[cfg(feature = "std")]
+impl Error for BadAttrTypeAndValError {}
 
 /// LDAP Attribute Type and Value
 ///
@@ -10,15 +38,15 @@ use std::{borrow::Cow, iter::{FusedIterator}};
 /// we always return the slice. The value may have escapes, though.
 pub type AttributeTypeAndValue<'a> = (&'a str, &'a str);
 
-pub fn atav_from_str <'a> (s: &'a str) -> Result<AttributeTypeAndValue<'a>, ()> {
+pub fn atav_from_str <'a> (s: &'a str) -> Result<AttributeTypeAndValue<'a>, BadAttrTypeAndValError> {
     let eq_pos = s.find('=');
     if eq_pos.is_none() {
-        return Err(());
+        return Err(BadAttrTypeAndValError);
     }
     let eq_pos = eq_pos.unwrap();
     let (attribute_type, attribute_value) = s.split_at(eq_pos);
     if attribute_type.is_empty() {
-        return Err(());
+        return Err(BadAttrTypeAndValError);
     }
     // Skip the '=' character
     let attribute_value = &attribute_value[1..];
@@ -30,11 +58,10 @@ pub struct RdnIterator<'a> {
     s: &'a str,
     escape: char,
     atav_delimiter: char,
-    had_error: bool,
 }
 
 impl <'a> Iterator for RdnIterator<'a> {
-    type Item = Result<AttributeTypeAndValue<'a>, ()>;
+    type Item = Result<AttributeTypeAndValue<'a>, BadAttrTypeAndValError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let s = self.s.trim_start();
@@ -50,21 +77,13 @@ impl <'a> Iterator for RdnIterator<'a> {
             if c == self.atav_delimiter && !prev_escape {
                 // We've found the end of the attribute type and value
                 let atav_str: &str = &s[..i];
-                self.s = &s[i+1..];
-                let atav = atav_from_str(atav_str);
-                if atav.is_err() {
-                    self.had_error = true;
-                }
-                return Some(atav);
+                self.s = &s[i+c.len_utf8()..];
+                return Some(atav_from_str(atav_str));
             }
             prev_escape = false;
         }
         self.s = "";
-        let atav = atav_from_str(s);
-        if atav.is_err() {
-            self.had_error = true;
-        }
-        Some(atav)
+        Some(atav_from_str(s))
     }
 
     /// Every attribute type and value must take up at least two characters:
@@ -95,20 +114,12 @@ impl<'a> DoubleEndedIterator for RdnIterator<'a> {
             if prev_delim && c != self.escape {
                 let atav_str: &str = &s[i+c.len_utf8()+self.escape.len_utf8()..];
                 self.s = &s[..i+c.len_utf8()];
-                let atav = atav_from_str(atav_str);
-                if atav.is_err() {
-                    self.had_error = true;
-                }
-                return Some(atav);
+                return Some(atav_from_str(atav_str));
             }
             prev_delim = false;
         }
         self.s = "";
-        let atav = atav_from_str(s);
-        if atav.is_err() {
-            self.had_error = true;
-        }
-        Some(atav)
+        Some(atav_from_str(s))
     }
 }
 
@@ -118,43 +129,30 @@ pub fn rdn_from_str_ex <'a> (s: &'a str, escape: char, atav_delimiter: char) -> 
         s,
         escape,
         atav_delimiter,
-        had_error: false,
     }
 }
 
 #[inline]
-pub fn rdn_from_str <'a> (s: &'a str) -> RdnIterator<'a> {
+pub fn rdn_from_str <'a> (s: &'a str) -> Result<RdnIterator<'a>, EmptyRdnError> {
     if s.is_empty() {
         // Return a fake iterator that will fail.
-        return RdnIterator { s: "a", escape: '\\', atav_delimiter: '+', had_error: false };
+        return Err(EmptyRdnError);
     }
-    rdn_from_str_ex(s, '\\', '+')
+    Ok(rdn_from_str_ex(s, '\\', '+'))
 }
 
 #[derive(Debug)]
 pub struct RdnSequenceIterator<'a> {
     s: &'a str,
-    rdn_iter: RdnIterator<'a>,
     escape: char,
     rdn_delimiter: char,
     atav_delimiter: char,
 }
 
 impl <'a> Iterator for RdnSequenceIterator<'a> {
-    /// The first boolean indicates whether the RDN incremented / decremented.
-    /// The second value is an attribute type and value.
-    /// 
-    /// One slight problem with this is that the boolean will not be the same
-    /// exact value when going forwards and backwards over a multi-valued RDN.
-    type Item = (bool, Result<AttributeTypeAndValue<'a>, ()>);
+    type Item = Result<RdnIterator<'a>, EmptyRdnError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.rdn_iter.had_error {
-            return None;
-        }
-        if let Some(atav) = self.rdn_iter.next() {
-            return Some((false, atav));
-        }
         let s = self.s.trim_start();
         if s.is_empty() {
             return None;
@@ -168,24 +166,25 @@ impl <'a> Iterator for RdnSequenceIterator<'a> {
             if c == self.rdn_delimiter && !prev_escape {
                 // We've found the end of the relative distinguished name
                 let rdn_str: &str = &s[..i];
+                self.s = &s[i+c.len_utf8()..];
                 if rdn_str.is_empty() {
-                    self.s = "";
-                    return Some((true, Err(())));
+                    // We have to handle this here, because the empty string
+                    // is not a valid RDN, but it is indistinguishable from
+                    // the end of the iterator as well.
+                    return Some(Err(EmptyRdnError));
                 }
-                self.s = &s[i+1..];
-                self.rdn_iter = rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter);
-                if let Some(atav) = self.rdn_iter.next() {
-                    return Some((true, atav));
-                }
+                return Some(Ok(rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter)));
             }
             prev_escape = false;
         }
-        self.rdn_iter = rdn_from_str_ex(self.s, self.escape, self.atav_delimiter);
-        self.s = "";
-        if let Some(atav) = self.rdn_iter.next() {
-            return Some((true, atav));
+        if s.is_empty() {
+            // We have to handle this here, because the empty string
+            // is not a valid RDN, but it is indistinguishable from
+            // the end of the iterator as well.
+            return Some(Err(EmptyRdnError));
         }
-        None
+        self.s = "";
+        return Some(Ok(rdn_from_str_ex(s, self.escape, self.atav_delimiter)));
     }
 
     /// Every attribute type and value must take up at least two characters:
@@ -202,12 +201,6 @@ impl <'a> FusedIterator for RdnSequenceIterator<'a> {}
 
 impl<'a> DoubleEndedIterator for RdnSequenceIterator<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.rdn_iter.had_error {
-            return None;
-        }
-        if let Some(atav) = self.rdn_iter.next_back() {
-            return Some((false, atav));
-        }
         let s = self.s.trim_end();
         if s.is_empty() {
             return None;
@@ -220,24 +213,25 @@ impl<'a> DoubleEndedIterator for RdnSequenceIterator<'a> {
             }
             if prev_delim && c != self.escape {
                 let rdn_str: &str = &s[i+c.len_utf8()+self.escape.len_utf8()..];
-                if rdn_str.is_empty() {
-                    self.s = "";
-                    return Some((true, Err(())));
-                }
                 self.s = &s[..i+c.len_utf8()];
-                self.rdn_iter = rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter);
-                if let Some(atav) = self.rdn_iter.next_back() {
-                    return Some((true, atav));
+                if rdn_str.is_empty() {
+                    // We have to handle this here, because the empty string
+                    // is not a valid RDN, but it is indistinguishable from
+                    // the end of the iterator as well.
+                    return Some(Err(EmptyRdnError));
                 }
+                return Some(Ok(rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter)));
             }
             prev_delim = false;
         }
-        self.rdn_iter = rdn_from_str_ex(self.s, self.escape, self.atav_delimiter);
-        self.s = "";
-        if let Some(atav) = self.rdn_iter.next_back() {
-            return Some((true, atav));
+        if s.is_empty() {
+            // We have to handle this here, because the empty string
+            // is not a valid RDN, but it is indistinguishable from
+            // the end of the iterator as well.
+            return Some(Err(EmptyRdnError));
         }
-        None
+        self.s = "";
+        return Some(Ok(rdn_from_str_ex(s, self.escape, self.atav_delimiter)));
     }
 }
 
@@ -253,8 +247,6 @@ pub fn dn_from_str_ex <'a> (
         escape,
         rdn_delimiter,
         atav_delimiter,
-        // This is going to get replaced later.
-        rdn_iter: RdnIterator { s: "", escape, atav_delimiter, had_error: false },
     }
 }
 
@@ -275,7 +267,6 @@ pub fn dn_from_str <'a> (s: &'a str) -> RdnSequenceIterator<'a> {
 
 // }
 
-// TODO: getRDN
 
 // pub fn get_rdn_from_dn <'a> (dn: &'a str, rdn_index: usize) -> Option<AttributeTypeAndValue<'a>> {
 //     let mut dn_iter = dn_from_str(dn);
@@ -297,34 +288,31 @@ mod tests {
         let s = "2.5.4.42=#0c084a6f6e617468616e+2.5.4.4=Wilbur,2.5.4.8=#0c07466c6f72696461,2.5.4.6=#0c025553";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.42");
         assert_eq!(atav.1, "#0c084a6f6e617468616e");
-
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, false);
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.4");
         assert_eq!(atav.1, "Wilbur");
+        assert_eq!(rdn_iter.next(), None);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.8");
         assert_eq!(atav.1, "#0c07466c6f72696461");
+        assert_eq!(rdn_iter.next(), None);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.6");
         assert_eq!(atav.1, "#0c025553");
+        assert_eq!(rdn_iter.next(), None);
 
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
@@ -332,34 +320,31 @@ mod tests {
         let s = "2.5.4.42=#0c084a6f6e617468616e+2.5.4.4=#0c0657696c627572,2.5.4.8=#0c07466c6f72696461,2.5.4.6=#0c025553";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.42");
         assert_eq!(atav.1, "#0c084a6f6e617468616e");
-
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, false);
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.4");
         assert_eq!(atav.1, "#0c0657696c627572");
+        assert_eq!(rdn_iter.next(), None);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.8");
         assert_eq!(atav.1, "#0c07466c6f72696461");
+        assert_eq!(rdn_iter.next(), None);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.6");
         assert_eq!(atav.1, "#0c025553");
+        assert_eq!(rdn_iter.next(), None);
 
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
@@ -367,34 +352,31 @@ mod tests {
         let s = "2.5.4.42=Jona\\\\than\\00+2.5.4.4=von\\ Wilbur\\, III,2.5.4.8=#0c07466c6f72696461,2.5.4.6=\\#US";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.42");
         assert_eq!(atav.1, "Jona\\\\than\\00");
-
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, false);
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.4");
         assert_eq!(atav.1, "von\\ Wilbur\\, III");
+        assert_eq!(rdn_iter.next(), None);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.8");
         assert_eq!(atav.1, "#0c07466c6f72696461");
+        assert_eq!(rdn_iter.next(), None);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.6");
         assert_eq!(atav.1, "\\#US");
+        assert_eq!(rdn_iter.next(), None);
 
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
@@ -402,35 +384,34 @@ mod tests {
         let s = "2.5.4.3=AD\\ Collective\\ Attributes";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.3");
         assert_eq!(atav.1, "AD\\ Collective\\ Attributes");
+        assert_eq!(rdn_iter.next(), None);
 
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
     fn parse_empty_dn() {
         let s = "";
         let mut dn_iter = dn_from_str(s);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
     fn parse_rdn_1() {
         let s = "2.5.4.3=AD\\ Collective\\ Attributes";
-        let mut rdn_iter = rdn_from_str(s);
+        let mut rdn_iter = rdn_from_str(s).unwrap();
 
-        let atav = rdn_iter.next().unwrap();
-        let atav = atav.unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.3");
         assert_eq!(atav.1, "AD\\ Collective\\ Attributes");
 
@@ -443,7 +424,7 @@ mod tests {
     #[test]
     fn parse_rdn_2() {
         let s = "2.5.4.42=Jona\\\\than\\00+2.5.4.4=von\\ Wilbur\\, III+2.5.4.6=\\#US";
-        let mut rdn_iter = rdn_from_str(s);
+        let mut rdn_iter = rdn_from_str(s).unwrap();
 
         let atav = rdn_iter.next().unwrap();
         let atav = atav.unwrap();
@@ -469,55 +450,71 @@ mod tests {
     #[test]
     fn parse_empty_rdn() {
         let s = "";
-        let mut rdn_iter = rdn_from_str(s);
-        let atav = rdn_iter.next().unwrap();
-        assert!(atav.is_err());
-        assert_eq!(rdn_iter.next(), None);
-        assert_eq!(rdn_iter.next(), None);
-        assert_eq!(rdn_iter.next(), None);
-        assert_eq!(rdn_iter.next(), None);
+        let rdn_iter = rdn_from_str(s);
+        assert!(rdn_iter.is_err());
     }
 
     #[test]
     fn parse_malformed_dn_1() {
         let s = "hello,world,no,equals";
         let mut dn_iter = dn_from_str(s);
-        let (_, atav) = dn_iter.next().unwrap();
-        assert!(atav.is_err());
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+        
+        for _ in 0..4 {
+            let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+            let maybe_atav = rdn_iter.next().unwrap();
+            assert!(maybe_atav.is_err());
+            assert_eq!(rdn_iter.next(), None);
+        }
+            
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
     fn parse_malformed_dn_2() {
         let s = ",,,,";
         let mut dn_iter = dn_from_str(s);
-        let (_, atav) = dn_iter.next().unwrap();
-        assert!(atav.is_err());
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+        
+        for _ in 0..4 {
+            let maybe_rdn_iter = dn_iter.next().unwrap();
+            assert!(maybe_rdn_iter.is_err());
+        }
+
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
     fn parse_malformed_dn_3() {
-        let s = ",+,+,+,";
+        let s = "+,+";
         let mut dn_iter = dn_from_str(s);
-        let (_, atav) = dn_iter.next().unwrap();
-        assert!(atav.is_err());
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next(), None);
+
+        // This malformation manifests as errors when parsing the ATAVs,
+        // but that is fine.
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let maybe_atav = rdn_iter.next().unwrap();
+        assert!(maybe_atav.is_err());
+        assert_eq!(rdn_iter.next(), None);
+
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let maybe_atav = rdn_iter.next().unwrap();
+        assert!(maybe_atav.is_err());
+        assert_eq!(rdn_iter.next(), None);
+
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
     #[test]
     fn parse_rdn_reverse_1() {
         let s = "2.5.4.42=Jona\\\\than\\00+2.5.4.4=von\\ Wilbur\\, III+2.5.4.6=\\#US";
-        let mut rdn_iter = rdn_from_str(s);
+        let mut rdn_iter = rdn_from_str(s).unwrap();
 
         let atav = rdn_iter.next_back().unwrap();
         let atav = atav.unwrap();
@@ -545,34 +542,30 @@ mod tests {
         let s = "2.5.4.42=Jona\\\\than\\00+2.5.4.4=von\\ Wilbur\\, III,2.5.4.8=#0c07466c6f72696461,2.5.4.6=\\#US";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.6");
         assert_eq!(atav.1, "\\#US");
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.8");
         assert_eq!(atav.1, "#0c07466c6f72696461");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.4");
         assert_eq!(atav.1, "von\\ Wilbur\\, III");
-
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, false);
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.42");
         assert_eq!(atav.1, "Jona\\\\than\\00");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
     }
 
     #[test]
@@ -580,34 +573,31 @@ mod tests {
         let s = "2.5.4.42=#0c084a6f6e617468616e+2.5.4.4=Wilbur,2.5.4.8=#0c07466c6f72696461,2.5.4.6=#0c025553";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.6");
         assert_eq!(atav.1, "#0c025553");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.8");
         assert_eq!(atav.1, "#0c07466c6f72696461");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.4");
         assert_eq!(atav.1, "Wilbur");
-
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, false);
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.42");
         assert_eq!(atav.1, "#0c084a6f6e617468616e");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
     }
 
     #[test]
@@ -615,82 +605,92 @@ mod tests {
         let s = "2.5.4.42=#0c084a6f6e617468616e+2.5.4.4=#0c0657696c627572,2.5.4.8=#0c07466c6f72696461,2.5.4.6=#0c025553";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.6");
         assert_eq!(atav.1, "#0c025553");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.8");
         assert_eq!(atav.1, "#0c07466c6f72696461");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.4");
         assert_eq!(atav.1, "#0c0657696c627572");
-
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, false);
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.42");
         assert_eq!(atav.1, "#0c084a6f6e617468616e");
+        assert_eq!(rdn_iter.next_back(), None);
 
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next_back(), None);
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next_back().is_none());
     }
 
-    // This test is broken because forwards and backwards share an RDN iterator.
-    // You'll have to make one for each direction.
-    // Check if the string overlaps perfectly. If so, both are in the same RDN.
-    // If an ATAV is read from an overlapping RDN, both must be modified.
-    //
-    // UPDATE: Now the problem is that the RDN is consumed greedily by one iterator.
     #[test]
     fn parse_dn_double_ended_1() {
         let s = "2.5.4.8=#0c07466c6f72696461,2.5.4.42=#0c084a6f6e617468616e+2.5.4.4=#0c0657696c627572,2.5.4.6=#0c025553";
         let mut dn_iter = dn_from_str(s);
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.8");
         assert_eq!(atav.1, "#0c07466c6f72696461");
 
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next_back().unwrap().unwrap();
+        let atav = rdn_iter.next_back().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.6");
         assert_eq!(atav.1, "#0c025553");
 
-        let (rdn_index, atav) = dn_iter.next().unwrap();
-        let atav = atav.unwrap();
-        assert_eq!(rdn_index, true);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.42");
         assert_eq!(atav.1, "#0c084a6f6e617468616e");
-
-        let (rdn_index, atav) = dn_iter.next_back().unwrap();
-        let atav = atav.unwrap();
-        /* This is broken, and that is accepted. It happens because forwards and backwards
-        share the same RDN iterator, and the DN iterator returns a `true` to indicate
-        the start of a new RDN only if a new RDN iterator is created. It is in the
-        documentation that this cannot be trusted when iterating in both directions. */
-        // assert_eq!(rdn_index, true);
+        let atav = rdn_iter.next().unwrap().unwrap();
         assert_eq!(atav.0, "2.5.4.4");
         assert_eq!(atav.1, "#0c0657696c627572");
+        assert_eq!(rdn_iter.next(), None);
+        assert_eq!(rdn_iter.next_back(), None);
 
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next(), None);
-        assert_eq!(dn_iter.next_back(), None);
-        assert_eq!(dn_iter.next(), None);
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next().is_none());
+        assert!(dn_iter.next_back().is_none());
+        assert!(dn_iter.next().is_none());
     }
 
-    // FIXME: If the iterator ends meet at a multi-valued RDN, they could overlap.
-    // TODO: Test size_hint
+    #[test]
+    fn parse_rdn_size_hint_1() {
+        let s = "2.5.4.42=Jona\\\\than\\00+2.5.4.4=von\\ Wilbur";
+        let rdn_iter = rdn_from_str(s).unwrap();
+        assert_eq!(rdn_iter.size_hint(), (0, Some(s.len() >> 1)));
+    }
+
+    #[test]
+    fn parse_dn_size_hint_1() {
+        let s = "2.5.4.42=Jona\\\\than\\00+2.5.4.4=von\\ Wilbur\\, III+2.5.4.6=\\#US";
+        let dn_iter = dn_from_str(s);
+        assert_eq!(dn_iter.size_hint(), (0, Some(s.len() >> 1)));
+    }
+
+    #[test]
+    fn parse_rdn_size_hint_2() {
+        let s = "";
+        let rdn_iter = rdn_from_str(s);
+        assert!(rdn_iter.is_err());
+    }
+
+    #[test]
+    fn parse_dn_size_hint_2() {
+        let s = "";
+        let dn_iter = dn_from_str(s);
+        assert_eq!(dn_iter.size_hint(), (0, Some(0)));
+    }
 
 }
+
+// TODO: Check for trailing escape character
