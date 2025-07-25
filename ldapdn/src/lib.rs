@@ -1,17 +1,21 @@
-//! https://datatracker.ietf.org/doc/html/rfc4514
-//! 
-use std::iter::{FusedIterator, DoubleEndedIterator};
+//! LDAP Distinguished Name (DN) parsing per IETF RFC 4514
+//!
+//! See: <https://datatracker.ietf.org/doc/html/rfc4514>
+#![doc = include_str!("../README.md")]
+#![no_std]
+use core::iter::{FusedIterator, DoubleEndedIterator};
 #[cfg(feature = "std")]
-use std::error::Error;
+use core::error::Error;
 #[cfg(feature = "std")]
-use std::fmt::Display;
+use core::fmt::Display;
 
+/// Error returned upon encountering an empty RDN
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct EmptyRdnError;
 
 #[cfg(feature = "std")]
 impl Display for EmptyRdnError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Empty RDN")
     }
 }
@@ -19,12 +23,14 @@ impl Display for EmptyRdnError {
 #[cfg(feature = "std")]
 impl Error for EmptyRdnError {}
 
+/// Error returned upon encountering a malformed `AttributeTypeAndValue`
+/// (usually by not including an equals sign).
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct BadAttrTypeAndValError;
 
 #[cfg(feature = "std")]
 impl Display for BadAttrTypeAndValError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Malformed attribute type and value")
     }
 }
@@ -38,6 +44,9 @@ impl Error for BadAttrTypeAndValError {}
 /// we always return the slice. The value may have escapes, though.
 pub type AttributeTypeAndValue<'a> = (&'a str, &'a str);
 
+/// Parse an `AttributeTypeAndValue` from a `str`
+///
+/// The separator between the type and the value is the equals sign `'='`.
 pub fn atav_from_str <'a> (s: &'a str) -> Result<AttributeTypeAndValue<'a>, BadAttrTypeAndValError> {
     let eq_pos = s.find('=');
     if eq_pos.is_none() {
@@ -53,6 +62,7 @@ pub fn atav_from_str <'a> (s: &'a str) -> Result<AttributeTypeAndValue<'a>, BadA
     Ok((attribute_type.trim(), attribute_value.trim()))
 }
 
+/// Iterater over the `AttributeTypeAndValue`s of a relative distinguished name
 #[derive(Debug)]
 pub struct RdnIterator<'a> {
     s: &'a str,
@@ -123,24 +133,42 @@ impl<'a> DoubleEndedIterator for RdnIterator<'a> {
     }
 }
 
+/// Parse an LDAP relative distinguished name from a `str`
+///
+/// Returns an [RdnIterator], or an [EmptyRdnError] if it is empty.
+///
+/// ## Arguments
+/// - `s` is the string to be parsed
+/// - `escape` is the escape character used
+/// - `atav_delimiter` is the delimiter between `AttributeTypeAndValue`s
 #[inline]
-pub fn rdn_from_str_ex <'a> (s: &'a str, escape: char, atav_delimiter: char) -> RdnIterator<'a> {
-    RdnIterator{
-        s,
-        escape,
-        atav_delimiter,
-    }
-}
-
-#[inline]
-pub fn rdn_from_str <'a> (s: &'a str) -> Result<RdnIterator<'a>, EmptyRdnError> {
+pub fn rdn_from_str_ex <'a> (s: &'a str, escape: char, atav_delimiter: char) -> Result<RdnIterator<'a>, EmptyRdnError> {
     if s.is_empty() {
         // Return a fake iterator that will fail.
         return Err(EmptyRdnError);
     }
-    Ok(rdn_from_str_ex(s, '\\', '+'))
+    Ok(RdnIterator{
+        s,
+        escape,
+        atav_delimiter,
+    })
 }
 
+/// Parse an LDAP relative distinguished name from a `str`
+///
+/// Parses according to
+/// [IETF RFC 4514](https://datatracker.ietf.org/doc/html/rfc4514).
+///
+/// Returns an [RdnIterator], or an [EmptyRdnError] if it is empty.
+///
+/// ## Arguments
+/// - `s` is the string to be parsed
+#[inline]
+pub fn rdn_from_str <'a> (s: &'a str) -> Result<RdnIterator<'a>, EmptyRdnError> {
+    rdn_from_str_ex(s, '\\', '+')
+}
+
+/// Iterater over the relative distinguished names of a distinguished name
 #[derive(Debug)]
 pub struct RdnSequenceIterator<'a> {
     s: &'a str,
@@ -173,7 +201,7 @@ impl <'a> Iterator for RdnSequenceIterator<'a> {
                     // the end of the iterator as well.
                     return Some(Err(EmptyRdnError));
                 }
-                return Some(Ok(rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter)));
+                return Some(rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter));
             }
             prev_escape = false;
         }
@@ -184,7 +212,7 @@ impl <'a> Iterator for RdnSequenceIterator<'a> {
             return Some(Err(EmptyRdnError));
         }
         self.s = "";
-        return Some(Ok(rdn_from_str_ex(s, self.escape, self.atav_delimiter)));
+        return Some(rdn_from_str_ex(s, self.escape, self.atav_delimiter));
     }
 
     /// Every attribute type and value must take up at least two characters:
@@ -220,7 +248,7 @@ impl<'a> DoubleEndedIterator for RdnSequenceIterator<'a> {
                     // the end of the iterator as well.
                     return Some(Err(EmptyRdnError));
                 }
-                return Some(Ok(rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter)));
+                return Some(rdn_from_str_ex(rdn_str, self.escape, self.atav_delimiter));
             }
             prev_delim = false;
         }
@@ -231,10 +259,19 @@ impl<'a> DoubleEndedIterator for RdnSequenceIterator<'a> {
             return Some(Err(EmptyRdnError));
         }
         self.s = "";
-        return Some(Ok(rdn_from_str_ex(s, self.escape, self.atav_delimiter)));
+        return Some(rdn_from_str_ex(s, self.escape, self.atav_delimiter));
     }
 }
 
+/// Parse an LDAP distinguished name from a `str`
+///
+/// Returns an [RdnSequenceIterator].
+///
+/// ## Arguments
+/// - `s` is the string to be parsed
+/// - `escape` is the escape character used
+/// - `rdn_delimiter` is the delimiter between relative distinguished names
+/// - `atav_delimiter` is the delimiter between `AttributeTypeAndValue`s
 #[inline]
 pub fn dn_from_str_ex <'a> (
     s: &'a str,
@@ -250,38 +287,66 @@ pub fn dn_from_str_ex <'a> (
     }
 }
 
+/// Parse an LDAP distinguished name from a `str`
+///
+/// Parses according to
+/// [IETF RFC 4514](https://datatracker.ietf.org/doc/html/rfc4514).
+///
+/// Returns an [RdnSequenceIterator].
+///
+/// ## Arguments
+/// - `s` is the string to be parsed
+/// - `escape` is the escape character used
+/// - `rdn_delimiter` is the delimiter between relative distinguished names
+/// - `atav_delimiter` is the delimiter between `AttributeTypeAndValue`s
 #[inline]
 pub fn dn_from_str <'a> (s: &'a str) -> RdnSequenceIterator<'a> {
     dn_from_str_ex(s, '\\', ',', '+')
 }
 
-// pub fn atav_to_str <'a> (atav: AttributeTypeAndValue<'a>) -> String {
+// pub fn unescape_slice(s: &mut str) -> bool {
+//     let mut escaped: bool = false;
+//     for c in s.chars() {
+//         if escaped {
 
+//         }
+//         if c == '\\' {
+//             escaped = true;
+//         }
+//     }
 // }
-
-// pub fn rdn_to_str <'a> (rdn: &[AttributeTypeAndValue<'a>]) -> String {
-
-// }
-
-// pub fn dn_to_str <'a> (rdn: &[AttributeTypeAndValue<'a>]) -> String {
-
-// }
-
-
-// pub fn get_rdn_from_dn <'a> (dn: &'a str, rdn_index: usize) -> Option<AttributeTypeAndValue<'a>> {
-//     let mut dn_iter = dn_from_str(dn);
-//     // for (i, atav) in dn_iter {
-//     //     if i == rdn_index {
-//     //         return Some(atav);
-//     //     }
-//     // }
-// }
-
-
 
 #[cfg(test)]
 mod tests {
     use super::{dn_from_str, rdn_from_str};
+
+    #[test]
+    fn doc_parse_dn() {
+        let s = "gn=Jonathan+sn=Wilbur,st=FL,c=US";
+        let dn_iter = dn_from_str(s);
+
+        let mut atav_count = 0;
+        for rdn in dn_iter {
+            // Iteration #1: iterates over "gn=Jonathan+sn=Wilbur"
+            // Iteration #2: iterates over "st=FL"
+            // Iteration #3: iterates over "c=US"
+            let rdn_iter = rdn.expect("empty rdn");
+            for maybe_atav in rdn_iter {
+                let atav = maybe_atav.expect("malformed attribute type and value");
+                let (attr_type, attr_value) = atav;
+                match attr_type {
+                    "gn" => assert_eq!(attr_value, "Jonathan"),
+                    "sn" => assert_eq!(attr_value, "Wilbur"),
+                    "st" => assert_eq!(attr_value, "FL"),
+                    "c" => assert_eq!(attr_value, "US"),
+                    _ => panic!(),
+                };
+                atav_count += 1;
+            }
+        }
+        assert_eq!(atav_count, 4);
+    }
+
 
     #[test]
     fn parse_dn_1() {
@@ -458,14 +523,14 @@ mod tests {
     fn parse_malformed_dn_1() {
         let s = "hello,world,no,equals";
         let mut dn_iter = dn_from_str(s);
-        
+
         for _ in 0..4 {
             let mut rdn_iter = dn_iter.next().unwrap().unwrap();
             let maybe_atav = rdn_iter.next().unwrap();
             assert!(maybe_atav.is_err());
             assert_eq!(rdn_iter.next(), None);
         }
-            
+
         assert!(dn_iter.next().is_none());
         assert!(dn_iter.next().is_none());
         assert!(dn_iter.next().is_none());
@@ -476,7 +541,7 @@ mod tests {
     fn parse_malformed_dn_2() {
         let s = ",,,,";
         let mut dn_iter = dn_from_str(s);
-        
+
         for _ in 0..4 {
             let maybe_rdn_iter = dn_iter.next().unwrap();
             assert!(maybe_rdn_iter.is_err());
