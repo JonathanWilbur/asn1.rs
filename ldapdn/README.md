@@ -7,9 +7,16 @@ heap allocations or copies of strings, so it should be Blazing Fast(tm),
 although this has not been tested against other implementations. It also does
 not require the standard library or any dependencies.
 
+This crate has been fuzz-tested. It checks for an odd number of trailing
+slashes in attribute values to prevent injection attacks.
+
 ## Usage
 
-```rust,ignore
+You can parse LDAP distinguished names like so:
+
+```rust
+use ldapdn::parse::dn_from_str;
+
 let s = "gn=Jonathan+sn=Wilbur,st=FL,c=US";
 let dn_iter = dn_from_str(s);
 
@@ -35,13 +42,50 @@ for rdn in dn_iter {
 assert_eq!(atav_count, 4);
 ```
 
+The attribute values returned a **NOT ESCAPED**. You will have to do this as a
+separate step, if you believe you need it.
+
+You can unescape LDAP attribute values using one of these four
+functions:
+
+- `unescape_ldap_value_inplace` - Unescape a mutable byte slice in place
+- `unescape_ldap_value_string` - Unescape a mutable string in place
+- `unescape_ldap_value_cow` - Unescape a mutable byte slice, returning a clone if unescaping occurred
+- `unescape_ldap_value_string_cow` - Unescape a mutable string, returning a clone if unescaping occurred
+
+Here is an example of usage:
+
+```rust
+extern crate alloc;
+use alloc::vec::Vec;
+use alloc::string::String;
+use ldapdn::escape::{
+    unescape_ldap_value_inplace,
+    unescape_ldap_value_string_cow,
+};
+
+let mut bytes = Vec::from(b"James \\\"Jim\\\" Smith\\, III");
+let result = unescape_ldap_value_inplace(&mut bytes);
+assert_eq!(&bytes[..result], b"James \"Jim\" Smith, III");
+
+let mut s = String::from("James \\\"Jim\\\" Smith\\, III");
+let unescaped = unescape_ldap_value_string_cow(&mut s).expect("bad utf-8 encoding");
+let new_s = unescaped.as_ref();
+assert_eq!(new_s, "James \"Jim\" Smith, III");
+```
+
 ## `no_std` Usage
 
-Just set `features` to `[]` in your `Cargo.toml`.
+This crate can function without a standard library (`no_std`).
+
+The lone feature flag `alloc` is enabled by default, and it turns on
+`unescape_ldap_value_cow` and `unescape_ldap_value_string_cow`,
+which are useful if it is inconvenient to obtain a mutable reference to an
+attribute value string.
 
 ## AI Usage Statement
 
 None of the code for parsing distinguished names was produced by an AI or LLM
 of any kind. The code for unescaping attribute values used in distinguished
-names was initially written by AI / LLM, and the unit tests were as well; both
-were validated by the author.
+names was initially written by AI / LLM, but were then heavily modified. The
+unit tests were written by AI / LLM, but verified by the author of this crate.
