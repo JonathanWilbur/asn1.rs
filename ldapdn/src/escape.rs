@@ -1,5 +1,11 @@
-
-
+#[cfg(feature = "alloc")]
+extern crate alloc;
+#[cfg(feature = "alloc")]
+use alloc::borrow::Cow;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use alloc::string::String;
 
 /// Unescape an LDAP attribute value in-place according to RFC 4514
 ///
@@ -112,6 +118,115 @@ pub fn unescape_ldap_value_string(s: &mut str) -> Result<&str, core::str::Utf8Er
     core::str::from_utf8(&bytes[..len])
 }
 
+/// Unescape an LDAP attribute value, returning a Cow<[u8]>
+///
+/// This function efficiently handles LDAP value unescaping by returning a `Cow<[u8]>`.
+/// If no unescaping is needed, it returns `Cow::Borrowed` with a reference to the original data.
+/// If unescaping is required, it returns `Cow::Owned` with the unescaped bytes.
+///
+/// ## Arguments
+/// - `bytes`: A byte slice containing the potentially escaped LDAP value
+///
+/// ## Returns
+/// - `Cow<[u8]>` containing either the original bytes (if no unescaping needed) or the unescaped bytes
+///
+/// ## Examples
+/// ```
+/// extern crate alloc;
+/// use ldapdn::escape::unescape_ldap_value_cow;
+/// use alloc::borrow::Cow;
+/// 
+/// // No unescaping needed
+/// let result = unescape_ldap_value_cow(b"Hello World");
+/// assert!(matches!(result, Cow::Borrowed(_)));
+/// 
+/// // Unescaping needed
+/// let result = unescape_ldap_value_cow(b"\\00\\01Hello");
+/// assert!(matches!(result, Cow::Owned(_)));
+/// ```
+#[cfg(feature = "alloc")]
+pub fn unescape_ldap_value_cow(bytes: &[u8]) -> Cow<[u8]> {
+    let needs_unescaping = bytes.iter().any(|b| *b == b'\\');
+    if !needs_unescaping {
+        return Cow::Borrowed(bytes);
+    }
+
+    // Second pass: perform unescaping
+    let mut result = Vec::with_capacity(bytes.len());
+    let mut read_pos = 0;
+
+    while read_pos < bytes.len() {
+        if bytes[read_pos] == b'\\' && read_pos + 1 < bytes.len() {
+            let next_byte = bytes[read_pos + 1];
+
+            if next_byte.is_ascii_hexdigit() && read_pos + 2 < bytes.len() {
+                let hex_high = next_byte;
+                let hex_low = bytes[read_pos + 2];
+
+                if hex_low.is_ascii_hexdigit() {
+                    let decoded_byte = hex_to_byte(hex_high, hex_low);
+                    result.push(decoded_byte);
+                    read_pos += 3;
+                    continue;
+                }
+            } else if is_backslash_escaped_char(next_byte) {
+                result.push(next_byte);
+                read_pos += 2;
+                continue;
+            }
+        }
+
+        result.push(bytes[read_pos]);
+        read_pos += 1;
+    }
+
+    Cow::Owned(result)
+}
+
+/// Unescape an LDAP attribute value string, returning a Cow<str>
+///
+/// This function efficiently handles LDAP string unescaping by returning a `Cow<str>`.
+/// If no unescaping is needed, it returns `Cow::Borrowed` with a reference to the original string.
+/// If unescaping is required, it returns `Cow::Owned` with the unescaped string.
+///
+/// ## Arguments
+/// - `s`: A string slice containing the potentially escaped LDAP value
+///
+/// ## Returns
+/// - `Result<Cow<str>, core::str::Utf8Error>` containing either the original string or the unescaped string
+///
+/// ## Examples
+/// ```
+/// extern crate alloc;
+/// use ldapdn::escape::unescape_ldap_value_string_cow;
+/// use alloc::borrow::Cow;
+/// 
+/// // No unescaping needed
+/// let result = unescape_ldap_value_string_cow("Hello World").unwrap();
+/// assert!(matches!(result, Cow::Borrowed(_)));
+/// 
+/// // Unescaping needed
+/// let result = unescape_ldap_value_string_cow("\\\"Hello\\\"").unwrap();
+/// assert!(matches!(result, Cow::Owned(_)));
+/// ```
+#[cfg(feature = "alloc")]
+pub fn unescape_ldap_value_string_cow(s: &str) -> Result<Cow<str>, core::str::Utf8Error> {
+    let bytes_result = unescape_ldap_value_cow(s.as_bytes());
+    
+    match bytes_result {
+        Cow::Borrowed(bytes) => {
+            // If we borrowed, the bytes should be the same as the original string
+            debug_assert_eq!(bytes, s.as_bytes());
+            Ok(Cow::Borrowed(s))
+        }
+        Cow::Owned(bytes) => {
+            // Convert the unescaped bytes back to a string
+            let unescaped_str = core::str::from_utf8(&bytes)?;
+            Ok(Cow::Owned(String::from(unescaped_str)))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -200,6 +315,7 @@ mod tests {
         assert_eq!(&bytes[..result], b"\\0G");
     }
 
+    // This is correct behavior, by the way.
     #[test]
     fn test_unescape_ldap_value_inplace_lone_backslash() {
         let mut bytes = Vec::from(b"Hello\\World");
@@ -214,15 +330,6 @@ mod tests {
         let result = unescape_ldap_value_inplace(&mut bytes);
         assert_eq!(result, 11);
         assert_eq!(&bytes[..result], &[b'H', b'e', b'l', b'l', b'o', 0x00, b'W', b'o', b'r', b'l', b'd']);
-    }
-
-    // TODO: This test appears to be duplicate...
-    #[test]
-    fn test_unescape_ldap_value_inplace_rfc_example() {
-        let mut bytes = Vec::from(b"James \\\"Jim\\\" Smith\\, III");
-        let result = unescape_ldap_value_inplace(&mut bytes);
-        assert_eq!(result, 22);
-        assert_eq!(&bytes[..result], b"James \"Jim\" Smith, III");
     }
 
     #[test]
