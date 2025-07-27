@@ -18,6 +18,9 @@ features = ["arbitrary"]
 [dependencies.x690]
 path = "../x690"
 
+[dependencies.ldapdn]
+path = "../ldapdn"
+
 [[bin]]
 name = "date"
 path = "fuzz_targets/date.rs"
@@ -98,6 +101,13 @@ bench = false
 [[bin]]
 name = "x690fuzz"
 path = "fuzz_targets/x690fuzz.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ldapdn"
+path = "fuzz_targets/ldapdn.rs"
 test = false
 doc = false
 bench = false
