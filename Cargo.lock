@@ -322,6 +322,7 @@ name = "asn1-fuzz"
 version = "0.0.0"
 dependencies = [
  "bytes",
+ "ldapdn",
  "libfuzzer-sys",
  "wildboar-asn1",
  "x690",
@@ -1382,14 +1383,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 dependencies = [
  "spin",
-]
-
-[[package]]
-name = "ldap"
-version = "0.1.0"
-dependencies = [
- "wildboar-asn1",
- "x690",
 ]
 
 [[package]]
@@ -2906,6 +2899,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "wildboar-ldap"
+version = "1.0.0"
+dependencies = [
+ "wildboar-asn1",
+ "x690",
+]
+
+[[package]]
 name = "winapi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3149,11 +3150,11 @@ dependencies = [
  "cow-utils",
  "hex",
  "isocountry",
- "ldap",
  "nsap-address",
  "punycode",
  "teletex",
  "wildboar-asn1",
+ "wildboar-ldap",
  "x690",
 ]
 
@@ -3181,10 +3182,10 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "idm",
- "ldap",
  "thiserror",
  "tokio-stream",
  "wildboar-asn1",
+ "wildboar-ldap",
  "x500",
  "x690",
 ]
