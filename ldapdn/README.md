@@ -38,3 +38,10 @@ assert_eq!(atav_count, 4);
 ## `no_std` Usage
 
 Just set `features` to `[]` in your `Cargo.toml`.
+
+## AI Usage Statement
+
+None of the code for parsing distinguished names was produced by an AI or LLM
+of any kind. The code for unescaping attribute values used in distinguished
+names was initially written by AI / LLM, and the unit tests were as well; both
+were validated by the author.
