@@ -14,5 +14,5 @@ keywords = ["ldap", "directory", "x500"]
 categories = ["network-programming"]
 
 [dependencies]
-wildboar-asn1 = { path = "../asn1" }
-x690 = { path = "../x690" }
+wildboar-asn1 = { version = "3", path = "../asn1" }
+x690 = { version = "1", path = "../x690" }
