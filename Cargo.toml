@@ -24,7 +24,8 @@ members = [
     "osi-net",
     "fuzz",
     "asn1lex",
-    "iso6093", "ldapdn",
+    "iso6093",
+    "ldapdn",
 ]
 
 [workspace.dependencies]

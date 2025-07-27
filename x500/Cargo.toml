@@ -19,7 +19,7 @@ categories = ["network-programming"]
 [dependencies]
 wildboar-asn1 = { path = "../asn1" }
 x690 = { path = "../x690" }
-ldap = { path = "../ldap" }
+wildboar-ldap = { path = "../ldap" }
 teletex = { path = "../teletex" }
 nsap-address = { path = "../nsap-address" }
 hex = "0.4.3"

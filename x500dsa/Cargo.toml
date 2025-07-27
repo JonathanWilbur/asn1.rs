@@ -10,7 +10,7 @@ wildboar-asn1 = { path = "../asn1" }
 idm = { path = "../idm" }
 x500 = { path = "../x500" }
 x690 = { path = "../x690" }
-ldap = { path = "../ldap" }
+wildboar-ldap = { path = "../ldap" }
 thiserror = "1.0.40"
 async-trait = "0.1.59"
 tokio-stream = "0.1"
