@@ -14,3 +14,37 @@ produced with it are released publicly under the
 If you would like to see additional ASN.1 libraries in Rust or other
 programming languages, or if you have any other questions, please contact us at
 [contact@wildboarsoftware.com](mailto:contact@wildboarsoftware.com).
+
+## Example Usage
+
+```rust
+use x690::X690Codec;
+use x690::ber::BER;
+use wildboar_ldap::{
+    LDAPMessage,
+    BindRequest,
+    AuthenticationChoice,
+    LDAPMessage_protocolOp,
+    _encode_LDAPMessage,
+};
+
+let bind_req = BindRequest::new(
+    vec![ 1 ],
+    vec![], // Empty DN
+    AuthenticationChoice::simple(vec![]),
+    vec![],
+);
+
+let msg = LDAPMessage::new(
+    vec![ 1 ], // messageID
+    LDAPMessage_protocolOp::bindRequest(bind_req),
+    None, // no controls
+    vec![], // no ASN.1 extensions
+);
+
+let encoded = _encode_LDAPMessage(&msg).unwrap();
+let mut bytes = Vec::new();
+let _ = BER.write(&mut bytes, &encoded).unwrap();
+// Now the encoded LDAPMessage is in bytes.
+assert!(bytes.len() > 2);
+```
