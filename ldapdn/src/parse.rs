@@ -3,23 +3,19 @@
 //! See: <https://datatracker.ietf.org/doc/html/rfc4514>
 
 use core::iter::{FusedIterator, DoubleEndedIterator};
-#[cfg(feature = "std")]
 use core::error::Error;
-#[cfg(feature = "std")]
 use core::fmt::Display;
 
 /// Error returned upon encountering an empty RDN
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct EmptyRdnError;
 
-#[cfg(feature = "std")]
 impl Display for EmptyRdnError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Empty RDN")
     }
 }
 
-#[cfg(feature = "std")]
 impl Error for EmptyRdnError {}
 
 /// Error returned upon encountering a malformed `AttributeTypeAndValue`
@@ -27,14 +23,12 @@ impl Error for EmptyRdnError {}
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct BadAttrTypeAndValError;
 
-#[cfg(feature = "std")]
 impl Display for BadAttrTypeAndValError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Malformed attribute type and value")
     }
 }
 
-#[cfg(feature = "std")]
 impl Error for BadAttrTypeAndValError {}
 
 /// LDAP Attribute Type and Value
@@ -57,8 +51,21 @@ pub fn atav_from_str <'a> (s: &'a str) -> Result<AttributeTypeAndValue<'a>, BadA
         return Err(BadAttrTypeAndValError);
     }
     // Skip the '=' character
-    let attribute_value = &attribute_value[1..];
-    Ok((attribute_type.trim(), attribute_value.trim()))
+    let attribute_value = attribute_value[1..].trim();
+    // Check if there is an odd number of backslashes at the end of attribute_value.
+    let mut backslash_count = 0;
+    for c in attribute_value.chars().rev() {
+        if c == '\\' {
+            backslash_count += 1;
+        } else {
+            break;
+        }
+    }
+    let has_odd_trailing_backslashes = backslash_count % 2 == 1;
+    if has_odd_trailing_backslashes {
+        return Err(BadAttrTypeAndValError);
+    }
+    Ok((attribute_type.trim(), attribute_value))
 }
 
 /// Iterater over the `AttributeTypeAndValue`s of a relative distinguished name
@@ -305,7 +312,7 @@ pub fn dn_from_str <'a> (s: &'a str) -> RdnSequenceIterator<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{dn_from_str, rdn_from_str};
+    use super::{dn_from_str, rdn_from_str, atav_from_str};
 
     #[test]
     fn doc_parse_dn() {
@@ -743,6 +750,31 @@ mod tests {
         assert_eq!(dn_iter.size_hint(), (0, Some(0)));
     }
 
-}
+    #[test]
+    fn parse_malicious_attr_value() {
+        let s = "hi\\";
+        assert!(atav_from_str(s).is_err());
+    }
 
-// TODO: Check for trailing escape character
+    #[test]
+    fn parse_malicious_rdn() {
+        let s = "cn=hi\\";
+        let mut rdn_iter = rdn_from_str(s).unwrap();
+        let atav = rdn_iter.next().unwrap();
+        assert!(atav.is_err());
+        assert_eq!(rdn_iter.next(), None);
+    }
+
+    #[test]
+    fn parse_malicious_dn() {
+        let s = "c=US,cn=hi\\";
+        let mut dn_iter = dn_from_str(s);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        assert!(rdn_iter.next().unwrap().is_ok());
+        assert_eq!(rdn_iter.next(), None);
+        let mut rdn_iter = dn_iter.next().unwrap().unwrap();
+        assert!(rdn_iter.next().unwrap().is_err());
+        assert_eq!(rdn_iter.next(), None);
+    }
+
+}
