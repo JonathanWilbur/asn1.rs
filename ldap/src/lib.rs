@@ -3,7 +3,6 @@
 #![allow(non_snake_case)]
 pub mod ldap_asn1;
 pub use ldap_asn1::*;
-use wildboar_asn1::{oid, OBJECT_IDENTIFIER};
 
 /// Result Codes
 pub mod result_codes {
