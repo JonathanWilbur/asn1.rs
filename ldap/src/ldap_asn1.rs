@@ -105,7 +105,7 @@ pub fn _decode_LDAPMessage (el: &X690Element) -> ASN1Result<LDAPMessage> {
 		_rctl1_components_for_LDAPMessage,
 		_eal_components_for_LDAPMessage,
 		_rctl2_components_for_LDAPMessage,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut messageID: OPTIONAL<MessageID> = None;
 	let mut protocolOp: OPTIONAL<LDAPMessage_protocolOp> = None;
@@ -113,9 +113,8 @@ pub fn _decode_LDAPMessage (el: &X690Element) -> ASN1Result<LDAPMessage> {
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"messageID" => messageID = Some(_decode_MessageID(_el)?),
 			"protocolOp" => protocolOp = Some(_decode_LDAPMessage_protocolOp(_el)?),
@@ -151,13 +150,12 @@ pub fn _validate_LDAPMessage (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_LDAPMessage,
 		_eal_components_for_LDAPMessage,
 		_rctl2_components_for_LDAPMessage,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"messageID" => _validate_MessageID(_el)?,
 			"protocolOp" => _validate_LDAPMessage_protocolOp(_el)?,
@@ -373,16 +371,15 @@ pub fn _decode_AttributeValueAssertion (el: &X690Element) -> ASN1Result<Attribut
 		_rctl1_components_for_AttributeValueAssertion,
 		_eal_components_for_AttributeValueAssertion,
 		_rctl2_components_for_AttributeValueAssertion,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut attributeDesc: OPTIONAL<AttributeDescription> = None;
 	let mut assertionValue: OPTIONAL<AssertionValue> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"attributeDesc" => attributeDesc = Some(_decode_AttributeDescription(_el)?),
 			"assertionValue" => assertionValue = Some(_decode_AssertionValue(_el)?),
@@ -414,13 +411,12 @@ pub fn _validate_AttributeValueAssertion (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_AttributeValueAssertion,
 		_eal_components_for_AttributeValueAssertion,
 		_rctl2_components_for_AttributeValueAssertion,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"attributeDesc" => _validate_AttributeDescription(_el)?,
 			"assertionValue" => _validate_AssertionValue(_el)?,
@@ -506,16 +502,15 @@ pub fn _decode_PartialAttribute (el: &X690Element) -> ASN1Result<PartialAttribut
 		_rctl1_components_for_PartialAttribute,
 		_eal_components_for_PartialAttribute,
 		_rctl2_components_for_PartialAttribute,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut type_: OPTIONAL<AttributeDescription> = None;
 	let mut vals: OPTIONAL<Vec<AttributeValue>> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"type" => type_ = Some(_decode_AttributeDescription(_el)?),
 			"vals" => vals = Some(|el: &X690Element| -> ASN1Result<SET_OF<AttributeValue>> {	let elements = match &el.value {
@@ -561,13 +556,12 @@ pub fn _validate_PartialAttribute (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_PartialAttribute,
 		_eal_components_for_PartialAttribute,
 		_rctl2_components_for_PartialAttribute,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"type" => _validate_AttributeDescription(_el)?,
 			"vals" => |el: &X690Element| -> ASN1Result<()> {	match &el.value {
@@ -723,7 +717,7 @@ pub fn _decode_LDAPResult (el: &X690Element) -> ASN1Result<LDAPResult> {
 		_rctl1_components_for_LDAPResult,
 		_eal_components_for_LDAPResult,
 		_rctl2_components_for_LDAPResult,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut resultCode: OPTIONAL<LDAPResult_resultCode> = None;
 	let mut matchedDN: OPTIONAL<LDAPDN> = None;
@@ -732,9 +726,8 @@ pub fn _decode_LDAPResult (el: &X690Element) -> ASN1Result<LDAPResult> {
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"resultCode" => resultCode = Some(_decode_LDAPResult_resultCode(_el)?),
 			"matchedDN" => matchedDN = Some(_decode_LDAPDN(_el)?),
@@ -772,13 +765,12 @@ pub fn _validate_LDAPResult (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_LDAPResult,
 		_eal_components_for_LDAPResult,
 		_rctl2_components_for_LDAPResult,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"resultCode" => _validate_LDAPResult_resultCode(_el)?,
 			"matchedDN" => _validate_LDAPDN(_el)?,
@@ -953,7 +945,7 @@ pub fn _decode_Control (el: &X690Element) -> ASN1Result<Control> {
 		_rctl1_components_for_Control,
 		_eal_components_for_Control,
 		_rctl2_components_for_Control,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut controlType: OPTIONAL<LDAPOID> = None;
 	let mut criticality: OPTIONAL<BOOLEAN> = None;
@@ -961,9 +953,8 @@ pub fn _decode_Control (el: &X690Element) -> ASN1Result<Control> {
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"controlType" => controlType = Some(_decode_LDAPOID(_el)?),
 			"criticality" => criticality = Some(BER.decode_boolean(_el)?),
@@ -1003,13 +994,12 @@ pub fn _validate_Control (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_Control,
 		_eal_components_for_Control,
 		_rctl2_components_for_Control,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"controlType" => _validate_LDAPOID(_el)?,
 			"criticality" => BER.validate_boolean(_el)?,
@@ -1082,7 +1072,7 @@ pub fn _decode_BindRequest (el: &X690Element) -> ASN1Result<BindRequest> {
 		_rctl1_components_for_BindRequest,
 		_eal_components_for_BindRequest,
 		_rctl2_components_for_BindRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut version: OPTIONAL<INTEGER> = None;
 	let mut name: OPTIONAL<LDAPDN> = None;
@@ -1090,9 +1080,8 @@ pub fn _decode_BindRequest (el: &X690Element) -> ASN1Result<BindRequest> {
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"version" => version = Some(BER.decode_integer(_el)?),
 			"name" => name = Some(_decode_LDAPDN(_el)?),
@@ -1132,13 +1121,12 @@ pub fn _validate_BindRequest (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_BindRequest,
 		_eal_components_for_BindRequest,
 		_rctl2_components_for_BindRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"version" => BER.validate_integer(_el)?,
 			"name" => _validate_LDAPDN(_el)?,
@@ -1265,16 +1253,15 @@ pub fn _decode_SaslCredentials (el: &X690Element) -> ASN1Result<SaslCredentials>
 		_rctl1_components_for_SaslCredentials,
 		_eal_components_for_SaslCredentials,
 		_rctl2_components_for_SaslCredentials,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut mechanism: OPTIONAL<LDAPString> = None;
 	let mut credentials: OPTIONAL<OCTET_STRING> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"mechanism" => mechanism = Some(_decode_LDAPString(_el)?),
 			"credentials" => credentials = Some(BER.decode_octet_string(_el)?),
@@ -1308,13 +1295,12 @@ pub fn _validate_SaslCredentials (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_SaslCredentials,
 		_eal_components_for_SaslCredentials,
 		_rctl2_components_for_SaslCredentials,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"mechanism" => _validate_LDAPString(_el)?,
 			"credentials" => BER.validate_octet_string(_el)?,
@@ -1391,7 +1377,7 @@ pub fn _decode_BindResponse (el: &X690Element) -> ASN1Result<BindResponse> {
 		_rctl1_components_for_BindResponse,
 		_eal_components_for_BindResponse,
 		_rctl2_components_for_BindResponse,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut resultCode: OPTIONAL<LDAPResult_resultCode> = None;
 	let mut matchedDN: OPTIONAL<LDAPDN> = None;
@@ -1401,9 +1387,8 @@ pub fn _decode_BindResponse (el: &X690Element) -> ASN1Result<BindResponse> {
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"resultCode" => resultCode = Some(_decode_LDAPResult_resultCode(_el)?),
 			"matchedDN" => matchedDN = Some(_decode_LDAPDN(_el)?),
@@ -1451,13 +1436,12 @@ pub fn _validate_BindResponse (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_BindResponse,
 		_eal_components_for_BindResponse,
 		_rctl2_components_for_BindResponse,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"resultCode" => _validate_LDAPResult_resultCode(_el)?,
 			"matchedDN" => _validate_LDAPDN(_el)?,
@@ -1591,7 +1575,7 @@ pub fn _decode_SearchRequest (el: &X690Element) -> ASN1Result<SearchRequest> {
 		_rctl1_components_for_SearchRequest,
 		_eal_components_for_SearchRequest,
 		_rctl2_components_for_SearchRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut baseObject: OPTIONAL<LDAPDN> = None;
 	let mut scope: OPTIONAL<SearchRequest_scope> = None;
@@ -1604,9 +1588,8 @@ pub fn _decode_SearchRequest (el: &X690Element) -> ASN1Result<SearchRequest> {
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"baseObject" => baseObject = Some(_decode_LDAPDN(_el)?),
 			"scope" => scope = Some(_decode_SearchRequest_scope(_el)?),
@@ -1656,13 +1639,12 @@ pub fn _validate_SearchRequest (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_SearchRequest,
 		_eal_components_for_SearchRequest,
 		_rctl2_components_for_SearchRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"baseObject" => _validate_LDAPDN(_el)?,
 			"scope" => _validate_SearchRequest_scope(_el)?,
@@ -1965,16 +1947,15 @@ pub fn _decode_SubstringFilter (el: &X690Element) -> ASN1Result<SubstringFilter>
 		_rctl1_components_for_SubstringFilter,
 		_eal_components_for_SubstringFilter,
 		_rctl2_components_for_SubstringFilter,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut type_: OPTIONAL<AttributeDescription> = None;
 	let mut substrings: OPTIONAL<Vec<SubstringFilter_substrings_substring>> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"type" => type_ = Some(_decode_AttributeDescription(_el)?),
 			"substrings" => substrings = Some(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<SubstringFilter_substrings_substring>> {	let elements = match &el.value {
@@ -2020,13 +2001,12 @@ pub fn _validate_SubstringFilter (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_SubstringFilter,
 		_eal_components_for_SubstringFilter,
 		_rctl2_components_for_SubstringFilter,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"type" => _validate_AttributeDescription(_el)?,
 			"substrings" => |el: &X690Element| -> ASN1Result<()> {	match &el.value {
@@ -2110,7 +2090,7 @@ pub fn _decode_MatchingRuleAssertion (el: &X690Element) -> ASN1Result<MatchingRu
 		_rctl1_components_for_MatchingRuleAssertion,
 		_eal_components_for_MatchingRuleAssertion,
 		_rctl2_components_for_MatchingRuleAssertion,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut matchingRule: OPTIONAL<MatchingRuleId> = None;
 	let mut type_: OPTIONAL<AttributeDescription> = None;
@@ -2119,9 +2099,8 @@ pub fn _decode_MatchingRuleAssertion (el: &X690Element) -> ASN1Result<MatchingRu
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"matchingRule" => matchingRule = Some(_decode_MatchingRuleId(_el)?),
 			"type" => type_ = Some(_decode_AttributeDescription(_el)?),
@@ -2165,13 +2144,12 @@ pub fn _validate_MatchingRuleAssertion (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_MatchingRuleAssertion,
 		_eal_components_for_MatchingRuleAssertion,
 		_rctl2_components_for_MatchingRuleAssertion,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"matchingRule" => |el: &X690Element| -> ASN1Result<()> {
 	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
@@ -2261,16 +2239,15 @@ pub fn _decode_SearchResultEntry (el: &X690Element) -> ASN1Result<SearchResultEn
 		_rctl1_components_for_SearchResultEntry,
 		_eal_components_for_SearchResultEntry,
 		_rctl2_components_for_SearchResultEntry,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut objectName: OPTIONAL<LDAPDN> = None;
 	let mut attributes: OPTIONAL<PartialAttributeList> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"objectName" => objectName = Some(_decode_LDAPDN(_el)?),
 			"attributes" => attributes = Some(_decode_PartialAttributeList(_el)?),
@@ -2308,13 +2285,12 @@ pub fn _validate_SearchResultEntry (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_SearchResultEntry,
 		_eal_components_for_SearchResultEntry,
 		_rctl2_components_for_SearchResultEntry,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"objectName" => _validate_LDAPDN(_el)?,
 			"attributes" => _validate_PartialAttributeList(_el)?,
@@ -2497,16 +2473,15 @@ pub fn _decode_ModifyRequest (el: &X690Element) -> ASN1Result<ModifyRequest> {
 		_rctl1_components_for_ModifyRequest,
 		_eal_components_for_ModifyRequest,
 		_rctl2_components_for_ModifyRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut object: OPTIONAL<LDAPDN> = None;
 	let mut changes: OPTIONAL<Vec<ModifyRequest_changes_change>> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"object" => object = Some(_decode_LDAPDN(_el)?),
 			"changes" => changes = Some(|el: &X690Element| -> ASN1Result<SEQUENCE_OF<ModifyRequest_changes_change>> {	let elements = match &el.value {
@@ -2558,13 +2533,12 @@ pub fn _validate_ModifyRequest (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_ModifyRequest,
 		_eal_components_for_ModifyRequest,
 		_rctl2_components_for_ModifyRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"object" => _validate_LDAPDN(_el)?,
 			"changes" => |el: &X690Element| -> ASN1Result<()> {	match &el.value {
@@ -2666,16 +2640,15 @@ pub fn _decode_AddRequest (el: &X690Element) -> ASN1Result<AddRequest> {
 		_rctl1_components_for_AddRequest,
 		_eal_components_for_AddRequest,
 		_rctl2_components_for_AddRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut entry: OPTIONAL<LDAPDN> = None;
 	let mut attributes: OPTIONAL<AttributeList> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"entry" => entry = Some(_decode_LDAPDN(_el)?),
 			"attributes" => attributes = Some(_decode_AttributeList(_el)?),
@@ -2713,13 +2686,12 @@ pub fn _validate_AddRequest (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_AddRequest,
 		_eal_components_for_AddRequest,
 		_rctl2_components_for_AddRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"entry" => _validate_LDAPDN(_el)?,
 			"attributes" => _validate_AttributeList(_el)?,
@@ -2907,7 +2879,7 @@ pub fn _decode_ModifyDNRequest (el: &X690Element) -> ASN1Result<ModifyDNRequest>
 		_rctl1_components_for_ModifyDNRequest,
 		_eal_components_for_ModifyDNRequest,
 		_rctl2_components_for_ModifyDNRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut entry: OPTIONAL<LDAPDN> = None;
 	let mut newrdn: OPTIONAL<RelativeLDAPDN> = None;
@@ -2916,9 +2888,8 @@ pub fn _decode_ModifyDNRequest (el: &X690Element) -> ASN1Result<ModifyDNRequest>
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"entry" => entry = Some(_decode_LDAPDN(_el)?),
 			"newrdn" => newrdn = Some(_decode_RelativeLDAPDN(_el)?),
@@ -2962,13 +2933,12 @@ pub fn _validate_ModifyDNRequest (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_ModifyDNRequest,
 		_eal_components_for_ModifyDNRequest,
 		_rctl2_components_for_ModifyDNRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"entry" => _validate_LDAPDN(_el)?,
 			"newrdn" => _validate_RelativeLDAPDN(_el)?,
@@ -3068,16 +3038,15 @@ pub fn _decode_CompareRequest (el: &X690Element) -> ASN1Result<CompareRequest> {
 		_rctl1_components_for_CompareRequest,
 		_eal_components_for_CompareRequest,
 		_rctl2_components_for_CompareRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut entry: OPTIONAL<LDAPDN> = None;
 	let mut ava: OPTIONAL<AttributeValueAssertion> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"entry" => entry = Some(_decode_LDAPDN(_el)?),
 			"ava" => ava = Some(_decode_AttributeValueAssertion(_el)?),
@@ -3115,13 +3084,12 @@ pub fn _validate_CompareRequest (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_CompareRequest,
 		_eal_components_for_CompareRequest,
 		_rctl2_components_for_CompareRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"entry" => _validate_LDAPDN(_el)?,
 			"ava" => _validate_AttributeValueAssertion(_el)?,
@@ -3238,16 +3206,15 @@ pub fn _decode_ExtendedRequest (el: &X690Element) -> ASN1Result<ExtendedRequest>
 		_rctl1_components_for_ExtendedRequest,
 		_eal_components_for_ExtendedRequest,
 		_rctl2_components_for_ExtendedRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut requestName: OPTIONAL<LDAPOID> = None;
 	let mut requestValue: OPTIONAL<OCTET_STRING> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"requestName" => requestName = Some(_decode_LDAPOID(_el)?),
 			"requestValue" => requestValue = Some(BER.decode_octet_string(_el)?),
@@ -3287,13 +3254,12 @@ pub fn _validate_ExtendedRequest (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_ExtendedRequest,
 		_eal_components_for_ExtendedRequest,
 		_rctl2_components_for_ExtendedRequest,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"requestName" => |el: &X690Element| -> ASN1Result<()> {
 	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
@@ -3385,7 +3351,7 @@ pub fn _decode_ExtendedResponse (el: &X690Element) -> ASN1Result<ExtendedRespons
 		_rctl1_components_for_ExtendedResponse,
 		_eal_components_for_ExtendedResponse,
 		_rctl2_components_for_ExtendedResponse,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut resultCode: OPTIONAL<LDAPResult_resultCode> = None;
 	let mut matchedDN: OPTIONAL<LDAPDN> = None;
@@ -3396,9 +3362,8 @@ pub fn _decode_ExtendedResponse (el: &X690Element) -> ASN1Result<ExtendedRespons
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"resultCode" => resultCode = Some(_decode_LDAPResult_resultCode(_el)?),
 			"matchedDN" => matchedDN = Some(_decode_LDAPDN(_el)?),
@@ -3450,13 +3415,12 @@ pub fn _validate_ExtendedResponse (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_ExtendedResponse,
 		_eal_components_for_ExtendedResponse,
 		_rctl2_components_for_ExtendedResponse,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"resultCode" => _validate_LDAPResult_resultCode(_el)?,
 			"matchedDN" => _validate_LDAPDN(_el)?,
@@ -3549,16 +3513,15 @@ pub fn _decode_IntermediateResponse (el: &X690Element) -> ASN1Result<Intermediat
 		_rctl1_components_for_IntermediateResponse,
 		_eal_components_for_IntermediateResponse,
 		_rctl2_components_for_IntermediateResponse,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut responseName: OPTIONAL<LDAPOID> = None;
 	let mut responseValue: OPTIONAL<OCTET_STRING> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"responseName" => responseName = Some(_decode_LDAPOID(_el)?),
 			"responseValue" => responseValue = Some(BER.decode_octet_string(_el)?),
@@ -3600,13 +3563,12 @@ pub fn _validate_IntermediateResponse (el: &X690Element) -> ASN1Result<()> {
 		_rctl1_components_for_IntermediateResponse,
 		_eal_components_for_IntermediateResponse,
 		_rctl2_components_for_IntermediateResponse,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"responseName" => |el: &X690Element| -> ASN1Result<()> {
 	if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
@@ -4036,16 +3998,15 @@ pub fn _decode_ModifyRequest_changes_change (el: &X690Element) -> ASN1Result<Mod
 		_rctl1_components_for_ModifyRequest_changes_change,
 		_eal_components_for_ModifyRequest_changes_change,
 		_rctl2_components_for_ModifyRequest_changes_change,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	let mut operation: OPTIONAL<ModifyRequest_changes_change_operation> = None;
 	let mut modification: OPTIONAL<PartialAttribute> = None;
 	let mut _unrecognized: Vec<X690Element> = vec![];
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"operation" => operation = Some(_decode_ModifyRequest_changes_change_operation(_el)?),
 			"modification" => modification = Some(_decode_PartialAttribute(_el)?),
@@ -4077,13 +4038,12 @@ pub fn _validate_ModifyRequest_changes_change (el: &X690Element) -> ASN1Result<(
 		_rctl1_components_for_ModifyRequest_changes_change,
 		_eal_components_for_ModifyRequest_changes_change,
 		_rctl2_components_for_ModifyRequest_changes_change,
-	).into_iter();
+	);
 	let mut _i: usize = 0;
 	for _fallible_component_name in _seq_iter {
 		let _component_name = _fallible_component_name?;
-		let _maybe_el = _elements.get(_i);
+		let _el = &_elements[_i];
 		_i += 1;
-		let _el = _maybe_el.unwrap();
 		match _component_name {
 			"operation" => _validate_ModifyRequest_changes_change_operation(_el)?,
 			"modification" => _validate_PartialAttribute(_el)?,
