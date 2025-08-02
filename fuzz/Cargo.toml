@@ -21,6 +21,9 @@ path = "../x690"
 [dependencies.ldapdn]
 path = "../ldapdn"
 
+[dependencies.x520-stringprep]
+path = "../x520-stringprep"
+
 [[bin]]
 name = "date"
 path = "fuzz_targets/date.rs"
@@ -108,6 +111,13 @@ bench = false
 [[bin]]
 name = "ldapdn"
 path = "fuzz_targets/ldapdn.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "stringprep"
+path = "fuzz_targets/stringprep.rs"
 test = false
 doc = false
 bench = false

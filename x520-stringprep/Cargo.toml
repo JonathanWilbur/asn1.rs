@@ -1,0 +1,21 @@
+[package]
+name = "x520-stringprep"
+version = "1.0.0"
+edition = "2024"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "String preparation algorithm as described in ITU-T Recommendation X.520"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/x690"
+license = "MIT"
+keywords = ["x500", "stringprep"]
+categories = ["encoding", "no-std", "no-std::no-alloc"]
+
+[dependencies]
+unicode-normalization = "0.1.24"
+
+[features]
+default = []
+alloc = []
