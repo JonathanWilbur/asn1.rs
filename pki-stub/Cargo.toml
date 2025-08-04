@@ -1,0 +1,21 @@
+[package]
+name = "pki-stub"
+version = "0.1.0"
+edition = "2024"
+
+# TODO: Make as many of these as possible optional.
+[dependencies]
+wildboar-asn1 = { path = "../asn1", version = "3" }
+x690 = { path = "../x690", version = "1" }
+hex = "0.4.3"
+teletex = { path = "../teletex" }
+punycode = "0.4.1"
+bytes = "1"
+chrono = { version = "0.4.41", features = ["clock"] }
+x520-stringprep = { path = "../x520-stringprep", features = ["alloc"] }
+bytemuck = "1.23.1"
+email_address = { version = "0.2.9", features = [] }
+
+# TODO: Make display a feature, which depends on hex
+[features]
+ldap_attrs = []
