@@ -162,6 +162,15 @@ impl <Asn1Type> InstanceOf<Asn1Type> where Asn1Type: Sized {
     }
 }
 
+impl <Asn1Type: std::hash::Hash> std::hash::Hash for InstanceOf<Asn1Type> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.type_id.hash(state);
+        state.write_u8(0xFF);
+        self.value.hash(state);
+        state.write_u8(0xFF);
+    }
+}
+
 impl EXTERNAL {
 
     /// Construct a new `EXTERNAL` value
