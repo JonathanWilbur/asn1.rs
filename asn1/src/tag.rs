@@ -12,7 +12,7 @@ use std::sync::Arc;
 pub type TagNumber = u16;
 
 /// ASN.1 tag class
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TagClass {
     /// `UNIVERSAL`
     UNIVERSAL,
@@ -46,6 +46,21 @@ impl PartialOrd for TagClass {
     /// > first, followed by those with application class tags, followed by those with
     /// > context-specific tags, followed by those with private class tags;
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for TagClass {
+
+    /// From ITU Recommendation X.680 (2021), Section 8.6:
+    ///
+    /// > The canonical order for tags is based on the outermost tag of each type and
+    /// > is defined as follows:
+    /// >
+    /// > a) those elements or alternatives with universal class tags shall appear
+    /// > first, followed by those with application class tags, followed by those with
+    /// > context-specific tags, followed by those with private class tags;
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let self_class_ord: u8 = match self {
             TagClass::UNIVERSAL => 0,
             TagClass::APPLICATION => 1,
@@ -58,8 +73,9 @@ impl PartialOrd for TagClass {
             TagClass::CONTEXT => 2,
             TagClass::PRIVATE => 3,
         };
-        Some(self_class_ord.cmp(&other_class_ord))
+        self_class_ord.cmp(&other_class_ord)
     }
+
 }
 
 impl Tag {
@@ -121,17 +137,36 @@ impl PartialOrd for Tag {
     /// > b) within each class of tags, the elements or alternatives shall appear in
     /// > ascending order of their tag numbers.
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Tag {
+
+    /// From ITU Recommendation X.680 (2021), Section 8.6:
+    ///
+    /// > The canonical order for tags is based on the outermost tag of each type and
+    /// > is defined as follows:
+    /// >
+    /// > a) those elements or alternatives with universal class tags shall appear
+    /// > first, followed by those with application class tags, followed by those with
+    /// > context-specific tags, followed by those with private class tags;
+    /// >
+    /// > b) within each class of tags, the elements or alternatives shall appear in
+    /// > ascending order of their tag numbers.
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if self.tag_class != other.tag_class {
-            return Some(self.tag_class.cmp(&other.tag_class));
+            return self.tag_class.cmp(&other.tag_class);
         }
         if self.tag_number == other.tag_number {
-            return Some(std::cmp::Ordering::Equal);
+            return std::cmp::Ordering::Equal;
         } else if self.tag_number < other.tag_number {
-            return Some(std::cmp::Ordering::Less);
+            return std::cmp::Ordering::Less;
         } else {
-            return Some(std::cmp::Ordering::Greater);
+            return std::cmp::Ordering::Greater;
         }
     }
+
 }
 
 /// Tagged ASN.1 Value
