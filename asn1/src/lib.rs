@@ -203,18 +203,33 @@ pub type VisibleString = String;
 /// ASN.1 `GeneralString`
 pub type GeneralString = String;
 
-/// ASN.1 `UniversalString`
+/// ASN.1 `UniversalString`: Unicode code points encoded on four bytes each
+///
+/// Each quartet of bytes can represent all Unicode code points.
+///
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd, Default)]
 pub struct UniversalString(pub Vec<u32>);
 
 /// ASN.1 `CharacterString`
+///
+/// A completely unrestricted string type that can use the presentation layer
+/// to identify its syntax.
 pub type CHARACTER_STRING = crate::external::CharacterString;
 
-/// ASN.1 `BMPString`
+/// ASN.1 `BMPString`: Unicode code points encoded on two bytes each.
+///
+/// The `BMPString` type is capable of encoding the Basic Multilingual Plane
+/// from Unicode, which has the letters used by most languages.
+///
+/// See: <https://en.wikipedia.org/wiki/Plane_(Unicode)#Basic_Multilingual_Plane>
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd, Default)]
 pub struct BMPString(pub Vec<u16>);
 
 /// ASN.1 `DURATION`
+///
+/// This is based off of the ISO 8601 duration syntax.
+///
+/// See: <https://en.wikipedia.org/wiki/ISO_8601#Durations>
 pub type DURATION = crate::duration::DURATION_EQUIVALENT;
 
 /// ASN.1 `OBJECT IDENTIFIER` Internationalized Resource Identifier (OID-IRI)
@@ -223,15 +238,44 @@ pub type OID_IRI = String;
 pub type RELATIVE_OID_IRI = String;
 
 /// ASN.1 `INSTANCE OF`
+///
+/// Definition:
+///
+/// ```asn1
+/// SEQUENCE {
+///     type-id     <DefinedObjectClass>.&id,
+///     value [0]   <DefinedObjectClass>.&Type
+/// }
+/// ```
 pub type INSTANCE_OF = crate::external::InstanceOf;
 
 /// ASN.1 `TYPE-IDENTIFIER`
+///
+/// Definition:
+///
+/// ```asn1
+/// TYPE-IDENTIFIER ::= CLASS {
+///     &id     OBJECT IDENTIFIER UNIQUE,
+///     &Type
+/// }
+/// WITH SYNTAX {
+///     &Type
+///     IDENTIFIED BY &id
+/// }
+/// ```
+///
+/// This class is defined as a "useful" information object class, and is
+/// available in any ASN.1 module without the necessity for importing it.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TYPE_IDENTIFIER {
     /// The `type-id` field.
     pub id: OBJECT_IDENTIFIER,
 }
 
 /// ASN.1 value
+/// 
+/// This cannot implement `Eq` because (at least) the `RealValue` variant
+/// does not.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ASN1Value {
     // BuiltInValue
@@ -288,6 +332,66 @@ pub enum ASN1Value {
     UnknownBytes(std::sync::Arc<Vec<u8>>),
 }
 
+impl ASN1Value {
+
+    /// Get the tag number of this ASN.1 value
+    pub fn tag_number (&self) -> TagNumber {
+        match self {
+            ASN1Value::BitStringValue(_) => UNIV_TAG_BIT_STRING,
+            ASN1Value::BooleanValue(_) => UNIV_TAG_BOOLEAN,
+            ASN1Value::ChoiceValue(v) => v.tag_number(),
+            ASN1Value::EmbeddedPDVValue(_) => UNIV_TAG_EMBEDDED_PDV,
+            ASN1Value::EnumeratedValue(_) => UNIV_TAG_ENUMERATED,
+            ASN1Value::ExternalValue(_) => UNIV_TAG_EXTERNAL,
+            ASN1Value::InstanceOfValue(_) => UNIV_TAG_INSTANCE_OF,
+            ASN1Value::IntegerValue(_) => UNIV_TAG_INTEGER,
+            ASN1Value::IRIValue(_) => UNIV_TAG_OID_IRI,
+            ASN1Value::NullValue => UNIV_TAG_NULL,
+            ASN1Value::ObjectIdentifierValue(_) => UNIV_TAG_OBJECT_IDENTIFIER,
+            ASN1Value::ObjectDescriptor(_) => UNIV_TAG_OBJECT_DESCRIPTOR,
+            ASN1Value::OctetStringValue(_) => UNIV_TAG_OCTET_STRING,
+            ASN1Value::RealValue(_) => UNIV_TAG_REAL,
+            ASN1Value::RelativeIRIValue(_) => UNIV_TAG_RELATIVE_OID_IRI,
+            ASN1Value::RelativeOIDValue(_) => UNIV_TAG_RELATIVE_OID,
+            ASN1Value::SequenceValue(_) => UNIV_TAG_SEQUENCE,
+            ASN1Value::SequenceOfValue(_) => UNIV_TAG_SEQUENCE_OF,
+            ASN1Value::SetValue(_) => UNIV_TAG_SET,
+            ASN1Value::SetOfValue(_) => UNIV_TAG_SET_OF,
+            ASN1Value::UnrestrictedCharacterStringValue(_) => UNIV_TAG_CHARACTER_STRING,
+            ASN1Value::BMPString(_) => UNIV_TAG_BMP_STRING,
+            ASN1Value::GeneralString(_) => UNIV_TAG_GENERAL_STRING,
+            ASN1Value::GraphicString(_) => UNIV_TAG_GRAPHIC_STRING,
+            ASN1Value::IA5String(_) => UNIV_TAG_IA5_STRING,
+            ASN1Value::ISO646String(_) => UNIV_TAG_VISIBLE_STRING,
+            ASN1Value::NumericString(_) => UNIV_TAG_NUMERIC_STRING,
+            ASN1Value::PrintableString(_) => UNIV_TAG_PRINTABLE_STRING,
+            ASN1Value::TeletexString(_) => UNIV_TAG_T61_STRING,
+            ASN1Value::T61String(_) => UNIV_TAG_T61_STRING,
+            ASN1Value::UniversalString(_) => UNIV_TAG_UNIVERSAL_STRING,
+            ASN1Value::UTF8String(_) => UNIV_TAG_UTF8_STRING,
+            ASN1Value::VideotexString(_) => UNIV_TAG_VIDEOTEX_STRING,
+            ASN1Value::VisibleString(_) => UNIV_TAG_VISIBLE_STRING,
+            ASN1Value::TaggedValue(v) => v.tag.tag_number,
+            ASN1Value::TimeValue(_) => UNIV_TAG_TIME,
+            ASN1Value::UTCTime(_) => UNIV_TAG_UTC_TIME,
+            ASN1Value::GeneralizedTime(_) => UNIV_TAG_GENERALIZED_TIME,
+            ASN1Value::DATE(_) => UNIV_TAG_DATE,
+            ASN1Value::TIME_OF_DAY(_) => UNIV_TAG_TIME_OF_DAY,
+            ASN1Value::DATE_TIME(_) => UNIV_TAG_DATE_TIME,
+            ASN1Value::DURATION(_) => UNIV_TAG_DURATION,
+            // Not sure what to do here.
+            ASN1Value::UnknownBytes(_) => UNIV_TAG_OCTET_STRING,
+        }
+    }
+
+    pub fn tag (&self) -> Tag {
+        match self {
+            ASN1Value::TaggedValue(v) => v.tag,
+            _ => Tag::new(TagClass::UNIVERSAL, self.tag_number()),
+        }
+    }
+
+}
 /// The `UNIVERSAL` tag number for `END-OF-CONTENT`
 pub const UNIV_TAG_END_OF_CONTENT: TagNumber = 0;
 /// The `UNIVERSAL` tag number for `BOOLEAN`
