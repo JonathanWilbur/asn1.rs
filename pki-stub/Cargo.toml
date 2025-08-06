@@ -6,7 +6,7 @@ edition = "2024"
 # TODO: Make as many of these as possible optional.
 [dependencies]
 wildboar-asn1 = { path = "../asn1", version = "3" }
-x690 = { path = "../x690", version = "1" }
+x690 = { path = "../x690", version = "1", features = ["der"] }
 hex = "0.4.3"
 teletex = { path = "../teletex" }
 punycode = "0.4.1"
@@ -16,6 +16,15 @@ x520-stringprep = { path = "../x520-stringprep", features = ["alloc"] }
 bytemuck = "1.23.1"
 email_address = { version = "0.2.9", features = [] }
 
+[dev-dependencies]
+rand = "0.9.2"
+base64 = "0.22.1"
+pem = "3.0.5"
+
 # TODO: Make display a feature, which depends on hex
 [features]
 ldap_attrs = []
+
+[[example]]
+name = "attr-cert"
+path = "examples/attr-cert.rs"

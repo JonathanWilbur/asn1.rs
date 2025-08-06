@@ -55,7 +55,7 @@ use email_address::EmailAddress;
 use std::str::FromStr;
 
 /// Returns a subslice with leading and trailing whitespace removed, for a slice of u16 code units (BMPString).
-fn trim_u16(slice: &[u16]) -> &[u16] {
+pub(crate) fn trim_u16(slice: &[u16]) -> &[u16] {
     let is_ws = |c: u16| char::from_u32(c as u32).map_or(false, |ch| ch.is_whitespace());
     let mut start = 0;
     let mut end = slice.len();
@@ -72,7 +72,7 @@ fn trim_u16(slice: &[u16]) -> &[u16] {
 }
 
 /// Returns a subslice with leading and trailing whitespace removed, for a slice of u32 code points (UniversalString).
-fn trim_u32(slice: &[u32]) -> &[u32] {
+pub(crate) fn trim_u32(slice: &[u32]) -> &[u32] {
     let is_ws = |c: u32| char::from_u32(c).map_or(false, |ch| ch.is_whitespace());
     let mut start = 0;
     let mut end = slice.len();
@@ -88,7 +88,7 @@ fn trim_u32(slice: &[u32]) -> &[u32] {
     &slice[start..end]
 }
 
-struct DNSLabelIter<'a> {
+pub(crate)struct DNSLabelIter<'a> {
     inner: std::str::Split<'a, char>,
 }
 
@@ -218,7 +218,7 @@ impl PartialEq for FingerPrint {
 
 }
 
-fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
+pub(crate) fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
     match el.tag.tag_number {
         wildboar_asn1::UNIV_TAG_UTC_TIME => {
             let t = match BER.decode_utc_time(el) {
@@ -243,7 +243,7 @@ fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
             ).earliest();
             let t = match maybe_t {
                 Some(x) => x,
-                None => return Some(Err(())), 
+                None => return Some(Err(())),
             };
             Some(Ok(t.to_utc()))
         },
@@ -273,7 +273,7 @@ fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
                 ).earliest();
                 let t = match maybe_t {
                     Some(x) => x,
-                    None => return Some(Err(())), 
+                    None => return Some(Err(())),
                 };
                 Some(Ok(t.to_utc()))
             } else {
@@ -287,7 +287,7 @@ fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
                 ).earliest();
                 let t = match maybe_t {
                     Some(x) => x,
-                    None => return Some(Err(())), 
+                    None => return Some(Err(())),
                 };
                 Some(Ok(t.to_utc()))
             }
@@ -307,7 +307,7 @@ fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
             ).earliest();
             let t = match maybe_t {
                 Some(x) => x,
-                None => return Some(Err(())), 
+                None => return Some(Err(())),
             };
             Some(Ok(t.to_utc()))
         },
@@ -315,7 +315,7 @@ fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
     }
 }
 
-fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
+pub(crate) fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
     debug_assert!(el.tag.tag_class == TagClass::UNIVERSAL);
     match el.tag.tag_number {
         wildboar_asn1::UNIV_TAG_UTF8_STRING
@@ -755,7 +755,7 @@ impl PartialEq for AttributeValue {
     /// - `booleanMatch` for `BOOLEAN`
     /// - `utcTimeMatch` for `UTCTime`
     /// - `generalizedTimeMatch` for `GeneralizedTime`
-    /// 
+    ///
     /// It also recurses for `SEQUENCE` and `SET` types, and tries to compare
     /// context-switching types.
     #[inline]
@@ -842,6 +842,7 @@ impl PartialEq for AttributeTypeAndValue {
         if self.type_ != other.type_ {
             return false;
         }
+        // TODO: Move these to AttributeValue
         if self.value.tag == TELEPHONE_NUMBER_TAG && other.value.tag == TELEPHONE_NUMBER_TAG {
             if telephone_number_match(&self.value, &other.value) {
                 return true;
@@ -893,7 +894,7 @@ impl PartialEq for GeneralName {
             (GeneralName::dNSName(a), GeneralName::directoryName(Name::dnsName(b)))
             | (GeneralName::directoryName(Name::dnsName(a)), GeneralName::dNSName(b)) => dns_compare(a.as_str(), b.as_str()),
 
-            (GeneralName::registeredID(a), GeneralName::directoryName(Name::oid(b))) 
+            (GeneralName::registeredID(a), GeneralName::directoryName(Name::oid(b)))
             | (GeneralName::directoryName(Name::oid(a)), GeneralName::registeredID(b)) => a == b,
             _ => false,
         }

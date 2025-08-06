@@ -236,10 +236,20 @@ which control how these elements are encoded.
 
 ## TODO
 
-- [ ] `x690`
-  - [ ] Rename things sensibly.
-  - [ ] Print `asn1parse` output (OTOH, do lots of printing / display functions belong in this library?)
-  - [ ] Remove unused things
+- [ ] Where possible, replace `deconstruct` with `X690Element::deconstruction_iter()`.
+- [ ] `teletex`
+  - [ ] Make it `no-std`, use iterator, etc.
+  - [ ] Fuzz testing
+  - [ ] Publish it
+- [ ] `pki-stub`
+- [ ] `idm-frame`
+- [ ] `gser`
+- [ ] `nsap-address`
+- [ ] `ldap-schema-parsers`
+- [ ] `tpkt`
+- [ ] `x500`
+- [ ] `x500-client`
+- [ ] `x690dump`
 - [ ] Is there some way to abstract ROSE out of X.500, so it can be recycled among projects?
 - [ ] Just an idea: if you are using trait type parameters, such as `X690Element`
       to constrain ROSE-related values to `X690Element`s instead of `ASN1Value`,
@@ -255,13 +265,9 @@ which control how these elements are encoded.
   - [ ] Move modules under `modules` or `asn1`
   - [ ] Defaults for structs (how did I miss this?)
     - I think that was because, if any field is required, this can't be defined.
-  - [ ] Validators
   - [ ] `.inner_data()` for `OPTIONALLY-PROTECTED` types.
-  - [ ] Iterator for `ListResult` and `SearchResult`
   - [ ] Preserve bytes of `SIGNED`
   - [ ] Validate the size and length constraints in an ORAddress
-- [ ] Some sort of `write()` and `flush()` interface for encoding indeterminate length form.
-  - This needs to "trickle down" into the IDM layer.
 
 ## Licensing
 
