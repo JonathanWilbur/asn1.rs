@@ -47,6 +47,7 @@ use wildboar_asn1::{
     DURATION_EQUIVALENT, EXTERNAL, INTEGER, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
     UNIV_TAG_NULL,
+    UNIV_TAG_BOOLEAN,
 };
 use wildboar_asn1::{ENUMERATED, read_i64, DURATION, ComponentSpec, TagSelector};
 use std::borrow::Cow;
@@ -244,6 +245,24 @@ impl X690Element {
         X690Element {
             tag: Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
             value: X690Value::Primitive(Bytes::new()),
+        }
+    }
+
+    /// Make a new `TRUE` encoding.
+    #[inline]
+    pub const fn boolean_true() -> X690Element {
+        X690Element {
+            tag: Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BOOLEAN),
+            value: X690Value::Primitive(Bytes::from_static(&[ 0xff ])),
+        }
+    }
+
+    /// Make a new `FALSE` encoding.
+    #[inline]
+    pub const fn boolean_false() -> X690Element {
+        X690Element {
+            tag: Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BOOLEAN),
+            value: X690Value::Primitive(Bytes::from_static(&[ 0x00 ])),
         }
     }
 
@@ -1653,6 +1672,12 @@ where
 ///
 /// If the element is already primitively constructed, this just returns a
 /// reference to it, so no copying overhead is incurred.
+/// 
+/// If you can, prefer to use `iter_deconstruction` instead: even if the
+/// element is constructed, your use case might not require a view of the
+/// entire deconstruction at one time. For example, when validating a
+/// `NumericString`, you can just validate each chunk individually, rather
+/// than joining them into a single string. This should be much faster.
 pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
     match &el.value {
         X690Value::Primitive(bytes) => Ok(Cow::Borrowed(bytes)),

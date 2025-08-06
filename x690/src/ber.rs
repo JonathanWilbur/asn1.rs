@@ -1446,7 +1446,9 @@ impl X690Codec for BasicEncodingRules {
 
     #[inline]
     fn validate_octet_string(&self, el: &X690Element) -> ASN1Result<()> {
-        deconstruct(el).map_err(|e| el.to_asn1_error(e.error_code))?;
+        for chunk in el.iter_deconstruction() {
+            chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+        }
         Ok(())
     }
 
@@ -1465,114 +1467,48 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn validate_numeric_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_numeric_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_numeric_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            }
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_numeric_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_numeric_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
     fn validate_printable_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_printable_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_printable_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            }
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_printable_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_printable_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
     fn validate_t61_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_t61_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_t61_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            },
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_t61_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_t61_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
-    // TODO: Make a macro for this
     fn validate_videotex_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_videotex_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_videotex_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            },
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_videotex_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_videotex_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
     fn validate_ia5_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_ia5_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_ia5_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            },
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_ia5_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_ia5_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
     fn validate_utc_time(&self, el: &X690Element) -> ASN1Result<()> {
@@ -1588,69 +1524,30 @@ impl X690Codec for BasicEncodingRules {
     }
 
     fn validate_graphic_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_graphic_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_graphic_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            }
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_graphic_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_graphic_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
     fn validate_visible_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_visible_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_visible_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            },
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_visible_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_visible_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
     fn validate_general_string(&self, el: &X690Element) -> ASN1Result<()> {
-        match &el.value {
-            X690Value::Primitive(v) => self.validate_general_string_value(&v)
-                .map_err(|e| el.to_asn1_error(e.error_code)),
-            X690Value::Constructed(subs) => {
-                for sub in subs.iter() {
-                    if sub.tag != Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING) {
-                        return Err(el.to_asn1_error(ASN1ErrorCode::invalid_construction));
-                    }
-                    self.validate_general_string(sub)
-                        .map_err(|e| sub.to_asn1_error(e.error_code))?;
-                }
-                Ok(())
-            },
-            X690Value::Serialized(v) => {
-                let (_, el) = BER.decode_from_slice(&v)?;
-                self.validate_general_string(&el)
-                    .map_err(|e| el.to_asn1_error(e.error_code))
-            }
+        for chunk in el.iter_deconstruction() {
+            let content_octets = chunk.map_err(|e| el.to_asn1_error(e.error_code))?;
+            self.validate_general_string_value(content_octets.as_ref())
+                .map_err(|e| el.to_asn1_error(e.error_code))?;
         }
+        Ok(())
     }
 
     fn validate_universal_string(&self, el: &X690Element) -> ASN1Result<()> {
