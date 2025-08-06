@@ -22,7 +22,7 @@
 //! ```
 #[cfg(feature = "smallvec")]
 use smallvec::{SmallVec, smallvec};
-use std::{convert::TryInto, fmt::{Display, Write}};
+use std::{convert::TryInto, fmt::{Display, Write}, iter::{Iterator, FusedIterator, ExactSizeIterator}};
 use crate::utils::unlikely;
 use std::hash::{Hash, Hasher};
 
@@ -377,6 +377,21 @@ impl BIT_STRING {
         join_bit_strings(strs)
     }
 
+    #[inline]
+    pub fn correct_last_byte(&self) -> Option<u8> {
+        let trailing_bits = self.get_trailing_bits_count();
+        let last_byte = self.get_bytes_ref().last()?;
+        Some(last_byte & (0xFFu8 << trailing_bits))
+    }
+
+    #[inline]
+    pub fn bits_iter<'a>(&'a self) -> BitsIter<'a> {
+        BitsIter{
+            s: self,
+            i: 0,
+        }
+    }
+
 }
 
 // This trait MUST NOT be implemented for `BIT STRING` because its size will
@@ -511,6 +526,30 @@ impl Hash for BIT_STRING {
         self.trailing_bits.hash(state); // Hash the trailing_bits too to disambiguate
     }
 }
+
+pub struct BitsIter<'a> {
+    s: &'a BIT_STRING,
+    i: usize,
+}
+
+impl <'a> Iterator for BitsIter<'a> {
+    type Item = bool;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let bit = self.s.get(self.i);
+        self.i = self.i.saturating_add(1);
+        bit
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.s.len_in_bits();
+        (len, Some(len))
+    }
+
+}
+
+impl <'a> FusedIterator for BitsIter<'a> {}
+impl <'a> ExactSizeIterator for BitsIter<'a> {}
 
 /// Macro to define a bit string from raw bits.
 ///
@@ -931,5 +970,15 @@ mod tests {
         assert_eq!(bs1.get(0), Some(true));
     }
 
+    #[test]
+    fn test_bit_string_iter_1() {
+        let bs1 = BIT_STRING::from_bin("11110000110011");
+        let bits: Vec<bool> = bs1.bits_iter().collect();
+        assert_eq!(bits, Vec::from(&[
+            true, true, true, true,
+            false, false, false, false,
+            true, true, false, false, true, true,
+        ]));
+    }
 
 }
