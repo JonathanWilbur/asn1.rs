@@ -508,9 +508,7 @@ impl TryFrom<Vec<OID_ARC>> for OBJECT_IDENTIFIER {
     ///
     /// It is an unfortunate limitation of Rust that it is extremely difficult to
     /// make this generic over all integer types. So this implementation just uses
-    /// `Vec<u32>`. If you need to append something larger, like a `u128`, you're
-    /// going to have to use a combination of [write_oid_arc] and
-    /// [OBJECT_IDENTIFIER::from_x690_encoding].
+    /// `Vec<u32>`.
     fn try_from(value: Vec<OID_ARC>) -> Result<Self, Self::Error> {
         OBJECT_IDENTIFIER::try_from(value.as_slice())
     }
@@ -524,9 +522,7 @@ impl TryFrom<&[OID_ARC]> for OBJECT_IDENTIFIER {
     ///
     /// It is an unfortunate limitation of Rust that it is extremely difficult to
     /// make this generic over all integer types. So this implementation just uses
-    /// u32 slices. If you need to append something larger, like a `u128`, you're
-    /// going to have to use a combination of [write_oid_arc] and
-    /// [OBJECT_IDENTIFIER::from_x690_encoding].
+    /// `u32` slices.
     fn try_from(value: &[OID_ARC]) -> Result<Self, Self::Error> {
         let len = value.len();
         if unlikely(value.len() == 0) {

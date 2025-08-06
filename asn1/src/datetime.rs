@@ -120,7 +120,7 @@ impl X690Validate for DATE_TIME {
 impl ISO8601Timestampable for DATE_TIME {
 
     /// Print the `DATE-TIME` value as an ISO 8601 Timestamp.
-    /// (This is actually just an alias to [DATE_TIME::to_string], because a
+    /// (This is actually just an alias to `DATE_TIME::to_string`, because a
     /// `DATE-TIME` is already an ISO 8601 timestamp.)
     ///
     /// NOTE: There is not supposed to be a "Z" at the end of this, nor should

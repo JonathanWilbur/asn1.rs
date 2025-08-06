@@ -117,16 +117,29 @@ pub(crate) mod macros {
                 $oid.push($arc as u8);
             } else {
                 // A u128 can take up to 19 bytes. We do 20 just for safety.
-                let mut num = $arc;
+                // let mut num = $arc;
                 let mut encoded: [u8; 20] = [0; 20];
                 let mut byte_count: usize = 0;
-                while num > 0b0111_1111 {
-                    encoded[byte_count] = (num & 0b0111_1111) as u8 | 0b1000_0000;
-                    byte_count += 1;
-                    num >>= 7;
+                let mut output_len = 0;
+                let mut i = $arc;
+                // Determine the output length.
+                while i > 0 {
+                    output_len += 1;
+                    i >>= 7;
                 }
-                encoded[byte_count] = num as u8;
-                $oid.extend_from_slice(&encoded[0..byte_count+1])
+                let mut j = output_len - 1;
+                while j >= 0 {
+                    let mut out_byte = ($arc >> (j * 7));
+                    out_byte &= 0b0111_1111;
+                    if j != 0 {
+                        // Set the continuation bit.
+                        out_byte |= 0b1000_0000;
+                    }
+                    encoded[byte_count] = out_byte as u8;
+                    byte_count += 1;
+                    j -= 1;
+                }
+                $oid.extend_from_slice(&encoded[0..byte_count])
             }
         };
     }

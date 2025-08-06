@@ -374,13 +374,11 @@ impl FromStr for RELATIVE_OID {
 impl TryFrom<Vec<u32>> for RELATIVE_OID {
     type Error = ASN1Error;
 
-    /// Create an `RELATIVE-OID` from arcs
+    /// Create a `RELATIVE-OID` from arcs
     ///
     /// It is an unfortunate limitation of Rust that it is extremely difficult to
     /// make this generic over all integer types. So this implementation just uses
-    /// `Vec<u32>`. If you need to append something larger, like a `u128`, you're
-    /// going to have to use a combination of [write_oid_arc] and
-    /// [RELATIVE_OID::from_x690_encoding].
+    /// `Vec<u32>`.
     fn try_from(value: Vec<u32>) -> Result<Self, Self::Error> {
         RELATIVE_OID::try_from(value.as_slice())
     }
@@ -394,9 +392,7 @@ impl TryFrom<&[u32]> for RELATIVE_OID {
     ///
     /// It is an unfortunate limitation of Rust that it is extremely difficult to
     /// make this generic over all integer types. So this implementation just uses
-    /// u32 slices. If you need to append something larger, like a u128, you're
-    /// going to have to use a combination of [write_oid_arc] and
-    /// [RELATIVE_OID::from_x690_encoding].
+    /// `u32` slices.
     fn try_from(value: &[u32]) -> Result<Self, Self::Error> {
         #[cfg(feature = "smallvec")]
         {
