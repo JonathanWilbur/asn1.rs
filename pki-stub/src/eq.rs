@@ -784,13 +784,21 @@ fn telephone_number_match_bytes(a: &[u8], b: &[u8]) -> bool {
 }
 
 fn telephone_number_match(a: &X690Element, b: &X690Element) -> bool {
-    let a_bytes = match deconstruct(a) {
-        Ok(x) => x,
-        Err(_) => return false,
+    // Find the first primitively-constructed chunk of the value,
+    // that has non-zero length content octets, or the first error.
+    let a_start = a
+        .iter_deconstruction()
+        .find(|x| x.is_err() || x.as_ref().is_ok_and(|x| x.as_ref().len() > 0));
+    let b_start = b
+        .iter_deconstruction()
+        .find(|x| x.is_err() || x.as_ref().is_ok_and(|x| x.as_ref().len() > 0));
+    let a_bytes = match a_start {
+        Some(Ok(x)) => x,
+        _ => return false,
     };
-    let b_bytes = match deconstruct(b) {
-        Ok(x) => x,
-        Err(_) => return false,
+    let b_bytes = match b_start {
+        Some(Ok(x)) => x,
+        _ => return false,
     };
     if a_bytes.as_ref().first() != Some(&b'+') {
         return false;
@@ -798,6 +806,14 @@ fn telephone_number_match(a: &X690Element, b: &X690Element) -> bool {
     if b_bytes.as_ref().first() != Some(&b'+') {
         return false;
     }
+    let a_bytes = match deconstruct(b) {
+        Ok(x) => x,
+        Err(_) => return false,
+    };
+    let b_bytes = match deconstruct(b) {
+        Ok(x) => x,
+        Err(_) => return false,
+    };
     telephone_number_match_bytes(&a_bytes[1..], &b_bytes[1..])
 }
 
@@ -986,8 +1002,8 @@ impl PartialEq for EDIPartyName {
             return false;
         }
         match (self.nameAssigner.as_ref(), other.nameAssigner.as_ref()) {
-            (Some(a), Some(b)) => (
-                a.tag.tag_class == TagClass::UNIVERSAL
+            (Some(a), Some(b))
+            => a.tag.tag_class == TagClass::UNIVERSAL
                 && b.tag.tag_class == TagClass::UNIVERSAL
                 && matches!(a.tag.tag_number,
                     wildboar_asn1::UNIV_TAG_PRINTABLE_STRING
@@ -1004,7 +1020,7 @@ impl PartialEq for EDIPartyName {
                     | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
                 )
                 && AttributeValue(a.clone()) == AttributeValue(b.clone())
-            ),
+            ,
             _ => true,
         }
     }
