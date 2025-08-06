@@ -46,6 +46,7 @@ use wildboar_asn1::{
     UNIV_TAG_OBJECT_DESCRIPTOR, BIT_STRING, BOOLEAN, DATE, DATE_TIME,
     DURATION_EQUIVALENT, EXTERNAL, INTEGER, OBJECT_IDENTIFIER,
     OCTET_STRING, REAL, RELATIVE_OID, TIME, TIME_OF_DAY,
+    UNIV_TAG_NULL,
 };
 use wildboar_asn1::{ENUMERATED, read_i64, DURATION, ComponentSpec, TagSelector};
 use std::borrow::Cow;
@@ -237,6 +238,15 @@ impl X690Element {
         X690Element { tag, value }
     }
 
+    /// Make a new `NULL` encoding.
+    #[inline]
+    pub const fn null() -> X690Element {
+        X690Element {
+            tag: Tag::new(TagClass::UNIVERSAL, UNIV_TAG_NULL),
+            value: X690Value::Primitive(Bytes::new()),
+        }
+    }
+
     /// Returns the total length of this element in bytes when encoded
     ///
     /// This includes the tag bytes, length bytes, and value bytes.
@@ -362,6 +372,27 @@ impl X690Element {
             X690Value::Constructed(components) => components.len() == 0,
             X690Value::Serialized(v) => v.len() <= 2,
         }
+    }
+
+    /// Returns an iterator that iterates over the primitive content octets of
+    /// the constituent elements of this element, recursively.
+    /// 
+    /// In other words a `UTF8String` encoding that is structed like so:
+    /// 
+    /// ```text
+    /// [UNIV 12]
+    ///     [UNIV 4] "hello"
+    ///     [UNIV 4]
+    ///         [UNIV 4] " "
+    ///     [UNIV 4] "world"
+    /// ```
+    /// 
+    /// Will result in the content octets for "hello", " ", and "world" being
+    /// returned from the iterator, in that order.
+    /// 
+    #[inline]
+    pub fn iter_deconstruction<'a>(&'a self) -> DeconstructionIterator<'a> {
+        DeconstructionIterator::new(self)
     }
 
 }
@@ -1652,6 +1683,114 @@ pub fn deconstruct<'a>(el: &'a X690Element) -> ASN1Result<Cow<'a, [u8]>> {
     }
 }
 
+/// An iterator that iterates over the primitive content octets of
+/// the constituent elements of this element, recursively.
+/// 
+/// In other words a `UTF8String` encoding that is structed like so:
+/// 
+/// ```text
+/// [UNIV 12]
+///     [UNIV 4] "hello"
+///     [UNIV 4]
+///         [UNIV 4] " "
+///     [UNIV 4] "world"
+/// ```
+/// 
+/// Will result in the content octets for "hello", " ", and "world" being
+/// returned from the iterator, in that order.
+/// 
+pub struct DeconstructionIterator<'a> {
+    el: &'a X690Element,
+    i: usize,
+    child: Option<Box<DeconstructionIterator<'a>>>,
+    recursion_limit: usize,
+    recursion_depth: usize,
+}
+
+impl <'a> DeconstructionIterator<'a> {
+
+    /// Create a new iterator
+    pub fn new(el: &'a X690Element) -> DeconstructionIterator<'a> {
+        DeconstructionIterator {
+            el, i: 0,
+            child: None,
+            recursion_limit: 5,
+            recursion_depth: 0,
+        }
+    }
+}
+
+impl <'a> Iterator for DeconstructionIterator<'a> {
+    type Item = ASN1Result<Cow<'a, [u8]>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.recursion_depth > self.recursion_limit {
+            return None;
+        }
+        if let Some(child) = self.child.as_mut() {
+            if let Some(next) = child.next() {
+                return Some(next);
+            }
+        }
+        match &self.el.value {
+            X690Value::Primitive(bytes) => {
+                if self.i > 0 {
+                    return None;
+                }
+                self.i += 1;
+                Some(Ok(Cow::Borrowed(bytes.as_ref())))
+            },
+            X690Value::Constructed(children) => {
+                // Use a while loop because we do not want to stop if one
+                // constructed child element has no children.
+                while let Some(child) = children.get(self.i) {
+                    if child.tag.tag_class != TagClass::UNIVERSAL
+                        || child.tag.tag_number != UNIV_TAG_OCTET_STRING
+                    {
+                        let mut err =
+                            ASN1Error::new(ASN1ErrorCode::string_constructed_with_invalid_tagging);
+                        err.tag = Some(Tag::new(child.tag.tag_class, child.tag.tag_number));
+                        err.length = Some(child.len());
+                        err.constructed = Some(true);
+                        return Some(Err(err));
+                    }
+                    self.i = self.i.saturating_add(1);
+                    let mut new_iter = DeconstructionIterator{
+                        el: child,
+                        i: 0,
+                        child: None,
+                        recursion_limit: self.recursion_limit,
+                        recursion_depth: self.recursion_depth.saturating_add(1),
+                    };
+                    let maybe_grandchild = new_iter.next();
+                    if let Some(grandchild) = maybe_grandchild {
+                        self.child = Some(Box::new(new_iter));
+                        return Some(grandchild);
+                    }
+                }
+                self.recursion_depth = usize::MAX;
+                None
+            },
+            X690Value::Serialized(v) => {
+                if self.i > 0 {
+                    return None;
+                }
+                let (_, el) = match BER.decode_from_slice(&v) {
+                    Ok(x) => x,
+                    Err(e) => return Some(Err(e)),
+                };
+                self.i += 1;
+                let decon = match deconstruct(&el) {
+                    Ok(x) => x,
+                    Err(e) => return Some(Err(e)),
+                };
+                Some(Ok(Cow::Owned(decon.into_owned())))
+            },
+        }
+    }
+
+}
+
 /// Read a `BOOLEAN` value from an X.690-encoded element's content octets
 pub const fn x690_read_boolean_value(value_bytes: ByteSlice) -> ASN1Result<BOOLEAN> {
     if value_bytes.len() != 1 {
@@ -1807,11 +1946,7 @@ mod tests {
     use super::*;
     use std::sync::Arc;
     use wildboar_asn1::{
-        Tag,
-        TagClass,
-        UNIV_TAG_OCTET_STRING,
-        UNIV_TAG_BOOLEAN,
-        UNIV_TAG_SEQUENCE,
+        Tag, TagClass, UNIV_TAG_BOOLEAN, UNIV_TAG_IA5_STRING, UNIV_TAG_OCTET_STRING, UNIV_TAG_SEQUENCE
     };
     use bytes::Bytes;
 
@@ -2233,6 +2368,75 @@ mod tests {
             X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
         );
         assert_eq!(element1, element2);
+    }
+
+    #[test]
+    fn test_deconstruct_iter_mixed_constructed() {
+        // Test deconstructing a constructed value with mixed primitive and constructed children
+        let primitive_child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+
+        let grandchild1 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x03, 0x04])),
+        );
+        let grandchild2 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x05, 0x06])),
+        );
+
+        let constructed_child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![grandchild1, grandchild2])),
+        );
+
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_IA5_STRING),
+            X690Value::Constructed(Arc::new(vec![primitive_child, constructed_child])),
+        );
+
+        let chunks: ASN1Result<Vec<Cow<[u8]>>> = element.iter_deconstruction().collect();
+        let chunks = chunks.unwrap();
+        assert_eq!(chunks.len(), 3);
+        assert_eq!(chunks[0].as_ref(), &[0x01, 0x02]);
+        assert_eq!(chunks[1].as_ref(), &[0x03, 0x04]);
+        assert_eq!(chunks[2].as_ref(), &[0x05, 0x06]);
+    }
+
+    #[test]
+    fn test_deconstruct_iter_empty_child() {
+        // Test deconstructing a constructed value with mixed primitive and constructed children
+        let primitive_child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x01, 0x02])),
+        );
+
+        let grandchild1 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![])),
+        );
+        let grandchild2 = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Primitive(Bytes::copy_from_slice(&[0x05, 0x06])),
+        );
+
+        let constructed_child = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_OCTET_STRING),
+            X690Value::Constructed(Arc::new(vec![grandchild1, grandchild2])),
+        );
+
+        let element = X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_IA5_STRING),
+            X690Value::Constructed(Arc::new(vec![primitive_child, constructed_child])),
+        );
+
+        let chunks: ASN1Result<Vec<Cow<[u8]>>> = element.iter_deconstruction().collect();
+        let chunks = chunks.unwrap();
+        assert_eq!(chunks.len(), 2);
+        assert_eq!(chunks[0].as_ref(), &[0x01, 0x02]);
+        assert_eq!(chunks[1].as_ref(), &[0x05, 0x06]);
     }
 
 }
