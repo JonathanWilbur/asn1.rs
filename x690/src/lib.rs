@@ -865,6 +865,7 @@ where
         let length_bytes = length.to_be_bytes();
         output.write(&[0b1000_0000 | octets_needed])?;
         output.write(&length_bytes[std::mem::size_of::<usize>()-octets_needed as usize..])
+            .map(|n| n + 1)
     }
 }
 
