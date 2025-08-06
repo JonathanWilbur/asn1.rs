@@ -330,11 +330,12 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
             },
         wildboar_asn1::UNIV_TAG_OCTET_STRING
         | wildboar_asn1::UNIV_TAG_VIDEOTEX_STRING => {
-            if let Ok(decon) = deconstruct(&self_.0) {
-                state.write_u16(self_.0.tag.tag_number);
-                decon.hash(state);
-            } else {
-                self_.0.hash(state)
+            state.write_u16(self_.0.tag.tag_number);
+            for chunk in self_.0.iter_deconstruction() {
+                match chunk {
+                    Ok(x) => x.as_ref().hash(state),
+                    Err(_) => return self_.0.hash(state),
+                }
             }
         },
         wildboar_asn1::UNIV_TAG_OID_IRI
@@ -422,14 +423,18 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
                 .iter()
                 .for_each(|c| hash_attr_value_ex(&AttributeValue(c.clone()), state, depth + 1))
         },
-        wildboar_asn1::UNIV_TAG_NUMERIC_STRING =>
-            match deconstruct(&self_.0) {
-                Ok(x) => x.as_ref()
-                    .iter()
-                    .filter(|b| b.is_ascii_digit())
-                    .for_each(|b| b.hash(state)),
-                Err(_) => self_.0.hash(state),
-            },
+        wildboar_asn1::UNIV_TAG_NUMERIC_STRING => {
+            state.write_u16(self_.0.tag.tag_number);
+            for chunk in self_.0.iter_deconstruction() {
+                match chunk {
+                    Ok(x) => x.as_ref()
+                        .iter()
+                        .filter(|b| b.is_ascii_digit())
+                        .for_each(|b| b.hash(state)),
+                    Err(_) => return self_.0.hash(state),
+                }
+            }
+        },
         wildboar_asn1::UNIV_TAG_BMP_STRING =>
             match BER.decode_bmp_string(&self_.0) {
                 Ok(x) => {
