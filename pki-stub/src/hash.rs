@@ -42,6 +42,8 @@ use crate::PKI_Stub::{
     IssuerSerial,
     ObjectDigestInfo,
     SIGNED,
+    _decode_RDNSequence,
+    _validate_RDNSequence,
 };
 use std::borrow::Cow;
 use std::fmt::{Display, Error, Write};
@@ -270,10 +272,16 @@ fn hash_instance_of<H: std::hash::Hasher>(value: &INSTANCE_OF, state: &mut H, de
     hash_asn1_value(&value.value, state, depth + 1)
 }
 
+const HASH_PREFIX_TELEPHONE_NUMBER: TagNumber = 1800;
+const HASH_PREFIX_EMAIL: TagNumber = 2525;
+const TELEPHONE_NUMBER_TAG: TagNumber = UNIV_TAG_PRINTABLE_STRING;
+const EMAIL_TAG: TagNumber = UNIV_TAG_UTF8_STRING;
+
 fn hash_attr_value_ex<H: std::hash::Hasher>(
     self_: &AttributeValue,
     state: &mut H,
     depth: usize,
+    allow_dn: bool,
 ) {
     if depth > MAX_DEPTH {
         return;
@@ -282,6 +290,85 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
     if self_.0.tag.tag_class != TagClass::UNIVERSAL {
         return self_.0.hash(state);
     }
+
+    if self_.0.tag.tag_number == TELEPHONE_NUMBER_TAG {
+        // Find the first primitively-constructed chunk of the value,
+        // that has non-zero length content octets, or the first error.
+        let a_start = self_.0
+            .iter_deconstruction()
+            .find(|x| x.is_err() || x.as_ref().is_ok_and(|x| x.as_ref().len() > 0));
+        let a_bytes = match a_start {
+            Some(Ok(x)) => x,
+            _ => Cow::Borrowed([].as_slice()),
+        };
+        // If that first chunk starts with '+'...
+        if a_bytes.as_ref().first() == Some(&b'+') {
+            let a_bytes = match deconstruct(&self_.0) {
+                Ok(x) => x,
+                Err(_) => Cow::Borrowed([ b'?' ].as_slice()),
+            };
+            // ...and the rest looks like a telephone number...
+            // (Allowed to contain numbers, spaces, and hyphens.)
+            let looks_like_a_tel = a_bytes[1..]
+                .iter()
+                .cloned()
+                .all(|b| matches!(b, b'0'..=b'9' | b' ' | b'-'));
+            if looks_like_a_tel {
+                // ...then hash it as a telephone number.
+                state.write_u16(HASH_PREFIX_TELEPHONE_NUMBER);
+                return a_bytes.as_ref()
+                    .iter()
+                    .filter(|b| b.is_ascii_digit())
+                    .for_each(|b| b.hash(state));
+            }
+        }
+    }
+    if self_.0.tag.tag_number == EMAIL_TAG {
+        let looks_like_email = self_.0
+            .iter_deconstruction()
+            .any(|x| x.is_ok_and(|y| y.contains(&b'@')));
+        if looks_like_email {
+            let maybe_email = deconstruct(&self_.0)
+                .map_err(|_| ())
+                .and_then(|decon| {
+                    let s = std::str::from_utf8(decon.as_ref()).map_err(|_| ())?;
+                    EmailAddress::from_str(s).map_err(|_| ())
+                });
+            if let Ok(email) = maybe_email {
+                state.write_u16(HASH_PREFIX_EMAIL);
+                return email.hash(state);
+            }
+        } else { // Could be a DNS name.
+            let looks_like_punycoded_dns = self_.0
+                .iter_deconstruction()
+                .any(|x| x
+                    .is_ok_and(|y| y
+                        // Yes, this is how you do a substring search in Rust. -_-
+                        .windows(4).position(|window| window == b"xn--").is_some()));
+            // Only if it is punycoded do we need to do any transformation.
+            // Otherwise, the normal string handling should be just fine.
+            if looks_like_punycoded_dns {
+                let maybe_dns_name = deconstruct(&self_.0)
+                    .map_err(|_| ())
+                    .and_then(|decon| std::str::from_utf8(decon.as_ref()).map_err(|_| ()))
+                    .and_then(|s| Ok(DNSLabelIter::new(s)
+                        .map(|label| if label.starts_with("xn--") {
+                            punycode::decode(label.as_ref()).unwrap_or(label.as_ref().to_owned())
+                        } else {
+                            label.as_ref().to_owned()
+                        })
+                        .collect::<Vec<String>>()
+                        .join(".")));
+                if let Ok(dns_name) = maybe_dns_name {
+                    state.write_u16(HASH_PREFIX_STR);
+                    if let Ok(s) = x520_stringprep_to_case_ignore_string(dns_name.as_ref()) {
+                        return s.hash(state);
+                    }
+                }
+            }
+        }
+    }
+
     let maybe_str = get_string(&self_.0);
     if let Some(str_result) = maybe_str {
         if let Ok(s) = str_result {
@@ -396,6 +483,14 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
                 Err(_) => self_.0.hash(state),
             },
         wildboar_asn1::UNIV_TAG_SEQUENCE => {
+            // Try to decode it as a distinguished name.
+            if allow_dn && _validate_RDNSequence(&self_.0).is_ok() {
+                let maybe_dn1 = _decode_RDNSequence(&self_.0);
+                if maybe_dn1.is_ok() {
+                    state.write_u8(0xFE);
+                    return maybe_dn1.unwrap().hash(state);
+                }
+            }
             let comps1 = match self_.0.value.components() {
                 Ok(x) => x.as_ref().to_owned(),
                 Err(_) => return self_.0.hash(state),
@@ -403,7 +498,7 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
             state.write_u16(self_.0.tag.tag_number);
             comps1
                 .iter()
-                .for_each(|c| hash_attr_value_ex(&AttributeValue(c.clone()), state, depth + 1))
+                .for_each(|c| hash_attr_value_ex(&AttributeValue(c.clone()), state, depth + 1, allow_dn))
         },
         wildboar_asn1::UNIV_TAG_SET => {
             let comps1 = match self_.0.value.components() {
@@ -421,7 +516,7 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
                 .sort_by(|a, b| a.tag.cmp(&b.tag));
             comps1
                 .iter()
-                .for_each(|c| hash_attr_value_ex(&AttributeValue(c.clone()), state, depth + 1))
+                .for_each(|c| hash_attr_value_ex(&AttributeValue(c.clone()), state, depth + 1, allow_dn))
         },
         wildboar_asn1::UNIV_TAG_NUMERIC_STRING => {
             state.write_u16(self_.0.tag.tag_number);
@@ -491,15 +586,15 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
 }
 
 #[inline]
-fn hash_attr_value<H: std::hash::Hasher>(a: &AttributeValue, state: &mut H) {
-    hash_attr_value_ex(a, state, 0)
+fn hash_attr_value<H: std::hash::Hasher>(a: &AttributeValue, state: &mut H, allow_dn: bool) {
+    hash_attr_value_ex(a, state, 0, allow_dn)
 }
 
 impl Hash for AttributeValue {
 
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        hash_attr_value(self, state)
+        hash_attr_value(self, state, true)
     }
 
 }
@@ -510,7 +605,10 @@ impl Hash for AttributeTypeAndValue {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.type_.hash(state);
         state.write_u8(0xFF);
-        hash_attr_value(&AttributeValue(self.value.clone()), state)
+        // DN-typed values are expressly forbidden from being
+        // values in a distinguished name. We have to call this
+        // function specifically to set allow_dn to false.
+        hash_attr_value_ex(&AttributeValue(self.value.clone()), state, 0, false)
     }
 
 }

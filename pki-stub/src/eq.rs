@@ -21,6 +21,8 @@ use crate::PKI_Stub::{
     IssuerSerial,
     ObjectDigestInfo,
     _encode_GeneralName,
+    _validate_RDNSequence,
+    _decode_RDNSequence,
 };
 use teletex::teletex_to_utf8;
 use wildboar_asn1::{
@@ -375,13 +377,30 @@ pub(crate) fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
 
 const MAX_DEPTH: usize = 20;
 const BIG_STRING: usize = 128;
-fn compare_attr_value_ex(self_: &AttributeValue, other: &AttributeValue, depth: usize) -> bool {
+
+fn compare_attr_value_ex(
+    self_: &AttributeValue,
+    other: &AttributeValue,
+    depth: usize,
+    allow_dn: bool,
+) -> bool {
     if depth > MAX_DEPTH {
         return false;
     }
     // If its not universal syntax, attempt a naive byte-for-byte compare.
     if self_.0.tag.tag_class != TagClass::UNIVERSAL {
         return self_.0 == other.0;
+    }
+
+    if self_.0.tag == TELEPHONE_NUMBER_TAG && other.0.tag == TELEPHONE_NUMBER_TAG {
+        if telephone_number_match(&self_.0, &other.0) {
+            return true;
+        }
+    }
+    if self_.0.tag == EMAIL_TAG && other.0.tag == EMAIL_TAG {
+        if dns_or_email_match(&self_.0, &other.0) {
+            return true;
+        }
     }
 
     let maybe_str1 = get_string(&self_.0);
@@ -639,6 +658,14 @@ fn compare_attr_value_ex(self_: &AttributeValue, other: &AttributeValue, depth: 
             dur1.to_approximate_seconds() == dur2.to_approximate_seconds()
         },
         (wildboar_asn1::UNIV_TAG_SEQUENCE, wildboar_asn1::UNIV_TAG_SEQUENCE) => {
+            // Try to decode it as a distinguished name.
+            if allow_dn && _validate_RDNSequence(&self_.0).is_ok() && _validate_RDNSequence(&other.0).is_ok() {
+                let maybe_dn1 = _decode_RDNSequence(&self_.0);
+                let maybe_dn2 = _decode_RDNSequence(&other.0);
+                if maybe_dn1.is_ok() && maybe_dn2.is_ok() && maybe_dn1.unwrap() == maybe_dn2.unwrap() {
+                    return true;
+                }
+            }
             let comps1 = match self_.0.value.components() {
                 Ok(x) => x,
                 Err(_) => return false,
@@ -650,9 +677,14 @@ fn compare_attr_value_ex(self_: &AttributeValue, other: &AttributeValue, depth: 
             if comps1.len() != comps2.len() {
                 return false;
             }
-            /* Even for a SET, we do not attempt to intep */
             for (c1, c2) in comps1.iter().zip(comps2.iter()) {
-                if AttributeValue(c1.clone()) != AttributeValue(c2.clone()) {
+                let is_match = compare_attr_value_ex(
+                    &AttributeValue(c1.clone()),
+                    &AttributeValue(c2.clone()),
+                    depth + 1,
+                    allow_dn,
+                );
+                if !is_match {
                     return false;
                 }
             }
@@ -681,7 +713,13 @@ fn compare_attr_value_ex(self_: &AttributeValue, other: &AttributeValue, depth: 
                     Some(x) => x,
                     None => return false,
                 };
-                if AttributeValue(comp1.clone()) != AttributeValue(comp2.clone()) {
+                let is_match = compare_attr_value_ex(
+                    &AttributeValue(comp1.clone()),
+                    &AttributeValue(comp2.clone()),
+                    depth + 1,
+                    allow_dn,
+                );
+                if !is_match {
                     return false;
                 }
             }
@@ -740,7 +778,7 @@ fn compare_attr_value_ex(self_: &AttributeValue, other: &AttributeValue, depth: 
 
 #[inline]
 fn compare_attr_value(a: &AttributeValue, b: &AttributeValue) -> bool {
-    compare_attr_value_ex(a, b, 0)
+    compare_attr_value_ex(a, b, 0, true)
 }
 
 impl PartialEq for AttributeValue {
@@ -853,23 +891,20 @@ const EMAIL_TAG: Tag = Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING);
 
 impl PartialEq for AttributeTypeAndValue {
 
+    /// This will not match DN values, since DN-typed values are forbidden from
+    /// appearing as values within RDNs.
     // NOTE: uUIDPairMatch is already covered.
     fn eq(&self, other: &Self) -> bool {
         if self.type_ != other.type_ {
             return false;
         }
-        // TODO: Move these to AttributeValue
-        if self.value.tag == TELEPHONE_NUMBER_TAG && other.value.tag == TELEPHONE_NUMBER_TAG {
-            if telephone_number_match(&self.value, &other.value) {
-                return true;
-            }
-        }
-        if self.value.tag == EMAIL_TAG && other.value.tag == EMAIL_TAG {
-            if dns_or_email_match(&self.value, &other.value) {
-                return true;
-            }
-        }
-        AttributeValue(self.value.clone()) == AttributeValue(other.value.clone())
+        // We have to call this specifically so we can disallow DN values.
+        compare_attr_value_ex(
+            &AttributeValue(self.value.clone()), 
+            &AttributeValue(other.value.clone()), 
+            0, 
+            false,
+        )
     }
 
 }

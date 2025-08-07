@@ -2,7 +2,7 @@
 
 ## To Do
 
-- [ ] `AttributeValue::eq` should decode DNs
+- [x] `AttributeValue::eq` should decode DNs
 - [x] `Hash`
 - [x] `PartialEq` / `Eq`
 - [ ] `TBSCertificate` / `Certificate`
