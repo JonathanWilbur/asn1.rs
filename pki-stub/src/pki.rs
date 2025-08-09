@@ -347,8 +347,8 @@ pub struct AttrCertExtInfo {
     pub issued_on_behalf_of: Option<GeneralName>,
     pub alt_sig_alg: Option<AlgorithmIdentifier>,
     pub alt_sig_value: Option<BIT_STRING>,
-    pub acceptable_cert_policies: OidsExtIter,
-    pub acceptable_priv_policies: OidsExtIter,
+    pub acceptable_cert_policies: Option<OidsExtIter>,
+    pub acceptable_priv_policies: Option<OidsExtIter>,
 }
 
 pub struct AVLExtInfo {
@@ -601,16 +601,126 @@ impl TBSCertificate {
 
 }
 
+impl TBSAttributeCertificate {
+    fn claims_to_be_issued_by_cert<C: AsRef<TBSCertificate>>(&self, issuer: &C) -> bool {
+        todo!() // TODO: Implement
+    }
+
+    pub fn get_info_from_extensions<'a>(&'a self) -> ASN1Result<AttrCertExtInfo> {
+        let mut aa: bool = false;
+        let mut path_len_constraint: u64 = u64::MAX;
+        let mut no_assertion: bool = false;
+        let mut is_soa: bool = false;
+        let mut is_single_use: bool = false;
+        let mut is_group_ac: bool = false;
+        let mut has_rev_info_avail: bool = true;
+        let mut is_indirect_issuer: bool = false;
+        let mut issued_on_behalf_of: Option<GeneralName> = None;
+        let mut alt_sig_alg: Option<AlgorithmIdentifier> = None;
+        let mut alt_sig_value: Option<BIT_STRING> = None;
+        let mut acceptable_cert_policies: Option<OidsExtIter> = None;
+        let mut acceptable_priv_policies: Option<OidsExtIter> = None;
+
+        let extensions = match self.extensions.as_ref() {
+            Some(exts) => exts,
+            None => return Ok(AttrCertExtInfo{
+                aa,
+                path_len_constraint,
+                no_assertion,
+                is_soa,
+                is_single_use,
+                is_group_ac,
+                has_rev_info_avail,
+                is_indirect_issuer,
+                issued_on_behalf_of,
+                alt_sig_alg,
+                alt_sig_value,
+                acceptable_cert_policies,
+                acceptable_priv_policies,
+            }),
+        };
+
+        let mut seen_exts: HashSet<OBJECT_IDENTIFIER> = HashSet::new();
+        for ext in extensions {
+            if seen_exts.insert(ext.extnId.clone()) {
+                let mut e = ASN1Error::new(ASN1ErrorCode::constraint_violation)
+                    .with_component_name("extensions");
+                return Err(e);
+            }
+            let bytes = ext.extnId.as_x690_slice();
+            if bytes.len() != 3 {
+                // All of the extensions we recognize are 3 bytes long.
+                continue;
+            }
+            let last_byte = bytes[2];
+            let (bytes_read, el) = DER.decode_from_slice(ext.extnValue.as_slice())?;
+            if bytes_read != ext.extnValue.len() {
+                let mut e = ASN1Error::new(ASN1ErrorCode::trailing_content_octets);
+                e.relate_tlv(&el);
+                return Err(e);
+            }
+            match last_byte {
+                EXT_BACONS => {
+                    let components = match &el.value {
+                        X690Value::Constructed(c) => c,
+                        _ => continue,
+                    };
+                    let mut components = components.as_slice();
+                    let first = match components.first() {
+                        Some(f) => f,
+                        None => continue,
+                    };
+                    if first.tag == BOOL_TAG {
+                        aa = DER.decode_boolean(first).ok().unwrap_or(false);
+                    } else if first.tag == INT_TAG {
+                        path_len_constraint = DER.decode_u64(first).ok().unwrap_or(u64::MAX);
+                        continue;
+                    }
+                    let second = match components.get(1) {
+                        Some(c) => c,
+                        None => continue,
+                    };
+                    if second.tag == INT_TAG {
+                        path_len_constraint = DER.decode_u64(second).ok().unwrap_or(u64::MAX);
+                    }
+                },
+                EXT_SOAID => is_soa = true,
+                EXT_ACC_CERT_POL => acceptable_cert_policies = Some(OidsExtIter::new(el)),
+                EXT_NO_REV => has_rev_info_avail = false,
+                EXT_ACC_PRIV_POL => acceptable_priv_policies = Some(OidsExtIter::new(el)),
+                EXT_NO_ASS => no_assertion = true,
+                EXT_SINGLE_USE => is_single_use = true,
+                EXT_GROUP_AC => is_group_ac = true,
+                EXT_ALT_SIG_ALG => alt_sig_alg = Some(_decode_AlgorithmIdentifier(&el)?),
+                EXT_ALT_SIG_VAL => alt_sig_value = Some(DER.decode_bit_string(&el)?),
+                _ => (),
+            }
+        }
+
+        Ok(AttrCertExtInfo{
+            aa,
+            path_len_constraint,
+            no_assertion,
+            is_soa,
+            is_single_use,
+            is_group_ac,
+            has_rev_info_avail,
+            is_indirect_issuer,
+            issued_on_behalf_of,
+            alt_sig_alg,
+            alt_sig_value,
+            acceptable_cert_policies,
+            acceptable_priv_policies,
+        })
+    }
+}
+
 // - [ ] `AttributeCertificate`
 //   - [ ] `.claims_to_be_issued_by_cert(cert)`
-//   - [ ] `.is_role_spec_cert()`
-//   - [ ] `.is_soa()` 50
-//   - [ ] `.is_single_use()` 65
-//   - [ ] `.is_group_ac()` 66
-//   - [ ] `.has_no_rev_avail()`
-//   - [ ] `.can_assert()` (no `noAssertion` extension) 62
-//   - [ ] `.is_indirect_issuer()` 61
-//   - [ ] `.get_basic_constraints()`
-//   - [ ] `.iter_acceptable_cert_policies()`
+// It may be present in a role assignment certificate (i.e., a certificate that contains the role attribute).
 // - [ ] `TBSCertAVL`
 //   - [ ] `.claims_to_be_issued_by_cert(cert)`
+
+// If the role assignment certificate is an attribute certificate, the role attribute is contained in the attributes component
+// of the attribute certificate. If the role assignment certificate is a public-key certificate, the role attribute is contained in
+// the subjectDirectoryAttributes extension.
