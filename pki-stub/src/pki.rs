@@ -602,9 +602,9 @@ impl TBSCertificate {
 }
 
 impl TBSAttributeCertificate {
-    fn claims_to_be_issued_by_cert<C: AsRef<TBSCertificate>>(&self, issuer: &C) -> bool {
-        todo!() // TODO: Implement
-    }
+    // .claims_to_be_issued_by_cert(cert) and .claims_to_be_held_by_cert(cert) are
+    // intentionally not implemented, because these require cryptography-related
+    // dependencies, which this crate is avoiding depending on.
 
     pub fn get_info_from_extensions<'a>(&'a self) -> ASN1Result<AttrCertExtInfo> {
         let mut aa: bool = false;
@@ -715,12 +715,48 @@ impl TBSAttributeCertificate {
     }
 }
 
-// - [ ] `AttributeCertificate`
-//   - [ ] `.claims_to_be_issued_by_cert(cert)`
-// It may be present in a role assignment certificate (i.e., a certificate that contains the role attribute).
-// - [ ] `TBSCertAVL`
-//   - [ ] `.claims_to_be_issued_by_cert(cert)`
+impl TBSCertAVL {
+    pub fn get_info_from_extensions<'a>(&'a self) -> ASN1Result<AVLExtInfo> {
+        let mut alt_sig_alg: Option<AlgorithmIdentifier> = None;
+        let mut alt_sig_value: Option<BIT_STRING> = None;
 
-// If the role assignment certificate is an attribute certificate, the role attribute is contained in the attributes component
-// of the attribute certificate. If the role assignment certificate is a public-key certificate, the role attribute is contained in
-// the subjectDirectoryAttributes extension.
+        let extensions = match self.avlExtensions.as_ref() {
+            Some(exts) => exts,
+            None => return Ok(AVLExtInfo{
+                alt_sig_alg,
+                alt_sig_value,
+            }),
+        };
+
+        let mut seen_exts: HashSet<OBJECT_IDENTIFIER> = HashSet::new();
+        for ext in extensions {
+            if seen_exts.insert(ext.extnId.clone()) {
+                let mut e = ASN1Error::new(ASN1ErrorCode::constraint_violation)
+                    .with_component_name("extensions");
+                return Err(e);
+            }
+            let bytes = ext.extnId.as_x690_slice();
+            if bytes.len() != 3 {
+                // All of the extensions we recognize are 3 bytes long.
+                continue;
+            }
+            let last_byte = bytes[2];
+            let (bytes_read, el) = DER.decode_from_slice(ext.extnValue.as_slice())?;
+            if bytes_read != ext.extnValue.len() {
+                let mut e = ASN1Error::new(ASN1ErrorCode::trailing_content_octets);
+                e.relate_tlv(&el);
+                return Err(e);
+            }
+            match last_byte {
+                EXT_ALT_SIG_ALG => alt_sig_alg = Some(_decode_AlgorithmIdentifier(&el)?),
+                EXT_ALT_SIG_VAL => alt_sig_value = Some(DER.decode_bit_string(&el)?),
+                _ => (),
+            };
+        }
+
+        Ok(AVLExtInfo{
+            alt_sig_alg,
+            alt_sig_value,
+        })
+    }
+}
