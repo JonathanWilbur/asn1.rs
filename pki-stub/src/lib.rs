@@ -22,6 +22,7 @@
 pub mod display;
 pub mod eq;
 pub mod hash;
+pub mod pki;
 pub mod PKI_Stub;
 pub mod oids;
 pub use crate::PKI_Stub::*;

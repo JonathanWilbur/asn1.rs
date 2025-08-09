@@ -350,15 +350,18 @@ fn hash_attr_value_ex<H: std::hash::Hasher>(
             if looks_like_punycoded_dns {
                 let maybe_dns_name = deconstruct(&self_.0)
                     .map_err(|_| ())
-                    .and_then(|decon| std::str::from_utf8(decon.as_ref()).map_err(|_| ()))
-                    .and_then(|s| Ok(DNSLabelIter::new(s)
-                        .map(|label| if label.starts_with("xn--") {
-                            punycode::decode(label.as_ref()).unwrap_or(label.as_ref().to_owned())
-                        } else {
-                            label.as_ref().to_owned()
-                        })
-                        .collect::<Vec<String>>()
-                        .join(".")));
+                    .and_then(|decon| {
+                        let s = std::str::from_utf8(decon.as_ref()).map_err(|_| ())?;
+                        Ok(DNSLabelIter::new(s)
+                            .map(|label| if label.starts_with("xn--") {
+                                punycode::decode(label.as_ref())
+                                    .unwrap_or(label.as_ref().to_owned())
+                            } else {
+                                label.as_ref().to_owned()
+                            })
+                            .collect::<Vec<String>>()
+                            .join("."))
+                    });
                 if let Ok(dns_name) = maybe_dns_name {
                     state.write_u16(HASH_PREFIX_STR);
                     if let Ok(s) = x520_stringprep_to_case_ignore_string(dns_name.as_ref()) {
