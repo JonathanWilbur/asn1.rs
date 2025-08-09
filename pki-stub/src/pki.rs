@@ -313,6 +313,70 @@ impl Iterator for PKCAttrsIter {
 
 impl FusedIterator for PKCAttrsIter {}
 
+pub struct AvlGenNameIter<'a> {
+    cert: &'a TBSCertAVL,
+    i: usize,
+    alt_names_ext: Option<X690Element>,
+}
+
+impl<'a> AvlGenNameIter<'a> {
+    pub fn new(
+        cert: &'a TBSCertAVL,
+        alt_names_ext: Option<X690Element>,
+    ) -> Self {
+        AvlGenNameIter {
+            cert,
+            i: 0,
+            alt_names_ext,
+        }
+    }
+}
+
+impl<'a> Iterator for AvlGenNameIter<'a> {
+    type Item = GeneralName;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i == 0 {
+            self.i += 1;
+            let gn1 = GeneralName::directoryName(self.cert.issuer.clone());
+            return Some(gn1);
+        }
+        let ext = self.alt_names_ext.as_ref()?;
+        while let Some(comp) = ext
+            .components()
+            .ok()
+            .as_deref()
+            .map(|c| c.get(self.i - 1))
+            .flatten()
+        {
+            self.i += 1;
+            let maybe_gn = _decode_GeneralName(comp);
+            match maybe_gn {
+                Ok(gn) => return Some(gn),
+                Err(_) => continue,
+            };
+        }
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let max_total_len = 1
+            + self.alt_names_ext
+                .as_ref()
+                .map(|ext| ext
+                    .components()
+                    .map(|comps| comps.len())
+                    .unwrap_or(0)
+                )
+                .unwrap_or(0);
+
+        let iters_left = max_total_len.saturating_sub(self.i);
+        (iters_left, Some(iters_left))
+    }
+}
+
+impl<'a> FusedIterator for AvlGenNameIter<'a> {}
+
 const BOOL_TAG: Tag = Tag::new(TagClass::UNIVERSAL, UNIV_TAG_BOOLEAN);
 const INT_TAG: Tag = Tag::new(TagClass::UNIVERSAL, UNIV_TAG_INTEGER);
 
@@ -351,7 +415,8 @@ pub struct AttrCertExtInfo {
     pub acceptable_priv_policies: Option<OidsExtIter>,
 }
 
-pub struct AVLExtInfo {
+pub struct AVLExtInfo <'a> {
+    pub issuer_names: AvlGenNameIter<'a>,
     pub alt_sig_alg: Option<AlgorithmIdentifier>,
     pub alt_sig_value: Option<BIT_STRING>,
 }
@@ -716,13 +781,28 @@ impl TBSAttributeCertificate {
 }
 
 impl TBSCertAVL {
-    pub fn get_info_from_extensions<'a>(&'a self) -> ASN1Result<AVLExtInfo> {
+
+    pub fn claims_to_be_issued_by_cert<C: AsRef<TBSCertificate>>(&self, issuer: &C) -> bool {
+        let issuer_tbs = issuer.as_ref();
+        let mut names_from_issuer = issuer_tbs.iter_subject_names().take(10);
+        names_from_issuer.any(|niss| self.iter_issuer_names().take(10).any(|nsub| niss == nsub))
+    }
+
+    fn iter_issuer_names<'a>(&'a self) -> AvlGenNameIter<'a> {
+        let maybe_ext = self.get_decoded_extension_by_oid(&oid!(2, 5, 29, 18))
+            .map(|x| x.ok())
+            .flatten(); // issuerAltName
+        AvlGenNameIter::new(self, maybe_ext)
+    }
+
+    pub fn get_info_from_extensions<'a>(&'a self) -> ASN1Result<AVLExtInfo<'a>> {
         let mut alt_sig_alg: Option<AlgorithmIdentifier> = None;
         let mut alt_sig_value: Option<BIT_STRING> = None;
 
         let extensions = match self.avlExtensions.as_ref() {
             Some(exts) => exts,
             None => return Ok(AVLExtInfo{
+                issuer_names: self.iter_issuer_names(),
                 alt_sig_alg,
                 alt_sig_value,
             }),
@@ -755,6 +835,7 @@ impl TBSCertAVL {
         }
 
         Ok(AVLExtInfo{
+            issuer_names: self.iter_issuer_names(),
             alt_sig_alg,
             alt_sig_value,
         })
