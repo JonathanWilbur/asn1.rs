@@ -19,13 +19,13 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use wildboar_asn1::*;
-use std::sync::Arc;
-use x690::*;
-use std::iter::{Iterator, FusedIterator, ExactSizeIterator};
 use crate::utils::{gt_to_chrono, utctime_to_chrono};
 use chrono::{DateTime, Utc};
 use std::cmp::Ordering;
+use std::iter::{ExactSizeIterator, FusedIterator, Iterator};
+use std::sync::Arc;
+use wildboar_asn1::*;
+use x690::*;
 
 #[inline]
 const fn base_256_len(value: usize) -> usize {
@@ -64,8 +64,8 @@ const fn base_256_len(value: usize) -> usize {
 ///
 ///
 #[inline]
-pub fn id_wrprot () -> OBJECT_IDENTIFIER {
-	wrapperProtocolType() // OID_GETTER
+pub fn id_wrprot() -> OBJECT_IDENTIFIER {
+    wrapperProtocolType() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -76,8 +76,8 @@ pub fn id_wrprot () -> OBJECT_IDENTIFIER {
 ///
 ///
 #[inline]
-pub fn wrapperProtocolType () -> OBJECT_IDENTIFIER {
-	OBJECT_IDENTIFIER::from_prefix_and_arc(ds(), 43).unwrap() // OID_GETTER
+pub fn wrapperProtocolType() -> OBJECT_IDENTIFIER {
+    OBJECT_IDENTIFIER::from_prefix_and_arc(ds(), 43).unwrap() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -88,8 +88,8 @@ pub fn wrapperProtocolType () -> OBJECT_IDENTIFIER {
 ///
 ///
 #[inline]
-pub fn ds () -> OBJECT_IDENTIFIER {
-	oid!(joint_iso_itu_t,/* ds */ 5) // OID_GETTER
+pub fn ds() -> OBJECT_IDENTIFIER {
+    oid!(joint_iso_itu_t, /* ds */ 5) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -100,8 +100,8 @@ pub fn ds () -> OBJECT_IDENTIFIER {
 ///
 ///
 #[inline]
-pub fn id_algo () -> OBJECT_IDENTIFIER {
-	algorithms() // OID_GETTER
+pub fn id_algo() -> OBJECT_IDENTIFIER {
+    algorithms() // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -112,8 +112,8 @@ pub fn id_algo () -> OBJECT_IDENTIFIER {
 ///
 ///
 #[inline]
-pub fn algorithms () -> OBJECT_IDENTIFIER {
-	unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([ 85, 44 ].as_slice()) } // OID_GETTER
+pub fn algorithms() -> OBJECT_IDENTIFIER {
+    unsafe { OBJECT_IDENTIFIER::from_x690_encoding_slice_unchecked([85, 44].as_slice()) } // OID_GETTER
 }
 /// ### ASN.1 Definition:
 ///
@@ -207,7 +207,7 @@ pub fn _decode_AlgorithmWithInvoke(el: &X690Element) -> ASN1Result<AlgorithmWith
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AlgorithmWithInvoke")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -215,8 +215,7 @@ pub fn _decode_AlgorithmWithInvoke(el: &X690Element) -> ASN1Result<AlgorithmWith
         _rctl1_components_for_AlgorithmWithInvoke,
         _eal_components_for_AlgorithmWithInvoke,
         _rctl2_components_for_AlgorithmWithInvoke,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut algorithm_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut parameters_: OPTIONAL<X690Element> = None;
@@ -283,7 +282,7 @@ pub fn _validate_AlgorithmWithInvoke(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AlgorithmWithInvoke")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -291,8 +290,7 @@ pub fn _validate_AlgorithmWithInvoke(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_AlgorithmWithInvoke,
         _eal_components_for_AlgorithmWithInvoke,
         _rctl2_components_for_AlgorithmWithInvoke,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -379,7 +377,7 @@ pub fn _decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIden
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AlgorithmIdentifier")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -387,8 +385,7 @@ pub fn _decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIden
         _rctl1_components_for_AlgorithmIdentifier,
         _eal_components_for_AlgorithmIdentifier,
         _rctl2_components_for_AlgorithmIdentifier,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut algorithm_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut parameters_: OPTIONAL<X690Element> = None;
@@ -431,7 +428,7 @@ pub fn _validate_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AlgorithmIdentifier")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -439,8 +436,7 @@ pub fn _validate_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_AlgorithmIdentifier,
         _eal_components_for_AlgorithmIdentifier,
         _rctl2_components_for_AlgorithmIdentifier,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -542,8 +538,7 @@ pub fn _decode_HASH(el: &X690Element) -> ASN1Result<HASH> {
         _rctl1_components_for_HASH,
         _eal_components_for_HASH,
         _rctl2_components_for_HASH,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut algorithmIdentifier_: OPTIONAL<AlgorithmIdentifier> = None;
     let mut hashValue_: OPTIONAL<BIT_STRING> = None;
@@ -588,8 +583,7 @@ pub fn _validate_HASH(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_HASH,
         _eal_components_for_HASH,
         _rctl2_components_for_HASH,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -739,8 +733,7 @@ pub fn _decode_SIGNED<ToBeSigned: 'static>(
         _rctl1_components_for_SIGNED,
         _eal_components_for_SIGNED,
         _rctl2_components_for_SIGNED,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut toBeSigned_: OPTIONAL<ToBeSigned> = None;
     let mut algorithmIdentifier_: OPTIONAL<AlgorithmIdentifier> = None;
@@ -809,8 +802,7 @@ pub fn _validate_SIGNED<ToBeSigned>(
         _rctl1_components_for_SIGNED,
         _eal_components_for_SIGNED,
         _rctl2_components_for_SIGNED,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -895,8 +887,7 @@ pub fn _decode_FingerPrint(el: &X690Element) -> ASN1Result<FingerPrint> {
         _rctl1_components_for_FingerPrint,
         _eal_components_for_FingerPrint,
         _rctl2_components_for_FingerPrint,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut algorithmIdentifier_: OPTIONAL<AlgorithmIdentifier> = None;
     let mut fingerprint_: OPTIONAL<BIT_STRING> = None;
@@ -941,8 +932,7 @@ pub fn _validate_FingerPrint(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_FingerPrint,
         _eal_components_for_FingerPrint,
         _rctl2_components_for_FingerPrint,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1163,7 +1153,7 @@ pub fn _decode_TBSCertificate(el: &X690Element) -> ASN1Result<TBSCertificate> {
     let _elements = match &el.value {
         X690Value::Constructed(children) => children,
         _ => {
-            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TBSCertificate"))
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TBSCertificate"));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -1171,8 +1161,7 @@ pub fn _decode_TBSCertificate(el: &X690Element) -> ASN1Result<TBSCertificate> {
         _rctl1_components_for_TBSCertificate,
         _eal_components_for_TBSCertificate,
         _rctl2_components_for_TBSCertificate,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut version_: OPTIONAL<Version> = None;
     let mut serialNumber_: OPTIONAL<CertificateSerialNumber> = None;
@@ -1287,7 +1276,7 @@ pub fn _validate_TBSCertificate(el: &X690Element) -> ASN1Result<()> {
     let _elements = match &el.value {
         X690Value::Constructed(children) => children,
         _ => {
-            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TBSCertificate"))
+            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "TBSCertificate"));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -1295,8 +1284,7 @@ pub fn _validate_TBSCertificate(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_TBSCertificate,
         _eal_components_for_TBSCertificate,
         _rctl2_components_for_TBSCertificate,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1446,8 +1434,7 @@ pub fn _decode_Validity(el: &X690Element) -> ASN1Result<Validity> {
         _rctl1_components_for_Validity,
         _eal_components_for_Validity,
         _rctl2_components_for_Validity,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut notBefore_: OPTIONAL<Time> = None;
     let mut notAfter_: OPTIONAL<Time> = None;
@@ -1492,8 +1479,7 @@ pub fn _validate_Validity(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_Validity,
         _eal_components_for_Validity,
         _rctl2_components_for_Validity,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1571,7 +1557,7 @@ pub fn _decode_SubjectPublicKeyInfo(el: &X690Element) -> ASN1Result<SubjectPubli
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubjectPublicKeyInfo")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -1579,8 +1565,7 @@ pub fn _decode_SubjectPublicKeyInfo(el: &X690Element) -> ASN1Result<SubjectPubli
         _rctl1_components_for_SubjectPublicKeyInfo,
         _eal_components_for_SubjectPublicKeyInfo,
         _rctl2_components_for_SubjectPublicKeyInfo,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut algorithm_: OPTIONAL<AlgorithmIdentifier> = None;
     let mut subjectPublicKey_: OPTIONAL<PublicKey> = None;
@@ -1621,7 +1606,7 @@ pub fn _validate_SubjectPublicKeyInfo(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "SubjectPublicKeyInfo")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -1629,8 +1614,7 @@ pub fn _validate_SubjectPublicKeyInfo(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_SubjectPublicKeyInfo,
         _eal_components_for_SubjectPublicKeyInfo,
         _rctl2_components_for_SubjectPublicKeyInfo,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1679,7 +1663,6 @@ pub enum Time {
 }
 
 impl Time {
-
     // Intentionally not exported because we don't want chrono to become
     // a requirement of the public-facing API.
     pub(crate) fn into_chrono(&self) -> Result<DateTime<Utc>, ()> {
@@ -1691,7 +1674,6 @@ impl Time {
 }
 
 impl PartialEq for Time {
-
     /// `Eq` cannot be implemented for `Time` because two times that have the
     /// same error making them unable to be converted to chrono times will not
     /// equal each other, even if they are the same values.
@@ -1701,11 +1683,9 @@ impl PartialEq for Time {
             _ => false,
         }
     }
-
 }
 
 impl PartialOrd for Time {
-
     /// Only returns `None` if one or more of the times cannot be converted to a
     /// `DateTime` from the `chrono` crate. Because this is fallible, we cannot
     /// implement `Ord` for `Time`.
@@ -1715,7 +1695,6 @@ impl PartialOrd for Time {
             _ => None,
         }
     }
-
 }
 
 impl TryFrom<&X690Element> for Time {
@@ -1733,7 +1712,7 @@ pub fn _decode_Time(el: &X690Element) -> ASN1Result<Time> {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
                 "Time",
-            ))
+            ));
         }
     }
 }
@@ -1753,7 +1732,7 @@ pub fn _validate_Time(el: &X690Element) -> ASN1Result<()> {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
                 "Time",
-            ))
+            ));
         }
     }
 }
@@ -1901,8 +1880,7 @@ pub fn _decode_Extension(el: &X690Element) -> ASN1Result<Extension> {
         _rctl1_components_for_Extension,
         _eal_components_for_Extension,
         _rctl2_components_for_Extension,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut extnId_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut critical_: OPTIONAL<BOOLEAN> = None;
@@ -1955,8 +1933,7 @@ pub fn _validate_Extension(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_Extension,
         _eal_components_for_Extension,
         _rctl2_components_for_Extension,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1981,10 +1958,12 @@ pub fn _validate_Extension(el: &X690Element) -> ASN1Result<()> {
 ///
 ///
 pub fn der() -> OBJECT_IDENTIFIER {
-    oid!(joint_iso_itu_t,
+    oid!(
+        joint_iso_itu_t,
         /* asn1 */ 1,
         /* ber-derived */ 2,
-        /* distinguished-encoding */ 1) // OID_GETTER
+        /* distinguished-encoding */ 1
+    ) // OID_GETTER
 }
 
 /// ### ASN.1 Definition:
@@ -2073,7 +2052,7 @@ pub fn _decode_RelativeDistinguishedName(
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::invalid_construction,
                 "RelativeDistinguishedName",
-            ))
+            ));
         }
     };
     let mut items: SET_OF<AttributeTypeAndValue> = Vec::with_capacity(elements.len());
@@ -2186,7 +2165,7 @@ pub fn _decode_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<AttributeTy
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeTypeAndValue")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -2194,8 +2173,7 @@ pub fn _decode_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<AttributeTy
         _rctl1_components_for_AttributeTypeAndValue,
         _eal_components_for_AttributeTypeAndValue,
         _rctl2_components_for_AttributeTypeAndValue,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut type__: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut value_: OPTIONAL<X690Element> = None;
@@ -2236,7 +2214,7 @@ pub fn _validate_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeTypeAndValue")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -2244,8 +2222,7 @@ pub fn _validate_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_AttributeTypeAndValue,
         _eal_components_for_AttributeTypeAndValue,
         _rctl2_components_for_AttributeTypeAndValue,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -2374,18 +2351,20 @@ impl Attribute {
 
     /// Accuracy does not matter too much in this function. Do not expect it.
     pub fn size_in_bytes(&self) -> usize {
-        let values_len: usize = self.values
+        let values_len: usize = self
+            .values
             .iter()
             .map(|v| v.len())
             .reduce(|acc, size| acc + size)
             .unwrap_or(0);
-        let vwc_len: usize = self.valuesWithContext
+        let vwc_len: usize = self
+            .valuesWithContext
             .as_ref()
-            .map(|vwcs| vwcs
-                .iter()
-                .map(|v| v.size_in_bytes())
-                .reduce(|acc, size| acc + size)
-            )
+            .map(|vwcs| {
+                vwcs.iter()
+                    .map(|v| v.size_in_bytes())
+                    .reduce(|acc, size| acc + size)
+            })
             .flatten()
             .unwrap_or(0);
         let values_tag_len = 1 + base_256_len(values_len);
@@ -2412,30 +2391,45 @@ pub struct AttributeValuesIterator<'a> {
     j: usize,
 }
 
-impl <'a> Iterator for AttributeValuesIterator<'a> {
-    type Item = (&'a OBJECT_IDENTIFIER, &'a X690Element, Option<&'a [Context]>);
+impl<'a> Iterator for AttributeValuesIterator<'a> {
+    type Item = (
+        &'a OBJECT_IDENTIFIER,
+        &'a X690Element,
+        Option<&'a [Context]>,
+    );
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(val) = self.attr.values.get(self.i) {
             self.i += 1;
             return Some((&self.attr.type_, val, None));
         }
-        if let Some(vwc) = self.attr.valuesWithContext.as_ref().map(|vwcs| vwcs.get(self.j)).flatten() {
+        if let Some(vwc) = self
+            .attr
+            .valuesWithContext
+            .as_ref()
+            .map(|vwcs| vwcs.get(self.j))
+            .flatten()
+        {
             self.j += 1;
-            return Some((&self.attr.type_, &vwc.value, Some(vwc.contextList.as_slice())));
+            return Some((
+                &self.attr.type_,
+                &vwc.value,
+                Some(vwc.contextList.as_slice()),
+            ));
         }
         None
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let exact = self.attr.values.len()
-            + self.attr.valuesWithContext
+            + self
+                .attr
+                .valuesWithContext
                 .as_ref()
                 .map(|vwcs| vwcs.len())
                 .unwrap_or(0);
         (exact, Some(exact))
     }
-
 }
 
 impl FusedIterator for AttributeValuesIterator<'_> {}
@@ -2486,8 +2480,7 @@ pub fn _decode_Attribute(el: &X690Element) -> ASN1Result<Attribute> {
         _rctl1_components_for_Attribute,
         _eal_components_for_Attribute,
         _rctl2_components_for_Attribute,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut type__: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut values_: OPTIONAL<Vec<X690Element>> = None;
@@ -2507,7 +2500,7 @@ pub fn _decode_Attribute(el: &X690Element) -> ASN1Result<Attribute> {
                         _ => {
                             return Err(
                                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "values")
-                            )
+                            );
                         }
                     };
                     let mut items: SET_OF<X690Element> = Vec::with_capacity(elements.len());
@@ -2527,7 +2520,7 @@ pub fn _decode_Attribute(el: &X690Element) -> ASN1Result<Attribute> {
                             return Err(el.to_asn1_err_named(
                                 ASN1ErrorCode::invalid_construction,
                                 "valuesWithContext",
-                            ))
+                            ));
                         }
                     };
                     let mut items: SET_OF<Attribute_valuesWithContext_Item> =
@@ -2594,8 +2587,7 @@ pub fn _validate_Attribute(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_Attribute,
         _eal_components_for_Attribute,
         _rctl2_components_for_Attribute,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -2796,7 +2788,7 @@ pub fn _decode_TBSAttributeCertificate(el: &X690Element) -> ASN1Result<TBSAttrib
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::invalid_construction,
                 "TBSAttributeCertificate",
-            ))
+            ));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -2804,8 +2796,7 @@ pub fn _decode_TBSAttributeCertificate(el: &X690Element) -> ASN1Result<TBSAttrib
         _rctl1_components_for_TBSAttributeCertificate,
         _eal_components_for_TBSAttributeCertificate,
         _rctl2_components_for_TBSAttributeCertificate,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut version_: OPTIONAL<AttCertVersion> = None;
     let mut holder_: OPTIONAL<Holder> = None;
@@ -2839,7 +2830,7 @@ pub fn _decode_TBSAttributeCertificate(el: &X690Element) -> ASN1Result<TBSAttrib
                             return Err(el.to_asn1_err_named(
                                 ASN1ErrorCode::invalid_construction,
                                 "attributes",
-                            ))
+                            ));
                         }
                     };
                     let mut items: SEQUENCE_OF<Attribute> = Vec::with_capacity(elements.len());
@@ -2913,7 +2904,7 @@ pub fn _validate_TBSAttributeCertificate(el: &X690Element) -> ASN1Result<()> {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::invalid_construction,
                 "TBSAttributeCertificate",
-            ))
+            ));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -2921,8 +2912,7 @@ pub fn _validate_TBSAttributeCertificate(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_TBSAttributeCertificate,
         _eal_components_for_TBSAttributeCertificate,
         _rctl2_components_for_TBSAttributeCertificate,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3063,8 +3053,7 @@ pub fn _decode_Holder(el: &X690Element) -> ASN1Result<Holder> {
         _rctl1_components_for_Holder,
         _eal_components_for_Holder,
         _rctl2_components_for_Holder,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut baseCertificateID_: OPTIONAL<IssuerSerial> = None;
     let mut entityName_: OPTIONAL<GeneralNames> = None;
@@ -3142,8 +3131,7 @@ pub fn _validate_Holder(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_Holder,
         _eal_components_for_Holder,
         _rctl2_components_for_Holder,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3260,8 +3248,7 @@ pub fn _decode_IssuerSerial(el: &X690Element) -> ASN1Result<IssuerSerial> {
         _rctl1_components_for_IssuerSerial,
         _eal_components_for_IssuerSerial,
         _rctl2_components_for_IssuerSerial,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut issuer_: OPTIONAL<GeneralNames> = None;
     let mut serial_: OPTIONAL<CertificateSerialNumber> = None;
@@ -3312,8 +3299,7 @@ pub fn _validate_IssuerSerial(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_IssuerSerial,
         _eal_components_for_IssuerSerial,
         _rctl2_components_for_IssuerSerial,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3427,7 +3413,7 @@ pub fn _decode_ObjectDigestInfo(el: &X690Element) -> ASN1Result<ObjectDigestInfo
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ObjectDigestInfo")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -3435,8 +3421,7 @@ pub fn _decode_ObjectDigestInfo(el: &X690Element) -> ASN1Result<ObjectDigestInfo
         _rctl1_components_for_ObjectDigestInfo,
         _eal_components_for_ObjectDigestInfo,
         _rctl2_components_for_ObjectDigestInfo,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut digestedObjectType_: OPTIONAL<ObjectDigestInfo_digestedObjectType> = None;
     let mut otherObjectTypeID_: OPTIONAL<OBJECT_IDENTIFIER> = None;
@@ -3491,7 +3476,7 @@ pub fn _validate_ObjectDigestInfo(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ObjectDigestInfo")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -3499,8 +3484,7 @@ pub fn _validate_ObjectDigestInfo(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_ObjectDigestInfo,
         _eal_components_for_ObjectDigestInfo,
         _rctl2_components_for_ObjectDigestInfo,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3556,8 +3540,8 @@ impl AttCertIssuer {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.issuerName.is_none()
-        && self.baseCertificateID.is_none()
-        && self.objectDigestInfo.is_none()
+            && self.baseCertificateID.is_none()
+            && self.objectDigestInfo.is_none()
     }
 }
 impl Default for AttCertIssuer {
@@ -3613,7 +3597,7 @@ pub fn _decode_AttCertIssuer(el: &X690Element) -> ASN1Result<AttCertIssuer> {
                 _ => {
                     return Err(
                         el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttCertIssuer")
-                    )
+                    );
                 }
             };
             let _seq_iter = X690StructureIterator::new(
@@ -3621,8 +3605,7 @@ pub fn _decode_AttCertIssuer(el: &X690Element) -> ASN1Result<AttCertIssuer> {
                 _rctl1_components_for_AttCertIssuer,
                 _eal_components_for_AttCertIssuer,
                 _rctl2_components_for_AttCertIssuer,
-            )
-            ;
+            );
             let mut _i: usize = 0;
             let mut issuerName_: OPTIONAL<GeneralNames> = None;
             let mut baseCertificateID_: OPTIONAL<IssuerSerial> = None;
@@ -3706,7 +3689,7 @@ pub fn _validate_AttCertIssuer(el: &X690Element) -> ASN1Result<()> {
                 _ => {
                     return Err(
                         el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttCertIssuer")
-                    )
+                    );
                 }
             };
             let _seq_iter = X690StructureIterator::new(
@@ -3714,8 +3697,7 @@ pub fn _validate_AttCertIssuer(el: &X690Element) -> ASN1Result<()> {
                 _rctl1_components_for_AttCertIssuer,
                 _eal_components_for_AttCertIssuer,
                 _rctl2_components_for_AttCertIssuer,
-            )
-            ;
+            );
             let mut _i: usize = 0;
             for _fallible_component_name in _seq_iter {
                 let _component_name = _fallible_component_name?;
@@ -3812,7 +3794,7 @@ pub fn _decode_AttCertValidityPeriod(el: &X690Element) -> ASN1Result<AttCertVali
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttCertValidityPeriod")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -3820,8 +3802,7 @@ pub fn _decode_AttCertValidityPeriod(el: &X690Element) -> ASN1Result<AttCertVali
         _rctl1_components_for_AttCertValidityPeriod,
         _eal_components_for_AttCertValidityPeriod,
         _rctl2_components_for_AttCertValidityPeriod,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut notBeforeTime_: OPTIONAL<GeneralizedTime> = None;
     let mut notAfterTime_: OPTIONAL<GeneralizedTime> = None;
@@ -3862,7 +3843,7 @@ pub fn _validate_AttCertValidityPeriod(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttCertValidityPeriod")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -3870,8 +3851,7 @@ pub fn _validate_AttCertValidityPeriod(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_AttCertValidityPeriod,
         _eal_components_for_AttCertValidityPeriod,
         _rctl2_components_for_AttCertValidityPeriod,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3987,9 +3967,9 @@ pub fn _decode_GeneralName(el: &X690Element) -> ASN1Result<GeneralName> {
         (TagClass::CONTEXT, 4) => Ok(GeneralName::directoryName(
             |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(&el)?,
         )),
-        (TagClass::CONTEXT, 5) => Ok(GeneralName::ediPartyName(
-            _decode_EDIPartyName(&el.inner()?)?
-        )),
+        (TagClass::CONTEXT, 5) => Ok(GeneralName::ediPartyName(_decode_EDIPartyName(
+            &el.inner()?,
+        )?)),
         (TagClass::CONTEXT, 6) => Ok(GeneralName::uniformResourceIdentifier(
             |el: &X690Element| -> ASN1Result<IA5String> {
                 Ok(BER.decode_ia5_string(&el.inner()?)?)
@@ -4266,8 +4246,7 @@ pub fn _decode_TBSCertAVL(el: &X690Element) -> ASN1Result<TBSCertAVL> {
         _rctl1_components_for_TBSCertAVL,
         _eal_components_for_TBSCertAVL,
         _rctl2_components_for_TBSCertAVL,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut version_: OPTIONAL<Version> = None;
     let mut serialNumber_: OPTIONAL<AvlSerialNumber> = None;
@@ -4297,7 +4276,7 @@ pub fn _decode_TBSCertAVL(el: &X690Element) -> ASN1Result<TBSCertAVL> {
                                 return Err(el.to_asn1_err_named(
                                     ASN1ErrorCode::invalid_construction,
                                     "entries",
-                                ))
+                                ));
                             }
                         };
                         let mut items: SEQUENCE_OF<TBSCertAVL_entries_Item> =
@@ -4376,8 +4355,7 @@ pub fn _validate_TBSCertAVL(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_TBSCertAVL,
         _eal_components_for_TBSCertAVL,
         _rctl2_components_for_TBSCertAVL,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -4567,7 +4545,7 @@ pub fn _decode_IssuerSerialNumber(el: &X690Element) -> ASN1Result<IssuerSerialNu
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "IssuerSerialNumber")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -4575,8 +4553,7 @@ pub fn _decode_IssuerSerialNumber(el: &X690Element) -> ASN1Result<IssuerSerialNu
         _rctl1_components_for_IssuerSerialNumber,
         _eal_components_for_IssuerSerialNumber,
         _rctl2_components_for_IssuerSerialNumber,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut issuer_: OPTIONAL<Name> = None;
     let mut serialNumber_: OPTIONAL<CertificateSerialNumber> = None;
@@ -4617,7 +4594,7 @@ pub fn _validate_IssuerSerialNumber(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "IssuerSerialNumber")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -4625,8 +4602,7 @@ pub fn _validate_IssuerSerialNumber(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_IssuerSerialNumber,
         _eal_components_for_IssuerSerialNumber,
         _rctl2_components_for_IssuerSerialNumber,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -4806,7 +4782,7 @@ pub fn _decode_ScopeRestrictions(el: &X690Element) -> ASN1Result<ScopeRestrictio
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ScopeRestrictions")
-            )
+            );
         }
     };
     let mut items: SEQUENCE_OF<ScopeRestriction> = Vec::with_capacity(elements.len());
@@ -4897,7 +4873,7 @@ pub fn _decode_ScopeRestriction(el: &X690Element) -> ASN1Result<ScopeRestriction
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ScopeRestriction")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -4905,8 +4881,7 @@ pub fn _decode_ScopeRestriction(el: &X690Element) -> ASN1Result<ScopeRestriction
         _rctl1_components_for_ScopeRestriction,
         _eal_components_for_ScopeRestriction,
         _rctl2_components_for_ScopeRestriction,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut id_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut restriction_: OPTIONAL<X690Element> = None;
@@ -4947,7 +4922,7 @@ pub fn _validate_ScopeRestriction(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ScopeRestriction")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -4955,8 +4930,7 @@ pub fn _validate_ScopeRestriction(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_ScopeRestriction,
         _eal_components_for_ScopeRestriction,
         _rctl2_components_for_ScopeRestriction,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5036,7 +5010,7 @@ pub fn _decode_TBSCertAVL_entries_Item(el: &X690Element) -> ASN1Result<TBSCertAV
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::invalid_construction,
                 "TBSCertAVL-entries-Item",
-            ))
+            ));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -5044,8 +5018,7 @@ pub fn _decode_TBSCertAVL_entries_Item(el: &X690Element) -> ASN1Result<TBSCertAV
         _rctl1_components_for_TBSCertAVL_entries_Item,
         _eal_components_for_TBSCertAVL_entries_Item,
         _rctl2_components_for_TBSCertAVL_entries_Item,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut idType_: OPTIONAL<TBSCertAVL_entries_Item_idType> = None;
     let mut scope_: OPTIONAL<ScopeRestrictions> = None;
@@ -5107,7 +5080,7 @@ pub fn _validate_TBSCertAVL_entries_Item(el: &X690Element) -> ASN1Result<()> {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::invalid_construction,
                 "TBSCertAVL-entries-Item",
-            ))
+            ));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -5115,8 +5088,7 @@ pub fn _validate_TBSCertAVL_entries_Item(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_TBSCertAVL_entries_Item,
         _eal_components_for_TBSCertAVL_entries_Item,
         _rctl2_components_for_TBSCertAVL_entries_Item,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5183,7 +5155,8 @@ impl Context {
     }
 
     pub fn size_in_bytes(&self) -> usize {
-        let cvlen: usize = self.contextValues
+        let cvlen: usize = self
+            .contextValues
             .iter()
             .map(|cv| cv.len())
             .reduce(|acc, len| acc + len)
@@ -5246,8 +5219,7 @@ pub fn _decode_Context(el: &X690Element) -> ASN1Result<Context> {
         _rctl1_components_for_Context,
         _eal_components_for_Context,
         _rctl2_components_for_Context,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut contextType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut contextValues_: OPTIONAL<Vec<X690Element>> = None;
@@ -5268,7 +5240,7 @@ pub fn _decode_Context(el: &X690Element) -> ASN1Result<Context> {
                             return Err(el.to_asn1_err_named(
                                 ASN1ErrorCode::invalid_construction,
                                 "contextValues",
-                            ))
+                            ));
                         }
                     };
                     let mut items: SET_OF<X690Element> = Vec::with_capacity(elements.len());
@@ -5326,8 +5298,7 @@ pub fn _validate_Context(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_Context,
         _eal_components_for_Context,
         _rctl2_components_for_Context,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5382,7 +5353,8 @@ impl Attribute_valuesWithContext_Item {
     }
 
     pub fn size_in_bytes(&self) -> usize {
-        let cl_len = self.contextList
+        let cl_len = self
+            .contextList
             .iter()
             .map(|c| c.size_in_bytes())
             .reduce(|acc, size| acc + size)
@@ -5425,7 +5397,7 @@ pub fn _decode_Attribute_valuesWithContext_Item(
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::invalid_construction,
                 "Attribute-valuesWithContext-Item",
-            ))
+            ));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -5433,8 +5405,7 @@ pub fn _decode_Attribute_valuesWithContext_Item(
         _rctl1_components_for_Attribute_valuesWithContext_Item,
         _eal_components_for_Attribute_valuesWithContext_Item,
         _rctl2_components_for_Attribute_valuesWithContext_Item,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut value_: OPTIONAL<X690Element> = None;
     let mut contextList_: OPTIONAL<Vec<Context>> = None;
@@ -5454,7 +5425,7 @@ pub fn _decode_Attribute_valuesWithContext_Item(
                             return Err(el.to_asn1_err_named(
                                 ASN1ErrorCode::invalid_construction,
                                 "contextList",
-                            ))
+                            ));
                         }
                     };
                     let mut items: SET_OF<Context> = Vec::with_capacity(elements.len());
@@ -5504,7 +5475,7 @@ pub fn _validate_Attribute_valuesWithContext_Item(el: &X690Element) -> ASN1Resul
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::invalid_construction,
                 "Attribute-valuesWithContext-Item",
-            ))
+            ));
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -5512,8 +5483,7 @@ pub fn _validate_Attribute_valuesWithContext_Item(el: &X690Element) -> ASN1Resul
         _rctl1_components_for_Attribute_valuesWithContext_Item,
         _eal_components_for_Attribute_valuesWithContext_Item,
         _rctl2_components_for_Attribute_valuesWithContext_Item,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5643,7 +5613,7 @@ pub fn _decode_Name(el: &X690Element) -> ASN1Result<Name> {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
                 "Name",
-            ))
+            ));
         }
     }
 }
@@ -5665,7 +5635,7 @@ pub fn _validate_Name(el: &X690Element) -> ASN1Result<()> {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
                 "Name",
-            ))
+            ));
         }
     }
 }
@@ -5701,58 +5671,45 @@ impl TryFrom<Name> for RDNSequence {
                 let mut rdns: RDNSequence = Vec::with_capacity(number_of_labels);
                 for label in fqdn.split(".") {
                     if label.chars().all(|c| c.is_ascii()) {
-                        rdns.push(
-                            vec![
-                                AttributeTypeAndValue::new(
-                                    oid!(0,9,2342,19200300,100,1,25), // dc
-                                    BER.encode_ia5_string(label).unwrap(),
-                                    vec![],
-                                )
-                            ]
-                        );
+                        rdns.push(vec![AttributeTypeAndValue::new(
+                            oid!(0, 9, 2342, 19200300, 100, 1, 25), // dc
+                            BER.encode_ia5_string(label).unwrap(),
+                            vec![],
+                        )]);
                     }
                     if label.starts_with("xn--") {
                         return Err(ASN1Error::new(ASN1ErrorCode::malformed_value));
                     }
                     let punycoded_label = punycode::encode(label)
                         .map_err(|_| ASN1Error::new(ASN1ErrorCode::malformed_value))?;
-                    let new_label = ["xn--",&punycoded_label].concat();
-                    rdns.push(
-                        vec![
-                            AttributeTypeAndValue::new(
-                                oid!(0,9,2342,19200300,100,1,25), // dc
-                                BER.encode_ia5_string(&new_label).unwrap(),
-                                vec![],
-                            )
-                        ]
-                    );
+                    let new_label = ["xn--", &punycoded_label].concat();
+                    rdns.push(vec![AttributeTypeAndValue::new(
+                        oid!(0, 9, 2342, 19200300, 100, 1, 25), // dc
+                        BER.encode_ia5_string(&new_label).unwrap(),
+                        vec![],
+                    )]);
                 }
                 Ok(rdns)
-            },
-            Name::oid(oid) =>  {
+            }
+            Name::oid(oid) => {
                 let mut rdns: RDNSequence = Vec::with_capacity(oid.len());
                 for arc in oid.arcs() {
-                    rdns.push(vec![
-                        AttributeTypeAndValue::new(
-                            oid!(2,17,1,2,2), // oidC
-                            BER.encode_u128(arc).unwrap(),
-                            vec![],
-                        )
-                    ]);
+                    rdns.push(vec![AttributeTypeAndValue::new(
+                        oid!(2, 17, 1, 2, 2), // oidC
+                        BER.encode_u128(arc).unwrap(),
+                        vec![],
+                    )]);
                 }
                 Ok(rdns)
-            },
+            }
         }
     }
-
 }
 
 impl From<RDNSequence> for Name {
-
     fn from(value: RDNSequence) -> Self {
         Name::rdnSequence(value)
     }
-
 }
 
 /// ### ASN.1 Definition:
@@ -5821,8 +5778,7 @@ pub fn _decode_EDIPartyName(el: &X690Element) -> ASN1Result<EDIPartyName> {
         _rctl1_components_for_EDIPartyName,
         _eal_components_for_EDIPartyName,
         _rctl2_components_for_EDIPartyName,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     let mut nameAssigner_: OPTIONAL<X690Element> = None;
     let mut partyName_: OPTIONAL<X690Element> = None;
@@ -5852,19 +5808,15 @@ pub fn _decode_EDIPartyName(el: &X690Element) -> ASN1Result<EDIPartyName> {
 pub fn _encode_EDIPartyName(value_: &EDIPartyName) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(12);
     if let Some(v_) = &value_.nameAssigner {
-        components_.push(
-            X690Element::new(
-                Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(v_.clone()),
-            )
-        );
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(v_.clone()),
+        ));
     }
-    components_.push(
-        X690Element::new(
-            Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(value_.partyName.clone()),
-        )
-    );
+    components_.push(X690Element::new(
+        Tag::new(TagClass::CONTEXT, 1),
+        X690Value::from_explicit(value_.partyName.clone()),
+    ));
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
@@ -5883,8 +5835,7 @@ pub fn _validate_EDIPartyName(el: &X690Element) -> ASN1Result<()> {
         _rctl1_components_for_EDIPartyName,
         _eal_components_for_EDIPartyName,
         _rctl2_components_for_EDIPartyName,
-    )
-    ;
+    );
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5918,34 +5869,27 @@ pub fn _validate_EDIPartyName(el: &X690Element) -> ASN1Result<()> {
 mod tests {
 
     use super::{Attribute, Attribute_valuesWithContext_Item};
-    use wildboar_asn1::{Tag, TagClass, oid, UNIV_TAG_PRINTABLE_STRING};
-    use x690::{X690Element, X690Value};
     use bytes::Bytes;
+    use wildboar_asn1::{Tag, TagClass, UNIV_TAG_PRINTABLE_STRING, oid};
+    use x690::{X690Element, X690Value};
 
     fn get_attr_value(i: usize) -> X690Element {
         X690Element::new(
             Tag::new(TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING),
-            X690Value::Primitive(Bytes::from(i.to_string()))
+            X690Value::Primitive(Bytes::from(i.to_string())),
         )
     }
-
 
     #[test]
     fn test_attr_values_iter() {
         let attr = Attribute::new(
-            oid!(2,5,4,3),
-            vec![
-                get_attr_value(0),
-                get_attr_value(1),
-                get_attr_value(2),
-            ],
-            Some(vec![
-                Attribute_valuesWithContext_Item::new(
-                    get_attr_value(3),
-                    vec![],
-                    vec![],
-                ),
-            ]),
+            oid!(2, 5, 4, 3),
+            vec![get_attr_value(0), get_attr_value(1), get_attr_value(2)],
+            Some(vec![Attribute_valuesWithContext_Item::new(
+                get_attr_value(3),
+                vec![],
+                vec![],
+            )]),
             vec![],
         );
         assert_eq!(attr.iter_values().size_hint(), (4, Some(4)));
@@ -5953,7 +5897,6 @@ mod tests {
         let v: Vec<_> = attr.iter_values().collect();
         assert_eq!(v.len(), 4);
     }
-
 }
 
 /// ### ASN.1 Definition:

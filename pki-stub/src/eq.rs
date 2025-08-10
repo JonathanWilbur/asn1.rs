@@ -1,61 +1,32 @@
-use crate::{GeneralNames, RDNSequence, RelativeDistinguishedName, _encode_EDIPartyName};
 use crate::PKI_Stub::{
-    AttributeValue,
-    AttributeTypeAndValue,
-    Name,
-    GeneralName,
-    Certificate,
-    AttributeCertificate,
-    SIGNED,
-    TBSCertAVL,
-    TBSCertificate,
-    TBSAttributeCertificate,
-    IssuerSerialNumber,
-    PKCertIdentifier,
-    AlgorithmIdentifier,
-    AlgorithmWithInvoke,
-    FingerPrint,
-    HASH,
-    EDIPartyName,
-    AttCertIssuer,
-    IssuerSerial,
-    ObjectDigestInfo,
-    _encode_GeneralName,
-    _validate_RDNSequence,
-    _decode_RDNSequence,
+    _decode_RDNSequence, _encode_GeneralName, _validate_RDNSequence, AlgorithmIdentifier,
+    AlgorithmWithInvoke, AttCertIssuer, AttributeCertificate, AttributeTypeAndValue,
+    AttributeValue, Certificate, EDIPartyName, FingerPrint, GeneralName, HASH, IssuerSerial,
+    IssuerSerialNumber, Name, ObjectDigestInfo, PKCertIdentifier, SIGNED, TBSAttributeCertificate,
+    TBSCertAVL, TBSCertificate,
 };
+use crate::utils::{gt_to_chrono, utctime_to_chrono};
+use crate::{_encode_EDIPartyName, GeneralNames, RDNSequence, RelativeDistinguishedName};
+use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
+use email_address::EmailAddress;
+use std::borrow::Cow;
+use std::collections::{HashMap, HashSet};
+use std::iter::{FusedIterator, Iterator};
+use std::str::FromStr;
+use std::str::{Chars, Split};
 use teletex::teletex_to_utf8;
 use wildboar_asn1::{
-    compare_numeric_string,
-    ExternalEncoding,
-    PresentationContextSwitchingTypeIdentification,
-    Tag,
-    TagClass,
-    TagNumber,
-    OBJECT_IDENTIFIER,
-    UNIV_TAG_BMP_STRING,
-    UNIV_TAG_UNIVERSAL_STRING,
-    UNIV_TAG_PRINTABLE_STRING,
-    UNIV_TAG_UTF8_STRING,
+    ExternalEncoding, OBJECT_IDENTIFIER, PresentationContextSwitchingTypeIdentification, Tag,
+    TagClass, TagNumber, UNIV_TAG_BMP_STRING, UNIV_TAG_PRINTABLE_STRING, UNIV_TAG_UNIVERSAL_STRING,
+    UNIV_TAG_UTF8_STRING, compare_numeric_string,
+};
+use x520_stringprep::{
+    X520CaseIgnoreStringPrepChars, x520_stringprep_case_ignore_bmp,
+    x520_stringprep_case_ignore_compare, x520_stringprep_case_ignore_str,
+    x520_stringprep_case_ignore_univ_str, x520_stringprep_to_case_ignore_string,
 };
 use x690::x690_write_tlv;
-use x690::{ber::BER, X690Codec, X690Element, primitive, deconstruct};
-use chrono::{DateTime, Utc, TimeZone, FixedOffset, Local};
-use x520_stringprep::{
-    x520_stringprep_case_ignore_compare,
-    x520_stringprep_case_ignore_str,
-    x520_stringprep_case_ignore_bmp,
-    x520_stringprep_case_ignore_univ_str,
-    X520CaseIgnoreStringPrepChars,
-    x520_stringprep_to_case_ignore_string,
-};
-use std::borrow::Cow;
-use std::str::{Chars, Split};
-use std::collections::{HashMap, HashSet};
-use std::iter::{Iterator, FusedIterator};
-use email_address::EmailAddress;
-use std::str::FromStr;
-use crate::utils::{gt_to_chrono, utctime_to_chrono};
+use x690::{X690Codec, X690Element, ber::BER, deconstruct, primitive};
 
 /// Returns a subslice with leading and trailing whitespace removed, for a slice of u16 code units (BMPString).
 pub(crate) fn trim_u16(slice: &[u16]) -> &[u16] {
@@ -91,19 +62,19 @@ pub(crate) fn trim_u32(slice: &[u32]) -> &[u32] {
     &slice[start..end]
 }
 
-pub(crate)struct DNSLabelIter<'a> {
+pub(crate) struct DNSLabelIter<'a> {
     inner: std::str::Split<'a, char>,
 }
 
-impl <'a> DNSLabelIter<'a> {
+impl<'a> DNSLabelIter<'a> {
     pub fn new(s: &'a str) -> Self {
-        DNSLabelIter{
+        DNSLabelIter {
             inner: s.split('.'),
         }
     }
 }
 
-impl <'a> Iterator for DNSLabelIter<'a> {
+impl<'a> Iterator for DNSLabelIter<'a> {
     type Item = Cow<'a, str>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -118,7 +89,6 @@ impl <'a> Iterator for DNSLabelIter<'a> {
             Some(Cow::Borrowed(label))
         }
     }
-
 }
 
 fn dns_compare(a: &str, b: &str) -> bool {
@@ -128,7 +98,8 @@ fn dns_compare(a: &str, b: &str) -> bool {
         if let Some(blabel) = b.next() {
             if !alabel.as_ref().eq_ignore_ascii_case(blabel.as_ref())
                 && alabel != "*"
-                && blabel != "*" {
+                && blabel != "*"
+            {
                 return false;
             }
         } else {
@@ -138,7 +109,7 @@ fn dns_compare(a: &str, b: &str) -> bool {
     b.next().is_none()
 }
 
-impl <'a> FusedIterator for DNSLabelIter<'a> {}
+impl<'a> FusedIterator for DNSLabelIter<'a> {}
 
 const FEW_ATAVS: usize = 4;
 fn rdn_compare(a: &RelativeDistinguishedName, b: &RelativeDistinguishedName) -> bool {
@@ -157,7 +128,8 @@ fn rdn_compare(a: &RelativeDistinguishedName, b: &RelativeDistinguishedName) -> 
         return true;
     }
 
-    let mut a_atavs: HashMap<&OBJECT_IDENTIFIER, &AttributeTypeAndValue> = HashMap::with_capacity(a.len());
+    let mut a_atavs: HashMap<&OBJECT_IDENTIFIER, &AttributeTypeAndValue> =
+        HashMap::with_capacity(a.len());
     for a_atav in a {
         if a_atavs.insert(&a_atav.type_, a_atav).is_some() {
             return false; // Invalid: duplicate attribute types
@@ -185,40 +157,30 @@ fn rdn_seq_compare(a: &RDNSequence, b: &RDNSequence) -> bool {
 }
 
 impl PartialEq for AlgorithmIdentifier {
-
     fn eq(&self, other: &Self) -> bool {
-        self.algorithm == other.algorithm
-        && self.parameters == other.parameters
+        self.algorithm == other.algorithm && self.parameters == other.parameters
     }
-
 }
 
 impl PartialEq for HASH {
-
     fn eq(&self, other: &Self) -> bool {
-        self.algorithmIdentifier == other.algorithmIdentifier
-        && self.hashValue == other.hashValue
+        self.algorithmIdentifier == other.algorithmIdentifier && self.hashValue == other.hashValue
     }
-
 }
 
 impl PartialEq for AlgorithmWithInvoke {
-
     fn eq(&self, other: &Self) -> bool {
         self.algorithm == other.algorithm
-        && self.parameters == other.parameters
-        && self.dynamParms == other.dynamParms
+            && self.parameters == other.parameters
+            && self.dynamParms == other.dynamParms
     }
-
 }
 
 impl PartialEq for FingerPrint {
-
     fn eq(&self, other: &Self) -> bool {
         self.algorithmIdentifier == other.algorithmIdentifier
-        && self.fingerprint == other.fingerprint
+            && self.fingerprint == other.fingerprint
     }
-
 }
 
 pub(crate) fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
@@ -229,33 +191,35 @@ pub(crate) fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
                 Err(_) => return Some(Err(())),
             };
             Some(utctime_to_chrono(&t))
-        },
+        }
         wildboar_asn1::UNIV_TAG_GENERALIZED_TIME => {
             let t = match BER.decode_generalized_time(el) {
                 Ok(x) => x,
                 Err(_) => return Some(Err(())),
             };
             Some(gt_to_chrono(&t))
-        },
+        }
         wildboar_asn1::UNIV_TAG_DATE_TIME => {
             let t = match BER.decode_date_time(el) {
                 Ok(x) => x,
                 Err(_) => return Some(Err(())),
             };
-            let maybe_t = Local.with_ymd_and_hms(
-                t.date.year as i32,
-                t.date.month as u32,
-                t.date.day as u32,
-                t.time.hour as u32,
-                t.time.minute as u32,
-                t.time.second as u32,
-            ).earliest();
+            let maybe_t = Local
+                .with_ymd_and_hms(
+                    t.date.year as i32,
+                    t.date.month as u32,
+                    t.date.day as u32,
+                    t.time.hour as u32,
+                    t.time.minute as u32,
+                    t.time.second as u32,
+                )
+                .earliest();
             let t = match maybe_t {
                 Some(x) => x,
                 None => return Some(Err(())),
             };
             Some(Ok(t.to_utc()))
-        },
+        }
         _ => None,
     }
 }
@@ -269,8 +233,7 @@ pub(crate) fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
         | wildboar_asn1::UNIV_TAG_GRAPHIC_STRING
         | wildboar_asn1::UNIV_TAG_VISIBLE_STRING
         | wildboar_asn1::UNIV_TAG_GENERAL_STRING
-        | wildboar_asn1::UNIV_TAG_OBJECT_DESCRIPTOR
-        => {
+        | wildboar_asn1::UNIV_TAG_OBJECT_DESCRIPTOR => {
             let ds = match deconstruct(el) {
                 Ok(x) => x,
                 Err(_) => return Some(Err(())),
@@ -282,7 +245,7 @@ pub(crate) fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
                         Err(_) => return Some(Err(())),
                     };
                     Some(Ok(Cow::Borrowed(s)))
-                },
+                }
                 Cow::Owned(bs) => {
                     let s = match String::from_utf8(bs) {
                         Ok(x) => x,
@@ -291,7 +254,7 @@ pub(crate) fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
                     Some(Ok(Cow::Owned(s)))
                 }
             }
-        },
+        }
         wildboar_asn1::UNIV_TAG_T61_STRING => {
             let ds: std::borrow::Cow<'_, [u8]> = match deconstruct(el) {
                 Ok(x) => x,
@@ -304,7 +267,7 @@ pub(crate) fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
                     } else {
                         Some(Ok(teletex_to_utf8(bs)))
                     }
-                },
+                }
                 Cow::Owned(bs) => {
                     if bs.as_slice().is_ascii() {
                         Some(Ok(Cow::Owned(String::from_utf8(bs).unwrap())))
@@ -313,7 +276,7 @@ pub(crate) fn get_string(el: &X690Element) -> Option<Result<Cow<str>, ()>> {
                     }
                 }
             }
-        },
+        }
         _ => None,
     }
 }
@@ -366,17 +329,27 @@ fn compare_attr_value_ex(
                 }
                 // ...otherwise (small strings), we just compare character-by-character
                 return x520_stringprep_case_ignore_compare(s1.as_ref().trim(), s2.as_ref().trim());
-            },
+            }
             _ => return false,
         },
         _ => (),
     };
     let mut prep_str1: Option<X520CaseIgnoreStringPrepChars<Chars<'_>>> = maybe_str1
         .as_ref()
-        .map(|s| s.as_ref().ok().map(|s| x520_stringprep_case_ignore_str(s.as_ref().trim()))).flatten();
+        .map(|s| {
+            s.as_ref()
+                .ok()
+                .map(|s| x520_stringprep_case_ignore_str(s.as_ref().trim()))
+        })
+        .flatten();
     let mut prep_str2: Option<X520CaseIgnoreStringPrepChars<Chars<'_>>> = maybe_str2
         .as_ref()
-        .map(|s| s.as_ref().ok().map(|s| x520_stringprep_case_ignore_str(s.as_ref().trim()))).flatten();
+        .map(|s| {
+            s.as_ref()
+                .ok()
+                .map(|s| x520_stringprep_case_ignore_str(s.as_ref().trim()))
+        })
+        .flatten();
 
     let maybe_t1 = get_time(&self_.0);
     let maybe_t2 = get_time(&other.0);
@@ -725,7 +698,6 @@ fn compare_attr_value(a: &AttributeValue, b: &AttributeValue) -> bool {
 }
 
 impl PartialEq for AttributeValue {
-
     /// This implements matching for the following matching rules:
     /// - `caseIgnoreMatch` for almost all string types
     /// - `caseIgnoreIA5StringMatch` for IA5String
@@ -743,7 +715,6 @@ impl PartialEq for AttributeValue {
     fn eq(&self, other: &Self) -> bool {
         compare_attr_value(self, other)
     }
-
 }
 
 fn telephone_number_match_bytes(a: &[u8], b: &[u8]) -> bool {
@@ -833,7 +804,6 @@ const TELEPHONE_NUMBER_TAG: Tag = Tag::new(TagClass::UNIVERSAL, UNIV_TAG_PRINTAB
 const EMAIL_TAG: Tag = Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING);
 
 impl PartialEq for AttributeTypeAndValue {
-
     /// This will not match DN values, since DN-typed values are forbidden from
     /// appearing as values within RDNs.
     // NOTE: uUIDPairMatch is already covered.
@@ -849,11 +819,9 @@ impl PartialEq for AttributeTypeAndValue {
             false,
         )
     }
-
 }
 
 impl PartialEq for Name {
-
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Name::rdnSequence(a), Name::rdnSequence(b)) => rdn_seq_compare(a, b),
@@ -862,116 +830,105 @@ impl PartialEq for Name {
             _ => false,
         }
     }
-
 }
 
 impl PartialEq for GeneralName {
-
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (GeneralName::otherName(a), GeneralName::otherName(b)) => todo!(),
-            (GeneralName::rfc822Name(a), GeneralName::rfc822Name(b)) =>
+            (GeneralName::rfc822Name(a), GeneralName::rfc822Name(b)) => {
                 match (EmailAddress::from_str(a), EmailAddress::from_str(b)) {
                     (Ok(a), Ok(b)) => a == b,
                     _ => false,
-                },
+                }
+            }
             (GeneralName::dNSName(a), GeneralName::dNSName(b)) => dns_compare(a, b),
             // This is a naive implementation, since we don't actually fully
             // parse the X.400 address.
             (GeneralName::x400Address(a), GeneralName::x400Address(b)) => a == b,
             (GeneralName::directoryName(a), GeneralName::directoryName(b)) => a == b,
             (GeneralName::ediPartyName(a), GeneralName::ediPartyName(b)) => a == b,
-            (GeneralName::uniformResourceIdentifier(a), GeneralName::uniformResourceIdentifier(b)) => a.eq_ignore_ascii_case(b),
+            (
+                GeneralName::uniformResourceIdentifier(a),
+                GeneralName::uniformResourceIdentifier(b),
+            ) => a.eq_ignore_ascii_case(b),
             (GeneralName::iPAddress(a), GeneralName::iPAddress(b)) => a == b,
             (GeneralName::registeredID(a), GeneralName::registeredID(b)) => a == b,
 
             (GeneralName::dNSName(a), GeneralName::directoryName(Name::dnsName(b)))
-            | (GeneralName::directoryName(Name::dnsName(a)), GeneralName::dNSName(b)) => dns_compare(a.as_str(), b.as_str()),
+            | (GeneralName::directoryName(Name::dnsName(a)), GeneralName::dNSName(b)) => {
+                dns_compare(a.as_str(), b.as_str())
+            }
 
             (GeneralName::registeredID(a), GeneralName::directoryName(Name::oid(b)))
             | (GeneralName::directoryName(Name::oid(a)), GeneralName::registeredID(b)) => a == b,
             _ => false,
         }
     }
-
 }
 
 impl PartialEq for TBSCertificate {
-
     fn eq(&self, other: &Self) -> bool {
-        self.serialNumber == other.serialNumber
-        && self.issuer == other.issuer
+        self.serialNumber == other.serialNumber && self.issuer == other.issuer
     }
-
 }
 
 impl PartialEq for TBSAttributeCertificate {
-
     fn eq(&self, other: &Self) -> bool {
-        self.serialNumber == other.serialNumber
-        && self.issuer == other.issuer
+        self.serialNumber == other.serialNumber && self.issuer == other.issuer
     }
-
 }
 
 impl PartialEq for TBSCertAVL {
-
     fn eq(&self, other: &Self) -> bool {
-        self.serialNumber == other.serialNumber
-        && self.issuer == other.issuer
+        self.serialNumber == other.serialNumber && self.issuer == other.issuer
     }
-
 }
 
-impl <T> PartialEq for SIGNED<T> {
-
+impl<T> PartialEq for SIGNED<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.algorithmIdentifier == other.algorithmIdentifier
-        && self.signature == other.signature
+        self.algorithmIdentifier == other.algorithmIdentifier && self.signature == other.signature
     }
-
 }
 
 impl PartialEq for IssuerSerialNumber {
-
     fn eq(&self, other: &Self) -> bool {
-        self.serialNumber == other.serialNumber
-        && self.issuer == other.issuer
+        self.serialNumber == other.serialNumber && self.issuer == other.issuer
     }
-
 }
 
 impl PartialEq for PKCertIdentifier {
-
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (PKCertIdentifier::issuerSerialNumber(a), PKCertIdentifier::issuerSerialNumber(b)) => a == b,
+            (PKCertIdentifier::issuerSerialNumber(a), PKCertIdentifier::issuerSerialNumber(b)) => {
+                a == b
+            }
             (PKCertIdentifier::fingerprintPKC(a), PKCertIdentifier::fingerprintPKC(b)) => a == b,
             (PKCertIdentifier::fingerprintPK(a), PKCertIdentifier::fingerprintPK(b)) => a == b,
             _ => false,
         }
     }
-
 }
 
 impl PartialEq for EDIPartyName {
-
     fn eq(&self, other: &Self) -> bool {
         if self.partyName.tag.tag_class != TagClass::UNIVERSAL
             || other.partyName.tag.tag_class != TagClass::UNIVERSAL
-            || !matches!(self.partyName.tag.tag_number,
+            || !matches!(
+                self.partyName.tag.tag_number,
                 wildboar_asn1::UNIV_TAG_PRINTABLE_STRING
-                | wildboar_asn1::UNIV_TAG_UTF8_STRING
-                | wildboar_asn1::UNIV_TAG_T61_STRING
-                | wildboar_asn1::UNIV_TAG_BMP_STRING
-                | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
+                    | wildboar_asn1::UNIV_TAG_UTF8_STRING
+                    | wildboar_asn1::UNIV_TAG_T61_STRING
+                    | wildboar_asn1::UNIV_TAG_BMP_STRING
+                    | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
             )
-            || !matches!(other.partyName.tag.tag_number,
+            || !matches!(
+                other.partyName.tag.tag_number,
                 wildboar_asn1::UNIV_TAG_PRINTABLE_STRING
-                | wildboar_asn1::UNIV_TAG_UTF8_STRING
-                | wildboar_asn1::UNIV_TAG_T61_STRING
-                | wildboar_asn1::UNIV_TAG_BMP_STRING
-                | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
+                    | wildboar_asn1::UNIV_TAG_UTF8_STRING
+                    | wildboar_asn1::UNIV_TAG_T61_STRING
+                    | wildboar_asn1::UNIV_TAG_BMP_STRING
+                    | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
             )
         {
             return false;
@@ -980,39 +937,42 @@ impl PartialEq for EDIPartyName {
             return false;
         }
         match (self.nameAssigner.as_ref(), other.nameAssigner.as_ref()) {
-            (Some(a), Some(b))
-            => a.tag.tag_class == TagClass::UNIVERSAL
-                && b.tag.tag_class == TagClass::UNIVERSAL
-                && matches!(a.tag.tag_number,
-                    wildboar_asn1::UNIV_TAG_PRINTABLE_STRING
-                    | wildboar_asn1::UNIV_TAG_UTF8_STRING
-                    | wildboar_asn1::UNIV_TAG_T61_STRING
-                    | wildboar_asn1::UNIV_TAG_BMP_STRING
-                    | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
-                )
-                && matches!(b.tag.tag_number,
-                    wildboar_asn1::UNIV_TAG_PRINTABLE_STRING
-                    | wildboar_asn1::UNIV_TAG_UTF8_STRING
-                    | wildboar_asn1::UNIV_TAG_T61_STRING
-                    | wildboar_asn1::UNIV_TAG_BMP_STRING
-                    | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
-                )
-                && AttributeValue(a.clone()) == AttributeValue(b.clone())
-            ,
+            (Some(a), Some(b)) => {
+                a.tag.tag_class == TagClass::UNIVERSAL
+                    && b.tag.tag_class == TagClass::UNIVERSAL
+                    && matches!(
+                        a.tag.tag_number,
+                        wildboar_asn1::UNIV_TAG_PRINTABLE_STRING
+                            | wildboar_asn1::UNIV_TAG_UTF8_STRING
+                            | wildboar_asn1::UNIV_TAG_T61_STRING
+                            | wildboar_asn1::UNIV_TAG_BMP_STRING
+                            | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
+                    )
+                    && matches!(
+                        b.tag.tag_number,
+                        wildboar_asn1::UNIV_TAG_PRINTABLE_STRING
+                            | wildboar_asn1::UNIV_TAG_UTF8_STRING
+                            | wildboar_asn1::UNIV_TAG_T61_STRING
+                            | wildboar_asn1::UNIV_TAG_BMP_STRING
+                            | wildboar_asn1::UNIV_TAG_UNIVERSAL_STRING
+                    )
+                    && AttributeValue(a.clone()) == AttributeValue(b.clone())
+            }
             _ => true,
         }
     }
-
 }
 
 impl PartialEq for AttCertIssuer {
-
     fn eq(&self, other: &Self) -> bool {
         if self.is_empty() || other.is_empty() {
             return false; // Malformed
         }
 
-        let base_cert_id_match = match (self.baseCertificateID.as_ref(), other.baseCertificateID.as_ref()) {
+        let base_cert_id_match = match (
+            self.baseCertificateID.as_ref(),
+            other.baseCertificateID.as_ref(),
+        ) {
             (Some(a), Some(b)) => a == b,
             _ => true,
         };
@@ -1028,48 +988,46 @@ impl PartialEq for AttCertIssuer {
             return false;
         }
 
-        match (self.objectDigestInfo.as_ref(), other.objectDigestInfo.as_ref()) {
+        match (
+            self.objectDigestInfo.as_ref(),
+            other.objectDigestInfo.as_ref(),
+        ) {
             (Some(a), Some(b)) => {
                 if a.is_comparable_with(b) && a.objectDigest != b.objectDigest {
                     return false;
                 }
-            },
+            }
             _ => (),
         };
 
         true
     }
-
 }
 
 impl PartialEq for IssuerSerial {
-
     fn eq(&self, other: &Self) -> bool {
         self.serial == other.serial
-        && compare_general_names(&self.issuer, &other.issuer)
-        && match (self.issuerUID.as_ref(), other.issuerUID.as_ref()) {
-            (Some(auid), Some(buid)) => auid == buid,
-            _ => true,
-        }
+            && compare_general_names(&self.issuer, &other.issuer)
+            && match (self.issuerUID.as_ref(), other.issuerUID.as_ref()) {
+                (Some(auid), Some(buid)) => auid == buid,
+                _ => true,
+            }
     }
-
 }
 
 impl PartialEq for ObjectDigestInfo {
-
     fn eq(&self, other: &Self) -> bool {
         if self.digestedObjectType != other.digestedObjectType {
             return false;
         }
         if self.otherObjectTypeID.is_some()
             && other.otherObjectTypeID.is_some()
-            && self.otherObjectTypeID != other.otherObjectTypeID {
+            && self.otherObjectTypeID != other.otherObjectTypeID
+        {
             return false;
         }
-        self.digestAlgorithm == other.digestAlgorithm
-        && self.objectDigest == other.objectDigest
+        self.digestAlgorithm == other.digestAlgorithm && self.objectDigest == other.objectDigest
     }
-
 }
 
 const FEW_GENERAL_NAMES: usize = 10;
@@ -1078,22 +1036,15 @@ fn compare_general_names(a: &GeneralNames, b: &GeneralNames) -> bool {
     let few = len < FEW_GENERAL_NAMES;
     if few || a.len() == 1 || b.len() == 1 {
         // If there are few GNs, we just do a naive O(n^2) approach.
-        return a
-            .iter()
-            .any(|agn| b
-                .iter()
-                .any(|bgn| agn == bgn));
+        return a.iter().any(|agn| b.iter().any(|bgn| agn == bgn));
     }
-    let mut agens: HashSet<Vec<u8>> = HashSet::from_iter(a
-        .iter()
-        .filter_map(|agn| {
-            let el = _encode_GeneralName(agn).ok()?;
-            let mut buf = Vec::new();
-            let bytes_written = x690_write_tlv(&mut buf, &el).ok()?;
-            Some(buf[0..bytes_written].to_vec())
-        }));
-    b
-        .iter()
+    let mut agens: HashSet<Vec<u8>> = HashSet::from_iter(a.iter().filter_map(|agn| {
+        let el = _encode_GeneralName(agn).ok()?;
+        let mut buf = Vec::new();
+        let bytes_written = x690_write_tlv(&mut buf, &el).ok()?;
+        Some(buf[0..bytes_written].to_vec())
+    }));
+    b.iter()
         .filter_map(|agn| {
             let el = _encode_GeneralName(agn).ok()?;
             let mut buf = Vec::new();

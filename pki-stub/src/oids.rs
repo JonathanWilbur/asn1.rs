@@ -1,19 +1,18 @@
 use wildboar_asn1::OBJECT_IDENTIFIER;
 
-
-pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&'static str> {
+pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'static str> {
     let x690_slice = attr_type.as_x690_slice();
     let x690_len = x690_slice.len();
-    if x690_len == 3 && x690_slice.starts_with(&[ 0x55, 4 ]) {
+    if x690_len == 3 && x690_slice.starts_with(&[0x55, 4]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
-            3 =>  Some("commonName"),
-            4 =>  Some("surname"),
-            5 =>  Some("serialNumber"),
-            6 =>  Some("countryName"),
-            7 =>  Some("localityName"),
-            8 =>  Some("stateOrProvinceName"),
-            9 =>  Some("streetAddress"),
+            3 => Some("commonName"),
+            4 => Some("surname"),
+            5 => Some("serialNumber"),
+            6 => Some("countryName"),
+            7 => Some("localityName"),
+            8 => Some("stateOrProvinceName"),
+            9 => Some("streetAddress"),
             10 => Some("organizationName"),
             11 => Some("organizationalUnitName"),
             12 => Some("title"),
@@ -82,11 +81,11 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
         // TODO: More attributes
     }
 
-    dbg!(hex::encode(x690_slice).as_str());
-
     // Always enabled because it has some important attributes used in naming.
     // 0.9.2342.19200300.100.1. is 0x0992268993F22C6401
-    if x690_len == 10 && x690_slice.starts_with(&[ 0x09, 0x92, 0x26, 0x89, 0x93, 0xF2, 0x2C, 0x64, 1 ]) {
+    if x690_len == 10
+        && x690_slice.starts_with(&[0x09, 0x92, 0x26, 0x89, 0x93, 0xF2, 0x2C, 0x64, 1])
+    {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("userid"),
@@ -142,11 +141,11 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[ 1, 2, 0x86, 0x48, 0x86, 0xF7, 0x14, 1, 4, 0x83 ]) {
+    if x690_len == 11 && x690_slice.starts_with(&[1, 2, 0x86, 0x48, 0x86, 0xF7, 0x14, 1, 4, 0x83]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             0x5E => Some("calCalURI"), // 478
-            0x5F => Some("calFBURL"), // 479
+            0x5F => Some("calFBURL"),  // 479
             0x60 => Some("calCAPURI"), // 480
             0x61 => Some("calCalAdrURI"),
             0x62 => Some("calOtherCalURIs"),
@@ -158,7 +157,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 9 && x690_slice.starts_with(&[ 1, 3, 18, 0, 2, 24, 46, 1 ]) {
+    if x690_len == 9 && x690_slice.starts_with(&[1, 3, 18, 0, 2, 24, 46, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             101 => Some("printer-device-id"),
@@ -173,7 +172,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[ 1, 3, 18, 0, 2, 4, 0x88 ]) {
+    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 18, 0, 2, 4, 0x88]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             0x53 => Some("printer-xri-supported"), // 1.3.18.0.2.4.1107
@@ -215,7 +214,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[ 1, 3, 6, 1, 1, 10, 4 ]) {
+    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 10, 4]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("uddiBusinessKey"),
@@ -269,7 +268,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[ 1, 3, 6, 1, 1, 11, 2 ]) {
+    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 11, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("vPIMTelephoneNumber"),
@@ -287,7 +286,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[ 1, 3, 6, 1, 1, 6, 2 ]) {
+    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 6, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             3 => Some("pcimKeywords"),
@@ -331,9 +330,8 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
         };
     }
 
-
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[ 1, 3, 6, 1, 1, 9, 2 ]) {
+    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 9, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("pcelsPolicySetName"),
@@ -404,7 +402,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
 
     // 1.3.6.1.4.1.11.1.3.1.1.0
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 12 && x690_slice.starts_with(&[ 1, 3, 6, 1, 4, 1, 11, 1, 3, 1, 1 ]) {
+    if x690_len == 12 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 11, 1, 3, 1, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             0 => Some("defaultServerList"),
@@ -429,7 +427,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
 
     // 1.3.6.1.4.1.1466.101.120.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[ 1, 3, 6, 1, 4, 1, 0x8B, 0x3A, 101, 120 ]) {
+    if x690_len == 11 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x8B, 0x3A, 101, 120]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("administratorsAddress"),
@@ -446,7 +444,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
 
     // 1.3.6.1.4.1.16572.2.2.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 12 && x690_slice.starts_with(&[ 1, 3, 6, 1, 4, 1, 0x81, 0x81, 0x3C, 2, 2 ]) {
+    if x690_len == 12 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x81, 0x81, 0x3C, 2, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("providerCertificateHash"),
@@ -462,7 +460,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
 
     // 1.3.6.1.4.1.31103.1.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[ 1, 3, 6, 1, 4, 1, 0x81, 0xF2, 0x7F, 1 ]) {
+    if x690_len == 11 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x81, 0xF2, 0x7F, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("fedfsUuid"),
@@ -496,7 +494,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
 
     // 1.3.6.1.4.1.453.7.2.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[ 1, 3, 6, 1, 4, 1, 0x83, 0x45, 7, 2 ]) {
+    if x690_len == 11 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x83, 0x45, 7, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("textTableKey"),
@@ -513,7 +511,7 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
 
     // 2.16.840.1.113730.3.1.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[ 2, 16, 0x86, 0x48, 1, 0x86, 0xF8, 0x42, 3, 1 ]) {
+    if x690_len == 11 && x690_slice.starts_with(&[2, 16, 0x86, 0x48, 1, 0x86, 0xF8, 0x42, 3, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("carLicense"),
@@ -540,23 +538,22 @@ pub fn common_attr_type_to_long_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&
     // userPKCS12	2.16.840.1.113730.3.1.216
     // displayName	2.16.840.1.113730.3.1.241
 
-
     None
 }
 
-pub fn common_attr_type_to_short_name (attr_type: &OBJECT_IDENTIFIER) -> Option<&'static str> {
+pub fn common_attr_type_to_short_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'static str> {
     let x690_slice = attr_type.as_x690_slice();
     let x690_len = x690_slice.len();
-    if x690_len == 3 && x690_slice.starts_with(&[ 0x55, 4 ]) {
+    if x690_len == 3 && x690_slice.starts_with(&[0x55, 4]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
-            3 =>  Some("cn"),
-            4 =>  Some("sn"),
-            5 =>  Some("serialNumber"),
-            6 =>  Some("c"),
-            7 =>  Some("l"),
-            8 =>  Some("st"),
-            9 =>  Some("street"),
+            3 => Some("cn"),
+            4 => Some("sn"),
+            5 => Some("serialNumber"),
+            6 => Some("c"),
+            7 => Some("l"),
+            8 => Some("st"),
+            9 => Some("street"),
             10 => Some("o"),
             11 => Some("ou"),
             42 => Some("gn"),
@@ -569,7 +566,9 @@ pub fn common_attr_type_to_short_name (attr_type: &OBJECT_IDENTIFIER) -> Option<
 
     // Always enabled because it has some important attributes used in naming.
     // 0.9.2342.19200300.100.1. is 0x0992268993F22C6401
-    if x690_len == 10 && x690_slice.starts_with(&[ 0x09, 0x92, 0x26, 0x89, 0x93, 0xF2, 0x2C, 0x64, 0x01 ]) {
+    if x690_len == 10
+        && x690_slice.starts_with(&[0x09, 0x92, 0x26, 0x89, 0x93, 0xF2, 0x2C, 0x64, 0x01])
+    {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("uid"),

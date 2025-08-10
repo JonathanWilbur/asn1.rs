@@ -2,13 +2,7 @@
 
 ## To Do
 
-- [x] `AttributeValue::eq` should decode DNs
-- [x] `Hash`
-- [x] `PartialEq` / `Eq`
-- [x] `Ord` for `Time`
-- [x] `AttributeCertificate`
-- [x] `TBSCertAVL`
-- [ ] `into_iter()` cleanup
+- [x] `into_iter()` cleanup
 - [ ] Inlining
 - [ ] Tests
   - [ ] Public Key Certificate Decoding

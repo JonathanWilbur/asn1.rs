@@ -1,8 +1,8 @@
 use crate::{
-    _decode_Attribute, _decode_GeneralName, AlgorithmIdentifier, Attribute, AttributeCertificate,
-    CertAVL, Certificate, Extension, GeneralName, IssuerSerial, IssuerSerialNumber, PKI_Stub,
-    SIGNED, SubjectPublicKeyInfo, TBSAttributeCertificate, TBSCertAVL, TBSCertificate,
-    _decode_SubjectPublicKeyInfo, _decode_AlgorithmIdentifier,
+    _decode_AlgorithmIdentifier, _decode_Attribute, _decode_GeneralName,
+    _decode_SubjectPublicKeyInfo, AlgorithmIdentifier, Attribute, AttributeCertificate, CertAVL,
+    Certificate, Extension, GeneralName, IssuerSerial, IssuerSerialNumber, PKI_Stub, SIGNED,
+    SubjectPublicKeyInfo, TBSAttributeCertificate, TBSCertAVL, TBSCertificate,
 };
 use chrono::DateTime;
 use std::{
@@ -10,7 +10,8 @@ use std::{
     iter::{ExactSizeIterator, FusedIterator, Iterator},
 };
 use wildboar_asn1::{
-    oid, ASN1Error, ASN1ErrorCode, ASN1Result, GeneralizedTime, Tag, TagClass, BIT_STRING, OBJECT_IDENTIFIER, OCTET_STRING, UNIV_TAG_BOOLEAN, UNIV_TAG_INTEGER, UNIV_TAG_SEQUENCE
+    ASN1Error, ASN1ErrorCode, ASN1Result, BIT_STRING, GeneralizedTime, OBJECT_IDENTIFIER,
+    OCTET_STRING, Tag, TagClass, UNIV_TAG_BOOLEAN, UNIV_TAG_INTEGER, UNIV_TAG_SEQUENCE, oid,
 };
 use x690::{RelateTLV, X690Codec, X690Element, X690Value, der::DER};
 
@@ -21,13 +22,10 @@ impl<T> AsRef<T> for SIGNED<T> {
 }
 
 pub trait WithExtensions {
-
     fn get_extensions<'a>(&'a self) -> &'a [Extension];
 
     fn get_extension_by_oid<'a>(&'a self, oid: &OBJECT_IDENTIFIER) -> Option<&'a Extension> {
-        self.get_extensions()
-            .iter()
-            .find(|ext| ext.extnId == *oid)
+        self.get_extensions().iter().find(|ext| ext.extnId == *oid)
     }
 
     fn get_decoded_extension_by_oid<'a>(
@@ -47,7 +45,9 @@ pub trait WithExtensions {
         Some(Ok(el))
     }
 
-    fn get_extensions_hashmap<'a>(&'a self) -> ASN1Result<HashMap<OBJECT_IDENTIFIER, (bool, X690Element)>> {
+    fn get_extensions_hashmap<'a>(
+        &'a self,
+    ) -> ASN1Result<HashMap<OBJECT_IDENTIFIER, (bool, X690Element)>> {
         let mut map = HashMap::new();
         let extensions = self.get_extensions();
         for ext in extensions {
@@ -60,7 +60,13 @@ pub trait WithExtensions {
                 e.relate_tlv(&el);
                 return Err(e);
             }
-            if map.insert(ext.extnId.clone(), (ext.critical.unwrap_or(false), el.clone())).is_some() {
+            if map
+                .insert(
+                    ext.extnId.clone(),
+                    (ext.critical.unwrap_or(false), el.clone()),
+                )
+                .is_some()
+            {
                 let mut e = ASN1Error::new(ASN1ErrorCode::constraint_violation)
                     .with_component_name("extensions");
                 e.relate_tlv(&el);
@@ -86,7 +92,8 @@ const NO_EXTENSIONS: [Extension; 0] = [];
 impl WithExtensions for Certificate {
     #[inline]
     fn get_extensions<'a>(&'a self) -> &'a [Extension] {
-        self.toBeSigned.extensions
+        self.toBeSigned
+            .extensions
             .as_ref()
             .map(|x| x.as_slice())
             .unwrap_or(NO_EXTENSIONS.as_slice())
@@ -106,7 +113,8 @@ impl WithExtensions for TBSAttributeCertificate {
 impl WithExtensions for AttributeCertificate {
     #[inline]
     fn get_extensions<'a>(&'a self) -> &'a [Extension] {
-        self.toBeSigned.extensions
+        self.toBeSigned
+            .extensions
             .as_ref()
             .map(|x| x.as_slice())
             .unwrap_or(NO_EXTENSIONS.as_slice())
@@ -126,7 +134,8 @@ impl WithExtensions for TBSCertAVL {
 impl WithExtensions for CertAVL {
     #[inline]
     fn get_extensions<'a>(&'a self) -> &'a [Extension] {
-        self.toBeSigned.avlExtensions
+        self.toBeSigned
+            .avlExtensions
             .as_ref()
             .map(|x| x.as_slice())
             .unwrap_or(NO_EXTENSIONS.as_slice())
@@ -141,11 +150,7 @@ pub struct PKCGenNameIter<'a> {
 }
 
 impl<'a> PKCGenNameIter<'a> {
-
-    pub fn for_issuer_names(
-        cert: &'a TBSCertificate,
-        alt_names_ext: Option<X690Element>,
-    ) -> Self {
+    pub fn for_issuer_names(cert: &'a TBSCertificate, alt_names_ext: Option<X690Element>) -> Self {
         PKCGenNameIter {
             cert,
             i: 0,
@@ -154,10 +159,7 @@ impl<'a> PKCGenNameIter<'a> {
         }
     }
 
-    pub fn for_subject_names(
-        cert: &'a TBSCertificate,
-        alt_names_ext: Option<X690Element>,
-    ) -> Self {
+    pub fn for_subject_names(cert: &'a TBSCertificate, alt_names_ext: Option<X690Element>) -> Self {
         PKCGenNameIter {
             cert,
             i: 0,
@@ -200,15 +202,11 @@ impl<'a> Iterator for PKCGenNameIter<'a> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let max_total_len = 1
-            + self.alt_names_ext
-                .as_ref()
-                .map(|ext| ext
-                    .components()
-                    .map(|comps| comps.len())
-                    .unwrap_or(0)
-                )
-                .unwrap_or(0);
+        let max_total_len = 1 + self
+            .alt_names_ext
+            .as_ref()
+            .map(|ext| ext.components().map(|comps| comps.len()).unwrap_or(0))
+            .unwrap_or(0);
 
         let iters_left = max_total_len.saturating_sub(self.i);
         (iters_left, Some(iters_left))
@@ -224,10 +222,7 @@ pub struct OidsExtIter {
 
 impl OidsExtIter {
     pub fn new(ext_el: X690Element) -> Self {
-        OidsExtIter {
-            i: 0,
-            ext_el,
-        }
+        OidsExtIter { i: 0, ext_el }
     }
 }
 
@@ -235,7 +230,8 @@ impl Iterator for OidsExtIter {
     type Item = OBJECT_IDENTIFIER;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(comp) = self.ext_el
+        while let Some(comp) = self
+            .ext_el
             .components()
             .ok()
             .as_deref()
@@ -253,14 +249,14 @@ impl Iterator for OidsExtIter {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let max_total_len = self.ext_el
+        let max_total_len = self
+            .ext_el
             .components()
             .map(|comps| comps.len())
             .unwrap_or(0);
         let iters_left = max_total_len.saturating_sub(self.i);
         (iters_left, Some(iters_left))
     }
-
 }
 
 impl FusedIterator for OidsExtIter {}
@@ -272,10 +268,7 @@ pub struct PKCAttrsIter {
 
 impl PKCAttrsIter {
     pub fn new(ext_el: X690Element) -> Self {
-        PKCAttrsIter {
-            i: 0,
-            ext_el,
-        }
+        PKCAttrsIter { i: 0, ext_el }
     }
 }
 
@@ -283,7 +276,8 @@ impl Iterator for PKCAttrsIter {
     type Item = Attribute;
 
     fn next(&mut self) -> Option<Self::Item> {
-         while let Some(comp) = self.ext_el
+        while let Some(comp) = self
+            .ext_el
             .components()
             .ok()
             .as_deref()
@@ -301,14 +295,14 @@ impl Iterator for PKCAttrsIter {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let max_total_len = self.ext_el
+        let max_total_len = self
+            .ext_el
             .components()
             .map(|comps| comps.len())
             .unwrap_or(0);
         let iters_left = max_total_len.saturating_sub(self.i);
         (iters_left, Some(iters_left))
     }
-
 }
 
 impl FusedIterator for PKCAttrsIter {}
@@ -320,10 +314,7 @@ pub struct AvlGenNameIter<'a> {
 }
 
 impl<'a> AvlGenNameIter<'a> {
-    pub fn new(
-        cert: &'a TBSCertAVL,
-        alt_names_ext: Option<X690Element>,
-    ) -> Self {
+    pub fn new(cert: &'a TBSCertAVL, alt_names_ext: Option<X690Element>) -> Self {
         AvlGenNameIter {
             cert,
             i: 0,
@@ -360,15 +351,11 @@ impl<'a> Iterator for AvlGenNameIter<'a> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let max_total_len = 1
-            + self.alt_names_ext
-                .as_ref()
-                .map(|ext| ext
-                    .components()
-                    .map(|comps| comps.len())
-                    .unwrap_or(0)
-                )
-                .unwrap_or(0);
+        let max_total_len = 1 + self
+            .alt_names_ext
+            .as_ref()
+            .map(|ext| ext.components().map(|comps| comps.len()).unwrap_or(0))
+            .unwrap_or(0);
 
         let iters_left = max_total_len.saturating_sub(self.i);
         (iters_left, Some(iters_left))
@@ -415,7 +402,7 @@ pub struct AttrCertExtInfo {
     pub acceptable_priv_policies: Option<OidsExtIter>,
 }
 
-pub struct AVLExtInfo <'a> {
+pub struct AVLExtInfo<'a> {
     pub issuer_names: AvlGenNameIter<'a>,
     pub alt_sig_alg: Option<AlgorithmIdentifier>,
     pub alt_sig_value: Option<BIT_STRING>,
@@ -466,24 +453,26 @@ impl TBSCertificate {
 
         let extensions = match self.extensions.as_ref() {
             Some(exts) => exts,
-            None => return Ok(PublicKeyCertExtInfo{
-                issuer_names,
-                subject_names,
-                ext_key_usage,
-                subj_dir_attrs,
-                associated_info,
-                ca,
-                path_len_constraint,
-                key_usage,
-                private_key_usage_start,
-                private_key_usage_end,
-                inhibit_any_policy_skip_certs,
-                subject_key_id,
-                alt_sig_alg,
-                alt_sig_value,
-                alt_spki,
-                acceptable_priv_pols,
-            }),
+            None => {
+                return Ok(PublicKeyCertExtInfo {
+                    issuer_names,
+                    subject_names,
+                    ext_key_usage,
+                    subj_dir_attrs,
+                    associated_info,
+                    ca,
+                    path_len_constraint,
+                    key_usage,
+                    private_key_usage_start,
+                    private_key_usage_end,
+                    inhibit_any_policy_skip_certs,
+                    subject_key_id,
+                    alt_sig_alg,
+                    alt_sig_value,
+                    alt_spki,
+                    acceptable_priv_pols,
+                });
+            }
         };
 
         let mut seen_exts: HashSet<OBJECT_IDENTIFIER> = HashSet::new();
@@ -508,16 +497,16 @@ impl TBSCertificate {
             match last_byte {
                 EXT_SDA => {
                     subj_dir_attrs = Some(PKCAttrsIter::new(el));
-                },
+                }
                 EXT_SKID => {
                     subject_key_id = Some(DER.decode_octet_string(&el)?);
-                },
+                }
                 EXT_KEY_USAGE => {
                     key_usage = Some(DER.decode_bit_string(&el)?);
-                },
+                }
                 EXT_EKU => {
                     ext_key_usage = Some(OidsExtIter::new(el));
-                },
+                }
                 EXT_PKUP => {
                     let components = match &el.value {
                         X690Value::Constructed(c) => c,
@@ -552,13 +541,13 @@ impl TBSCertificate {
                         }
                         private_key_usage_end = Some(DER.decode_generalized_time(second)?);
                     }
-                },
+                }
                 EXT_SAN => {
                     subject_names = PKCGenNameIter::for_subject_names(self, Some(el));
-                },
+                }
                 EXT_IAN => {
                     issuer_names = PKCGenNameIter::for_issuer_names(self, Some(el));
-                },
+                }
                 EXT_BCONS => {
                     let components = match &el.value {
                         X690Value::Constructed(c) => c,
@@ -582,30 +571,30 @@ impl TBSCertificate {
                     if second.tag == INT_TAG {
                         path_len_constraint = DER.decode_u64(second).ok().unwrap_or(u64::MAX);
                     }
-                },
+                }
                 EXT_INH_ANY_POL => {
                     inhibit_any_policy_skip_certs = Some(DER.decode_u64(&el)?);
-                },
+                }
                 EXT_ACC_PRIV_POL => {
                     acceptable_priv_pols = Some(OidsExtIter::new(el));
-                },
+                }
                 EXT_SAPKI => {
                     alt_spki = Some(_decode_SubjectPublicKeyInfo(&el)?);
-                },
+                }
                 EXT_ALT_SIG_ALG => {
                     alt_sig_alg = Some(_decode_AlgorithmIdentifier(&el)?);
-                },
+                }
                 EXT_ALT_SIG_VAL => {
                     alt_sig_value = Some(DER.decode_bit_string(&el)?);
-                },
+                }
                 EXT_ASSOC_INFO => {
                     associated_info = Some(PKCAttrsIter::new(el));
-                },
+                }
                 _ => (),
             };
         }
 
-        Ok(PublicKeyCertExtInfo{
+        Ok(PublicKeyCertExtInfo {
             issuer_names,
             subject_names,
             ext_key_usage,
@@ -626,31 +615,39 @@ impl TBSCertificate {
     }
 
     fn iter_subject_names<'a>(&'a self) -> PKCGenNameIter<'a> {
-        let maybe_ext = self.get_decoded_extension_by_oid(&oid!(2, 5, 29, 17))
+        let maybe_ext = self
+            .get_decoded_extension_by_oid(&oid!(2, 5, 29, 17))
             .map(|x| x.ok())
             .flatten(); // subjectAltName
         PKCGenNameIter::for_subject_names(self, maybe_ext)
     }
 
     fn iter_issuer_names<'a>(&'a self) -> PKCGenNameIter<'a> {
-        let maybe_ext = self.get_decoded_extension_by_oid(&oid!(2, 5, 29, 18))
+        let maybe_ext = self
+            .get_decoded_extension_by_oid(&oid!(2, 5, 29, 18))
             .map(|x| x.ok())
             .flatten(); // issuerAltName
         PKCGenNameIter::for_issuer_names(self, maybe_ext)
     }
 
     fn iter_ext_key_usage(&self) -> Option<OidsExtIter> {
-        let maybe_ext = self.get_decoded_extension_by_oid(&oid!(2, 5, 29, 37))?.ok()?; // extendedKeyUsage
+        let maybe_ext = self
+            .get_decoded_extension_by_oid(&oid!(2, 5, 29, 37))?
+            .ok()?; // extendedKeyUsage
         Some(OidsExtIter::new(maybe_ext))
     }
 
     fn iter_subject_directory_attributes(&self) -> Option<PKCAttrsIter> {
-        let maybe_ext = self.get_decoded_extension_by_oid(&oid!(2, 5, 29, 9))?.ok()?; // subjectDirectoryAttributes
+        let maybe_ext = self
+            .get_decoded_extension_by_oid(&oid!(2, 5, 29, 9))?
+            .ok()?; // subjectDirectoryAttributes
         Some(PKCAttrsIter::new(maybe_ext))
     }
 
     fn iter_associated_information(&self) -> Option<PKCAttrsIter> {
-        let maybe_ext = self.get_decoded_extension_by_oid(&oid!(2, 5, 29, 75))?.ok()?; // associatedInformation
+        let maybe_ext = self
+            .get_decoded_extension_by_oid(&oid!(2, 5, 29, 75))?
+            .ok()?; // associatedInformation
         Some(PKCAttrsIter::new(maybe_ext))
     }
 
@@ -663,7 +660,6 @@ impl TBSCertificate {
     fn was_valid_as_of(&self) {
         todo!() // TODO: Implement
     }
-
 }
 
 impl TBSAttributeCertificate {
@@ -688,21 +684,23 @@ impl TBSAttributeCertificate {
 
         let extensions = match self.extensions.as_ref() {
             Some(exts) => exts,
-            None => return Ok(AttrCertExtInfo{
-                aa,
-                path_len_constraint,
-                no_assertion,
-                is_soa,
-                is_single_use,
-                is_group_ac,
-                has_rev_info_avail,
-                is_indirect_issuer,
-                issued_on_behalf_of,
-                alt_sig_alg,
-                alt_sig_value,
-                acceptable_cert_policies,
-                acceptable_priv_policies,
-            }),
+            None => {
+                return Ok(AttrCertExtInfo {
+                    aa,
+                    path_len_constraint,
+                    no_assertion,
+                    is_soa,
+                    is_single_use,
+                    is_group_ac,
+                    has_rev_info_avail,
+                    is_indirect_issuer,
+                    issued_on_behalf_of,
+                    alt_sig_alg,
+                    alt_sig_value,
+                    acceptable_cert_policies,
+                    acceptable_priv_policies,
+                });
+            }
         };
 
         let mut seen_exts: HashSet<OBJECT_IDENTIFIER> = HashSet::new();
@@ -748,7 +746,7 @@ impl TBSAttributeCertificate {
                     if second.tag == INT_TAG {
                         path_len_constraint = DER.decode_u64(second).ok().unwrap_or(u64::MAX);
                     }
-                },
+                }
                 EXT_SOAID => is_soa = true,
                 EXT_ACC_CERT_POL => acceptable_cert_policies = Some(OidsExtIter::new(el)),
                 EXT_NO_REV => has_rev_info_avail = false,
@@ -762,7 +760,7 @@ impl TBSAttributeCertificate {
             }
         }
 
-        Ok(AttrCertExtInfo{
+        Ok(AttrCertExtInfo {
             aa,
             path_len_constraint,
             no_assertion,
@@ -781,7 +779,6 @@ impl TBSAttributeCertificate {
 }
 
 impl TBSCertAVL {
-
     pub fn claims_to_be_issued_by_cert<C: AsRef<TBSCertificate>>(&self, issuer: &C) -> bool {
         let issuer_tbs = issuer.as_ref();
         let mut names_from_issuer = issuer_tbs.iter_subject_names().take(10);
@@ -789,7 +786,8 @@ impl TBSCertAVL {
     }
 
     fn iter_issuer_names<'a>(&'a self) -> AvlGenNameIter<'a> {
-        let maybe_ext = self.get_decoded_extension_by_oid(&oid!(2, 5, 29, 18))
+        let maybe_ext = self
+            .get_decoded_extension_by_oid(&oid!(2, 5, 29, 18))
             .map(|x| x.ok())
             .flatten(); // issuerAltName
         AvlGenNameIter::new(self, maybe_ext)
@@ -801,11 +799,13 @@ impl TBSCertAVL {
 
         let extensions = match self.avlExtensions.as_ref() {
             Some(exts) => exts,
-            None => return Ok(AVLExtInfo{
-                issuer_names: self.iter_issuer_names(),
-                alt_sig_alg,
-                alt_sig_value,
-            }),
+            None => {
+                return Ok(AVLExtInfo {
+                    issuer_names: self.iter_issuer_names(),
+                    alt_sig_alg,
+                    alt_sig_value,
+                });
+            }
         };
 
         let mut seen_exts: HashSet<OBJECT_IDENTIFIER> = HashSet::new();
@@ -834,7 +834,7 @@ impl TBSCertAVL {
             };
         }
 
-        Ok(AVLExtInfo{
+        Ok(AVLExtInfo {
             issuer_names: self.iter_issuer_names(),
             alt_sig_alg,
             alt_sig_value,

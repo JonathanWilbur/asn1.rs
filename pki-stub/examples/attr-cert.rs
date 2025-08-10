@@ -1,14 +1,14 @@
-use rand::RngCore;
-use wildboar_asn1::*;
-use pki_stub::*;
-use std::str::FromStr;
-use x690::*;
-use x690::der::DER;
 use base64::prelude::*;
+use pki_stub::*;
+use rand::RngCore;
+use std::str::FromStr;
+use wildboar_asn1::*;
+use x690::der::DER;
+use x690::*;
 
 fn get_alg_id() -> AlgorithmIdentifier {
     AlgorithmIdentifier::new(
-        oid!(1,2,840,113549,1,1,1), // sha1WithRSAEncryption
+        oid!(1, 2, 840, 113549, 1, 1, 1), // sha1WithRSAEncryption
         Some(X690Element::null()),
         vec![],
     )
@@ -58,16 +58,12 @@ fn main() {
             GeneralizedTime::from_str("20250803000000Z").unwrap(),
             vec![],
         ),
-        vec![
-            Attribute::new(
-                oid!(2,5,4,3),
-                vec![
-                    DER.encode_utf8_string("hi mom").unwrap(),
-                ],
-                None,
-                vec![],
-            ),
-        ],
+        vec![Attribute::new(
+            oid!(2, 5, 4, 3),
+            vec![DER.encode_utf8_string("hi mom").unwrap()],
+            None,
+            vec![],
+        )],
         None,
         vec![],
         None,
