@@ -55,6 +55,7 @@ use std::collections::{HashMap, HashSet};
 use std::iter::{Iterator, FusedIterator};
 use email_address::EmailAddress;
 use std::str::FromStr;
+use crate::utils::{gt_to_chrono, utctime_to_chrono};
 
 /// Returns a subslice with leading and trailing whitespace removed, for a slice of u16 code units (BMPString).
 pub(crate) fn trim_u16(slice: &[u16]) -> &[u16] {
@@ -227,72 +228,14 @@ pub(crate) fn get_time(el: &X690Element) -> Option<Result<DateTime<Utc>, ()>> {
                 Ok(x) => x,
                 Err(_) => return Some(Err(())),
             };
-            let maybe_tz = FixedOffset::east_opt(
-                (t.utc_offset.hour as i32 * 3600)
-                + t.utc_offset.minute as i32
-            );
-            let tz = match maybe_tz {
-                Some(x) => x,
-                None => return Some(Err(())),
-            };
-            let maybe_t = tz.with_ymd_and_hms(
-                t.year as i32,
-                t.month as u32,
-                t.day as u32,
-                t.hour as u32,
-                t.minute as u32,
-                t.second as u32,
-            ).earliest();
-            let t = match maybe_t {
-                Some(x) => x,
-                None => return Some(Err(())),
-            };
-            Some(Ok(t.to_utc()))
+            Some(utctime_to_chrono(&t))
         },
         wildboar_asn1::UNIV_TAG_GENERALIZED_TIME => {
             let t = match BER.decode_generalized_time(el) {
                 Ok(x) => x,
                 Err(_) => return Some(Err(())),
             };
-            let (min, maybe_sec) = t.min_and_sec.unwrap_or((0, Some(0)));
-            let sec = maybe_sec.unwrap_or(0);
-            if let Some(offset) = t.utc_offset.as_ref() {
-                let maybe_tz = FixedOffset::east_opt(
-                    (offset.hour as i32 * 3600)
-                    + offset.minute as i32
-                );
-                let tz = match maybe_tz {
-                    Some(x) => x,
-                    None => return Some(Err(())),
-                };
-                let maybe_t = tz.with_ymd_and_hms(
-                    t.date.year as i32,
-                    t.date.month as u32,
-                    t.date.day as u32,
-                    t.hour as u32,
-                    min as u32,
-                    sec as u32,
-                ).earliest();
-                let t = match maybe_t {
-                    Some(x) => x,
-                    None => return Some(Err(())),
-                };
-                Some(Ok(t.to_utc()))
-            } else {
-                let maybe_t = Local.with_ymd_and_hms(
-                    t.date.year as i32,
-                    t.date.month as u32,
-                    t.date.day as u32,
-                    t.hour as u32,
-                    min as u32,
-                    sec as u32,
-                ).earliest();
-                let t = match maybe_t {
-                    Some(x) => x,
-                    None => return Some(Err(())),
-                };
-                Some(Ok(t.to_utc()))
-            }
+            Some(gt_to_chrono(&t))
         },
         wildboar_asn1::UNIV_TAG_DATE_TIME => {
             let t = match BER.decode_date_time(el) {
@@ -900,9 +843,9 @@ impl PartialEq for AttributeTypeAndValue {
         }
         // We have to call this specifically so we can disallow DN values.
         compare_attr_value_ex(
-            &AttributeValue(self.value.clone()), 
-            &AttributeValue(other.value.clone()), 
-            0, 
+            &AttributeValue(self.value.clone()),
+            &AttributeValue(other.value.clone()),
+            0,
             false,
         )
     }

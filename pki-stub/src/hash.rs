@@ -60,6 +60,7 @@ use crate::eq::{
 };
 use email_address::EmailAddress;
 use chrono::{DateTime, Utc, TimeZone, FixedOffset, Local};
+use crate::utils::{gt_to_chrono, utctime_to_chrono};
 
 const HASH_PREFIX_UNKNOWN: TagNumber = 0;
 const HASH_PREFIX_STR: TagNumber = 7;
@@ -729,65 +730,16 @@ impl Hash for EDIPartyName {
     }
 }
 
-// I thought about implementing this as a feature in wildboar_asn1, but chrono
-// is not version 1.0.0 or higher.
-fn gt_to_chrono(gt: &GeneralizedTime) -> Result<DateTime<Utc>, ()> {
-    let (min, maybe_sec) = gt.min_and_sec.unwrap_or((0, Some(0)));
-    let sec = maybe_sec.unwrap_or(0);
-    if let Some(offset) = gt.utc_offset.as_ref() {
-        let tz = FixedOffset::east_opt(
-            (offset.hour as i32 * 3600)
-            + offset.minute as i32
-        ).ok_or(())?;
-        let t = tz.with_ymd_and_hms(
-            gt.date.year as i32,
-            gt.date.month as u32,
-            gt.date.day as u32,
-            gt.hour as u32,
-            min as u32,
-            sec as u32,
-        ).earliest().ok_or(())?;
-        Ok(t.to_utc())
-    } else {
-        let t = Local.with_ymd_and_hms(
-            gt.date.year as i32,
-            gt.date.month as u32,
-            gt.date.day as u32,
-            gt.hour as u32,
-            min as u32,
-            sec as u32,
-        ).earliest().ok_or(())?;
-        Ok(t.to_utc())
-    }
-}
-
 impl Hash for Time {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
             Time::utcTime(ut) => {
                 state.write_u8(0xFC);
-                let maybe_tz = FixedOffset::east_opt(
-                    (ut.utc_offset.hour as i32 * 3600)
-                    + ut.utc_offset.minute as i32
-                );
-                let tz = match maybe_tz {
-                    Some(x) => x,
-                    None => return ut.hash(state),
-                };
-                let maybe_t = tz.with_ymd_and_hms(
-                    ut.year as i32,
-                    ut.month as u32,
-                    ut.day as u32,
-                    ut.hour as u32,
-                    ut.minute as u32,
-                    ut.second as u32,
-                ).earliest();
-                let t = match maybe_t {
-                    Some(x) => x,
-                    None => return ut.hash(state),
-                };
-                t.to_utc().hash(state)
+                match utctime_to_chrono(ut) {
+                    Ok(t) => t.to_utc().hash(state),
+                    Err(_) => ut.hash(state),
+                }
             },
             Time::generalizedTime(gt) => {
                 state.write_u8(0xFB);

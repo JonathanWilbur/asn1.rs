@@ -23,6 +23,9 @@ use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
 use std::iter::{Iterator, FusedIterator, ExactSizeIterator};
+use crate::utils::{gt_to_chrono, utctime_to_chrono};
+use chrono::{DateTime, Utc};
+use std::cmp::Ordering;
 
 #[inline]
 const fn base_256_len(value: usize) -> usize {
@@ -1673,6 +1676,46 @@ pub fn _validate_PublicKey(el: &X690Element) -> ASN1Result<()> {
 pub enum Time {
     utcTime(UTCTime),
     generalizedTime(GeneralizedTime),
+}
+
+impl Time {
+
+    // Intentionally not exported because we don't want chrono to become
+    // a requirement of the public-facing API.
+    pub(crate) fn into_chrono(&self) -> Result<DateTime<Utc>, ()> {
+        match self {
+            Time::utcTime(t) => utctime_to_chrono(t),
+            Time::generalizedTime(t) => gt_to_chrono(t),
+        }
+    }
+}
+
+impl PartialEq for Time {
+
+    /// `Eq` cannot be implemented for `Time` because two times that have the
+    /// same error making them unable to be converted to chrono times will not
+    /// equal each other, even if they are the same values.
+    fn eq(&self, other: &Self) -> bool {
+        match (self.into_chrono(), other.into_chrono()) {
+            (Ok(a), Ok(b)) => a == b,
+            _ => false,
+        }
+    }
+
+}
+
+impl PartialOrd for Time {
+
+    /// Only returns `None` if one or more of the times cannot be converted to a
+    /// `DateTime` from the `chrono` crate. Because this is fallible, we cannot
+    /// implement `Ord` for `Time`.
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self.into_chrono(), other.into_chrono()) {
+            (Ok(a), Ok(b)) => Some(a.cmp(&b)),
+            _ => None,
+        }
+    }
+
 }
 
 impl TryFrom<&X690Element> for Time {
@@ -3327,7 +3370,7 @@ impl ObjectDigestInfo {
     }
 
     /// Returns `true` if the other digest applies to the same thing
-    /// 
+    ///
     /// You can only compare two digests if they are comparable
     /// according to this function.
     pub fn is_comparable_with(&self, other: &Self) -> bool {

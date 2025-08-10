@@ -236,6 +236,12 @@ which control how these elements are encoded.
 
 ## TODO
 
+- [ ] `wildboar_asn`
+  - [x] `UTCTime.get_full_year_for_pki()`
+    - If the 2-digit value is 50 through to 99 inclusive, the value shall have 1900 added to it.
+    - Currently need this for `pki-stub`
+  - [x] `const IETF_RFC_5280_UNKNOWN_EXPIRATION_TIME: GeneralizedTime = 99991231235959Z`
+- [ ] Review `size_hint()`: I am not sure my implementations reflect iterations _remaining_
 - [ ] Where possible, replace `deconstruct` with `X690Element::deconstruction_iter()`.
 - [ ] `teletex`
   - [ ] Make it `no-std`, use iterator, etc.

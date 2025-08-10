@@ -25,6 +25,7 @@ pub mod hash;
 pub mod pki;
 pub mod PKI_Stub;
 pub mod oids;
+pub mod utils;
 pub use crate::PKI_Stub::*;
 pub use crate::oids::{
     common_attr_type_to_long_name,

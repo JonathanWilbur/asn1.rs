@@ -40,6 +40,7 @@ programming languages, or if you have any other questions, please contact us at
 ## To Do
 
 - [ ] **FIRST**: Dedupe everything in `PKI-Stub`!
+- [ ] `GeneralName` To `AltNameType`
 - [x] `Refinement.matches_object_classes()`
 - [ ] `Refinement.matches_anything()`
 - [ ] `Filter.filter_items()` iterator (does need to return whether negated or not for `nullMatch`)
