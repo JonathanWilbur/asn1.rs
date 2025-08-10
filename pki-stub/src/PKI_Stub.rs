@@ -152,6 +152,8 @@ pub struct AlgorithmWithInvoke {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AlgorithmWithInvoke {
+
+    #[inline]
     pub fn new(
         algorithm: OBJECT_IDENTIFIER,
         parameters: OPTIONAL<X690Element>,
@@ -168,6 +170,8 @@ impl AlgorithmWithInvoke {
 }
 impl TryFrom<&X690Element> for AlgorithmWithInvoke {
     type Error = ASN1Error;
+
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AlgorithmWithInvoke(el)
     }
@@ -228,16 +232,8 @@ pub fn _decode_AlgorithmWithInvoke(el: &X690Element) -> ASN1Result<AlgorithmWith
         let _el = _maybe_el.unwrap();
         match _component_name {
             "algorithm" => algorithm_ = Some(BER.decode_object_identifier(_el)?),
-            "parameters" => {
-                parameters_ = Some(|el: &X690Element| -> ASN1Result<X690Element> {
-                    Ok(x690_identity(&el.inner()?)?)
-                }(_el)?)
-            }
-            "dynamParms" => {
-                dynamParms_ = Some(|el: &X690Element| -> ASN1Result<X690Element> {
-                    Ok(x690_identity(&el.inner()?)?)
-                }(_el)?)
-            }
+            "parameters" => parameters_ = Some(_el.inner()?),
+            "dynamParms" => dynamParms_ = Some(_el.inner()?),
             _ => _unrecognized.push(_el.clone()),
         }
     }
@@ -253,20 +249,16 @@ pub fn _encode_AlgorithmWithInvoke(value_: &AlgorithmWithInvoke) -> ASN1Result<X
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
     components_.push(BER.encode_object_identifier(&value_.algorithm)?);
     if let Some(v_) = &value_.parameters {
-        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(x690_identity(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(v_.to_owned()),
+        ));
     }
     if let Some(v_) = &value_.dynamParms {
-        components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(x690_identity(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(v_.to_owned()),
+        ));
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -337,6 +329,8 @@ pub struct AlgorithmIdentifier {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AlgorithmIdentifier {
+
+    #[inline]
     pub fn new(
         algorithm: OBJECT_IDENTIFIER,
         parameters: OPTIONAL<X690Element>,
@@ -351,6 +345,8 @@ impl AlgorithmIdentifier {
 }
 impl TryFrom<&X690Element> for AlgorithmIdentifier {
     type Error = ASN1Error;
+
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AlgorithmIdentifier(el)
     }
@@ -417,7 +413,11 @@ pub fn _encode_AlgorithmIdentifier(value_: &AlgorithmIdentifier) -> ASN1Result<X
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -460,14 +460,17 @@ pub fn _validate_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type AlgoInvoke = X690Element; // ObjectClassFieldType
 
+#[inline]
 pub fn _decode_AlgoInvoke(el: &X690Element) -> ASN1Result<AlgoInvoke> {
     x690_identity(&el)
 }
 
+#[inline]
 pub fn _encode_AlgoInvoke(value_: &AlgoInvoke) -> ASN1Result<X690Element> {
     x690_identity(&value_)
 }
 
+#[inline]
 pub fn _validate_AlgoInvoke(el: &X690Element) -> ASN1Result<()> {
     BER.validate_any(&el)
 }
@@ -488,6 +491,7 @@ pub struct HASH {
     pub _unrecognized: Vec<X690Element>,
 }
 impl HASH {
+    #[inline]
     pub fn new(
         algorithmIdentifier: AlgorithmIdentifier,
         hashValue: BIT_STRING,
@@ -502,6 +506,8 @@ impl HASH {
 }
 impl TryFrom<&X690Element> for HASH {
     type Error = ASN1Error;
+
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_HASH(el)
     }
@@ -608,6 +614,7 @@ pub fn _validate_HASH(el: &X690Element) -> ASN1Result<()> {
 /// ```
 ///
 ///
+#[inline]
 pub fn sha224WithRSAEncryptionAlgorithm() -> ALGORITHM {
     ALGORITHM {
         id: oid!(1, 2, 840, 113549, 1, 11), /* OBJECT_FIELD_SETTING */
@@ -618,12 +625,16 @@ pub mod sha224WithRSAEncryptionAlgorithm {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = NULL; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         BER.decode_null(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         BER.encode_null(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         BER.validate_null(el)
     }
@@ -636,6 +647,7 @@ pub mod sha224WithRSAEncryptionAlgorithm {
 /// ```
 ///
 ///
+#[inline]
 pub fn SupportedAlgorithms() -> Vec<ALGORITHM> {
     Vec::new()
 }
@@ -851,6 +863,7 @@ impl FingerPrint {
 }
 impl TryFrom<&X690Element> for FingerPrint {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_FingerPrint(el)
     }
@@ -997,14 +1010,17 @@ pub fn _validate_PkiPath(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type Certificate = SIGNED<TBSCertificate>; // DefinedType
 
+#[inline]
 pub fn _decode_Certificate(el: &X690Element) -> ASN1Result<Certificate> {
     _decode_SIGNED::<TBSCertificate>(_decode_TBSCertificate, el)
 }
 
+#[inline]
 pub fn _encode_Certificate(value_: &Certificate) -> ASN1Result<X690Element> {
     _encode_SIGNED::<TBSCertificate>(_encode_TBSCertificate, value_)
 }
 
+#[inline]
 pub fn _validate_Certificate(el: &X690Element) -> ASN1Result<()> {
     _validate_SIGNED::<TBSCertificate>(_validate_TBSCertificate, el)
 }
@@ -1072,12 +1088,14 @@ impl TBSCertificate {
             _unrecognized,
         }
     }
+    #[inline]
     pub fn _default_value_for_version() -> Version {
         Version_v1
     }
 }
 impl TryFrom<&X690Element> for TBSCertificate {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TBSCertificate(el)
     }
@@ -1180,11 +1198,7 @@ pub fn _decode_TBSCertificate(el: &X690Element) -> ASN1Result<TBSCertificate> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "version" => {
-                version_ = Some(|el: &X690Element| -> ASN1Result<Version> {
-                    Ok(_decode_Version(&el.inner()?)?)
-                }(_el)?)
-            }
+            "version" => version_ = Some(_decode_Version(&el.inner()?)?),
             "serialNumber" => serialNumber_ = Some(_decode_CertificateSerialNumber(_el)?),
             "signature" => signature_ = Some(_decode_AlgorithmIdentifier(_el)?),
             "issuer" => issuer_ = Some(_decode_Name(_el)?),
@@ -1200,9 +1214,7 @@ pub fn _decode_TBSCertificate(el: &X690Element) -> ASN1Result<TBSCertificate> {
                 subjectUniqueIdentifier_ = Some(_decode_UniqueIdentifier(_el)?)
             }
             "extensions" => {
-                extensions_ = Some(|el: &X690Element| -> ASN1Result<Extensions> {
-                    Ok(_decode_Extensions(&el.inner()?)?)
-                }(_el)?)
+                extensions_ = Some(_decode_Extensions(&el.inner()?)?)
             }
             _ => _unrecognized.push(_el.clone()),
         }
@@ -1351,14 +1363,17 @@ pub const Version_v2: Version = 1; /* LONG_NAMED_INTEGER_VALUE */
 
 pub const Version_v3: Version = 2; /* LONG_NAMED_INTEGER_VALUE */
 
+#[inline]
 pub fn _decode_Version(el: &X690Element) -> ASN1Result<Version> {
     BER.decode_i8(&el)
 }
 
+#[inline]
 pub fn _encode_Version(value_: &Version) -> ASN1Result<X690Element> {
     BER.encode_i8(*value_)
 }
 
+#[inline]
 pub fn _validate_Version(el: &X690Element) -> ASN1Result<()> {
     BER.validate_i8(&el)
 }
@@ -1370,16 +1385,19 @@ pub fn _validate_Version(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type CertificateSerialNumber = INTEGER;
 
+#[inline]
 pub fn _decode_CertificateSerialNumber(el: &X690Element) -> ASN1Result<CertificateSerialNumber> {
     BER.decode_integer(&el)
 }
 
+#[inline]
 pub fn _encode_CertificateSerialNumber(
     value_: &CertificateSerialNumber,
 ) -> ASN1Result<X690Element> {
     BER.encode_integer(&value_)
 }
 
+#[inline]
 pub fn _validate_CertificateSerialNumber(el: &X690Element) -> ASN1Result<()> {
     BER.validate_integer(&el)
 }
@@ -1400,7 +1418,8 @@ pub struct Validity {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Validity {
-    pub fn new(notBefore: Time, notAfter: Time, _unrecognized: Vec<X690Element>) -> Self {
+    #[inline]
+    pub const fn new(notBefore: Time, notAfter: Time, _unrecognized: Vec<X690Element>) -> Self {
         Validity {
             notBefore,
             notAfter,
@@ -1410,6 +1429,7 @@ impl Validity {
 }
 impl TryFrom<&X690Element> for Validity {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Validity(el)
     }
@@ -1511,6 +1531,8 @@ pub struct SubjectPublicKeyInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl SubjectPublicKeyInfo {
+
+    #[inline]
     pub fn new(
         algorithm: AlgorithmIdentifier,
         subjectPublicKey: PublicKey,
@@ -1525,6 +1547,7 @@ impl SubjectPublicKeyInfo {
 }
 impl TryFrom<&X690Element> for SubjectPublicKeyInfo {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_SubjectPublicKeyInfo(el)
     }
@@ -1637,14 +1660,17 @@ pub fn _validate_SubjectPublicKeyInfo(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type PublicKey = BIT_STRING;
 
+#[inline]
 pub fn _decode_PublicKey(el: &X690Element) -> ASN1Result<PublicKey> {
     BER.decode_bit_string(&el)
 }
 
+#[inline]
 pub fn _encode_PublicKey(value_: &PublicKey) -> ASN1Result<X690Element> {
     BER.encode_bit_string(&value_)
 }
 
+#[inline]
 pub fn _validate_PublicKey(el: &X690Element) -> ASN1Result<()> {
     BER.validate_bit_string(&el)
 }
@@ -1665,6 +1691,7 @@ pub enum Time {
 impl Time {
     // Intentionally not exported because we don't want chrono to become
     // a requirement of the public-facing API.
+    #[inline]
     pub(crate) fn into_chrono(&self) -> Result<DateTime<Utc>, ()> {
         match self {
             Time::utcTime(t) => utctime_to_chrono(t),
@@ -1677,6 +1704,7 @@ impl PartialEq for Time {
     /// `Eq` cannot be implemented for `Time` because two times that have the
     /// same error making them unable to be converted to chrono times will not
     /// equal each other, even if they are the same values.
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         match (self.into_chrono(), other.into_chrono()) {
             (Ok(a), Ok(b)) => a == b,
@@ -1689,6 +1717,7 @@ impl PartialOrd for Time {
     /// Only returns `None` if one or more of the times cannot be converted to a
     /// `DateTime` from the `chrono` crate. Because this is fallible, we cannot
     /// implement `Ord` for `Time`.
+    #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self.into_chrono(), other.into_chrono()) {
             (Ok(a), Ok(b)) => Some(a.cmp(&b)),
@@ -1699,11 +1728,13 @@ impl PartialOrd for Time {
 
 impl TryFrom<&X690Element> for Time {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Time(el)
     }
 }
 
+#[inline]
 pub fn _decode_Time(el: &X690Element) -> ASN1Result<Time> {
     match (el.tag.tag_class, el.tag.tag_number) {
         (TagClass::UNIVERSAL, 23) => Ok(Time::utcTime(BER.decode_utc_time(&el)?)),
@@ -1717,6 +1748,7 @@ pub fn _decode_Time(el: &X690Element) -> ASN1Result<Time> {
     }
 }
 
+#[inline]
 pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
     match value_ {
         Time::utcTime(v) => BER.encode_utc_time(&v),
@@ -1724,6 +1756,7 @@ pub fn _encode_Time(value_: &Time) -> ASN1Result<X690Element> {
     }
 }
 
+#[inline]
 pub fn _validate_Time(el: &X690Element) -> ASN1Result<()> {
     match (el.tag.tag_class, el.tag.tag_number) {
         (TagClass::UNIVERSAL, 23) => BER.validate_utc_time(&el),
@@ -1744,14 +1777,17 @@ pub fn _validate_Time(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type UniqueIdentifier = BIT_STRING;
 
+#[inline]
 pub fn _decode_UniqueIdentifier(el: &X690Element) -> ASN1Result<UniqueIdentifier> {
     BER.decode_bit_string(&el)
 }
 
+#[inline]
 pub fn _encode_UniqueIdentifier(value_: &UniqueIdentifier) -> ASN1Result<X690Element> {
     BER.encode_bit_string(&value_)
 }
 
+#[inline]
 pub fn _validate_UniqueIdentifier(el: &X690Element) -> ASN1Result<()> {
     BER.validate_bit_string(&el)
 }
@@ -1818,6 +1854,7 @@ pub struct Extension {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Extension {
+    #[inline]
     pub fn new(
         extnId: OBJECT_IDENTIFIER,
         critical: OPTIONAL<BOOLEAN>,
@@ -1837,6 +1874,7 @@ impl Extension {
 }
 impl TryFrom<&X690Element> for Extension {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Extension(el)
     }
@@ -1956,7 +1994,7 @@ pub fn _validate_Extension(el: &X690Element) -> ASN1Result<()> {
 /// der OBJECT IDENTIFIER ::= {joint-iso-itu-t asn1(1) ber-derived(2) distinguished-encoding(1)}
 /// ```
 ///
-///
+#[inline]
 pub fn der() -> OBJECT_IDENTIFIER {
     oid!(
         joint_iso_itu_t,
@@ -1972,7 +2010,7 @@ pub fn der() -> OBJECT_IDENTIFIER {
 /// ExtensionSet EXTENSION ::= {...}
 /// ```
 ///
-///
+#[inline]
 pub fn ExtensionSet() -> Vec<EXTENSION> {
     Vec::new()
 }
@@ -2097,14 +2135,17 @@ pub fn _validate_RelativeDistinguishedName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type DistinguishedName = RDNSequence; // DefinedType
 
+#[inline]
 pub fn _decode_DistinguishedName(el: &X690Element) -> ASN1Result<DistinguishedName> {
     _decode_RDNSequence(&el)
 }
 
+#[inline]
 pub fn _encode_DistinguishedName(value_: &DistinguishedName) -> ASN1Result<X690Element> {
     _encode_RDNSequence(&value_)
 }
 
+#[inline]
 pub fn _validate_DistinguishedName(el: &X690Element) -> ASN1Result<()> {
     _validate_RDNSequence(&el)
 }
@@ -2125,6 +2166,7 @@ pub struct AttributeTypeAndValue {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttributeTypeAndValue {
+    #[inline]
     pub fn new(
         type_: OBJECT_IDENTIFIER,
         value: X690Element,
@@ -2139,6 +2181,7 @@ impl AttributeTypeAndValue {
 }
 impl TryFrom<&X690Element> for AttributeTypeAndValue {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AttributeTypeAndValue(el)
     }
@@ -2244,7 +2287,7 @@ pub fn _validate_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<()> {
 /// SupportedAttributes ATTRIBUTE ::= {...}
 /// ```
 ///
-///
+#[inline]
 pub fn SupportedAttributes() -> Vec<ATTRIBUTE> {
     Vec::new()
 }
@@ -2327,6 +2370,7 @@ pub struct Attribute {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Attribute {
+    #[inline]
     pub fn new(
         type_: OBJECT_IDENTIFIER,
         values: Vec<X690Element>,
@@ -2341,6 +2385,7 @@ impl Attribute {
         }
     }
 
+    #[inline]
     pub fn iter_values(&self) -> AttributeValuesIterator<'_> {
         AttributeValuesIterator {
             attr: &self,
@@ -2437,6 +2482,7 @@ impl ExactSizeIterator for AttributeValuesIterator<'_> {}
 
 impl TryFrom<&X690Element> for Attribute {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Attribute(el)
     }
@@ -2494,21 +2540,15 @@ pub fn _decode_Attribute(el: &X690Element) -> ASN1Result<Attribute> {
         match _component_name {
             "type" => type__ = Some(BER.decode_object_identifier(_el)?),
             "values" => {
-                values_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<X690Element>> {
-                    let elements = match &el.value {
-                        X690Value::Constructed(children) => children,
-                        _ => {
-                            return Err(
-                                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "values")
-                            );
-                        }
-                    };
-                    let mut items: SET_OF<X690Element> = Vec::with_capacity(elements.len());
-                    for el in elements.iter() {
-                        items.push(x690_identity(el)?);
+                let elements = match &_el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(
+                            el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "values")
+                        );
                     }
-                    Ok(items)
-                }(_el)?)
+                };
+                values_ = Some(elements.as_ref().clone());
             }
             "valuesWithContext" => {
                 valuesWithContext_ = Some(|el: &X690Element| -> ASN1Result<
@@ -2545,16 +2585,10 @@ pub fn _decode_Attribute(el: &X690Element) -> ASN1Result<Attribute> {
 pub fn _encode_Attribute(value_: &Attribute) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
     components_.push(BER.encode_object_identifier(&value_.type_)?);
-    components_.push(|value_: &SET_OF<X690Element>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(x690_identity(&v)?);
-        }
-        Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-            X690Value::Constructed(Arc::new(children)),
-        ))
-    }(&value_.values)?);
+    components_.push(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
+        X690Value::Constructed(Arc::new(value_.values.clone())),
+    ));
     if let Some(v_) = &value_.valuesWithContext {
         components_.push(
             |value_: &SET_OF<Attribute_valuesWithContext_Item>| -> ASN1Result<X690Element> {
@@ -2622,7 +2656,7 @@ pub fn _validate_Attribute(el: &X690Element) -> ASN1Result<()> {
                 }
             }(_el)?,
             _ => (),
-        }
+        };
     }
     Ok(())
 }
@@ -2634,14 +2668,17 @@ pub fn _validate_Attribute(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type AttributeCertificate = SIGNED<TBSAttributeCertificate>; // DefinedType
 
+#[inline]
 pub fn _decode_AttributeCertificate(el: &X690Element) -> ASN1Result<AttributeCertificate> {
     _decode_SIGNED::<TBSAttributeCertificate>(_decode_TBSAttributeCertificate, el)
 }
 
+#[inline]
 pub fn _encode_AttributeCertificate(value_: &AttributeCertificate) -> ASN1Result<X690Element> {
     _encode_SIGNED::<TBSAttributeCertificate>(_encode_TBSAttributeCertificate, value_)
 }
 
+#[inline]
 pub fn _validate_AttributeCertificate(el: &X690Element) -> ASN1Result<()> {
     _validate_SIGNED::<TBSAttributeCertificate>(_validate_TBSAttributeCertificate, el)
 }
@@ -2678,6 +2715,7 @@ pub struct TBSAttributeCertificate {
     pub extensions: OPTIONAL<Extensions>,
 }
 impl TBSAttributeCertificate {
+    #[inline]
     pub fn new(
         version: AttCertVersion,
         holder: Holder,
@@ -2706,6 +2744,7 @@ impl TBSAttributeCertificate {
 }
 impl TryFrom<&X690Element> for TBSAttributeCertificate {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TBSAttributeCertificate(el)
     }
@@ -2956,14 +2995,17 @@ pub type AttCertVersion = i8;
 
 pub const AttCertVersion_v2: AttCertVersion = 1; /* LONG_NAMED_INTEGER_VALUE */
 
+#[inline]
 pub fn _decode_AttCertVersion(el: &X690Element) -> ASN1Result<AttCertVersion> {
     BER.decode_i8(&el)
 }
 
+#[inline]
 pub fn _encode_AttCertVersion(value_: &AttCertVersion) -> ASN1Result<X690Element> {
     BER.encode_i8(*value_)
 }
 
+#[inline]
 pub fn _validate_AttCertVersion(el: &X690Element) -> ASN1Result<()> {
     BER.validate_i8(&el)
 }
@@ -2987,6 +3029,7 @@ pub struct Holder {
     pub objectDigestInfo: OPTIONAL<ObjectDigestInfo>,
 }
 impl Holder {
+    #[inline]
     pub fn new(
         baseCertificateID: OPTIONAL<IssuerSerial>,
         entityName: OPTIONAL<GeneralNames>,
@@ -3000,6 +3043,7 @@ impl Holder {
     }
 }
 impl Default for Holder {
+    #[inline]
     fn default() -> Self {
         Holder {
             baseCertificateID: None,
@@ -3010,6 +3054,7 @@ impl Default for Holder {
 }
 impl TryFrom<&X690Element> for Holder {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Holder(el)
     }
@@ -3092,28 +3137,22 @@ pub fn _decode_Holder(el: &X690Element) -> ASN1Result<Holder> {
 pub fn _encode_Holder(value_: &Holder) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(8);
     if let Some(v_) = &value_.baseCertificateID {
-        components_.push(|v_1: &IssuerSerial| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(_encode_IssuerSerial(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(_encode_IssuerSerial(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.entityName {
-        components_.push(|v_1: &GeneralNames| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(_encode_GeneralNames(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(_encode_GeneralNames(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.objectDigestInfo {
-        components_.push(|v_1: &ObjectDigestInfo| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(_encode_ObjectDigestInfo(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(_encode_ObjectDigestInfo(&v_)?),
+        ));
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -3189,6 +3228,7 @@ pub struct IssuerSerial {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerSerial {
+    #[inline]
     pub fn new(
         issuer: GeneralNames,
         serial: CertificateSerialNumber,
@@ -3205,6 +3245,7 @@ impl IssuerSerial {
 }
 impl TryFrom<&X690Element> for IssuerSerial {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_IssuerSerial(el)
     }
@@ -3339,6 +3380,7 @@ pub struct ObjectDigestInfo {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ObjectDigestInfo {
+    #[inline]
     pub fn new(
         digestedObjectType: ObjectDigestInfo_digestedObjectType,
         otherObjectTypeID: OPTIONAL<OBJECT_IDENTIFIER>,
@@ -3359,6 +3401,7 @@ impl ObjectDigestInfo {
     ///
     /// You can only compare two digests if they are comparable
     /// according to this function.
+    #[inline]
     pub fn is_comparable_with(&self, other: &Self) -> bool {
         self.digestedObjectType == other.digestedObjectType
             && self.otherObjectTypeID == other.otherObjectTypeID
@@ -3367,6 +3410,7 @@ impl ObjectDigestInfo {
 }
 impl TryFrom<&X690Element> for ObjectDigestInfo {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ObjectDigestInfo(el)
     }
@@ -3523,6 +3567,7 @@ pub struct AttCertIssuer {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttCertIssuer {
+    #[inline]
     pub fn new(
         issuerName: OPTIONAL<GeneralNames>,
         baseCertificateID: OPTIONAL<IssuerSerial>,
@@ -3545,6 +3590,7 @@ impl AttCertIssuer {
     }
 }
 impl Default for AttCertIssuer {
+    #[inline]
     fn default() -> Self {
         AttCertIssuer {
             issuerName: None,
@@ -3556,6 +3602,7 @@ impl Default for AttCertIssuer {
 }
 impl TryFrom<&X690Element> for AttCertIssuer {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AttCertIssuer(el)
     }
@@ -3589,6 +3636,7 @@ pub const _rctl2_components_for_AttCertIssuer: &[ComponentSpec; 0] = &[];
 
 pub const _eal_components_for_AttCertIssuer: &[ComponentSpec; 0] = &[];
 
+// FIXME: This is a mess.
 pub fn _decode_AttCertIssuer(el: &X690Element) -> ASN1Result<AttCertIssuer> {
     |el: &X690Element| -> ASN1Result<AttCertIssuer> {
         Ok(|el: &X690Element| -> ASN1Result<AttCertIssuer> {
@@ -3748,6 +3796,7 @@ pub struct AttCertValidityPeriod {
     pub _unrecognized: Vec<X690Element>,
 }
 impl AttCertValidityPeriod {
+    #[inline]
     pub fn new(
         notBeforeTime: GeneralizedTime,
         notAfterTime: GeneralizedTime,
@@ -3762,6 +3811,7 @@ impl AttCertValidityPeriod {
 }
 impl TryFrom<&X690Element> for AttCertValidityPeriod {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AttCertValidityPeriod(el)
     }
@@ -3940,6 +3990,7 @@ pub enum GeneralName {
 
 impl TryFrom<&X690Element> for GeneralName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_GeneralName(el)
     }
@@ -3948,99 +3999,57 @@ impl TryFrom<&X690Element> for GeneralName {
 // TODO: Streamline this decoding / encoding. These closures are unnecessary.
 pub fn _decode_GeneralName(el: &X690Element) -> ASN1Result<GeneralName> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::CONTEXT, 0) => Ok(GeneralName::otherName(
-            |el: &X690Element| -> ASN1Result<INSTANCE_OF> {
-                Ok(BER.decode_instance_of(&el.inner()?)?)
-            }(&el)?,
-        )),
-        (TagClass::CONTEXT, 1) => Ok(GeneralName::rfc822Name(
-            |el: &X690Element| -> ASN1Result<IA5String> {
-                Ok(BER.decode_ia5_string(&el.inner()?)?)
-            }(&el)?,
-        )),
-        (TagClass::CONTEXT, 2) => Ok(GeneralName::dNSName(
-            |el: &X690Element| -> ASN1Result<IA5String> {
-                Ok(BER.decode_ia5_string(&el.inner()?)?)
-            }(&el)?,
-        )),
+        (TagClass::CONTEXT, 0) => Ok(GeneralName::otherName(BER.decode_instance_of(&el.inner()?)?)),
+        (TagClass::CONTEXT, 1) => Ok(GeneralName::rfc822Name(BER.decode_ia5_string(&el.inner()?)?)),
+        (TagClass::CONTEXT, 2) => Ok(GeneralName::dNSName(BER.decode_ia5_string(&el.inner()?)?)),
         (TagClass::CONTEXT, 3) => Ok(GeneralName::x400Address(el.inner()?)),
-        (TagClass::CONTEXT, 4) => Ok(GeneralName::directoryName(
-            |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(&el)?,
-        )),
-        (TagClass::CONTEXT, 5) => Ok(GeneralName::ediPartyName(_decode_EDIPartyName(
-            &el.inner()?,
-        )?)),
-        (TagClass::CONTEXT, 6) => Ok(GeneralName::uniformResourceIdentifier(
-            |el: &X690Element| -> ASN1Result<IA5String> {
-                Ok(BER.decode_ia5_string(&el.inner()?)?)
-            }(&el)?,
-        )),
-        (TagClass::CONTEXT, 7) => Ok(GeneralName::iPAddress(
-            |el: &X690Element| -> ASN1Result<OCTET_STRING> {
-                Ok(BER.decode_octet_string(&el.inner()?)?)
-            }(&el)?,
-        )),
-        (TagClass::CONTEXT, 8) => Ok(GeneralName::registeredID(|el: &X690Element| -> ASN1Result<
-            OBJECT_IDENTIFIER,
-        > {
-            Ok(BER.decode_object_identifier(&el.inner()?)?)
-        }(&el)?)),
+        (TagClass::CONTEXT, 4) => Ok(GeneralName::directoryName(_decode_Name(&el.inner()?)?)),
+        (TagClass::CONTEXT, 5) => Ok(GeneralName::ediPartyName(_decode_EDIPartyName(&el.inner()?)?)),
+        (TagClass::CONTEXT, 6) => Ok(GeneralName::uniformResourceIdentifier(BER.decode_ia5_string(&el.inner()?)?)),
+        (TagClass::CONTEXT, 7) => Ok(GeneralName::iPAddress(BER.decode_octet_string(&el.inner()?)?)),
+        (TagClass::CONTEXT, 8) => Ok(GeneralName::registeredID(BER.decode_object_identifier(&el.inner()?)?)),
         _ => Ok(GeneralName::_unrecognized(el.clone())),
     }
 }
 
 pub fn _encode_GeneralName(value_: &GeneralName) -> ASN1Result<X690Element> {
     match value_ {
-        GeneralName::otherName(v) => |v_1: &INSTANCE_OF| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(BER.encode_instance_of(&v_1)?),
-            ))
-        }(&v),
-        GeneralName::rfc822Name(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(BER.encode_ia5_string(&v_1)?),
-            ))
-        }(&v),
-        GeneralName::dNSName(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(BER.encode_ia5_string(&v_1)?),
-            ))
-        }(&v),
+        GeneralName::otherName(v) => Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(BER.encode_instance_of(&v)?),
+        )),
+        GeneralName::rfc822Name(v) => Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(BER.encode_ia5_string(v.as_str())?),
+        )),
+        GeneralName::dNSName(v) => Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(BER.encode_ia5_string(v.as_str())?),
+        )),
         GeneralName::x400Address(v) => Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 4),
             X690Value::from_explicit(v.clone()),
         )),
-        GeneralName::directoryName(v) => |v_1: &Name| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(_encode_Name(&v_1)?),
-            ))
-        }(&v),
+        GeneralName::directoryName(v) => Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 4),
+            X690Value::from_explicit(_encode_Name(&v)?),
+        )),
         GeneralName::ediPartyName(v) => Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 5),
-            X690Value::from_explicit(_encode_EDIPartyName(v)?),
+            X690Value::from_explicit(_encode_EDIPartyName(&v)?),
         )),
-        GeneralName::uniformResourceIdentifier(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(BER.encode_ia5_string(&v_1)?),
-            ))
-        }(&v),
-        GeneralName::iPAddress(v) => |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 7),
-                X690Value::from_explicit(BER.encode_octet_string(&v_1)?),
-            ))
-        }(&v),
-        GeneralName::registeredID(v) => |v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 8),
-                X690Value::from_explicit(BER.encode_object_identifier(&v_1)?),
-            ))
-        }(&v),
+        GeneralName::uniformResourceIdentifier(v) => Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 6),
+            X690Value::from_explicit(BER.encode_ia5_string(&v)?),
+        )),
+        GeneralName::iPAddress(v) => Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 7),
+            X690Value::from_explicit(BER.encode_octet_string(&v)?),
+        )),
+        GeneralName::registeredID(v) => Ok(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 8),
+            X690Value::from_explicit(BER.encode_object_identifier(&v)?),
+        )),
         GeneralName::_unrecognized(el) => Ok(el.clone()),
     }
 }
@@ -4109,14 +4118,17 @@ pub type OTHER_NAME = TYPE_IDENTIFIER;
 /// ```
 pub type CertAVL = SIGNED<TBSCertAVL>; // DefinedType
 
+#[inline]
 pub fn _decode_CertAVL(el: &X690Element) -> ASN1Result<CertAVL> {
     _decode_SIGNED::<TBSCertAVL>(_decode_TBSCertAVL, el)
 }
 
+#[inline]
 pub fn _encode_CertAVL(value_: &CertAVL) -> ASN1Result<X690Element> {
     _encode_SIGNED::<TBSCertAVL>(_encode_TBSCertAVL, value_)
 }
 
+#[inline]
 pub fn _validate_CertAVL(el: &X690Element) -> ASN1Result<()> {
     _validate_SIGNED::<TBSCertAVL>(_validate_TBSCertAVL, el)
 }
@@ -4155,6 +4167,7 @@ pub struct TBSCertAVL {
     pub avlExtensions: OPTIONAL<Extensions>,
 }
 impl TBSCertAVL {
+    #[inline]
     pub fn new(
         version: OPTIONAL<Version>,
         serialNumber: OPTIONAL<AvlSerialNumber>,
@@ -4182,6 +4195,7 @@ impl TBSCertAVL {
 }
 impl TryFrom<&X690Element> for TBSCertAVL {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TBSCertAVL(el)
     }
@@ -4268,25 +4282,21 @@ pub fn _decode_TBSCertAVL(el: &X690Element) -> ASN1Result<TBSCertAVL> {
             "issuer" => issuer_ = Some(_decode_Name(_el)?),
             "constrained" => constrained_ = Some(BER.decode_boolean(_el)?),
             "entries" => {
-                entries_ = Some(
-                    |el: &X690Element| -> ASN1Result<SEQUENCE_OF<TBSCertAVL_entries_Item>> {
-                        let elements = match &el.value {
-                            X690Value::Constructed(children) => children,
-                            _ => {
-                                return Err(el.to_asn1_err_named(
-                                    ASN1ErrorCode::invalid_construction,
-                                    "entries",
-                                ));
-                            }
-                        };
-                        let mut items: SEQUENCE_OF<TBSCertAVL_entries_Item> =
-                            Vec::with_capacity(elements.len());
-                        for el in elements.iter() {
-                            items.push(_decode_TBSCertAVL_entries_Item(el)?);
-                        }
-                        Ok(items)
-                    }(_el)?,
-                )
+                let elements = match &el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "entries",
+                        ));
+                    }
+                };
+                let mut items: SEQUENCE_OF<TBSCertAVL_entries_Item> =
+                    Vec::with_capacity(elements.len());
+                for el in elements.iter() {
+                    items.push(_decode_TBSCertAVL_entries_Item(el)?);
+                }
+                entries_ = Some(items);
             }
             "avlExtensions" => avlExtensions_ = Some(_decode_Extensions(_el)?),
             _ => _unrecognized.push(_el.clone()),
@@ -4400,14 +4410,17 @@ pub fn _validate_TBSCertAVL(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type AvlSerialNumber = INTEGER;
 
+#[inline]
 pub fn _decode_AvlSerialNumber(el: &X690Element) -> ASN1Result<AvlSerialNumber> {
     BER.decode_integer(&el)
 }
 
+#[inline]
 pub fn _encode_AvlSerialNumber(value_: &AvlSerialNumber) -> ASN1Result<X690Element> {
     BER.encode_integer(&value_)
 }
 
+#[inline]
 pub fn _validate_AvlSerialNumber(el: &X690Element) -> ASN1Result<()> {
     BER.validate_integer(&el)
 }
@@ -4431,6 +4444,7 @@ pub enum PKCertIdentifier {
 
 impl TryFrom<&X690Element> for PKCertIdentifier {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PKCertIdentifier(el)
     }
@@ -4505,6 +4519,7 @@ pub struct IssuerSerialNumber {
     pub _unrecognized: Vec<X690Element>,
 }
 impl IssuerSerialNumber {
+    #[inline]
     pub fn new(
         issuer: Name,
         serialNumber: CertificateSerialNumber,
@@ -4519,6 +4534,7 @@ impl IssuerSerialNumber {
 }
 impl TryFrom<&X690Element> for IssuerSerialNumber {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_IssuerSerialNumber(el)
     }
@@ -4659,14 +4675,17 @@ pub const CRLReason_aACompromise: CRLReason = 10; /* LONG_NAMED_ENUMERATED_VALUE
 
 pub const CRLReason_weakAlgorithmOrKey: CRLReason = 11; /* LONG_NAMED_ENUMERATED_VALUE */
 
+#[inline]
 pub fn _decode_CRLReason(el: &X690Element) -> ASN1Result<CRLReason> {
     BER.decode_enumerated(&el)
 }
 
+#[inline]
 pub fn _encode_CRLReason(value_: &CRLReason) -> ASN1Result<X690Element> {
     BER.encode_enumerated(&value_)
 }
 
+#[inline]
 pub fn _validate_CRLReason(el: &X690Element) -> ASN1Result<()> {
     BER.validate_enumerated(&el)
 }
@@ -4686,18 +4705,21 @@ pub const ObjectDigestInfo_digestedObjectType_publicKeyCert: ObjectDigestInfo_di
 pub const ObjectDigestInfo_digestedObjectType_otherObjectTypes:
     ObjectDigestInfo_digestedObjectType = 2; /* LONG_NAMED_ENUMERATED_VALUE */
 
+#[inline]
 pub fn _decode_ObjectDigestInfo_digestedObjectType(
     el: &X690Element,
 ) -> ASN1Result<ObjectDigestInfo_digestedObjectType> {
     BER.decode_enumerated(&el)
 }
 
+#[inline]
 pub fn _encode_ObjectDigestInfo_digestedObjectType(
     value_: &ObjectDigestInfo_digestedObjectType,
 ) -> ASN1Result<X690Element> {
     BER.encode_enumerated(&value_)
 }
 
+#[inline]
 pub fn _validate_ObjectDigestInfo_digestedObjectType(el: &X690Element) -> ASN1Result<()> {
     BER.validate_enumerated(&el)
 }
@@ -4716,6 +4738,7 @@ pub enum TBSCertAVL_entries_Item_idType {
 
 impl TryFrom<&X690Element> for TBSCertAVL_entries_Item_idType {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TBSCertAVL_entries_Item_idType(el)
     }
@@ -4833,6 +4856,7 @@ pub struct ScopeRestriction {
     pub _unrecognized: Vec<X690Element>,
 }
 impl ScopeRestriction {
+    #[inline]
     pub fn new(
         id: OBJECT_IDENTIFIER,
         restriction: X690Element,
@@ -4847,6 +4871,7 @@ impl ScopeRestriction {
 }
 impl TryFrom<&X690Element> for ScopeRestriction {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ScopeRestriction(el)
     }
@@ -4960,6 +4985,7 @@ pub struct TBSCertAVL_entries_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl TBSCertAVL_entries_Item {
+    #[inline]
     pub fn new(
         idType: TBSCertAVL_entries_Item_idType,
         scope: OPTIONAL<ScopeRestrictions>,
@@ -4976,6 +5002,7 @@ impl TBSCertAVL_entries_Item {
 }
 impl TryFrom<&X690Element> for TBSCertAVL_entries_Item {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TBSCertAVL_entries_Item(el)
     }
@@ -5050,20 +5077,16 @@ pub fn _encode_TBSCertAVL_entries_Item(
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
     components_.push(_encode_TBSCertAVL_entries_Item_idType(&value_.idType)?);
     if let Some(v_) = &value_.scope {
-        components_.push(|v_1: &ScopeRestrictions| -> ASN1Result<X690Element> {
-            let mut el_1 = _encode_ScopeRestrictions(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 0;
-            Ok(el_1)
-        }(&v_)?);
+        let mut el_1 = _encode_ScopeRestrictions(&v_)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 0;
+        components_.push(el_1);
     }
     if let Some(v_) = &value_.entryExtensions {
-        components_.push(|v_1: &Extensions| -> ASN1Result<X690Element> {
-            let mut el_1 = _encode_Extensions(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 1;
-            Ok(el_1)
-        }(&v_)?);
+        let mut el_1 = _encode_Extensions(&v_)?;
+        el_1.tag.tag_class = TagClass::CONTEXT;
+        el_1.tag.tag_number = 1;
+        components_.push(el_1);
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -5137,6 +5160,7 @@ pub struct Context {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Context {
+    #[inline]
     pub fn new(
         contextType: OBJECT_IDENTIFIER,
         contextValues: Vec<X690Element>,
@@ -5150,6 +5174,7 @@ impl Context {
             _unrecognized,
         }
     }
+    #[inline]
     pub fn _default_value_for_fallback() -> BOOLEAN {
         false
     }
@@ -5176,6 +5201,7 @@ impl Context {
 }
 impl TryFrom<&X690Element> for Context {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Context(el)
     }
@@ -5233,22 +5259,16 @@ pub fn _decode_Context(el: &X690Element) -> ASN1Result<Context> {
         match _component_name {
             "contextType" => contextType_ = Some(BER.decode_object_identifier(_el)?),
             "contextValues" => {
-                contextValues_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<X690Element>> {
-                    let elements = match &el.value {
-                        X690Value::Constructed(children) => children,
-                        _ => {
-                            return Err(el.to_asn1_err_named(
-                                ASN1ErrorCode::invalid_construction,
-                                "contextValues",
-                            ));
-                        }
-                    };
-                    let mut items: SET_OF<X690Element> = Vec::with_capacity(elements.len());
-                    for el in elements.iter() {
-                        items.push(x690_identity(el)?);
+                let elements = match &_el.value {
+                    X690Value::Constructed(children) => children,
+                    _ => {
+                        return Err(el.to_asn1_err_named(
+                            ASN1ErrorCode::invalid_construction,
+                            "contextValues",
+                        ));
                     }
-                    Ok(items)
-                }(_el)?)
+                };
+                contextValues_ = Some(elements.as_ref().clone());
             }
             "fallback" => fallback_ = Some(BER.decode_boolean(_el)?),
             _ => _unrecognized.push(_el.clone()),
@@ -5265,16 +5285,10 @@ pub fn _decode_Context(el: &X690Element) -> ASN1Result<Context> {
 pub fn _encode_Context(value_: &Context) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(13);
     components_.push(BER.encode_object_identifier(&value_.contextType)?);
-    components_.push(|value_: &SET_OF<X690Element>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(x690_identity(&v)?);
-        }
-        Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-            X690Value::Constructed(Arc::new(children)),
-        ))
-    }(&value_.contextValues)?);
+    components_.push(X690Element::new(
+        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
+        X690Value::Constructed(Arc::new(value_.contextValues.clone())),
+    ));
     if let Some(v_) = &value_.fallback {
         if *v_ != Context::_default_value_for_fallback() {
             components_.push(BER.encode_boolean(&v_)?);
@@ -5340,6 +5354,7 @@ pub struct Attribute_valuesWithContext_Item {
     pub _unrecognized: Vec<X690Element>,
 }
 impl Attribute_valuesWithContext_Item {
+    #[inline]
     pub fn new(
         value: X690Element,
         contextList: Vec<Context>,
@@ -5368,6 +5383,7 @@ impl Attribute_valuesWithContext_Item {
 }
 impl TryFrom<&X690Element> for Attribute_valuesWithContext_Item {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Attribute_valuesWithContext_Item(el)
     }
@@ -5449,7 +5465,7 @@ pub fn _encode_Attribute_valuesWithContext_Item(
     value_: &Attribute_valuesWithContext_Item,
 ) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-    components_.push(x690_identity(&value_.value)?);
+    components_.push(value_.value.clone());
     components_.push(|value_: &SET_OF<Context>| -> ASN1Result<X690Element> {
         let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
         for v in value_ {
@@ -5532,14 +5548,15 @@ pub const AttributeUsage_distributedOperation: AttributeUsage = 2; /* LONG_NAMED
 
 pub const AttributeUsage_dSAOperation: AttributeUsage = 3; /* LONG_NAMED_ENUMERATED_VALUE */
 
+#[inline]
 pub fn _decode_AttributeUsage(el: &X690Element) -> ASN1Result<AttributeUsage> {
     BER.decode_enumerated(&el)
 }
-
+#[inline]
 pub fn _encode_AttributeUsage(value_: &AttributeUsage) -> ASN1Result<X690Element> {
     BER.encode_enumerated(&value_)
 }
-
+#[inline]
 pub fn _validate_AttributeUsage(el: &X690Element) -> ASN1Result<()> {
     BER.validate_enumerated(&el)
 }
@@ -5599,11 +5616,13 @@ pub enum Name {
 
 impl TryFrom<&X690Element> for Name {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_Name(el)
     }
 }
 
+#[inline]
 pub fn _decode_Name(el: &X690Element) -> ASN1Result<Name> {
     match (el.tag.tag_class, el.tag.tag_number) {
         (TagClass::UNIVERSAL, 16) => Ok(Name::rdnSequence(_decode_RDNSequence(&el)?)),
@@ -5618,6 +5637,7 @@ pub fn _decode_Name(el: &X690Element) -> ASN1Result<Name> {
     }
 }
 
+#[inline]
 pub fn _encode_Name(value_: &Name) -> ASN1Result<X690Element> {
     match value_ {
         Name::rdnSequence(v) => _encode_RDNSequence(&v),
@@ -5626,6 +5646,7 @@ pub fn _encode_Name(value_: &Name) -> ASN1Result<X690Element> {
     }
 }
 
+#[inline]
 pub fn _validate_Name(el: &X690Element) -> ASN1Result<()> {
     match (el.tag.tag_class, el.tag.tag_number) {
         (TagClass::UNIVERSAL, 16) => _validate_RDNSequence(&el),
@@ -5648,14 +5669,17 @@ pub fn _validate_Name(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type DomainName = UTF8String; // UTF8String
 
+#[inline]
 pub fn _decode_DomainName(el: &X690Element) -> ASN1Result<DomainName> {
     BER.decode_utf8_string(&el)
 }
 
+#[inline]
 pub fn _encode_DomainName(value_: &DomainName) -> ASN1Result<X690Element> {
     BER.encode_utf8_string(&value_)
 }
 
+#[inline]
 pub fn _validate_DomainName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_utf8_string(&el)
 }
@@ -5707,6 +5731,7 @@ impl TryFrom<Name> for RDNSequence {
 }
 
 impl From<RDNSequence> for Name {
+    #[inline]
     fn from(value: RDNSequence) -> Self {
         Name::rdnSequence(value)
     }
@@ -5728,6 +5753,7 @@ pub struct EDIPartyName {
     pub _unrecognized: Vec<X690Element>,
 }
 impl EDIPartyName {
+    #[inline]
     pub fn new(
         nameAssigner: OPTIONAL<X690Element>,
         partyName: X690Element,
@@ -5742,6 +5768,7 @@ impl EDIPartyName {
 }
 impl TryFrom<&X690Element> for EDIPartyName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_EDIPartyName(el)
     }

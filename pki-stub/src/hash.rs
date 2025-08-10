@@ -242,6 +242,7 @@ fn hash_asn1_value<H: std::hash::Hasher>(value: &ASN1Value, state: &mut H, depth
 fn hash_instance_of<H: std::hash::Hasher>(value: &INSTANCE_OF, state: &mut H, depth: usize) {
     value.type_id.hash(state);
     state.write_u8(0xFF);
+    // TODO: Specific other-name variants
     hash_asn1_value(&value.value, state, depth + 1)
 }
 

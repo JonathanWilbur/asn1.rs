@@ -236,12 +236,16 @@ which control how these elements are encoded.
 
 ## TODO
 
-- [ ] `wildboar_asn`
+- [ ] `wildboar_asn1`
   - [x] `UTCTime.get_full_year_for_pki()`
     - If the 2-digit value is 50 through to 99 inclusive, the value shall have 1900 added to it.
     - Currently need this for `pki-stub`
   - [x] `const IETF_RFC_5280_UNKNOWN_EXPIRATION_TIME: GeneralizedTime = 99991231235959Z`
 - [ ] Review `size_hint()`: I am not sure my implementations reflect iterations _remaining_
+- [ ] `x690`: I think the recursive calls to `.len()` in `x690_write_len()` could be a problem.
+  - It seems like the solution is either:
+    - Transform constructed elements into `Serialized` variant, or
+    - Write elements to a buffer backwards, which some ASN.1 libraries do.
 - [ ] Where possible, replace `deconstruct` with `X690Element::deconstruction_iter()`.
 - [ ] `teletex`
   - [ ] Make it `no-std`, use iterator, etc.
