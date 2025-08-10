@@ -3,82 +3,195 @@ use wildboar_asn1::OBJECT_IDENTIFIER;
 pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'static str> {
     let x690_slice = attr_type.as_x690_slice();
     let x690_len = x690_slice.len();
-    if x690_len == 3 && x690_slice.starts_with(&[0x55, 4]) {
+    if x690_len == 3 && x690_slice[0] == 0x55 {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
-        return match last_byte {
-            3 => Some("commonName"),
-            4 => Some("surname"),
-            5 => Some("serialNumber"),
-            6 => Some("countryName"),
-            7 => Some("localityName"),
-            8 => Some("stateOrProvinceName"),
-            9 => Some("streetAddress"),
-            10 => Some("organizationName"),
-            11 => Some("organizationalUnitName"),
-            12 => Some("title"),
-            13 => Some("description"),
-            14 => Some("searchGuide"),
-            15 => Some("businessCategory"),
-            16 => Some("postalAddress"),
-            17 => Some("postalCode"),
-            18 => Some("postOfficeBox"),
-            19 => Some("physicalDeliveryOfficeName"),
-            20 => Some("telephoneNumber"),
-            21 => Some("telexNumber"),
-            23 => Some("facsimileTelephoneNumber"),
-            24 => Some("x121Address"),
-            25 => Some("internationalISDNNumber"),
-            26 => Some("registeredAddress"),
-            27 => Some("destinationIndicator"),
-            28 => Some("preferredDeliveryMethod"),
-            29 => Some("presentationAddress"),
-            30 => Some("supportedApplicationContext"),
-            31 => Some("member"),
-            32 => Some("owner"),
-            33 => Some("roleOccupant"),
-            34 => Some("seeAlso"),
-            41 => Some("name"),
-            42 => Some("givenName"),
-            43 => Some("initials"),
-            44 => Some("generationQualifier"),
-            45 => Some("uniqueIdentifier"),
-            46 => Some("dnQualifier"),
-            47 => Some("enhancedSearchGuide"),
-            48 => Some("protocolInformation"),
-            49 => Some("distinguishedName"),
-            50 => Some("uniqueMember"),
-            51 => Some("houseIdentifier"),
-            54 => Some("dmdName"),
-            65 => Some("pseudonym"),
-            66 => Some("communicationsService"),
-            67 => Some("communicationsNetwork"),
-            77 => Some("uuidpair"),
-            78 => Some("tagOid"),
-            79 => Some("uiiFormat"),
-            80 => Some("uiiInUrn"),
-            81 => Some("contentUrl"),
-            83 => Some("uri"),
-            86 => Some("urn"),
-            87 => Some("url"),
-            88 => Some("utmCoordinates"),
-            89 => Some("urnC"),
-            90 => Some("uii"),
-            91 => Some("epc"),
-            92 => Some("tagAfi"),
-            93 => Some("epcFormat"),
-            94 => Some("epcInUrn"),
-            95 => Some("ldapUrl"),
-            96 => Some("tagLocation"),
-            97 => Some("organizationIdentifier"),
-            98 => Some("countryCode3c"),
-            99 => Some("countryCode3n"),
-            100 => Some("dnsName"),
-            104 => Some("intEmail"),
-            105 => Some("jid"),
-            106 => Some("objectIdentifier"),
-            _ => return None,
-        };
-        // TODO: More attributes
+        if x690_slice[1] == 4 {
+            return match last_byte {
+                0 => Some("objectClass"),
+                1 => Some("aliasedEntryName"),
+                3 => Some("commonName"),
+                4 => Some("surname"),
+                5 => Some("serialNumber"),
+                6 => Some("countryName"),
+                7 => Some("localityName"),
+                8 => Some("stateOrProvinceName"),
+                9 => Some("streetAddress"),
+                10 => Some("organizationName"),
+                11 => Some("organizationalUnitName"),
+                12 => Some("title"),
+                13 => Some("description"),
+                14 => Some("searchGuide"),
+                15 => Some("businessCategory"),
+                16 => Some("postalAddress"),
+                17 => Some("postalCode"),
+                18 => Some("postOfficeBox"),
+                19 => Some("physicalDeliveryOfficeName"),
+                20 => Some("telephoneNumber"),
+                21 => Some("telexNumber"),
+                23 => Some("facsimileTelephoneNumber"),
+                24 => Some("x121Address"),
+                25 => Some("internationalISDNNumber"),
+                26 => Some("registeredAddress"),
+                27 => Some("destinationIndicator"),
+                28 => Some("preferredDeliveryMethod"),
+                29 => Some("presentationAddress"),
+                30 => Some("supportedApplicationContext"),
+                31 => Some("member"),
+                32 => Some("owner"),
+                33 => Some("roleOccupant"),
+                34 => Some("seeAlso"),
+                41 => Some("name"),
+                42 => Some("givenName"),
+                43 => Some("initials"),
+                44 => Some("generationQualifier"),
+                45 => Some("uniqueIdentifier"),
+                46 => Some("dnQualifier"),
+                47 => Some("enhancedSearchGuide"),
+                48 => Some("protocolInformation"),
+                49 => Some("distinguishedName"),
+                50 => Some("uniqueMember"),
+                51 => Some("houseIdentifier"),
+                54 => Some("dmdName"),
+                65 => Some("pseudonym"),
+                66 => Some("communicationsService"),
+                67 => Some("communicationsNetwork"),
+                77 => Some("uuidpair"),
+                78 => Some("tagOid"),
+                79 => Some("uiiFormat"),
+                80 => Some("uiiInUrn"),
+                81 => Some("contentUrl"),
+                83 => Some("uri"),
+                84 => Some("pwdAttribute"),
+                86 => Some("urn"),
+                87 => Some("url"),
+                88 => Some("utmCoordinates"),
+                89 => Some("urnC"),
+                90 => Some("uii"),
+                91 => Some("epc"),
+                92 => Some("tagAfi"),
+                93 => Some("epcFormat"),
+                94 => Some("epcInUrn"),
+                95 => Some("ldapUrl"),
+                96 => Some("tagLocation"),
+                97 => Some("organizationIdentifier"),
+                98 => Some("countryCode3c"),
+                99 => Some("countryCode3n"),
+                100 => Some("dnsName"),
+                104 => Some("intEmail"),
+                105 => Some("jid"),
+                106 => Some("objectIdentifier"),
+                _ => return None,
+            };
+        }
+        if x690_slice[1] == 12 {
+            return match last_byte {
+                0 => Some("dseType"),
+                1 => Some("myAccessPoint"),
+                2 => Some("superiorKnowledge"),
+                3 => Some("specificKnowledge"),
+                4 => Some("nonSpecificKnowledge"),
+                5 => Some("supplierKnowledge"),
+                6 => Some("consumerKnowledge"),
+                7 => Some("secondaryShadows"),
+                8 => Some("ditBridgeKnowledge"),
+                _ => None,
+            };
+        }
+        if x690_slice[1] == 18 {
+            return match last_byte {
+                0 => Some("excludeAllCollectiveAttributes"),
+                1 => Some("createTimestamp"),
+                2 => Some("modifyTimestamp"),
+                3 => Some("creatorsName"),
+                4 => Some("modifiersName"),
+                5 => Some("administrativeRole"),
+                6 => Some("subtreeSpecification"),
+                7 => Some("collectiveExclusions"),
+                8 => Some("subschemaTimestamp"),
+                9 => Some("hasSubordinates"),
+                10 => Some("subschemaSubentryList"),
+                11 => Some("accessControlSubentryList"),
+                12 => Some("collectiveAttributeSubentryList"),
+                13 => Some("contextDefaultSubentryList"),
+                14 => Some("contextAssertionDefault"),
+                15 => Some("serviceAdminSubentryList"),
+                16 => Some("searchRules"),
+                17 => Some("hierarchyLevel"),
+                18 => Some("hierarchyBelow"),
+                19 => Some("hierarchyParent"),
+                20 => Some("hierarchyTop"),
+                21 => Some("pwdAdminSubentryList"),
+                22 => Some("pwdStartTime"),
+                23 => Some("pwdExpiryTime"),
+                24 => Some("pwdEndTime"),
+                25 => Some("pwdFails"),
+                26 => Some("pwdFailureTime"),
+                27 => Some("pwdGracesUsed"),
+                28 => Some("userPwdHistory"),
+                29 => Some("userPwdRecentlyExpired"),
+                30 => Some("pwdModifyEntryAllowed"),
+                31 => Some("pwdChangeAllowed"),
+                32 => Some("pwdMaxAge"),
+                33 => Some("pwdExpiryAge"),
+                34 => Some("pwdMinLength"),
+                35 => Some("pwdVocabulary"),
+                36 => Some("pwdAlphabet"),
+                37 => Some("pwdDictionaries"),
+                38 => Some("pwdExpiryWarning"),
+                39 => Some("pwdGraces"),
+                40 => Some("pwdFailureDuration"),
+                41 => Some("pwdLockoutDuration"),
+                42 => Some("pwdMaxFailures"),
+                43 => Some("pwdMaxTimeInHistory"),
+                44 => Some("pwdMinTimeInHistory"),
+                45 => Some("pwdHistorySlots"),
+                46 => Some("pwdRecentlyExpiredDuration"),
+                47 => Some("pwdEncAlg"),
+                _ => return None,
+            };
+        }
+        if x690_slice[1] == 24 {
+            return match last_byte {
+                1 => Some("accessControlScheme"),
+                4 => Some("prescriptiveACI"),
+                5 => Some("entryACI"),
+                6 => Some("subentryACI"),
+                _ => return None,
+            };
+        }
+        if x690_slice[1] == 35 {
+            return match last_byte {
+                0 => Some("dSAProblem"),
+                1 => Some("searchServiceProblem"),
+                2 => Some("serviceType"),
+                3 => Some("attributeTypeList"),
+                4 => Some("matchingRuleList"),
+                5 => Some("filterItem"),
+                6 => Some("attributeCombinations"),
+                7 => Some("contextTypeList"),
+                8 => Some("contextList"),
+                9 => Some("contextCombinations"),
+                10 => Some("hierarchySelectList"),
+                11 => Some("searchControlOptionsList"),
+                12 => Some("serviceControlOptionsList"),
+                13 => Some("multipleMatchingLocalities"),
+                14 => Some("proposedRelaxation"),
+                15 => Some("appliedRelaxation"),
+                16 => Some("pwdResponse"),
+                17 => Some("ldapDiagnosticMsg"),
+                _ => return None,
+            };
+        }
+        if x690_slice[1] == 37 {
+            return match last_byte {
+                1 => Some("sequenceMatchType"),
+                2 => Some("wordMatchType"),
+                3 => Some("characterMatchTypes"),
+                4 => Some("selectedContexts"),
+                _ => return None,
+            };
+        }
+        return None;
     }
 
     // Always enabled because it has some important attributes used in naming.
@@ -141,7 +254,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[1, 2, 0x86, 0x48, 0x86, 0xF7, 0x14, 1, 4, 0x83]) {
+    if x690_len == 10 && x690_slice.starts_with(&[42, 0x86, 0x48, 0x86, 0xF7, 0x14, 1, 4, 0x83]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             0x5E => Some("calCalURI"), // 478
@@ -157,7 +270,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 9 && x690_slice.starts_with(&[1, 3, 18, 0, 2, 24, 46, 1]) {
+    if x690_len == 8 && x690_slice.starts_with(&[43, 18, 0, 2, 24, 46, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             101 => Some("printer-device-id"),
@@ -172,7 +285,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 18, 0, 2, 4, 0x88]) {
+    if x690_len == 7 && x690_slice.starts_with(&[43, 18, 0, 2, 4, 0x88]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             0x53 => Some("printer-xri-supported"), // 1.3.18.0.2.4.1107
@@ -214,7 +327,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 10, 4]) {
+    if x690_len == 7 && x690_slice.starts_with(&[43, 6, 1, 1, 10, 4]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("uddiBusinessKey"),
@@ -268,7 +381,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 11, 2]) {
+    if x690_len == 7 && x690_slice.starts_with(&[43, 6, 1, 1, 11, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("vPIMTelephoneNumber"),
@@ -286,7 +399,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 6, 2]) {
+    if x690_len == 7 && x690_slice.starts_with(&[43, 6, 1, 1, 6, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             3 => Some("pcimKeywords"),
@@ -331,7 +444,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
     }
 
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 8 && x690_slice.starts_with(&[1, 3, 6, 1, 1, 9, 2]) {
+    if x690_len == 7 && x690_slice.starts_with(&[43, 6, 1, 1, 9, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("pcelsPolicySetName"),
@@ -402,7 +515,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
 
     // 1.3.6.1.4.1.11.1.3.1.1.0
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 12 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 11, 1, 3, 1, 1]) {
+    if x690_len == 11 && x690_slice.starts_with(&[43, 6, 1, 4, 1, 11, 1, 3, 1, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             0 => Some("defaultServerList"),
@@ -427,7 +540,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
 
     // 1.3.6.1.4.1.1466.101.120.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x8B, 0x3A, 101, 120]) {
+    if x690_len == 10 && x690_slice.starts_with(&[43, 6, 1, 4, 1, 0x8B, 0x3A, 101, 120]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("administratorsAddress"),
@@ -444,7 +557,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
 
     // 1.3.6.1.4.1.16572.2.2.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 12 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x81, 0x81, 0x3C, 2, 2]) {
+    if x690_len == 11 && x690_slice.starts_with(&[43, 6, 1, 4, 1, 0x81, 0x81, 0x3C, 2, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("providerCertificateHash"),
@@ -460,7 +573,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
 
     // 1.3.6.1.4.1.31103.1.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x81, 0xF2, 0x7F, 1]) {
+    if x690_len == 10 && x690_slice.starts_with(&[43, 6, 1, 4, 1, 0x81, 0xF2, 0x7F, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("fedfsUuid"),
@@ -494,7 +607,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
 
     // 1.3.6.1.4.1.453.7.2.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[1, 3, 6, 1, 4, 1, 0x83, 0x45, 7, 2]) {
+    if x690_len == 10 && x690_slice.starts_with(&[43, 6, 1, 4, 1, 0x83, 0x45, 7, 2]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("textTableKey"),
@@ -511,7 +624,7 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
 
     // 2.16.840.1.113730.3.1.x
     #[cfg(feature = "ldap_attrs")]
-    if x690_len == 11 && x690_slice.starts_with(&[2, 16, 0x86, 0x48, 1, 0x86, 0xF8, 0x42, 3, 1]) {
+    if x690_len == 10 && x690_slice.starts_with(&[96, 0x86, 0x48, 1, 0x86, 0xF8, 0x42, 3, 1]) {
         let last_byte = *attr_type.as_x690_slice().last().unwrap();
         return match last_byte {
             1 => Some("carLicense"),
@@ -521,23 +634,61 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
             34 => Some("ref"),
             39 => Some("preferredLanguage"),
             40 => Some("userSMIMECertificate"),
-
             _ => None,
         };
     }
 
-    // TODO: One offs:
-    // 1.2.840.113549.1.9.1 == "emailAddress" / "email"
     // 1.3.6.1.1.16.4 "entryUUID"
     // 1.3.6.1.1.20 "entryDN"
     // 1.3.6.1.1.23.2 "jid" (NOT UNIQUE)
-    // entryTtl	1.3.6.1.4.1.1466.101.119.3
-    // dynamicSubtrees	1.3.6.1.4.1.1466.101.119.4
-    // labeledURI	1.3.6.1.4.1.250.1.57
-    // supportedFeatures	1.3.6.1.4.1.4203.1.3.5
-    // userPKCS12	2.16.840.1.113730.3.1.216
-    // displayName	2.16.840.1.113730.3.1.241
+    #[cfg(feature = "ldap_attrs")]
+    if x690_slice.starts_with([43,6,1,1].as_slice()) {
+        if x690_len == 6 {
+            if x690_slice.ends_with([16,4].as_slice()) {
+                return Some("entryUUID");
+            }
+            if x690_slice.ends_with([23,2].as_slice()) {
+                return Some("jid"); // TODO: This is not unique. What do you do?
+            }
+            return
+        }
+        if x690_len == 5 && x690_slice.last().unwrap() == 20 {
+            return Some("entryDN");
+        }
+    }
 
+    // entryTtl	        1.3.6.1.4.1.1466.101.119.3
+    // dynamicSubtrees	1.3.6.1.4.1.1466.101.119.4
+    #[cfg(feature = "ldap_attrs")]
+    if x690_len == 11 && x690_slice.starts_with(&[43, 6, 1, 4, 1, 0x8B, 0x3A, 101, 119]) {
+        let last_byte = *attr_type.as_x690_slice().last().unwrap();
+        return match last_byte {
+            3 => Some("entryTtl"),
+            4 => Some("dynamicSubtrees"),
+            _ => None,
+        };
+    }
+
+    #[cfg(feature = "ldap_attrs")]
+    if attr_type == &oid!(1.2.840.113549.1.9.1) {
+        return Some("emailAddress");
+    }
+    #[cfg(feature = "ldap_attrs")]
+    if attr_type == oid!(1,3,6,1,4,1,250,1,57) {
+        return Some("labeledURI");
+    }
+    #[cfg(feature = "ldap_attrs")]
+    if attr_type == oid!(1,3,6,1,4,1,4203,1,3,5) {
+        return Some("supportedFeatures");
+    }
+    #[cfg(feature = "ldap_attrs")]
+    if attr_type == oid!(2,16,840,1,113730,3,1,216) {
+        return Some("userPKCS12");
+    }
+    #[cfg(feature = "ldap_attrs")]
+    if attr_type == oid!(2,16,840,1,113730,3,1,241) {
+        return Some("displayName");
+    }
     None
 }
 
@@ -561,7 +712,6 @@ pub fn common_attr_type_to_short_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&
             99 => Some("n3"),
             _ => return None,
         };
-        // TODO: More attributes
     }
 
     // Always enabled because it has some important attributes used in naming.
@@ -582,17 +732,5 @@ pub fn common_attr_type_to_short_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&
             _ => return None,
         };
     }
-
-    // TODO: One offs:
-    // 1.2.840.113549.1.9.1 == "emailAddress" / "email"
-    // 1.3.6.1.1.16.4 "entryUUID"
-    // 1.3.6.1.1.20 "entryDN"
-    // 1.3.6.1.1.23.2 "jid" (NOT UNIQUE)
-    // entryTtl	1.3.6.1.4.1.1466.101.119.3
-    // dynamicSubtrees	1.3.6.1.4.1.1466.101.119.4
-    // labeledURI	1.3.6.1.4.1.250.1.57
-    // supportedFeatures	1.3.6.1.4.1.4203.1.3.5
-    // userPKCS12	2.16.840.1.113730.3.1.216
-    // displayName	2.16.840.1.113730.3.1.241
     None
 }

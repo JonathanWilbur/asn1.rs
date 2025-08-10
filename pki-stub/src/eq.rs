@@ -3,7 +3,7 @@ use crate::PKI_Stub::{
     AlgorithmWithInvoke, AttCertIssuer, AttributeCertificate, AttributeTypeAndValue,
     AttributeValue, Certificate, EDIPartyName, FingerPrint, GeneralName, HASH, IssuerSerial,
     IssuerSerialNumber, Name, ObjectDigestInfo, PKCertIdentifier, SIGNED, TBSAttributeCertificate,
-    TBSCertAVL, TBSCertificate,
+    TBSCertAVL, TBSCertificate
 };
 use crate::utils::{gt_to_chrono, utctime_to_chrono};
 use crate::{_encode_EDIPartyName, GeneralNames, RDNSequence, RelativeDistinguishedName};
@@ -16,9 +16,7 @@ use std::str::FromStr;
 use std::str::{Chars, Split};
 use teletex::teletex_to_utf8;
 use wildboar_asn1::{
-    ExternalEncoding, OBJECT_IDENTIFIER, PresentationContextSwitchingTypeIdentification, Tag,
-    TagClass, TagNumber, UNIV_TAG_BMP_STRING, UNIV_TAG_PRINTABLE_STRING, UNIV_TAG_UNIVERSAL_STRING,
-    UNIV_TAG_UTF8_STRING, compare_numeric_string,
+    compare_numeric_string, ASN1Value, ExternalEncoding, InstanceOf, PresentationContextSwitchingTypeIdentification, Tag, TagClass, TagNumber, OBJECT_IDENTIFIER, UNIV_TAG_BMP_STRING, UNIV_TAG_PRINTABLE_STRING, UNIV_TAG_UNIVERSAL_STRING, UNIV_TAG_UTF8_STRING
 };
 use x520_stringprep::{
     X520CaseIgnoreStringPrepChars, x520_stringprep_case_ignore_bmp,
@@ -27,6 +25,22 @@ use x520_stringprep::{
 };
 use x690::x690_write_tlv;
 use x690::{X690Codec, X690Element, ber::BER, deconstruct, primitive};
+use crate::othername::{
+    IETF_OTHER_NAMES_PREFIX,
+    PersonalData,
+    UserGroup,
+    PermanentIdentifier,
+    HardwareModuleName,
+    XmppAddr,
+    SIM,
+    SRVName,
+    NAIRealm,
+    SmtpUTF8Mailbox,
+    AcpNodeName,
+    BundleEID,
+    UPN,
+};
+use std::net::IpAddr;
 
 /// Returns a subslice with leading and trailing whitespace removed, for a slice of u16 code units (BMPString).
 pub(crate) fn trim_u16(slice: &[u16]) -> &[u16] {
@@ -832,15 +846,125 @@ impl PartialEq for Name {
     }
 }
 
+fn xmpp_addr_eq<'a>(a: &'a str, b: &'a str) -> bool {
+    let (a_local_part, a_domain_part) = match a.split_once('@') {
+        Some((s1, s2)) => (s1, s2),
+        None => return false, // Malformed
+    };
+    let (b_local_part, b_domain_part) = match b.split_once('@') {
+        Some((s1, s2)) => (s1, s2),
+        None => return false, // Malformed
+    };
+    let a_domain_part = a_domain_part.split_once('/')
+        .map(|x| x.0)
+        .unwrap_or(a_domain_part);
+    let b_domain_part = b_domain_part.split_once('/')
+        .map(|x| x.0)
+        .unwrap_or(b_domain_part);
+    if a_local_part.trim() != b_local_part.trim()
+        && a_local_part.trim().to_lowercase() != b_local_part.to_lowercase() {
+        return false;
+    }
+    match (IpAddr::from_str(a_domain_part), IpAddr::from_str(b_domain_part)) {
+        (Ok(ipa), Ok(ipb)) => ipa == ipb,
+        (Err(_), Err(_)) => // Both are domain names
+            dns_compare(a_domain_part, b_domain_part),
+        _ => false,
+    }
+}
+
+fn other_name_eq(a: &InstanceOf, b: &InstanceOf) -> bool {
+    if a.type_id != b.type_id {
+        return false;
+    }
+    let x690_slice = a.type_id.as_x690_slice();
+    // Microsoft's UPN OTHER-NAME
+    if x690_slice == UPN.as_slice() {
+        match (a.value.as_ref(), b.value.as_ref()) {
+            // TODO: Consider using the unicode_normalization crate for zero-alloc
+            (ASN1Value::UTF8String(sa), ASN1Value::UTF8String(sb))
+                => return sa.trim() == sb.trim()
+                    || sa.trim().to_lowercase() == sb.trim().to_lowercase(),
+            _ => return false,
+        };
+    }
+    // IETF-registered OTHER-NAMEs
+    if x690_slice.len() == 8 && &x690_slice[0..7] == IETF_OTHER_NAMES_PREFIX.as_slice() {
+        return match *x690_slice.last().unwrap() {
+            // crate::othername::PermanentIdentifier
+            // | crate::othername::HardwareModuleName
+            // | crate::othername::SIM => (), // compare exactly
+            crate::othername::XmppAddr => {
+                let (sa, sb) = match (a.value.as_ref(), b.value.as_ref()) {
+                    // TODO: Consider using the unicode_normalization crate for zero-alloc
+                    (ASN1Value::UTF8String(sa), ASN1Value::UTF8String(sb)) => (sa, sb),
+                    _ => return false, // Malformed
+                };
+                xmpp_addr_eq(sa.as_str(), sb.as_str())
+            },
+            crate::othername::SRVName
+            | crate::othername::AcpNodeName
+            | crate::othername::BundleEID =>
+                match (a.value.as_ref(), b.value.as_ref()) {
+                    (ASN1Value::IA5String(sa), ASN1Value::IA5String(sb))
+                        => sa.trim().eq_ignore_ascii_case(sb.trim()),
+                    _ => false,
+                },
+            crate::othername::NAIRealm =>
+                match (a.value.as_ref(), b.value.as_ref()) {
+                    (ASN1Value::UTF8String(sa), ASN1Value::UTF8String(sb))
+                        => dns_compare(&sa, &sb),
+                    _ => false,
+                },
+            crate::othername::SmtpUTF8Mailbox => {
+                let (sa, sb) = match (a.value.as_ref(), b.value.as_ref()) {
+                    (ASN1Value::UTF8String(sa), ASN1Value::UTF8String(sb)) => (sa, sb),
+                    _ => return false, // Malformed
+                };
+                let (ea, eb) = match (EmailAddress::from_str(sa), EmailAddress::from_str(sb)) {
+                    (Ok(ea), Ok(eb)) => (ea, eb),
+                    _ => return false, // Malformed
+                };
+                ea == eb
+            },
+            _=> false,
+        };
+    }
+    // All other cases are unrecognized: just compare ASN.1 values ignorantly.
+    a.value == b.value
+}
+
 impl PartialEq for GeneralName {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (GeneralName::otherName(a), GeneralName::otherName(b)) => todo!(),
-            (GeneralName::rfc822Name(a), GeneralName::rfc822Name(b)) => {
-                match (EmailAddress::from_str(a), EmailAddress::from_str(b)) {
-                    (Ok(a), Ok(b)) => a == b,
-                    _ => false,
+            (GeneralName::otherName(a), GeneralName::otherName(b)) => other_name_eq(a, b),
+
+            (GeneralName::otherName(on), GeneralName::rfc822Name(rn))
+            | (GeneralName::rfc822Name(rn), GeneralName::otherName(on)) => {
+                let oid_enc = on.type_id.as_x690_slice();
+                if oid_enc.len() != 8
+                    || &oid_enc[0..7] != IETF_OTHER_NAMES_PREFIX.as_slice()
+                    || oid_enc[7] == crate::othername::SmtpUTF8Mailbox {
+                    return false;
                 }
+                let ons = match on.value.as_ref() {
+                    ASN1Value::UTF8String(s) => s,
+                    _ => return false, // Malformed
+                };
+                let (ea, eb) = match (EmailAddress::from_str(ons.as_str()), EmailAddress::from_str(rn.as_str())) {
+                    (Ok(ea), Ok(eb)) => (ea, eb),
+                    _ => return false, // Malformed
+                };
+                ea == eb
+            }
+
+            (GeneralName::rfc822Name(a), GeneralName::rfc822Name(b)) => {
+                let (sa, sb) = (a.as_str(), b.as_str());
+                let (ea, eb) = match (EmailAddress::from_str(sa), EmailAddress::from_str(sb)) {
+                    (Ok(ea), Ok(eb)) => (ea, eb),
+                    _ => return false, // Malformed
+                };
+                ea == eb
             }
             (GeneralName::dNSName(a), GeneralName::dNSName(b)) => dns_compare(a, b),
             // This is a naive implementation, since we don't actually fully

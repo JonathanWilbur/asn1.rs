@@ -1,8 +1,5 @@
 use crate::{
-    _decode_AlgorithmIdentifier, _decode_Attribute, _decode_GeneralName,
-    _decode_SubjectPublicKeyInfo, AlgorithmIdentifier, Attribute, AttributeCertificate, CertAVL,
-    Certificate, Extension, GeneralName, IssuerSerial, IssuerSerialNumber, PKI_Stub, SIGNED,
-    SubjectPublicKeyInfo, TBSAttributeCertificate, TBSCertAVL, TBSCertificate,
+    AlgorithmIdentifier, Attribute, AttributeCertificate, CertAVL, Certificate, Extension, GeneralName, IssuerSerial, IssuerSerialNumber, PKI_Stub, SubjectPublicKeyInfo, TBSAttributeCertificate, TBSCertAVL, TBSCertificate, Time, _decode_AlgorithmIdentifier, _decode_Attribute, _decode_GeneralName, _decode_SubjectPublicKeyInfo, SIGNED
 };
 use chrono::DateTime;
 use std::{
@@ -14,6 +11,7 @@ use wildboar_asn1::{
     OCTET_STRING, Tag, TagClass, UNIV_TAG_BOOLEAN, UNIV_TAG_INTEGER, UNIV_TAG_SEQUENCE, oid,
 };
 use x690::{RelateTLV, X690Codec, X690Element, X690Value, der::DER};
+use crate::utils::gt_to_chrono;
 
 impl<T> AsRef<T> for SIGNED<T> {
     fn as_ref(&self) -> &T {
@@ -657,8 +655,23 @@ impl TBSCertificate {
         names_from_issuer.any(|niss| self.iter_issuer_names().take(10).any(|nsub| niss == nsub))
     }
 
-    fn was_valid_as_of(&self) {
-        todo!() // TODO: Implement
+    fn was_valid_as_of(&self, asserted: Time) -> bool {
+        let asserted = match asserted.into_chrono() {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+        let notAfter = match self.validity.notAfter.into_chrono() {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+        if asserted > notAfter {
+            return false;
+        }
+        let notBefore = match self.validity.notBefore.into_chrono() {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+        asserted >= notBefore
     }
 }
 
@@ -666,6 +679,25 @@ impl TBSAttributeCertificate {
     // .claims_to_be_issued_by_cert(cert) and .claims_to_be_held_by_cert(cert) are
     // intentionally not implemented, because these require cryptography-related
     // dependencies, which this crate is avoiding depending on.
+
+    pub fn was_valid_as_of(&self, asserted: Time) -> bool {
+        let asserted = match asserted.into_chrono() {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+        let notAfter = match gt_to_chrono(&self.attrCertValidityPeriod.notAfterTime) {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+        if asserted > notAfter {
+            return false;
+        }
+        let notBefore = match gt_to_chrono(&self.attrCertValidityPeriod.notBeforeTime) {
+            Ok(t) => t,
+            Err(_) => return false,
+        };
+        asserted >= notBefore
+    }
 
     pub fn get_info_from_extensions<'a>(&'a self) -> ASN1Result<AttrCertExtInfo> {
         let mut aa: bool = false;

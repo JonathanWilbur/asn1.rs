@@ -3,6 +3,8 @@
 ## To Do
 
 - [x] `into_iter()` cleanup
+- [ ] `EDIPartyName.to_strings()`
+- [ ] Finish `Display` todos
 - [ ] Inlining
 - [ ] Tests
   - [ ] Public Key Certificate Decoding
