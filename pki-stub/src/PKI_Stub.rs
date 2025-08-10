@@ -216,7 +216,7 @@ pub fn _decode_AlgorithmWithInvoke(el: &X690Element) -> ASN1Result<AlgorithmWith
         _eal_components_for_AlgorithmWithInvoke,
         _rctl2_components_for_AlgorithmWithInvoke,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut algorithm_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut parameters_: OPTIONAL<X690Element> = None;
@@ -292,7 +292,7 @@ pub fn _validate_AlgorithmWithInvoke(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_AlgorithmWithInvoke,
         _rctl2_components_for_AlgorithmWithInvoke,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -388,7 +388,7 @@ pub fn _decode_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<AlgorithmIden
         _eal_components_for_AlgorithmIdentifier,
         _rctl2_components_for_AlgorithmIdentifier,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut algorithm_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut parameters_: OPTIONAL<X690Element> = None;
@@ -440,7 +440,7 @@ pub fn _validate_AlgorithmIdentifier(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_AlgorithmIdentifier,
         _rctl2_components_for_AlgorithmIdentifier,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -543,7 +543,7 @@ pub fn _decode_HASH(el: &X690Element) -> ASN1Result<HASH> {
         _eal_components_for_HASH,
         _rctl2_components_for_HASH,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut algorithmIdentifier_: OPTIONAL<AlgorithmIdentifier> = None;
     let mut hashValue_: OPTIONAL<BIT_STRING> = None;
@@ -589,7 +589,7 @@ pub fn _validate_HASH(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_HASH,
         _rctl2_components_for_HASH,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -740,7 +740,7 @@ pub fn _decode_SIGNED<ToBeSigned: 'static>(
         _eal_components_for_SIGNED,
         _rctl2_components_for_SIGNED,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut toBeSigned_: OPTIONAL<ToBeSigned> = None;
     let mut algorithmIdentifier_: OPTIONAL<AlgorithmIdentifier> = None;
@@ -810,7 +810,7 @@ pub fn _validate_SIGNED<ToBeSigned>(
         _eal_components_for_SIGNED,
         _rctl2_components_for_SIGNED,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -896,7 +896,7 @@ pub fn _decode_FingerPrint(el: &X690Element) -> ASN1Result<FingerPrint> {
         _eal_components_for_FingerPrint,
         _rctl2_components_for_FingerPrint,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut algorithmIdentifier_: OPTIONAL<AlgorithmIdentifier> = None;
     let mut fingerprint_: OPTIONAL<BIT_STRING> = None;
@@ -942,7 +942,7 @@ pub fn _validate_FingerPrint(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_FingerPrint,
         _rctl2_components_for_FingerPrint,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1172,7 +1172,7 @@ pub fn _decode_TBSCertificate(el: &X690Element) -> ASN1Result<TBSCertificate> {
         _eal_components_for_TBSCertificate,
         _rctl2_components_for_TBSCertificate,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut version_: OPTIONAL<Version> = None;
     let mut serialNumber_: OPTIONAL<CertificateSerialNumber> = None;
@@ -1296,7 +1296,7 @@ pub fn _validate_TBSCertificate(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_TBSCertificate,
         _rctl2_components_for_TBSCertificate,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1447,7 +1447,7 @@ pub fn _decode_Validity(el: &X690Element) -> ASN1Result<Validity> {
         _eal_components_for_Validity,
         _rctl2_components_for_Validity,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut notBefore_: OPTIONAL<Time> = None;
     let mut notAfter_: OPTIONAL<Time> = None;
@@ -1493,7 +1493,7 @@ pub fn _validate_Validity(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_Validity,
         _rctl2_components_for_Validity,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1580,7 +1580,7 @@ pub fn _decode_SubjectPublicKeyInfo(el: &X690Element) -> ASN1Result<SubjectPubli
         _eal_components_for_SubjectPublicKeyInfo,
         _rctl2_components_for_SubjectPublicKeyInfo,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut algorithm_: OPTIONAL<AlgorithmIdentifier> = None;
     let mut subjectPublicKey_: OPTIONAL<PublicKey> = None;
@@ -1630,7 +1630,7 @@ pub fn _validate_SubjectPublicKeyInfo(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_SubjectPublicKeyInfo,
         _rctl2_components_for_SubjectPublicKeyInfo,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1902,7 +1902,7 @@ pub fn _decode_Extension(el: &X690Element) -> ASN1Result<Extension> {
         _eal_components_for_Extension,
         _rctl2_components_for_Extension,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut extnId_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut critical_: OPTIONAL<BOOLEAN> = None;
@@ -1956,7 +1956,7 @@ pub fn _validate_Extension(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_Extension,
         _rctl2_components_for_Extension,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -2195,7 +2195,7 @@ pub fn _decode_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<AttributeTy
         _eal_components_for_AttributeTypeAndValue,
         _rctl2_components_for_AttributeTypeAndValue,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut type__: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut value_: OPTIONAL<X690Element> = None;
@@ -2245,7 +2245,7 @@ pub fn _validate_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_AttributeTypeAndValue,
         _rctl2_components_for_AttributeTypeAndValue,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -2487,7 +2487,7 @@ pub fn _decode_Attribute(el: &X690Element) -> ASN1Result<Attribute> {
         _eal_components_for_Attribute,
         _rctl2_components_for_Attribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut type__: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut values_: OPTIONAL<Vec<X690Element>> = None;
@@ -2595,7 +2595,7 @@ pub fn _validate_Attribute(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_Attribute,
         _rctl2_components_for_Attribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -2805,7 +2805,7 @@ pub fn _decode_TBSAttributeCertificate(el: &X690Element) -> ASN1Result<TBSAttrib
         _eal_components_for_TBSAttributeCertificate,
         _rctl2_components_for_TBSAttributeCertificate,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut version_: OPTIONAL<AttCertVersion> = None;
     let mut holder_: OPTIONAL<Holder> = None;
@@ -2922,7 +2922,7 @@ pub fn _validate_TBSAttributeCertificate(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_TBSAttributeCertificate,
         _rctl2_components_for_TBSAttributeCertificate,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3064,7 +3064,7 @@ pub fn _decode_Holder(el: &X690Element) -> ASN1Result<Holder> {
         _eal_components_for_Holder,
         _rctl2_components_for_Holder,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut baseCertificateID_: OPTIONAL<IssuerSerial> = None;
     let mut entityName_: OPTIONAL<GeneralNames> = None;
@@ -3143,7 +3143,7 @@ pub fn _validate_Holder(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_Holder,
         _rctl2_components_for_Holder,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3261,7 +3261,7 @@ pub fn _decode_IssuerSerial(el: &X690Element) -> ASN1Result<IssuerSerial> {
         _eal_components_for_IssuerSerial,
         _rctl2_components_for_IssuerSerial,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut issuer_: OPTIONAL<GeneralNames> = None;
     let mut serial_: OPTIONAL<CertificateSerialNumber> = None;
@@ -3313,7 +3313,7 @@ pub fn _validate_IssuerSerial(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_IssuerSerial,
         _rctl2_components_for_IssuerSerial,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3436,7 +3436,7 @@ pub fn _decode_ObjectDigestInfo(el: &X690Element) -> ASN1Result<ObjectDigestInfo
         _eal_components_for_ObjectDigestInfo,
         _rctl2_components_for_ObjectDigestInfo,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut digestedObjectType_: OPTIONAL<ObjectDigestInfo_digestedObjectType> = None;
     let mut otherObjectTypeID_: OPTIONAL<OBJECT_IDENTIFIER> = None;
@@ -3500,7 +3500,7 @@ pub fn _validate_ObjectDigestInfo(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_ObjectDigestInfo,
         _rctl2_components_for_ObjectDigestInfo,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -3622,7 +3622,7 @@ pub fn _decode_AttCertIssuer(el: &X690Element) -> ASN1Result<AttCertIssuer> {
                 _eal_components_for_AttCertIssuer,
                 _rctl2_components_for_AttCertIssuer,
             )
-            .into_iter();
+            ;
             let mut _i: usize = 0;
             let mut issuerName_: OPTIONAL<GeneralNames> = None;
             let mut baseCertificateID_: OPTIONAL<IssuerSerial> = None;
@@ -3715,7 +3715,7 @@ pub fn _validate_AttCertIssuer(el: &X690Element) -> ASN1Result<()> {
                 _eal_components_for_AttCertIssuer,
                 _rctl2_components_for_AttCertIssuer,
             )
-            .into_iter();
+            ;
             let mut _i: usize = 0;
             for _fallible_component_name in _seq_iter {
                 let _component_name = _fallible_component_name?;
@@ -3821,7 +3821,7 @@ pub fn _decode_AttCertValidityPeriod(el: &X690Element) -> ASN1Result<AttCertVali
         _eal_components_for_AttCertValidityPeriod,
         _rctl2_components_for_AttCertValidityPeriod,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut notBeforeTime_: OPTIONAL<GeneralizedTime> = None;
     let mut notAfterTime_: OPTIONAL<GeneralizedTime> = None;
@@ -3871,7 +3871,7 @@ pub fn _validate_AttCertValidityPeriod(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_AttCertValidityPeriod,
         _rctl2_components_for_AttCertValidityPeriod,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -4267,7 +4267,7 @@ pub fn _decode_TBSCertAVL(el: &X690Element) -> ASN1Result<TBSCertAVL> {
         _eal_components_for_TBSCertAVL,
         _rctl2_components_for_TBSCertAVL,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut version_: OPTIONAL<Version> = None;
     let mut serialNumber_: OPTIONAL<AvlSerialNumber> = None;
@@ -4377,7 +4377,7 @@ pub fn _validate_TBSCertAVL(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_TBSCertAVL,
         _rctl2_components_for_TBSCertAVL,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -4576,7 +4576,7 @@ pub fn _decode_IssuerSerialNumber(el: &X690Element) -> ASN1Result<IssuerSerialNu
         _eal_components_for_IssuerSerialNumber,
         _rctl2_components_for_IssuerSerialNumber,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut issuer_: OPTIONAL<Name> = None;
     let mut serialNumber_: OPTIONAL<CertificateSerialNumber> = None;
@@ -4626,7 +4626,7 @@ pub fn _validate_IssuerSerialNumber(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_IssuerSerialNumber,
         _rctl2_components_for_IssuerSerialNumber,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -4906,7 +4906,7 @@ pub fn _decode_ScopeRestriction(el: &X690Element) -> ASN1Result<ScopeRestriction
         _eal_components_for_ScopeRestriction,
         _rctl2_components_for_ScopeRestriction,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut id_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut restriction_: OPTIONAL<X690Element> = None;
@@ -4956,7 +4956,7 @@ pub fn _validate_ScopeRestriction(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_ScopeRestriction,
         _rctl2_components_for_ScopeRestriction,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5045,7 +5045,7 @@ pub fn _decode_TBSCertAVL_entries_Item(el: &X690Element) -> ASN1Result<TBSCertAV
         _eal_components_for_TBSCertAVL_entries_Item,
         _rctl2_components_for_TBSCertAVL_entries_Item,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut idType_: OPTIONAL<TBSCertAVL_entries_Item_idType> = None;
     let mut scope_: OPTIONAL<ScopeRestrictions> = None;
@@ -5116,7 +5116,7 @@ pub fn _validate_TBSCertAVL_entries_Item(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_TBSCertAVL_entries_Item,
         _rctl2_components_for_TBSCertAVL_entries_Item,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5247,7 +5247,7 @@ pub fn _decode_Context(el: &X690Element) -> ASN1Result<Context> {
         _eal_components_for_Context,
         _rctl2_components_for_Context,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut contextType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
     let mut contextValues_: OPTIONAL<Vec<X690Element>> = None;
@@ -5327,7 +5327,7 @@ pub fn _validate_Context(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_Context,
         _rctl2_components_for_Context,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5434,7 +5434,7 @@ pub fn _decode_Attribute_valuesWithContext_Item(
         _eal_components_for_Attribute_valuesWithContext_Item,
         _rctl2_components_for_Attribute_valuesWithContext_Item,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut value_: OPTIONAL<X690Element> = None;
     let mut contextList_: OPTIONAL<Vec<Context>> = None;
@@ -5513,7 +5513,7 @@ pub fn _validate_Attribute_valuesWithContext_Item(el: &X690Element) -> ASN1Resul
         _eal_components_for_Attribute_valuesWithContext_Item,
         _rctl2_components_for_Attribute_valuesWithContext_Item,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5822,7 +5822,7 @@ pub fn _decode_EDIPartyName(el: &X690Element) -> ASN1Result<EDIPartyName> {
         _eal_components_for_EDIPartyName,
         _rctl2_components_for_EDIPartyName,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut nameAssigner_: OPTIONAL<X690Element> = None;
     let mut partyName_: OPTIONAL<X690Element> = None;
@@ -5884,7 +5884,7 @@ pub fn _validate_EDIPartyName(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_EDIPartyName,
         _rctl2_components_for_EDIPartyName,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
