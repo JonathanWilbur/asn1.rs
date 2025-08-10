@@ -22,6 +22,23 @@ use std::cmp::min;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
 
+/// Special time `99991231235959Z` defined by IETF RFC 5280 to mean "unknown"
+///
+/// IETF RFC 5280 states that:
+///
+/// > To indicate that a certificate has no well-defined expiration date,
+/// > the notAfter SHOULD be assigned the GeneralizedTime value of
+/// > 99991231235959Z.
+///
+pub const IETF_RFC_5280_UNKNOWN_EXPIRATION_TIME: GeneralizedTime = GeneralizedTime{
+    date: DATE::new(9999, 12, 31),
+    hour: 23,
+    min_and_sec: Some((59, Some(59))),
+    utc_offset: Some(UTCOffset::utc()),
+    flags: 0,
+    fraction: 0,
+};
+
 /// ASN.1 `GeneralizedTime`
 ///
 /// ## Conversion to and from `DATE`, `TIME`, and `DATE-TIME`

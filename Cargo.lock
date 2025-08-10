@@ -2982,7 +2982,7 @@ dependencies = [
 
 [[package]]
 name = "wildboar-asn1"
-version = "3.1.0"
+version = "3.2.0"
 dependencies = [
  "arbitrary",
  "atoi_simd",
@@ -3310,7 +3310,7 @@ dependencies = [
 
 [[package]]
 name = "x690"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "bytes",
  "criterion 0.5.1",

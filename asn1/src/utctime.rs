@@ -21,7 +21,7 @@
 use crate::error::{ASN1Error, ASN1ErrorCode};
 use crate::{UTCOffset, ISO8601Timestampable};
 use crate::gentime::GeneralizedTime;
-use crate::utils::{get_days_in_month, unlikely};
+use crate::utils::{get_days_in_month, unlikely, likely};
 use crate::utils::macros::parse_uint;
 use std::fmt::{Display, Write};
 use std::str::FromStr;
@@ -103,6 +103,34 @@ impl UTCTime {
             && self.second == 0
     }
 
+    /// Get full year, according to procedures in ITU-T Rec. X.509
+    ///
+    /// ITU-T Recommendation X.509 (2019), Section 7.2.1, states that:
+    ///
+    /// > Before a value of Time is used in any comparison operation, e.g., as
+    /// > part of a matching rule in a search, and if the syntax of Time has been
+    /// > chosen as the UTCTime type, the value of the two digit year component
+    /// > shall be rationalized into a four digit year value as follows:
+    /// >
+    /// > - If the 2-digit value is 00 through to 49 inclusive, the value shall have 2000 added to it.
+    /// > - If the 2-digit value is 50 through to 99 inclusive, the value shall have 1900 added to it.
+    ///
+    /// Since a bug in creating a UTCTime could result in the `UTCTime`
+    /// structure storing values greater than 99 for the year, this
+    /// implementation checks that the year is between 0 and 49, and for all
+    /// other cases, adds 1900. This means that a `UTCTime` that is malformed in
+    /// this fashion will produce an older year that is more likely to have
+    /// occurred in the past, meaning that PKI functions will err on the side of
+    /// failing validation.
+    #[inline]
+    pub const fn get_full_year_for_pki(&self) -> u16 {
+        if likely(self.year <= 49) {
+            self.year as u16 + 2000
+        } else {
+            (self.year % 100) as u16 + 1900
+        }
+    }
+
 }
 
 impl ISO8601Timestampable for UTCTime {
@@ -112,7 +140,7 @@ impl ISO8601Timestampable for UTCTime {
         if !self.utc_offset.is_zero() {
             return format!(
                 "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{:+03}{:02}",
-                if self.year >= 50 { self.year as u16 + 1900 } else { self.year as u16 + 2000 },
+                self.get_full_year_for_pki(),
                 self.month,
                 self.day,
                 self.hour,
@@ -124,7 +152,7 @@ impl ISO8601Timestampable for UTCTime {
         }
         return format!(
             "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
-            if self.year >= 50 { self.year as u16 + 1900 } else { self.year as u16 + 2000 },
+            self.get_full_year_for_pki(),
             self.month,
             self.day,
             self.hour,
