@@ -263,7 +263,11 @@ pub fn _encode_AlgorithmWithInvoke(value_: &AlgorithmWithInvoke) -> ASN1Result<X
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -574,7 +578,11 @@ pub fn _encode_HASH(value_: &HASH) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -796,7 +804,11 @@ pub fn _encode_SIGNED<ToBeSigned>(
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -930,7 +942,11 @@ pub fn _encode_FingerPrint(value_: &FingerPrint) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -1279,7 +1295,11 @@ pub fn _encode_TBSCertificate(value_: &TBSCertificate) -> ASN1Result<X690Element
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -1484,7 +1504,11 @@ pub fn _encode_Validity(value_: &Validity) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -1618,7 +1642,11 @@ pub fn _encode_SubjectPublicKeyInfo(value_: &SubjectPublicKeyInfo) -> ASN1Result
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -1956,7 +1984,11 @@ pub fn _encode_Extension(value_: &Extension) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -2246,7 +2278,11 @@ pub fn _encode_AttributeTypeAndValue(value_: &AttributeTypeAndValue) -> ASN1Resu
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -2606,7 +2642,11 @@ pub fn _encode_Attribute(value_: &Attribute) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -2931,7 +2971,11 @@ pub fn _encode_TBSAttributeCertificate(
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -3325,7 +3369,11 @@ pub fn _encode_IssuerSerial(value_: &IssuerSerial) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -3509,7 +3557,11 @@ pub fn _encode_ObjectDigestInfo(value_: &ObjectDigestInfo) -> ASN1Result<X690Ele
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -3718,7 +3770,11 @@ pub fn _encode_AttCertIssuer(value_: &AttCertIssuer) -> ASN1Result<X690Element> 
                 Ok(X690Element::new(
                     Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
                     X690Value::Constructed(Arc::new(
-                        [components_, value_._unrecognized.clone()].concat(),
+                        if value_._unrecognized.len() == 0 {
+                            components_
+                        } else {
+                            [components_, value_._unrecognized.clone()].concat()
+                        }
                     )),
                 ))
             }(&v_1)?),
@@ -3882,7 +3938,11 @@ pub fn _encode_AttCertValidityPeriod(value_: &AttCertValidityPeriod) -> ASN1Resu
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -4350,7 +4410,11 @@ pub fn _encode_TBSCertAVL(value_: &TBSCertAVL) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -4599,7 +4663,11 @@ pub fn _encode_IssuerSerialNumber(value_: &IssuerSerialNumber) -> ASN1Result<X69
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -4936,7 +5004,11 @@ pub fn _encode_ScopeRestriction(value_: &ScopeRestriction) -> ASN1Result<X690Ele
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -5091,7 +5163,11 @@ pub fn _encode_TBSCertAVL_entries_Item(
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -5297,7 +5373,11 @@ pub fn _encode_Context(value_: &Context) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -5479,7 +5559,11 @@ pub fn _encode_Attribute_valuesWithContext_Item(
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }
@@ -5847,7 +5931,11 @@ pub fn _encode_EDIPartyName(value_: &EDIPartyName) -> ASN1Result<X690Element> {
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
+            if value_._unrecognized.len() == 0 {
+                components_
+            } else {
+                [components_, value_._unrecognized.clone()].concat()
+            }
         )),
     ))
 }

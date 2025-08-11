@@ -5,7 +5,7 @@
 - [x] `into_iter()` cleanup
 - [ ] `EDIPartyName.to_strings()`
 - [ ] `constructed()`
-- [ ] Avoid `.concat()`
+- [x] Avoid `.concat()`
 - [ ] Finish `Display` todos
 - [ ] Inlining
 - [ ] Tests

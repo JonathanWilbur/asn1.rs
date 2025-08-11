@@ -236,11 +236,9 @@ which control how these elements are encoded.
 
 ## TODO
 
-- [ ] `wildboar_asn1`
-  - [x] `UTCTime.get_full_year_for_pki()`
-    - If the 2-digit value is 50 through to 99 inclusive, the value shall have 1900 added to it.
-    - Currently need this for `pki-stub`
-  - [x] `const IETF_RFC_5280_UNKNOWN_EXPIRATION_TIME: GeneralizedTime = 99991231235959Z`
+- [ ] ASN.1 Compiler
+  - [ ] Avoid `.concat()`
+  - [ ] Get rid of so many closures
 - [ ] Review `size_hint()`: I am not sure my implementations reflect iterations _remaining_
 - [ ] `x690`: I think the recursive calls to `.len()` in `x690_write_len()` could be a problem.
   - It seems like the solution is either:
