@@ -318,6 +318,7 @@ const BundleEID: [u32; 9] = [1, 3, 6, 1, 5, 5, 7, 8, 11];
 ///
 const UPN: [u32; 10] = [1, 3, 6, 1, 4, 1, 311, 20, 2, 3];
 
+// FIXME: Use more efficient comparison
 pub fn display_other_name(n: &INSTANCE_OF, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let n_slice: Vec<u32> = n
         .type_id

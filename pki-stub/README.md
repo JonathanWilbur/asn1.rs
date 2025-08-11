@@ -2,11 +2,8 @@
 
 ## To Do
 
-- [x] `into_iter()` cleanup
-- [x] `EDIPartyName.to_strings()`
-- [x] Avoid `.concat()`
 - [ ] Finish `Display` todos
-- [ ] Inlining
+- [x] Inlining
 - [ ] Tests
   - [ ] Public Key Certificate Decoding
   - [ ] Attribute Certificate Decoding

@@ -22,6 +22,7 @@ impl<T> AsRef<T> for SIGNED<T> {
 pub trait WithExtensions {
     fn get_extensions<'a>(&'a self) -> &'a [Extension];
 
+    #[inline]
     fn get_extension_by_oid<'a>(&'a self, oid: &OBJECT_IDENTIFIER) -> Option<&'a Extension> {
         self.get_extensions().iter().find(|ext| ext.extnId == *oid)
     }
@@ -148,6 +149,7 @@ pub struct PKCGenNameIter<'a> {
 }
 
 impl<'a> PKCGenNameIter<'a> {
+    #[inline]
     pub fn for_issuer_names(cert: &'a TBSCertificate, alt_names_ext: Option<X690Element>) -> Self {
         PKCGenNameIter {
             cert,
@@ -157,6 +159,7 @@ impl<'a> PKCGenNameIter<'a> {
         }
     }
 
+    #[inline]
     pub fn for_subject_names(cert: &'a TBSCertificate, alt_names_ext: Option<X690Element>) -> Self {
         PKCGenNameIter {
             cert,
@@ -219,6 +222,7 @@ pub struct OidsExtIter {
 }
 
 impl OidsExtIter {
+    #[inline]
     pub fn new(ext_el: X690Element) -> Self {
         OidsExtIter { i: 0, ext_el }
     }
@@ -265,6 +269,7 @@ pub struct PKCAttrsIter {
 }
 
 impl PKCAttrsIter {
+    #[inline]
     pub fn new(ext_el: X690Element) -> Self {
         PKCAttrsIter { i: 0, ext_el }
     }
@@ -312,6 +317,7 @@ pub struct AvlGenNameIter<'a> {
 }
 
 impl<'a> AvlGenNameIter<'a> {
+    #[inline]
     pub fn new(cert: &'a TBSCertAVL, alt_names_ext: Option<X690Element>) -> Self {
         AvlGenNameIter {
             cert,

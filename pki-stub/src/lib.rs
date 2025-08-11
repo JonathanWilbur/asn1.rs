@@ -57,14 +57,17 @@ pub trait DisplayX500AttributeType {
             .or(self.attr_type_to_descriptor(attr_type)))
     }
 
+    #[inline]
     fn attr_type_to_descriptor(self: &Self, _: &OBJECT_IDENTIFIER) -> Option<&str> {
         None
     }
 
+    #[inline]
     fn attr_type_to_long_name(self: &Self, attr_type: &OBJECT_IDENTIFIER) -> Option<&str> {
         common_attr_type_to_long_name(attr_type)
     }
 
+    #[inline]
     fn attr_type_to_short_name(self: &Self, attr_type: &OBJECT_IDENTIFIER) -> Option<&str> {
         common_attr_type_to_short_name(attr_type)
     }
@@ -439,6 +442,7 @@ pub fn parse_value<K: ParseX500AttributeType>(
 }
 
 impl ParseX500Value<X690Element> for DefaultX500ValueParser {
+    #[inline]
     fn parse_value(
         &self,
         attr_type: &OBJECT_IDENTIFIER,
@@ -449,6 +453,7 @@ impl ParseX500Value<X690Element> for DefaultX500ValueParser {
 }
 
 impl ParseX500AttributeType for DefaultX500ValueParser {
+    #[inline]
     fn attr_type_name_to_oid(&self, s: &str) -> Option<OBJECT_IDENTIFIER> {
         // FIXME: Make a better default implementation
         None
@@ -499,6 +504,7 @@ where
     T: ParseX500DistinguishedName,
 {
     fn parse_x500_name(&self, s: &str) -> Result<Name, std::fmt::Error> {
+        // TODO: More efficient compare
         if s.to_lowercase().starts_with("rdnsequence") {
             Ok(Name::rdnSequence(self.parse_dn(&s[11..])?))
         } else {

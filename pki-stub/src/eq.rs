@@ -81,6 +81,7 @@ pub(crate) struct DNSLabelIter<'a> {
 }
 
 impl<'a> DNSLabelIter<'a> {
+    #[inline]
     pub fn new(s: &'a str) -> Self {
         DNSLabelIter {
             inner: s.split('.'),
@@ -171,18 +172,21 @@ fn rdn_seq_compare(a: &RDNSequence, b: &RDNSequence) -> bool {
 }
 
 impl PartialEq for AlgorithmIdentifier {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.algorithm == other.algorithm && self.parameters == other.parameters
     }
 }
 
 impl PartialEq for HASH {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.algorithmIdentifier == other.algorithmIdentifier && self.hashValue == other.hashValue
     }
 }
 
 impl PartialEq for AlgorithmWithInvoke {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.algorithm == other.algorithm
             && self.parameters == other.parameters
@@ -191,6 +195,7 @@ impl PartialEq for AlgorithmWithInvoke {
 }
 
 impl PartialEq for FingerPrint {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.algorithmIdentifier == other.algorithmIdentifier
             && self.fingerprint == other.fingerprint

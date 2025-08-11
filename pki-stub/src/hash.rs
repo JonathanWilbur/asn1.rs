@@ -669,7 +669,6 @@ fn hash_rdn_sequence<H: std::hash::Hasher>(rdns: &[RelativeDistinguishedName], s
 }
 
 impl Hash for Name {
-    #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
             Name::rdnSequence(x) => {
