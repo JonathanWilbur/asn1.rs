@@ -3,8 +3,7 @@
 ## To Do
 
 - [x] `into_iter()` cleanup
-- [ ] `EDIPartyName.to_strings()`
-- [ ] `constructed()`
+- [x] `EDIPartyName.to_strings()`
 - [x] Avoid `.concat()`
 - [ ] Finish `Display` todos
 - [ ] Inlining

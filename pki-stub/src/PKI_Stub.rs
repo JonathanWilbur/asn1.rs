@@ -4056,7 +4056,6 @@ impl TryFrom<&X690Element> for GeneralName {
     }
 }
 
-// TODO: Streamline this decoding / encoding. These closures are unnecessary.
 pub fn _decode_GeneralName(el: &X690Element) -> ASN1Result<GeneralName> {
     match (el.tag.tag_class, el.tag.tag_number) {
         (TagClass::CONTEXT, 0) => Ok(GeneralName::otherName(BER.decode_instance_of(&el.inner()?)?)),

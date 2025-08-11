@@ -22,7 +22,7 @@ use teletex::teletex_to_utf8;
 use wildboar_asn1::{
     ASN1Value, BMPString, ExternalEncoding, GeneralizedTime, INSTANCE_OF, TagClass, TagNumber,
     UNIV_TAG_BMP_STRING, UNIV_TAG_PRINTABLE_STRING, UNIV_TAG_T61_STRING, UNIV_TAG_UNIVERSAL_STRING,
-    UNIV_TAG_UTF8_STRING, UniversalString, read_i64,
+    UNIV_TAG_UTF8_STRING, UniversalString, read_i64, oid,
 };
 use x520_stringprep::{
     x520_stringprep_case_ignore_bmp, x520_stringprep_case_ignore_univ_str,
@@ -30,6 +30,12 @@ use x520_stringprep::{
 };
 use x690::ber::BER;
 use x690::{X690Codec, X690Element, deconstruct, primitive, x690_write_tlv};
+use std::net::IpAddr;
+use std::sync::Arc;
+use crate::othername::{
+    UPN,
+    IETF_OTHER_NAMES_PREFIX,
+};
 
 const HASH_PREFIX_UNKNOWN: TagNumber = 0;
 const HASH_PREFIX_STR: TagNumber = 7;
@@ -239,10 +245,70 @@ fn hash_asn1_value<H: std::hash::Hasher>(value: &ASN1Value, state: &mut H, depth
     }
 }
 
-fn hash_instance_of<H: std::hash::Hasher>(value: &INSTANCE_OF, state: &mut H, depth: usize) {
+fn hash_other_name<H: std::hash::Hasher>(value: &INSTANCE_OF, state: &mut H, depth: usize) {
     value.type_id.hash(state);
     state.write_u8(0xFF);
-    // TODO: Specific other-name variants
+    let x690_slice = value.type_id.as_x690_slice();
+    // Microsoft's UPN OTHER-NAME
+    if x690_slice == UPN.as_slice() {
+        match value.value.as_ref() {
+            // TODO: Consider using the unicode_normalization crate for zero-alloc
+            ASN1Value::UTF8String(sa) => return sa.trim().to_lowercase().hash(state),
+            _ => return hash_asn1_value(&value.value, state, depth + 1),
+        };
+    }
+    // IETF-registered OTHER-NAMEs
+    if x690_slice.len() == 8 && &x690_slice[0..7] == IETF_OTHER_NAMES_PREFIX.as_slice() {
+        return match *x690_slice.last().unwrap() {
+            // crate::othername::PermanentIdentifier
+            // | crate::othername::HardwareModuleName
+            // | crate::othername::SIM => (), // compare exactly
+            crate::othername::XmppAddr => {
+                let a = match value.value.as_ref() {
+                    // TODO: Consider using the unicode_normalization crate for zero-alloc
+                    ASN1Value::UTF8String(sa) => sa,
+                    _ => return hash_asn1_value(&value.value, state, depth + 1), // Malformed
+                };
+                let (a_local_part, a_domain_part) = match a.split_once('@') {
+                    Some((s1, s2)) => (s1, s2),
+                    None => return hash_asn1_value(&value.value, state, depth + 1), // Malformed
+                };
+                let a_domain_part = a_domain_part.split_once('/')
+                    .map(|x| x.0)
+                    .unwrap_or(a_domain_part);
+                a_local_part.trim().to_lowercase().hash(state);
+                state.write_u8(b'@');
+                match IpAddr::from_str(a_domain_part) {
+                    Ok(ipa) => ipa.hash(state),
+                    Err(_) => DNSLabelIter::new(a_domain_part).for_each(|label| label.hash(state)),
+                }
+            },
+            crate::othername::SRVName
+            | crate::othername::AcpNodeName
+            | crate::othername::BundleEID =>
+                match value.value.as_ref() {
+                    ASN1Value::IA5String(sa) => sa.trim().to_lowercase().hash(state),
+                    _ => hash_asn1_value(&value.value, state, depth + 1),
+                },
+            crate::othername::NAIRealm =>
+                match value.value.as_ref() {
+                    ASN1Value::UTF8String(sa) => DNSLabelIter::new(sa.as_str()).for_each(|label| label.hash(state)),
+                    _ => hash_asn1_value(&value.value, state, depth + 1),
+                },
+            crate::othername::SmtpUTF8Mailbox => {
+                let sa = match value.value.as_ref() {
+                    ASN1Value::UTF8String(sa) => sa,
+                    _ => return hash_asn1_value(&value.value, state, depth + 1), // Malformed
+                };
+                let ea = match EmailAddress::from_str(sa) {
+                    Ok(ea) => ea,
+                    _ => return hash_asn1_value(&value.value, state, depth + 1), // Malformed
+                };
+                ea.hash(state)
+            },
+            _=> hash_asn1_value(&value.value, state, depth + 1),
+        };
+    }
     hash_asn1_value(&value.value, state, depth + 1)
 }
 
@@ -628,15 +694,14 @@ impl Hash for GeneralName {
         match self {
             GeneralName::otherName(x) => {
                 state.write_u8(0);
-                hash_instance_of(x, state, 0)
+                hash_other_name(x, state, 0)
             }
             GeneralName::rfc822Name(v) => {
-                state.write_u8(1);
-                if let Ok(email) = EmailAddress::from_str(v.trim()) {
-                    email.hash(state)
-                } else {
-                    v.trim().to_lowercase().hash(state)
-                }
+                let on = INSTANCE_OF {
+                    type_id: oid!(1,3,6,1,5,5,7,8,9), // SmtpUTF8Mailbox
+                    value: Arc::new(ASN1Value::UTF8String(v.to_owned())),
+                };
+                hash_other_name(&on, state, 0)
             }
             GeneralName::dNSName(v) => {
                 state.write_u8(2);
