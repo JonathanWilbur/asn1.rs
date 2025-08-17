@@ -442,16 +442,7 @@ impl Display for GeneralName {
                 f.write_str("uniformResourceIdentifier:")?;
                 f.write_str(n)
             }
-            GeneralName::iPAddress(n) => {
-                f.write_str("iPAddress:")?;
-                if n.len() == 4 {
-                    write!(f, "{}.{}.{}.{}", n[0], n[1], n[2], n[3])
-                } else if n.len() == 16 {
-                    display_ipv6(n, f)
-                } else {
-                    write!(f, "{}", hex::encode(n.as_slice()).as_str())
-                }
-            }
+            GeneralName::iPAddress(n) => write!(f, "iPAddress:{}", n),
             GeneralName::registeredID(n) => {
                 f.write_str("registeredID:")?;
                 n.fmt(f)

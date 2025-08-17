@@ -19,6 +19,7 @@ use crate::PKI_Stub::{DistinguishedName, Name, GeneralName, RelativeDistinguishe
 use ldapdn::parse::dn_from_str;
 use ldapdn::escape::unescape_ldap_value_string_cow;
 use bytes::Bytes;
+use std::net::IpAddr;
 
 /// This is limited to attributes from schemas that are explicitly allowed in
 /// IETF RFC 3039 for naming, and a few others for Qualified Certificates.
@@ -607,7 +608,8 @@ where
         }
         else if key.starts_with("ipaddress:") {
             let s = s.split_at("ipaddress:".len()).1;
-            todo!() // TODO: After you make iPAddress an `std::net::IpAddr`.
+            let ip = IpAddr::from_str(s).map_err(|_| std::fmt::Error)?;
+            return Ok(GeneralName::iPAddress(ip));
         }
         else if key.starts_with("registeredid:") {
             let s = s.split_at("registeredid:".len()).1;
@@ -622,6 +624,9 @@ where
 
 #[cfg(test)]
 mod tests {
+
+    use std::net::IpAddr;
+    use std::str::FromStr;
 
     use wildboar_asn1::{oid, TagClass, OBJECT_IDENTIFIER, UNIV_TAG_BIT_STRING, UNIV_TAG_IA5_STRING, UNIV_TAG_INTEGER, UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE, UNIV_TAG_UTF8_STRING};
     use ldapdn::parse::dn_from_str;
@@ -906,19 +911,18 @@ mod tests {
         };
     }
 
-    // TODO:
-    // #[test]
-    // fn parse_gen_name_8() {
-    //     let parser = DefaultX500ValueParser{};
-    //     let input = "iPAddress:1.2.3.4";
-    //     let gn = parser.parse_general_name(input).unwrap();
-    //     match gn {
-    //         GeneralName::iPAddress(ip) => {
-    //             assert_eq!(ip, todo!());
-    //         },
-    //         _ => panic!(),
-    //     };
-    // }
+    #[test]
+    fn parse_gen_name_8() {
+        let parser = DefaultX500ValueParser{};
+        let input = "iPAddress:1.2.3.4";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::iPAddress(ip) => {
+                assert_eq!(ip, IpAddr::from_str("1.2.3.4").unwrap());
+            },
+            _ => panic!(),
+        };
+    }
 
     #[test]
     fn parse_gen_name_9() {

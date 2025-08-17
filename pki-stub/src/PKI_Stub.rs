@@ -26,7 +26,7 @@ use std::iter::{ExactSizeIterator, FusedIterator, Iterator};
 use std::sync::Arc;
 use wildboar_asn1::*;
 use x690::*;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 #[inline]
 const fn base_256_len(value: usize) -> usize {
@@ -4044,7 +4044,7 @@ pub enum GeneralName {
     directoryName(Name),
     ediPartyName(EDIPartyName),
     uniformResourceIdentifier(IA5String),
-    iPAddress(OCTET_STRING),
+    iPAddress(IpAddr),
     registeredID(OBJECT_IDENTIFIER),
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
@@ -4066,7 +4066,32 @@ pub fn _decode_GeneralName(el: &X690Element) -> ASN1Result<GeneralName> {
         (TagClass::CONTEXT, 4) => Ok(GeneralName::directoryName(_decode_Name(&el.inner()?)?)),
         (TagClass::CONTEXT, 5) => Ok(GeneralName::ediPartyName(_decode_EDIPartyName(&el.inner()?)?)),
         (TagClass::CONTEXT, 6) => Ok(GeneralName::uniformResourceIdentifier(BER.decode_ia5_string(&el.inner()?)?)),
-        (TagClass::CONTEXT, 7) => Ok(GeneralName::iPAddress(BER.decode_octet_string(&el.inner()?)?)),
+        (TagClass::CONTEXT, 7) => {
+            let octets = BER.decode_octet_string(&el.inner()?)?;
+            let ip = match octets.len() {
+                4 => IpAddr::V4(Ipv4Addr::from([ octets[0], octets[1], octets[2], octets[3] ])),
+                16 => IpAddr::V6(Ipv6Addr::from([
+                    octets[0],
+                    octets[1],
+                    octets[2],
+                    octets[3],
+                    octets[4],
+                    octets[5],
+                    octets[6],
+                    octets[7],
+                    octets[8],
+                    octets[9],
+                    octets[10],
+                    octets[11],
+                    octets[12],
+                    octets[13],
+                    octets[14],
+                    octets[15],
+                ])),
+                _ => return Err(el.to_asn1_error(ASN1ErrorCode::constraint_violation)),
+            };
+            Ok(GeneralName::iPAddress(ip))
+        },
         (TagClass::CONTEXT, 8) => Ok(GeneralName::registeredID(BER.decode_object_identifier(&el.inner()?)?)),
         _ => Ok(GeneralName::_unrecognized(el.clone())),
     }
@@ -4102,10 +4127,16 @@ pub fn _encode_GeneralName(value_: &GeneralName) -> ASN1Result<X690Element> {
             Tag::new(TagClass::CONTEXT, 6),
             X690Value::from_explicit(BER.encode_ia5_string(&v)?),
         )),
-        GeneralName::iPAddress(v) => Ok(X690Element::new(
-            Tag::new(TagClass::CONTEXT, 7),
-            X690Value::from_explicit(BER.encode_octet_string(&v)?),
-        )),
+        GeneralName::iPAddress(v) => match v {
+            IpAddr::V4(v4) => Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 7),
+                X690Value::from_explicit(BER.encode_octet_string(v4.octets().as_slice())?),
+            )),
+            IpAddr::V6(v6) => Ok(X690Element::new(
+                Tag::new(TagClass::CONTEXT, 7),
+                X690Value::from_explicit(BER.encode_octet_string(v6.octets().as_slice())?),
+            )),
+        },
         GeneralName::registeredID(v) => Ok(X690Element::new(
             Tag::new(TagClass::CONTEXT, 8),
             X690Value::from_explicit(BER.encode_object_identifier(&v)?),
@@ -4155,7 +4186,12 @@ pub fn _validate_GeneralName(el: &X690Element) -> ASN1Result<()> {
             if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
                 return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "iPAddress"));
             }
-            Ok(BER.validate_octet_string(&el.inner()?)?)
+            let inner = el.inner()?;
+            let len = inner.content_octets()?.len();
+            if len != 4 && len != 16 {
+                return Err(el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "iPAddress"));
+            }
+            Ok(BER.validate_octet_string(&inner)?)
         }(&el),
         (TagClass::CONTEXT, 8) => |el: &X690Element| -> ASN1Result<()> {
             if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 8 {
