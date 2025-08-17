@@ -134,6 +134,7 @@ programming languages, or if you have any other questions, please contact us at
   - [ ] Object Classes Iterator
   - [ ] Admin Roles Iterator
   - [ ] Family member iterator
+- [ ] `RoleSyntax`
 - [ ] AttributeCertificate
   - [ ] `is_platform_certificate()` (should be behind a feature flag)
   - [ ] `is_qualified_certificate()`

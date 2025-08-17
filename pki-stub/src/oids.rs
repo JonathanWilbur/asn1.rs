@@ -194,6 +194,16 @@ pub fn common_attr_type_to_long_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&'
         return None;
     }
 
+    if x690_len == 4 && x690_slice.starts_with(&[97, 1, 2]) {
+        let last_byte = *attr_type.as_x690_slice().last().unwrap();
+        return match last_byte {
+            0 => Some("oidc1"),
+            1 => Some("oidc2"),
+            2 => Some("oidc"),
+            _ => return None,
+        };
+    }
+
     // Always enabled because it has some important attributes used in naming.
     // 0.9.2342.19200300.100.1. is 0x0992268993F22C6401
     if x690_len == 10
@@ -700,7 +710,6 @@ pub fn common_attr_type_to_short_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&
         return match last_byte {
             3 => Some("cn"),
             4 => Some("sn"),
-            5 => Some("serialNumber"),
             6 => Some("c"),
             7 => Some("l"),
             8 => Some("st"),
@@ -723,7 +732,6 @@ pub fn common_attr_type_to_short_name(attr_type: &OBJECT_IDENTIFIER) -> Option<&
         return match last_byte {
             1 => Some("uid"),
             3 => Some("mail"),
-            4 => Some("info"),
             5 => Some("drink"),
             25 => Some("dc"),
             41 => Some("mobile"),

@@ -5,7 +5,7 @@ use crate::PKI_Stub::{
     AttCertValidityPeriod, AttributeTypeAndValue, AttributeValue, EDIPartyName, GeneralName, Name,
     OTHER_NAME, RDNSequence, RelativeDistinguishedName, Time, Validity,
 };
-use crate::{DefaultX500ValueDisplayer, DisplayX500AttributeType, DisplayX500Value};
+use crate::{DefaultX500ValueDisplayer, DisplayX500AttributeType, unrecognized_value_to_string};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::fmt::{Display, Error, Write};
@@ -30,9 +30,9 @@ impl Display for AttributeTypeAndValue {
             f.write_str("=")?;
             AttributeValue(self.value.clone()).fmt(f)
         } else {
-            f.write_str(&self.type_.to_string())?;
+            self.type_.fmt(f)?;
             f.write_str("=")?;
-            f.write_str(&displayer.unrecognized_value_to_string(&self.value))
+            f.write_str(unrecognized_value_to_string(&self.value).as_str())
         }
     }
 }
@@ -157,7 +157,7 @@ pub fn display_rdn(
         } else {
             f.write_str(&atav.type_.to_string())?;
             f.write_str("=")?;
-            f.write_str(&displayer.unrecognized_value_to_string(&atav.value))?;
+            f.write_str(unrecognized_value_to_string(&atav.value).as_str())?;
         }
         first = false;
     }

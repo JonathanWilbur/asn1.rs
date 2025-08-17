@@ -2,8 +2,6 @@
 
 ## To Do
 
-- [ ] Finish `Display` todos
-- [x] Inlining
 - [ ] Tests
   - [ ] Public Key Certificate Decoding
   - [ ] Attribute Certificate Decoding

@@ -10,7 +10,7 @@ use crate::PKI_Stub::{
 };
 use crate::eq::{DNSLabelIter, get_string, get_time, trim_u16, trim_u32};
 use crate::utils::{gt_to_chrono, utctime_to_chrono};
-use crate::{DefaultX500ValueDisplayer, DisplayX500AttributeType, DisplayX500Value};
+use crate::{DefaultX500ValueDisplayer, DisplayX500AttributeType};
 use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
 use email_address::EmailAddress;
 use std::borrow::Cow;
