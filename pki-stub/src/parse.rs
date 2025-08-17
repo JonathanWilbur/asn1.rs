@@ -1,12 +1,6 @@
 use phf::phf_map;
 use wildboar_asn1::{
-    Tag,
-    TagClass,
-    UTCTime,
-    BIT_STRING,
-    OBJECT_IDENTIFIER,
-    UNIV_TAG_SEQUENCE,
-    UNIV_TAG_UTF8_STRING,
+    ASN1Value, InstanceOf, Tag, TagClass, UTCTime, BIT_STRING, OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE, UNIV_TAG_UTF8_STRING, oid
 };
 use std::str::FromStr;
 use x690::{X690Element, X690Codec, X690Value};
@@ -234,6 +228,10 @@ pub trait ParseX500DistinguishedName {
 
 pub trait ParseX500DirectoryName {
     fn parse_x500_name(&self, s: &str) -> Result<Name, std::fmt::Error>;
+}
+
+pub trait ParseOtherName {
+    fn parse_other_name(&self, s: &str) -> Result<InstanceOf, std::fmt::Error>;
 }
 
 pub trait ParseGeneralName {
@@ -544,9 +542,146 @@ where
     }
 }
 
+// TODO: rename DefaultX500ValueParser to something else
+impl ParseOtherName for DefaultX500ValueParser {
+    fn parse_other_name(&self, s: &str) -> Result<InstanceOf, std::fmt::Error> {
+        let key: String = s.chars()
+            .take(20)
+            .map(|c| c.to_ascii_lowercase())
+            .collect();
+        if key.starts_with("hardwaremodulename:") {
+            let s = s.split_at("hardwaremodulename:".len()).1;
+            let (oidstr, serialhex) = s.split_once(':').ok_or(std::fmt::Error)?;
+            let hwtype = OBJECT_IDENTIFIER::from_str(oidstr)
+                .map_err(|_| std::fmt::Error)?;
+            let hwserial = hex::decode(serialhex).map_err(|_| std::fmt::Error)?;
+            let value = ASN1Value::SequenceValue(vec![
+                ASN1Value::ObjectIdentifierValue(hwtype),
+                ASN1Value::OctetStringValue(hwserial),
+            ]);
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: unsafe {
+                    OBJECT_IDENTIFIER::from_x690_encoding_unchecked(
+                        [43, 6, 1, 5, 5, 7, 8, 4].to_vec()
+                    )
+                },
+                value,
+            });
+        }
+        else if key.starts_with("xmppaddr:") { // UTF8String
+            let s = s.split_at("xmppaddr:".len()).1;
+            let value = ASN1Value::UTF8String(s.to_owned());
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: unsafe {
+                    OBJECT_IDENTIFIER::from_x690_encoding_unchecked(
+                        [43, 6, 1, 5, 5, 7, 8, 5].to_vec()
+                    )
+                },
+                value,
+            });
+        }
+        else if key.starts_with("srvname:") { // IA5String
+            let s = s.split_at("srvname:".len()).1;
+            let value = ASN1Value::IA5String(s.to_owned());
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: unsafe {
+                    OBJECT_IDENTIFIER::from_x690_encoding_unchecked(
+                        [43, 6, 1, 5, 5, 7, 8, 7].to_vec()
+                    )
+                },
+                value,
+            });
+        }
+        else if key.starts_with("nairealm:") { // UTF8String
+            let s = s.split_at("nairealm:".len()).1;
+            let value = ASN1Value::UTF8String(s.to_owned());
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: unsafe {
+                    OBJECT_IDENTIFIER::from_x690_encoding_unchecked(
+                        [43, 6, 1, 5, 5, 7, 8, 8].to_vec()
+                    )
+                },
+                value,
+            });
+        }
+        else if key.starts_with("smtputf8mailbox:") { // UTF8String
+            let s = s.split_at("smtputf8mailbox:".len()).1;
+            let value = ASN1Value::UTF8String(s.to_owned());
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: unsafe {
+                    OBJECT_IDENTIFIER::from_x690_encoding_unchecked(
+                        [43, 6, 1, 5, 5, 7, 8, 9].to_vec()
+                    )
+                },
+                value,
+            });
+        }
+        else if key.starts_with("acpnodename:") { // IA5String
+            let s = s.split_at("acpnodename:".len()).1;
+            let value = ASN1Value::IA5String(s.to_owned());
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: unsafe {
+                    OBJECT_IDENTIFIER::from_x690_encoding_unchecked(
+                        [43, 6, 1, 5, 5, 7, 8, 10].to_vec()
+                    )
+                },
+                value,
+            });
+        }
+        else if key.starts_with("bundleeid:") { // IA5String
+            let s = s.split_at("bundleeid:".len()).1;
+            let value = ASN1Value::IA5String(s.to_owned());
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: unsafe {
+                    OBJECT_IDENTIFIER::from_x690_encoding_unchecked(
+                        [43, 6, 1, 5, 5, 7, 8, 11].to_vec()
+                    )
+                },
+                value,
+            });
+        }
+        else if key.starts_with("upn:") { // UTF8String
+            let s = s.split_at("upn:".len()).1;
+            let value = ASN1Value::UTF8String(s.to_owned());
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id: oid!(1,3,6,1,4,1,311,20,2,3),
+                value,
+            });
+        }
+        else {
+            let (oidstr, hexstr) = s.split_once(':').ok_or(std::fmt::Error)?;
+            let type_id = OBJECT_IDENTIFIER::from_str(oidstr)
+                .map_err(|_| std::fmt::Error)?;
+            if !hexstr.starts_with("#") {
+                return Err(std::fmt::Error);
+            }
+            let valstr = hex::decode(&hexstr[1..]).map_err(|_| std::fmt::Error)?;
+            let (el_len, el) = BER.decode_from_slice(valstr.as_slice())
+                .map_err(|_| std::fmt::Error)?;
+            if el_len != valstr.len() {
+                return Err(std::fmt::Error);
+            }
+            let value = BER.decode_any(&el).map_err(|_| std::fmt::Error)?;
+            let value = Arc::new(value);
+            return Ok(InstanceOf {
+                type_id,
+                value,
+            });
+        }
+    }
+}
+
 impl<T> ParseGeneralName for T
 where
-    T: ParseX500DirectoryName,
+    T: ParseX500DirectoryName + ParseOtherName,
 {
     /// This implementation parses:
     /// `directoryName.rdnSequence`
@@ -561,7 +696,8 @@ where
             .collect();
         if key.starts_with("othername:") {
             let s = s.split_at("othername:".len()).1;
-            todo!() // FIXME:
+            let othername = self.parse_other_name(s)?;
+            return Ok(GeneralName::otherName(othername));
         }
         else if key.starts_with("rfc822name:") {
             let s = s.split_at("rfc822name:".len()).1;
@@ -628,7 +764,7 @@ mod tests {
     use std::net::IpAddr;
     use std::str::FromStr;
 
-    use wildboar_asn1::{oid, TagClass, OBJECT_IDENTIFIER, UNIV_TAG_BIT_STRING, UNIV_TAG_IA5_STRING, UNIV_TAG_INTEGER, UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE, UNIV_TAG_UTF8_STRING};
+    use wildboar_asn1::{oid, ASN1Value, TagClass, OBJECT_IDENTIFIER, UNIV_TAG_BIT_STRING, UNIV_TAG_IA5_STRING, UNIV_TAG_INTEGER, UNIV_TAG_OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE, UNIV_TAG_UTF8_STRING};
     use ldapdn::parse::dn_from_str;
     use ldapdn::escape::unescape_ldap_value_string_cow;
     use x690::{X690Element, X690Value};
@@ -937,7 +1073,23 @@ mod tests {
         };
     }
 
-    // TODO: otherName
+    #[test]
+    fn parse_gen_name_10() {
+        let parser = DefaultX500ValueParser{};
+        let input = "othername:xmppaddr:jonathan@wilbur.space";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::otherName(n) => {
+                assert_eq!(n.type_id, oid!(1, 3, 6, 1, 5, 5, 7, 8, 5));
+                match n.value.as_ref() {
+                    ASN1Value::UTF8String(x) => assert_eq!(x.as_str(), "jonathan@wilbur.space"),
+                    _ => panic!(),
+                };
+            },
+            _ => panic!(),
+        };
+    }
+
     // TODO: x400Address
 
 }
