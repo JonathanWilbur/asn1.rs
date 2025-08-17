@@ -1,11 +1,24 @@
 use phf::phf_map;
-use wildboar_asn1::{read_i64, Tag, UTCTime, BIT_STRING, OBJECT_IDENTIFIER, UNIV_TAG_SEQUENCE};
+use wildboar_asn1::{
+    Tag,
+    TagClass,
+    UTCTime,
+    BIT_STRING,
+    OBJECT_IDENTIFIER,
+    UNIV_TAG_SEQUENCE,
+    UNIV_TAG_UTF8_STRING,
+};
 use std::str::FromStr;
-use x690::{X690Element, X690Codec};
+use x690::{X690Element, X690Codec, X690Value};
 use x690::ber::BER;
 use std::sync::Arc;
 use std::iter::Iterator;
 use crate::unescape::parse_postal_address;
+use crate::EDIPartyName;
+use crate::PKI_Stub::{DistinguishedName, Name, GeneralName, RelativeDistinguishedName, AttributeTypeAndValue};
+use ldapdn::parse::dn_from_str;
+use ldapdn::escape::unescape_ldap_value_string_cow;
+use bytes::Bytes;
 
 /// This is limited to attributes from schemas that are explicitly allowed in
 /// IETF RFC 3039 for naming, and a few others for Qualified Certificates.
@@ -214,25 +227,24 @@ pub trait ParseX500Value<OpenType> {
     ) -> Result<Option<OpenType>, std::fmt::Error>;
 }
 
-// pub trait ParseX500DistinguishedName {
-//     fn parse_dn(&self, s: &str) -> Result<DistinguishedName, std::fmt::Error>;
-// }
+pub trait ParseX500DistinguishedName {
+    fn parse_dn(&self, s: &str) -> Result<DistinguishedName, std::fmt::Error>;
+}
 
-// pub trait ParseX500DirectoryName {
-//     fn parse_x500_name(&self, s: &str) -> Result<Name, std::fmt::Error>;
-// }
+pub trait ParseX500DirectoryName {
+    fn parse_x500_name(&self, s: &str) -> Result<Name, std::fmt::Error>;
+}
 
-// pub trait ParseGeneralName {
-//     fn parse_general_name(&self, s: &str) -> Result<GeneralName, std::fmt::Error>;
-// }
-
-// // impl ParseX500AttributeType for DefaultX500ValueParser {  }
+pub trait ParseGeneralName {
+    fn parse_general_name(&self, s: &str) -> Result<GeneralName, std::fmt::Error>;
+}
 
 impl ParseX500AttributeType for DefaultX500ValueParser {
     #[inline]
     fn attr_type_name_to_oid(&self, s: &str) -> Option<OBJECT_IDENTIFIER> {
         OIDS_BY_NAME
             .get(s.to_ascii_lowercase().as_str())
+            // Fine to use unsafe here, because these are hard-coded values we know are correct.
             .map(|bs| unsafe { OBJECT_IDENTIFIER::from_x690_encoding_unchecked(bs.to_vec()) })
     }
 }
@@ -471,62 +483,142 @@ impl ParseX500Value<X690Element> for DefaultX500ValueParser {
     }
 }
 
-// // TODO: Implement ParseX500DistinguishedName for all types that implement
-// // ParseX500Value<X690Element> and ParseX500AttributeType
+// If T can parse attribute types and values, it can parse whole DNs
+impl <T: ParseX500AttributeType + ParseX500Value<X690Element>> ParseX500DistinguishedName for T {
 
-// impl<T> ParseX500DistinguishedName for T
-// where
-//     T: ParseX500AttributeType + ParseX500Value<X690Element>,
-// {
-//     fn parse_dn(&self, s: &str) -> Result<DistinguishedName, std::fmt::Error> {
-//         // let mut char_start_byte: usize = 0;
+    fn parse_dn(&self, s: &str) -> Result<DistinguishedName, std::fmt::Error> {
+        let parser = DefaultX500ValueParser{};
+        let mut dn: DistinguishedName = Vec::with_capacity(10);
+        for maybe_rdn in dn_from_str(s) {
+            let mut rdn_iter = maybe_rdn.map_err(|_| std::fmt::Error)?;
+            let mut rdn: RelativeDistinguishedName = Vec::with_capacity(5);
+            for maybe_atav in rdn_iter {
+                let atav = maybe_atav.map_err(|_| std::fmt::Error)?;
+                let (attr_type, attr_val) = atav;
+                // If the type starts with a digit, try parsing as a numeric
+                // OID, otherwise, assume its a name.
+                let attr_type = if attr_type.as_bytes().first().is_some_and(|c| c.is_ascii_digit()) {
+                    OBJECT_IDENTIFIER::from_str(attr_type)
+                        .map_err(|_| std::fmt::Error)?
+                } else {
+                    parser.attr_type_name_to_oid(attr_type)
+                        .ok_or(std::fmt::Error)?
+                };
+                let unescaped = unescape_ldap_value_string_cow(attr_val).unwrap();
+                let attr_val = unescaped.as_ref();
+                let attr_val = parser.parse_value(&attr_type, attr_val).unwrap().unwrap();
+                rdn.push(AttributeTypeAndValue::new(
+                    attr_type,
+                    attr_val,
+                    vec![],
+                ));
+            }
+            dn.push(rdn);
+        }
+        Ok(dn)
+    }
 
-//         let mut dn: DistinguishedName = Vec::with_capacity(10);
-//         let mut rdn: RelativeDistinguishedName = Vec::with_capacity(4);
-//         let mut attr_type: Option<OBJECT_IDENTIFIER> = None;
-//         let mut start_of_token: usize = 0;
-//         let mut parsing_value: bool = false;
-//         let mut escaping: bool = false;
-//         let mut escaped: bool = false;
-//         let mut escaped_char: char = char::from_u32(0).unwrap();
-//         let mut escaped_str: String = String::new();
-//         for (i, c) in s.char_indices() {
-//             if parsing_value {
-//                 if escaping {}
-//                 if c == ',' {}
-//             } else {
-//                 if c == '=' {
-//                     attr_type = self.parse_attr_type(&s[start_of_token..i])?;
-//                     if attr_type.is_none() {
-//                         // If we cannot convert the type to an OID, fail.
-//                         return Err(std::fmt::Error);
-//                     }
-//                     start_of_token = i + 1;
-//                     parsing_value = true;
-//                 }
-//             }
-//         }
-//         Ok(dn)
-//     }
-// }
+}
 
-// impl<T> ParseX500DirectoryName for T
-// where
-//     T: ParseX500DistinguishedName,
-// {
-//     fn parse_x500_name(&self, s: &str) -> Result<Name, std::fmt::Error> {
-//         // TODO: More efficient compare
-//         if s.to_lowercase().starts_with("rdnsequence") {
-//             Ok(Name::rdnSequence(self.parse_dn(&s[11..])?))
-//         } else {
-//             Err(std::fmt::Error)
-//         }
-//     }
-// }
+impl<T> ParseX500DirectoryName for T
+where
+    T: ParseX500DistinguishedName,
+{
+    fn parse_x500_name(&self, s: &str) -> Result<Name, std::fmt::Error> {
+        let key: String = s.chars()
+            .take(12)
+            .map(|c| c.to_ascii_lowercase())
+            .collect();
+        if key.starts_with("rdnsequence:") { // TODO: Use likely
+            Ok(Name::rdnSequence(self.parse_dn(&s[12..])?))
+        } else if key.starts_with("dnsname:") {
+            Ok(Name::dnsName(s.split_at(8).1.to_owned()))
+        } else if key.starts_with("oid:") {
+            let oidname = OBJECT_IDENTIFIER::from_str(s.split_at(4).1)
+                .map_err(|_| std::fmt::Error)?;
+            Ok(Name::oid(oidname))
+        } else {
+            Err(std::fmt::Error)
+        }
+    }
+}
 
-// // TODO: Implement ParseX500DirectoryName for all types that implement ParseX500DistinguishedName
-
-// // TODO: Implement ParseGeneralName for all types that implement ParseX500DirectoryName
+impl<T> ParseGeneralName for T
+where
+    T: ParseX500DirectoryName,
+{
+    /// This implementation parses:
+    /// `directoryName.rdnSequence`
+    /// `directoryName.oid` as a numeric OID (e.g. `2.5.4.3`)
+    /// `ediPartyName` using a "#" to separate the assigner name and party name.
+    /// `ipAddress` in any format that Rust's `IpAddr` supports
+    /// `registeredID` as a numeric OID (e.g. `2.5.4.3`)
+    fn parse_general_name(&self, s: &str) -> Result<GeneralName, std::fmt::Error> {
+        let key: String = s.chars()
+            .take(30)
+            .map(|c| c.to_ascii_lowercase())
+            .collect();
+        if key.starts_with("othername:") {
+            let s = s.split_at("othername:".len()).1;
+            todo!() // FIXME:
+        }
+        else if key.starts_with("rfc822name:") {
+            let s = s.split_at("rfc822name:".len()).1;
+            return Ok(GeneralName::rfc822Name(s.to_owned()));
+        }
+        else if key.starts_with("dnsname:") {
+            let s = s.split_at("dnsname:".len()).1;
+            return Ok(GeneralName::dNSName(s.to_owned()));
+        }
+        else if key.starts_with("x400address:") {
+            // TODO: Make a feature to support this.
+            return Err(std::fmt::Error);
+        }
+        else if key.starts_with("directoryname:") {
+            let s = s.split_at("directoryname:".len()).1;
+            let dn = self.parse_x500_name(s)
+                .map_err(|_| std::fmt::Error)?;
+            return Ok(GeneralName::directoryName(dn));
+        }
+        else if key.starts_with("edipartyname:") {
+            let s = s.split_at("edipartyname:".len()).1;
+            let (assigner, party) = s.split_once('#').unwrap_or(("", s));
+            let assigner_name = if assigner.len() > 0 {
+                Some(X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
+                    X690Value::Primitive(Bytes::copy_from_slice(assigner.as_bytes())),
+                ))
+            } else {
+                None
+            };
+            let edipn = EDIPartyName::new(
+                assigner_name,
+                X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_UTF8_STRING),
+                    X690Value::Primitive(Bytes::copy_from_slice(party.as_bytes())),
+                ),
+                vec![],
+            );
+            return Ok(GeneralName::ediPartyName(edipn));
+        }
+        else if key.starts_with("uniformresourceidentifier:") {
+            let s = s.split_at("uniformresourceidentifier:".len()).1;
+            return Ok(GeneralName::uniformResourceIdentifier(s.to_owned()));
+        }
+        else if key.starts_with("ipaddress:") {
+            let s = s.split_at("ipaddress:".len()).1;
+            todo!() // TODO: After you make iPAddress an `std::net::IpAddr`.
+        }
+        else if key.starts_with("registeredid:") {
+            let s = s.split_at("registeredid:".len()).1;
+            let oidname = OBJECT_IDENTIFIER::from_str(s)
+                .map_err(|_| std::fmt::Error)?;
+            return Ok(GeneralName::registeredID(oidname));
+        } else {
+            return Err(std::fmt::Error);
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -535,6 +627,11 @@ mod tests {
     use ldapdn::parse::dn_from_str;
     use ldapdn::escape::unescape_ldap_value_string_cow;
     use x690::{X690Element, X690Value};
+    use crate::parse::{ParseGeneralName, ParseX500DirectoryName, ParseX500DistinguishedName};
+    use crate::PKI_Stub::{
+        Name,
+        GeneralName,
+    };
     use super::{ParseX500AttributeType, ParseX500Value, DefaultX500ValueParser};
 
     #[test]
@@ -677,5 +774,166 @@ mod tests {
             _ => panic!(),
         };
     }
+
+    #[test]
+    fn parse_dn_4() {
+        let parser = DefaultX500ValueParser{};
+        let input = "cn=Jonathan Wilbur,st=FL,c=US";
+        let dn = parser.parse_dn(input).unwrap();
+        assert_eq!(dn.len(), 3);
+    }
+
+    #[test]
+    fn parse_dir_name_1() {
+        let parser = DefaultX500ValueParser{};
+        let input = "rdnSequence:cn=Jonathan Wilbur,st=FL,c=US";
+        let dn = parser.parse_x500_name(input).unwrap();
+        match dn {
+            Name::rdnSequence(rdns) => {
+                assert_eq!(rdns.len(), 3);
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_dir_name_2() {
+        let parser = DefaultX500ValueParser{};
+        let input = "oid:2.5.4.3";
+        let dn = parser.parse_x500_name(input).unwrap();
+        match dn {
+            Name::oid(o) => {
+                assert_eq!(o.as_x690_slice(), &[0x55, 4, 3]);
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_dir_name_3() {
+        let parser = DefaultX500ValueParser{};
+        let input = "DNSNAME:wildboarsoftware.com";
+        let dn = parser.parse_x500_name(input).unwrap();
+        match dn {
+            Name::dnsName(dnsname) => {
+                assert_eq!(dnsname.as_str(), "wildboarsoftware.com");
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_gen_name_1() {
+        let parser = DefaultX500ValueParser{};
+        let input = "rfc822Name:jonathan@wilbur.space";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::rfc822Name(n) => {
+                assert_eq!(n.as_str(), "jonathan@wilbur.space");
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_gen_name_2() {
+        let parser = DefaultX500ValueParser{};
+        let input = "dNSName:wildboarsoftware.com";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::dNSName(n) => {
+                assert_eq!(n.as_str(), "wildboarsoftware.com");
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_gen_name_4() {
+        let parser = DefaultX500ValueParser{};
+        let input = "directoryName:oid:2.5.4.3";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::directoryName(n) => match n {
+                Name::oid(oidname) => assert_eq!(oidname.as_x690_slice(), &[0x55, 4, 3]),
+                _ => panic!(),
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_gen_name_5() {
+        let parser = DefaultX500ValueParser{};
+        let input = "ediPartyName:asdf#zxcv";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::ediPartyName(n) => {
+                let name_assigner = n.nameAssigner.unwrap();
+                let party_name = n.partyName;
+                assert_eq!(name_assigner.content_octets().unwrap().as_ref(), b"asdf");
+                assert_eq!(party_name.content_octets().unwrap().as_ref(), b"zxcv");
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_gen_name_6() {
+        let parser = DefaultX500ValueParser{};
+        let input = "ediPartyName:zxcv";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::ediPartyName(n) => {
+                let party_name = n.partyName;
+                assert!(n.nameAssigner.is_none());
+                assert_eq!(party_name.content_octets().unwrap().as_ref(), b"zxcv");
+            },
+            _ => panic!(),
+        };
+    }
+
+    #[test]
+    fn parse_gen_name_7() {
+        let parser = DefaultX500ValueParser{};
+        let input = "uniformResourceIdentifier:https://wildboarsoftware.com";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::uniformResourceIdentifier(n) => {
+                assert_eq!(n.as_str(), "https://wildboarsoftware.com");
+            },
+            _ => panic!(),
+        };
+    }
+
+    // TODO:
+    // #[test]
+    // fn parse_gen_name_8() {
+    //     let parser = DefaultX500ValueParser{};
+    //     let input = "iPAddress:1.2.3.4";
+    //     let gn = parser.parse_general_name(input).unwrap();
+    //     match gn {
+    //         GeneralName::iPAddress(ip) => {
+    //             assert_eq!(ip, todo!());
+    //         },
+    //         _ => panic!(),
+    //     };
+    // }
+
+    #[test]
+    fn parse_gen_name_9() {
+        let parser = DefaultX500ValueParser{};
+        let input = "registeredID:2.5.4.3";
+        let gn = parser.parse_general_name(input).unwrap();
+        match gn {
+            GeneralName::registeredID(n) => {
+                assert_eq!(n.as_x690_slice(), &[0x55, 4, 3]);
+            },
+            _ => panic!(),
+        };
+    }
+
+    // TODO: otherName
+    // TODO: x400Address
 
 }

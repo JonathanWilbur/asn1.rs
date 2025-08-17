@@ -26,6 +26,7 @@ use std::iter::{ExactSizeIterator, FusedIterator, Iterator};
 use std::sync::Arc;
 use wildboar_asn1::*;
 use x690::*;
+use std::net::IpAddr;
 
 #[inline]
 const fn base_256_len(value: usize) -> usize {
