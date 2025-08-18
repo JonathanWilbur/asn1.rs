@@ -9,6 +9,37 @@
 //! This crate is `no_std`, but `alloc` is needed if you want to use
 //! `unescape_postal_address_line` or `escape_postal_address_line`.
 //!
+//! You can parse and unescape LDAP postal addresses like so:
+//!
+//! ```rust
+//! use ldappostaladdr::{parse_postal_address, unescape_postal_address_line};
+//! let input = "\\241,000,000 Sweepstakes$PO Box 1000000$Anytown, CA 12345$USA";
+//! let mut postal_address = parse_postal_address(input);
+//! for (line, backslash_escaped, dollar_escaped) in postal_address {
+//!   // This line returns Cow::Borrowed() if the line doesn't contain escape sequences.
+//!   let unescaped_line = unescape_postal_address_line(line, backslash_escaped, dollar_escaped);
+//!   // `unescaped_line` contains the usable postal address line.
+//!   // Use `unescaped_line.as_ref()` to read it without allocating.
+//! }
+//! ```
+//!
+//! You can create LDAP postal addresses like so:
+//!
+//! ```rust
+//! use ldappostaladdr::escape_postal_address_line;
+//! let lines = vec![
+//!     String::from("$1,000,000 Sweepstakes"),
+//!     String::from("123 Main St."),
+//!     String::from("Anytown, PA 12345"),
+//!     String::from("USA"),
+//! ];
+//! let output = lines.iter()
+//!     .map(|line| escape_postal_address_line(line).into_owned())
+//!     .collect::<Vec<String>>()
+//!     .join("$");
+//! assert_eq!(output.as_str(), "\\241,000,000 Sweepstakes$123 Main St.$Anytown, PA 12345$USA");
+//! ```
+//!
 #![no_std]
 
 #[cfg(feature = "alloc")]
@@ -45,9 +76,7 @@ pub fn unescape_postal_address_line(
 /// allocated if one of these escaped characters are encountered, otherwise,
 /// `Cow::Borrowed(_)` returns `line` unchanged.
 #[cfg(feature = "alloc")]
-pub fn escape_postal_address_line(
-    line: &str,
-) -> Cow<str> {
+pub fn escape_postal_address_line(line: &str) -> Cow<str> {
     // Loops to check for escaping we need to do.
     let mut backslash: bool = false;
     let mut dollar: bool = false;
