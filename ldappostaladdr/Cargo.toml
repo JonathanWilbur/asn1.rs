@@ -1,0 +1,18 @@
+[package]
+name = "ldappostaladdr"
+version = "1.0.0"
+edition = "2024"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "LDAP postal address parsing (zero-copy) and escape / unescape utilities"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/ldappostaladdr"
+license = "MIT"
+keywords = ["ldap", "postal", "address", "syntax"]
+categories = ["encoding", "parser-implementations", "no-std"]
+
+[features]
+default = ["alloc"]
+alloc = []

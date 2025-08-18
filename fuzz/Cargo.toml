@@ -21,6 +21,9 @@ path = "../x690"
 [dependencies.ldapdn]
 path = "../ldapdn"
 
+[dependencies.ldappostaladdr]
+path = "../ldappostaladdr"
+
 [dependencies.x520-stringprep]
 path = "../x520-stringprep"
 
@@ -118,6 +121,13 @@ bench = false
 [[bin]]
 name = "stringprep"
 path = "fuzz_targets/stringprep.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ldappostaladdr"
+path = "fuzz_targets/ldappostaladdr.rs"
 test = false
 doc = false
 bench = false

@@ -333,6 +333,7 @@ version = "0.0.0"
 dependencies = [
  "bytes",
  "ldapdn",
+ "ldappostaladdr",
  "libfuzzer-sys",
  "wildboar-asn1",
  "x520-stringprep",
@@ -1524,6 +1525,10 @@ dependencies = [
 
 [[package]]
 name = "ldapdn"
+version = "1.0.0"
+
+[[package]]
+name = "ldappostaladdr"
 version = "1.0.0"
 
 [[package]]
