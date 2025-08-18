@@ -27,7 +27,6 @@ pub mod oids;
 pub mod othername;
 pub mod parse;
 pub mod pki;
-pub mod unescape;
 pub mod utils;
 pub use crate::PKI_Stub::*;
 pub use crate::oids::{common_attr_type_to_long_name, common_attr_type_to_short_name};

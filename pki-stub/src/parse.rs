@@ -7,7 +7,7 @@ use x690::{X690Element, X690Codec, X690Value};
 use x690::ber::BER;
 use std::sync::Arc;
 use std::iter::Iterator;
-use crate::unescape::parse_postal_address;
+use ldappostaladdr::{parse_postal_address, unescape_postal_address_line};
 use crate::EDIPartyName;
 use crate::PKI_Stub::{DistinguishedName, Name, GeneralName, RelativeDistinguishedName, AttributeTypeAndValue};
 use ldapdn::parse::dn_from_str;
@@ -354,7 +354,10 @@ fn parse_value(
                 let lines_count = s.split('$').count() + 1;
                 let mut address: Vec<X690Element> = Vec::with_capacity(lines_count);
                 let lines = parse_postal_address(s)
-                    .map(|line| BER.encode_utf8_string(line.as_ref()));
+                    .map(|(line, bs, dollar)| {
+                        let unescaped = unescape_postal_address_line(line, bs, dollar);
+                        BER.encode_utf8_string(unescaped.as_ref())
+                    });
                 for maybe_line in lines {
                     let line = maybe_line.map_err(|_| std::fmt::Error)?;
                     address.push(line);
@@ -449,11 +452,13 @@ fn parse_value(
             // PostalAddress
             39 // homePostalAddress
             => {
-                // FIXME: Handle LDAP value escaping as well.
                 let lines_count = s.split('$').count() + 1;
                 let mut address: Vec<X690Element> = Vec::with_capacity(lines_count);
                 let lines = parse_postal_address(s)
-                    .map(|line| BER.encode_utf8_string(line.as_ref()));
+                    .map(|(line, bs, dollar)| {
+                        let unescaped = unescape_postal_address_line(line, bs, dollar);
+                        BER.encode_utf8_string(unescaped.as_ref())
+                    });
                 for maybe_line in lines {
                     let line = maybe_line.map_err(|_| std::fmt::Error)?;
                     address.push(line);
@@ -542,7 +547,6 @@ where
     }
 }
 
-// TODO: rename DefaultX500ValueParser to something else
 impl ParseOtherName for DefaultX500ValueParser {
     fn parse_other_name(&self, s: &str) -> Result<InstanceOf, std::fmt::Error> {
         let key: String = s.chars()
