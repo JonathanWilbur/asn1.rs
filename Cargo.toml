@@ -12,7 +12,7 @@ members = [
     "tsp-server",
     "x500dsa",
     "nsap-address",
-    "tpkt",
+    "tpkt3",
     "x691",
     "rose",
     "rose-idm",
