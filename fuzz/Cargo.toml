@@ -27,6 +27,9 @@ path = "../ldappostaladdr"
 [dependencies.x520-stringprep]
 path = "../x520-stringprep"
 
+[dependencies.teletex]
+path = "../teletex"
+
 [[bin]]
 name = "date"
 path = "fuzz_targets/date.rs"
@@ -128,6 +131,13 @@ bench = false
 [[bin]]
 name = "ldappostaladdr"
 path = "fuzz_targets/ldappostaladdr.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "teletex"
+path = "fuzz_targets/teletex.rs"
 test = false
 doc = false
 bench = false

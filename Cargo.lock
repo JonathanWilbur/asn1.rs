@@ -335,6 +335,7 @@ dependencies = [
  "ldapdn",
  "ldappostaladdr",
  "libfuzzer-sys",
+ "teletex",
  "wildboar-asn1",
  "x520-stringprep",
  "x690",
@@ -1362,6 +1363,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "idm-frame"
+version = "0.1.0"
+
+[[package]]
 name = "idna"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1529,7 +1534,7 @@ version = "1.0.0"
 
 [[package]]
 name = "ldappostaladdr"
-version = "1.0.0"
+version = "1.0.1"
 
 [[package]]
 name = "libc"
@@ -2014,6 +2019,7 @@ dependencies = [
  "email_address",
  "hex",
  "ldapdn",
+ "ldappostaladdr",
  "pem",
  "phf",
  "punycode",
@@ -2695,7 +2701,7 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "teletex"
-version = "0.1.0"
+version = "1.0.0"
 
 [[package]]
 name = "thiserror"
