@@ -10,5 +10,5 @@ description = "ITU-T Recommendation T.61 / Teletex to Unicode conversion"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/teletex"
 license = "MIT"
-keywords = ["teletex", "t61", "t.61"]
+keywords = ["teletex", "t61"]
 categories = ["encoding"]
