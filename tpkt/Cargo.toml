@@ -1,10 +1,14 @@
 [package]
 name = "tpkt"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-bytes = "1.4.0"
-nom = "7.1.3"
+version = "1.0.0"
+edition = "2024"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "ISO Transport over TCP (ITOT) TPKT Decoding"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/tpkt"
+license = "MIT"
+keywords = ["tpkt", "itot", "osi", "rfc983", "rfc1006", "rfc2126"]
+categories = ["no-std", "network-programming"]

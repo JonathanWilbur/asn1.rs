@@ -37,6 +37,10 @@ assert_eq!(frame.encoding, 0);
 assert_eq!(frame.data, [1,2,3,4,5].as_slice());
 ```
 
+After iterating over your frames, there may be some trailing bytes in the buffer
+that have not been consumed. Use `IdmFrameIter::bytes_unread()` to know how many
+remain.
+
 This crate also provides two fairly trivial functions for helping you write
 valid IDM frames: `write_idm_v1_frame_header` and `write_idm_v2_frame_header`.
 These can be used like so:
