@@ -1,45 +1,4 @@
-//! Utilities for parsing and encoding LDAP `PostalAddress`
-//!
-//! The LDAP `PostalAddress` syntax is defined in
-//! [IETF RFC 4517, Section 3.3.28](https://datatracker.ietf.org/doc/html/rfc4517#section-3.3.28).
-//! Lines of the postal address are separated by dollar signs. Dollar signs and
-//! backslashes that appear in the postal address are escaped by being
-//! translated to `\24` and `\5C` respectively (case-exact).
-//!
-//! This crate is `no_std`, but `alloc` is needed if you want to use
-//! `unescape_postal_address_line` or `escape_postal_address_line`.
-//!
-//! You can parse and unescape LDAP postal addresses like so:
-//!
-//! ```rust
-//! use ldappostaladdr::{parse_postal_address, unescape_postal_address_line};
-//! let input = "\\241,000,000 Sweepstakes$PO Box 1000000$Anytown, CA 12345$USA";
-//! let mut postal_address = parse_postal_address(input);
-//! for (line, backslash_escaped, dollar_escaped) in postal_address {
-//!   // This line returns Cow::Borrowed() if the line doesn't contain escape sequences.
-//!   let unescaped_line = unescape_postal_address_line(line, backslash_escaped, dollar_escaped);
-//!   // `unescaped_line` contains the usable postal address line.
-//!   // Use `unescaped_line.as_ref()` to read it without allocating.
-//! }
-//! ```
-//!
-//! You can create LDAP postal addresses like so:
-//!
-//! ```rust
-//! use ldappostaladdr::escape_postal_address_line;
-//! let lines = vec![
-//!     String::from("$1,000,000 Sweepstakes"),
-//!     String::from("123 Main St."),
-//!     String::from("Anytown, PA 12345"),
-//!     String::from("USA"),
-//! ];
-//! let output = lines.iter()
-//!     .map(|line| escape_postal_address_line(line).into_owned())
-//!     .collect::<Vec<String>>()
-//!     .join("$");
-//! assert_eq!(output.as_str(), "\\241,000,000 Sweepstakes$123 Main St.$Anytown, PA 12345$USA");
-//! ```
-//!
+#![doc = include_str!("../README.md")]
 #![no_std]
 
 #[cfg(feature = "alloc")]

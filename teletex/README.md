@@ -14,7 +14,7 @@ characters that are defined in ASCII are not defined in T.61.
 ## This crate
 
 This crate is `no_std` and was not written in any part by AI or LLMs. This
-crate was fuzz-tested.
+crate was fuzz-tested. It has no dependencies.
 
 ## Usage
 

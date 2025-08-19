@@ -11,7 +11,7 @@ readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/iso6093"
 license = "MIT"
 keywords = ["iso6093", "numeric", "number", "floating"]
-categories = ["encoding"]
+categories = ["encoding", "parser-implementations", "no-std"]
 
 [features]
 default = ["alloc"]

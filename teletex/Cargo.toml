@@ -11,4 +11,4 @@ readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/teletex"
 license = "MIT"
 keywords = ["teletex", "t61"]
-categories = ["encoding"]
+categories = ["encoding", "no-std"]
