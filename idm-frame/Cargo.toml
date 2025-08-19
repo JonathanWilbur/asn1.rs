@@ -1,0 +1,14 @@
+[package]
+name = "idm-frame"
+version = "1.0.0"
+edition = "2024"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "ITU-T Recommendation X.519 IDM Frame Decoding and Encoding"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/teletex"
+license = "MIT"
+keywords = ["idm", "x500"]
+categories = ["no-std", "network-programming"]

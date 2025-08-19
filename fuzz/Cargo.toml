@@ -30,6 +30,9 @@ path = "../x520-stringprep"
 [dependencies.teletex]
 path = "../teletex"
 
+[dependencies.idm-frame]
+path = "../idm-frame"
+
 [[bin]]
 name = "date"
 path = "fuzz_targets/date.rs"
@@ -138,6 +141,13 @@ bench = false
 [[bin]]
 name = "teletex"
 path = "fuzz_targets/teletex.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "idmframe"
+path = "fuzz_targets/idmframe.rs"
 test = false
 doc = false
 bench = false

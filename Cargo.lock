@@ -332,6 +332,7 @@ name = "asn1-fuzz"
 version = "0.0.0"
 dependencies = [
  "bytes",
+ "idm-frame",
  "ldapdn",
  "ldappostaladdr",
  "libfuzzer-sys",
@@ -1364,7 +1365,7 @@ dependencies = [
 
 [[package]]
 name = "idm-frame"
-version = "0.1.0"
+version = "1.0.0"
 
 [[package]]
 name = "idna"

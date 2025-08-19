@@ -27,7 +27,9 @@ members = [
     "iso6093",
     "ldapdn",
     "pki-stub",
-    "x520-stringprep", "ldappostaladdr",
+    "x520-stringprep",
+    "ldappostaladdr",
+    "idm-frame",
 ]
 
 [workspace.dependencies]
