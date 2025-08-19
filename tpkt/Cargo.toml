@@ -10,5 +10,5 @@ description = "ISO Transport over TCP (ITOT) TPKT Decoding"
 readme = "README.md"
 repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/tpkt"
 license = "MIT"
-keywords = ["tpkt", "itot", "osi", "rfc983", "rfc1006", "rfc2126"]
+keywords = ["itot", "osi", "rfc983", "rfc1006", "rfc2126"]
 categories = ["no-std", "network-programming"]
