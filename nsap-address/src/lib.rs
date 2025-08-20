@@ -151,18 +151,26 @@ pub const INTERNET_PREFIX: [u8; 5] = [
     0x00, 0x72, 0x87, 0x22, // IDI
 ];
 
-pub const INTERNET_PREFIX_IDI_DIGITS: &[u8; 8] = b"00728722";
+pub const INTERNET_PREFIX_IDI_DIGITS: [u8; 8] = *b"00728722";
 
+/// X.213 Network Address
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct X213NetworkAddress {
+    /// Network Type, determined from the Authority and Format Identifier (AFI)
     pub network_type: X213NetworkAddressType,
+    /// Whether this is a group network address, determined from the Authority
+    /// and Format Identifier (AFI)
     pub group: bool,
+    /// Initial Domain Identifier (IDI)
     pub idi: Vec<u8>,
+    /// Domain Specific Part (DSP)
     pub dsp: DomainSpecificPart,
 }
 
 impl X213NetworkAddress {
 
+    /// Create an X.213 Network Address
+    #[inline]
     pub fn new (
         network_type: X213NetworkAddressType,
         group: bool,
@@ -177,8 +185,13 @@ impl X213NetworkAddress {
         }
     }
 
-    pub fn afi (&self) -> Option<u8> {
-        let has_leading_zero = self.idi.get(0).is_some_and(|b| *b == 0x30);
+    /// The the AFI from the Network Address
+    pub const fn afi (&self) -> Option<u8> {
+        let has_leading_zero = if self.idi.len() > 0 {
+            self.idi.as_slice()[0] == b'0'
+        } else {
+            false
+        };
         match (self.network_type, &self.dsp, has_leading_zero) {
             (X213NetworkAddressType::X121, DomainSpecificPart::Binary(_), true) => Some(AFI_X121_BIN_LEADING_ZERO),
             (X213NetworkAddressType::X121, DomainSpecificPart::Binary(_), false) => Some(AFI_X121_BIN_LEADING_NON_ZERO),
@@ -213,21 +226,26 @@ impl X213NetworkAddress {
         }
     }
 
+    // This cannot be `const` because slice comparison isn't.
+    /// Returns `true` if this is an internet-based X.213 network address
+    ///
     /// NOTE: URL is not treated as "internet" because it could be a TOR URL,
     /// an I2P URL, or anything else.
     pub fn is_internet(&self) -> bool {
-        self.network_type == X213NetworkAddressType::F69
-        && &self.idi == INTERNET_PREFIX_IDI_DIGITS
+        self.network_type as usize == X213NetworkAddressType::F69 as usize
+        && self.idi.as_slice() == INTERNET_PREFIX_IDI_DIGITS.as_slice()
     }
 
-    pub fn to_socket_addr (&self) -> Option<(Ipv4Addr, Option<u16>)> {
+    /// Convert this to an IP address and maybe a port number
+    pub const fn to_socket_addr (&self) -> Option<(Ipv4Addr, Option<u16>)> {
         let dsp_bytes = match &self.dsp {
             DomainSpecificPart::Decimal(x) => x,
             _ => return None,
         };
-        read_socket_addr_v4(&dsp_bytes)
+        read_socket_addr_v4(dsp_bytes.as_slice())
     }
 
+    /// Conver this to a URL string
     pub fn to_url_str (&self) -> Option<String> {
         if self.network_type == X213NetworkAddressType::URL {
             let url_str = match &self.dsp {
@@ -248,7 +266,7 @@ impl X213NetworkAddress {
         if dsp_bytes.len() < 5 { // Ridiculously short URLs eliminated.
             return None;
         }
-        if &self.idi != INTERNET_PREFIX_IDI_DIGITS {
+        if self.idi.as_slice() != INTERNET_PREFIX_IDI_DIGITS.as_slice() {
             return None;
         }
         let (ipv4, port) = read_socket_addr_v4(&dsp_bytes)?;
@@ -269,6 +287,7 @@ impl X213NetworkAddress {
             }
             ITU_X519_DSP_PREFIX_IDM_OVER_IPV4 => {
                 if port.is_none() {
+                    // TODO: Couldn't you use a default port?
                     return None;
                 }
                 Some(format!("idm://{}:{}", ipv4, port.unwrap()))
@@ -285,6 +304,7 @@ impl X213NetworkAddress {
 
 }
 
+/// Split the NSAP into parts
 fn dissect_nsap_str (s: &str, prefix_len: usize, nt: X213NetworkAddressType) -> Result<(&str, &str), NAddressError> {
     let idi_str = s[prefix_len+1..].split("+").next().ok_or(NAddressError::NoIDI)?;
     let dsp_str = &s[prefix_len+1+idi_str.len()+1..];
@@ -516,7 +536,7 @@ impl FromStr for X213NetworkAddress {
     }
 }
 
-fn read_socket_addr_v4 (dsp: &[u8]) -> Option<(Ipv4Addr, Option<u16>)> {
+const fn read_socket_addr_v4 (dsp: &[u8]) -> Option<(Ipv4Addr, Option<u16>)> {
     let includes_tcp_port = match dsp.len() {
         12 => false,
         17 => true,
@@ -911,11 +931,16 @@ impl Display for DomainSpecificPart {
 impl Error for NAddressError {}
 
 /// This function was kept around so you can still get the AFI without parsing the whole NSAP.
-pub fn get_afi_from_n_address (naddr: &[u8]) -> Option<u8> {
-    naddr.get(0).cloned()
+pub const fn get_afi_from_n_address (naddr: &[u8]) -> Option<u8> {
+    if naddr.len() == 0 {
+        return None;
+    }
+    Some(naddr[0])
 }
 
-pub fn idi_leading_0_significant (nt: X213NetworkAddressType) -> Option<bool> {
+/// Returns `Some(true)` if leading zeroes in the IDI are significant,
+/// `Some(false)` if not, and `None` if it is not known.
+pub const fn idi_leading_0_significant (nt: X213NetworkAddressType) -> Option<bool> {
     match nt {
         X213NetworkAddressType::X121
         | X213NetworkAddressType::F69
@@ -930,34 +955,48 @@ pub fn idi_leading_0_significant (nt: X213NetworkAddressType) -> Option<bool> {
     }
 }
 
-pub fn individual_afi_to_group_afi (afi: u8) -> Option<u8> {
+/// Translate an individual AFI to its group equivalent
+#[inline]
+pub const fn individual_afi_to_group_afi (afi: u8) -> Option<u8> {
     match afi {
         0x10..=0x99 => Some(afi + 0x90),
         _ => None,
     }
 }
 
-pub fn group_afi_to_individual_afi (afi: u8) -> Option<u8> {
+/// Translate a group AFI to its individual equivalent
+#[inline]
+pub const fn group_afi_to_individual_afi (afi: u8) -> Option<u8> {
     match afi {
         0xA0..=0xF9 => Some(afi - 0x90),
         _ => None,
     }
 }
 
-pub fn is_individual_afi (afi: u8) -> bool {
+/// Return `true` if this is an individual AFI
+#[inline]
+pub const fn is_individual_afi (afi: u8) -> bool {
     afi >= 0x10 && afi <= 0x99
 }
 
-pub fn is_group_afi (afi: u8) -> bool {
+/// Return `true` if this is a group AFI
+#[inline]
+pub const fn is_group_afi (afi: u8) -> bool {
     afi >= 0xA0 && afi <= 0xF9
 }
 
-pub fn is_invalid_afi (afi: u8) -> bool {
+/// Return `true` if this is an invalid AFI
+#[inline]
+pub const fn is_invalid_afi (afi: u8) -> bool {
     !is_individual_afi(afi) && !is_group_afi(afi)
 }
 
-pub fn naddr_network_type (afi: u8) -> Option<X213NetworkAddressType> {
-    let ind_afi = group_afi_to_individual_afi(afi).unwrap_or(afi);
+/// Return get the N-address network type from the AFI
+pub const fn naddr_network_type (afi: u8) -> Option<X213NetworkAddressType> {
+    let ind_afi = match group_afi_to_individual_afi(afi) {
+        Some(x) => x,
+        None => afi,
+    };
     match ind_afi {
         AFI_X121_DEC_LEADING_NON_ZERO
         | AFI_X121_DEC_LEADING_ZERO
@@ -991,7 +1030,9 @@ pub fn naddr_network_type (afi: u8) -> Option<X213NetworkAddressType> {
     }
 }
 
-pub fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> Option<&'static str> {
+/// Convert the network type to a string
+#[inline]
+pub const fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> Option<&'static str> {
     match nt {
         X213NetworkAddressType::X121 => Some(AFI_STR_X121),
         X213NetworkAddressType::ISO_DCC => Some(AFI_STR_DCC),
@@ -1006,7 +1047,9 @@ pub fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> Option<&'static
     }
 }
 
-pub fn naddr_network_type_to_max_dec_length (nt: X213NetworkAddressType) -> Option<u8> {
+/// Get the max decimal length given a network address type
+#[inline]
+pub const fn naddr_network_type_to_max_dec_length (nt: X213NetworkAddressType) -> Option<u8> {
     match nt {
         X213NetworkAddressType::X121 => Some(MAX_DEC_DSP_LEN_X121),
         X213NetworkAddressType::ISO_DCC => Some(MAX_DEC_DSP_LEN_ISO_DCC),
@@ -1021,7 +1064,9 @@ pub fn naddr_network_type_to_max_dec_length (nt: X213NetworkAddressType) -> Opti
     }
 }
 
-pub fn naddr_network_type_to_max_bin_length (nt: X213NetworkAddressType) -> Option<u8> {
+/// Get the max binary length given a network address type
+#[inline]
+pub const fn naddr_network_type_to_max_bin_length (nt: X213NetworkAddressType) -> Option<u8> {
     match nt {
         X213NetworkAddressType::X121 => Some(MAX_BIN_DSP_LEN_X121),
         X213NetworkAddressType::ISO_DCC => Some(MAX_BIN_DSP_LEN_ISO_DCC),
@@ -1036,7 +1081,9 @@ pub fn naddr_network_type_to_max_bin_length (nt: X213NetworkAddressType) -> Opti
     }
 }
 
-pub fn naddr_network_type_to_max_idi_length (nt: X213NetworkAddressType) -> Option<usize> {
+/// Get the max IDI length (in bytes) given a network address type
+#[inline]
+pub const fn naddr_network_type_to_max_idi_length (nt: X213NetworkAddressType) -> Option<usize> {
     match nt {
         X213NetworkAddressType::X121 => Some(MAX_IDI_LEN_X121),
         X213NetworkAddressType::ISO_DCC => Some(MAX_IDI_LEN_ISO_DCC),
@@ -1051,8 +1098,12 @@ pub fn naddr_network_type_to_max_idi_length (nt: X213NetworkAddressType) -> Opti
     }
 }
 
-pub fn naddr_dsp_is_binary (afi: u8) -> bool {
-    let ind_afi = group_afi_to_individual_afi(afi).unwrap_or(afi);
+/// Return `true` if the DSP is in binary format
+pub const fn naddr_dsp_is_binary (afi: u8) -> bool {
+    let ind_afi = match group_afi_to_individual_afi(afi) {
+        Some(x) => x,
+        None => afi,
+    };
     match ind_afi {
         AFI_X121_BIN_LEADING_NON_ZERO
         | AFI_X121_BIN_LEADING_ZERO
@@ -1072,8 +1123,12 @@ pub fn naddr_dsp_is_binary (afi: u8) -> bool {
     }
 }
 
-pub fn naddr_dsp_is_decimal (afi: u8) -> bool {
-    let ind_afi = group_afi_to_individual_afi(afi).unwrap_or(afi);
+/// Return `true` if the DSP is in decimal format
+pub const fn naddr_dsp_is_decimal (afi: u8) -> bool {
+    let ind_afi = match group_afi_to_individual_afi(afi) {
+        Some(x) => x,
+        None => afi,
+    };
     match ind_afi {
         AFI_X121_DEC_LEADING_NON_ZERO
         | AFI_X121_DEC_LEADING_ZERO
@@ -1092,25 +1147,36 @@ pub fn naddr_dsp_is_decimal (afi: u8) -> bool {
     }
 }
 
-pub fn naddr_dsp_is_iso_iec_646 (afi: u8) -> bool {
-    let ind_afi = group_afi_to_individual_afi(afi).unwrap_or(afi);
+/// Return `true` if the DSP is in ISO/IEC 646 format
+pub const fn naddr_dsp_is_iso_iec_646 (afi: u8) -> bool {
+    let ind_afi = match group_afi_to_individual_afi(afi) {
+        Some(x) => x,
+        None => afi,
+    };
     match ind_afi {
         AFI_LOCAL_ISO_IEC_646 => true,
         _ => false,
     }
 }
 
-pub fn naddr_dsp_is_national (afi: u8) -> bool {
-    let ind_afi = group_afi_to_individual_afi(afi).unwrap_or(afi);
+/// Return `true` if the DSP is in nationally-defined format
+pub const fn naddr_dsp_is_national (afi: u8) -> bool {
+    let ind_afi = match group_afi_to_individual_afi(afi) {
+        Some(x) => x,
+        None => afi,
+    };
     match ind_afi {
         AFI_LOCAL_NATIONAL => true,
         _ => false,
     }
 }
 
-
-pub fn naddr_idi_has_leading_zero (afi: u8) -> bool {
-    let ind_afi = group_afi_to_individual_afi(afi).unwrap_or(afi);
+/// Return `true` if the IDI has leading zeroes
+pub const fn naddr_idi_has_leading_zero (afi: u8) -> bool {
+    let ind_afi = match group_afi_to_individual_afi(afi) {
+        Some(x) => x,
+        None => afi,
+    };
     match ind_afi {
         AFI_X121_DEC_LEADING_ZERO
         | AFI_X121_BIN_LEADING_ZERO
@@ -1122,10 +1188,6 @@ pub fn naddr_idi_has_leading_zero (afi: u8) -> bool {
         | AFI_E164_BIN_LEADING_ZERO => true,
         _ => false,
     }
-}
-
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
 }
 
 #[cfg(test)]
