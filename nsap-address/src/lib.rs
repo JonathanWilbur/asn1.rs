@@ -612,35 +612,31 @@ impl <'a> FusedIterator for IDIDigitsIter<'a> {}
 
 #[derive(Debug)]
 pub struct X213NetworkAddress <'a> {
-    // TODO: These don't always end on octet boundaries.
-    // I think you should just merge these, and this type will just be a single slice.
-    // Then you can also generalize the IDI digits iterator to be a general BCD iterator.
-    pub idp: &'a [u8],
-    pub dsp: &'a [u8],
+    pub octets: &'a [u8],
 }
 
 impl <'a> X213NetworkAddress <'a> {
 
     #[inline]
     pub const fn afi(&self) -> u8 {
-        if self.idp.len() > 0 {
-            self.idp[0]
+        if self.octets.len() > 0 {
+            self.octets[0]
         } else {
             panic!("Zero-length IDP in an X.213 network address")
         }
     }
 
-    #[inline]
-    pub const fn idi(&self) -> &'a [u8] {
-        if self.idp.len() > 0 {
-            // Sorry for the unsafe code. I was just trying to do
-            // &self.idp[1..self.idp.len()] in a const fn.
-            let slice = &self.idp;
-            unsafe { core::slice::from_raw_parts(slice.as_ptr().add(1), slice.len() - 1) }
-        } else {
-            panic!("Zero-length IDP in an X.213 network address")
-        }
-    }
+    // #[inline]
+    // pub const fn idi(&self) -> &'a [u8] {
+    //     if self.octets.len() > 0 {
+    //         // Sorry for the unsafe code. I was just trying to do
+    //         // &self.idp[1..self.idp.len()] in a const fn.
+    //         let slice = &self.octets;
+    //         unsafe { core::slice::from_raw_parts(slice.as_ptr().add(1), slice.len() - 1) }
+    //     } else {
+    //         panic!("Zero-length IDP in an X.213 network address")
+    //     }
+    // }
 
     #[inline]
     pub const fn get_network_type_info(&self) -> Option<X213NetworkAddressInfo> {
@@ -665,35 +661,31 @@ impl <'a> X213NetworkAddress <'a> {
         let idi_len = naddr_network_type_to_max_idi_length(addr_type_info.network_type).unwrap();
         let odd_len_idi: bool = (idi_len % 2) > 0;
         let last_idi_digit_is_padding: bool = is_dsp_decimal && odd_len_idi;
-        IDIDigitsIter::new(self.idi(), leading_0_sig, last_idi_digit_is_padding)
+        let idi = &self.octets[1..1+idi_len];
+        IDIDigitsIter::new(idi, leading_0_sig, last_idi_digit_is_padding)
     }
 
 }
 
+// TODO: Also support the special directory URL AFI 0xFF
+
 impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
     type Error = NAddressError;
 
-    fn try_from(value: &'a [u8]) -> Result<Self, Self::Error> {
-        let afi: u8 = match value.get(0) {
-            Some(a) => *a,
-            None => return Err(NAddressError::NoAFI),
-        };
-        let nettype = X213NetworkAddressType::try_from(afi)
-            .map_err(|_| NAddressError::UnrecognizedNetworkType)?;
-        let max_idi_len = naddr_network_type_to_max_idi_length(nettype)
-            .ok_or(NAddressError::UnrecognizedNetworkType)?;
-        let idi_len_in_bytes = if max_idi_len % 2 > 0 {
-            (max_idi_len + 1) >> 1
-        } else {
-            max_idi_len >> 1
-        };
-        let expected_idp_len_in_bytes = 1 + idi_len_in_bytes as usize;
-        if value.len() < expected_idp_len_in_bytes {
-            return Err(NAddressError::IDPTruncated(expected_idp_len_in_bytes, value.len()));
+    fn try_from(octets: &'a [u8]) -> Result<Self, Self::Error> {
+        if octets.len() < 2 { // I don't think one byte can be a valid address.
+        // FIXME: This should just be TooShort
+            return Err(NAddressError::NoAFI);
         }
-        let idp = &value[0..expected_idp_len_in_bytes];
-        let dsp = &value[expected_idp_len_in_bytes..];
-        Ok(X213NetworkAddress { idp, dsp })
+        /* ITU-T Rec. X.213, Section A.5.4 states that the maximum length MUST
+        be 20 octets, but ITU-T Rec. X.519 section 11.4 basically overrules
+        that. As such, we are just setting a limit of 248 bytes just to close up
+        any attack vectors related to large NSAP addresses. */
+        if octets.len() > 248 {
+            // FIXME: This should just be TooLong
+            return Err(NAddressError::IDITooLong);
+        }
+        Ok(X213NetworkAddress { octets })
     }
 
 }
@@ -701,18 +693,24 @@ impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
 impl <'a> Display for X213NetworkAddress<'a> {
 
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let info = self.get_network_type_info();
-        match info.and_then(|i| naddr_network_type_to_str(i.network_type)) {
+        let info = match self.get_network_type_info() {
+            Some(i) => i,
+            None => { // If unrecognized, just print in NS+<hex> format
+                let h = hex::encode(self.octets);
+                f.write_str("NS+")?;
+                return f.write_str(h.as_str());
+            }
+        };
+        match naddr_network_type_to_str(info.network_type) {
             Some(s) => f.write_str(s)?,
             None => write!(f, "{:02X}", self.afi())?,
         };
         f.write_char('+')?;
-        // TODO: This is now one digit per semi-octet
-        // f.write_char((*digit).into())?;
         for digit in self.idi_digits() {
             f.write_char((digit + 0x30) as char)?;
         }
         f.write_char('+')?;
+
         // TODO:
         Ok(())
 
