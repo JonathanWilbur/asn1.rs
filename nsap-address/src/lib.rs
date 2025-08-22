@@ -927,6 +927,34 @@ fn write_bcd(out: &mut Vec<u8>, digits: &[u8], idi_len_digits: usize) {
     }
 }
 
+/*
+Every valid NSAP string has a second part... except per ITU-T Rec.
+X.213, section A.7, which handles a zero-length DSP.
+
+Note: there seems to be an error in RFC 1278 in making the
+second <hexstring> non-optional, since this is optional in X.213.
+X.213 also says that the first byte of the <idp> may be hex,
+which RFC 1278 does not permit.
+*/
+fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, ()> {
+    if !s[2..].as_bytes().iter().all(|b| b.is_ascii_digit()) {
+        return Err(());
+    }
+    let afi = decode_afi_from_str(&s[0..2])?;
+    // If the schema is not known, we cannot construct an NSAP,
+    // because we don't know how long the IDI is.
+    let schema = get_address_type_info(afi).ok_or(())?;
+    let idi_len_digits = get_idi_len_in_digits(schema.network_type).ok_or(())?;
+    // FIXME: IDI length in bytes is calculated incorrectly throughout this library.
+    let idi_len_bytes = (idi_len_digits >> 1) + 1; // +1 for odd len
+    let mut out: Vec<u8> = Vec::with_capacity(1 + idi_len_bytes);
+    out.push(afi);
+    // FIXME: Write leading 1s or 0s
+    write_bcd(&mut out, s[2..].as_bytes(), idi_len_digits);
+    debug_assert_eq!(out.len(), 1 + idi_len_bytes);
+    return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+}
+
 #[cfg(feature = "alloc")]
 impl <'a> FromStr for X213NetworkAddress<'a> {
     type Err = ();
@@ -946,46 +974,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
         }
         let second_part = match parts.next() {
             Some(sp) => sp,
-            None => {
-                /*
-                Every valid NSAP string has a second part... except per ITU-T Rec.
-                X.213, section A.7, which handles a zero-length DSP.
-
-                Note: there seems to be an error in RFC 1278 in making the
-                second <hexstring> non-optional, since this is optional in X.213.
-                X.213 also says that the first byte of the <idp> may be hex,
-                which RFC 1278 does not permit.
-                */
-                if !first_part[2..].as_bytes().iter().all(|b| b.is_ascii_digit()) {
-                    return Err(());
-                }
-                let afi = decode_afi_from_str(&first_part[0..2])?;
-                // If the schema is not known, we cannot construct an NSAP,
-                // because we don't know how long the IDI is.
-                let schema = get_address_type_info(afi).ok_or(())?;
-                let idi_len_digits = get_idi_len_in_digits(schema.network_type).ok_or(())?;
-                // FIXME: IDI length in bytes is calculated incorrectly throughout this library.
-                let idi_len_bytes = (idi_len_digits >> 1) + 1; // +1 for odd len
-                let mut out: Vec<u8> = Vec::with_capacity(1 + idi_len_bytes);
-                out.push(afi);
-                write_bcd(&mut out, first_part[2..].as_bytes(), idi_len_digits);
-                // let mut out_byte: u8 = 0;
-                // for (i, digit) in first_part[2..].as_bytes().iter().enumerate() {
-                //     if (i % 2) > 0 { // On least significant nybble
-                //         out_byte |= *digit - 0x30;
-                //         out.push(out_byte);
-                //         out_byte = 0;
-                //     } else { // On most significant nybble
-                //         out_byte |= (*digit - 0x30) << 4;
-                //     }
-                // }
-                // if (idi_len_digits % 2) > 0 {
-                //     out_byte |= 0x0F;
-                //     out.push(out_byte);
-                // }
-                debug_assert_eq!(out.len(), 1 + idi_len_bytes);
-                return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
-            },
+            None => return decode_idp_only(first_part),
         };
         if first_part == "NS" {
             let hexstr = parts.next().ok_or(())?;
@@ -1010,26 +999,73 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
         };
         let maybe_afi = naddr_str_to_afi(first_part, second_part.starts_with("0"), syntax);
         if let Some(afi) = maybe_afi {
+            let schema = get_address_type_info(afi).ok_or(())?;
+            let idi_len_digits: usize = get_idi_len_in_digits(schema.network_type).ok_or(())?;
+            let idi_len_bytes: usize = (idi_len_digits >> 1) + 1; // +1 for odd len
+            let dsp_len_bytes: usize = third_part
+                .map(|p3| if syntax == DSPSyntax::Decimal {
+                    (p3.len() >> 1) + 1
+                } else {
+                    p3.len()
+                })
+                .unwrap_or(0)
+                ;
+
+            let cap: usize = 1 + idi_len_bytes + dsp_len_bytes;
+            let mut out: Vec<u8> = Vec::with_capacity(cap);
+            out.push(afi);
+            // FIXME: Write leading 1s or 0s
+            write_bcd(&mut out, second_part.as_bytes(), idi_len_digits);
             // This is valid <afi> "+" <idi> [ "+" <dsp> ] syntax.
+            // if let Some(p3) = third_part {
+            //     match p3.get(0) {
+            //         Some('d') => DSPSyntax::Decimal,
+            //         Some('x') => DSPSyntax::Binary,
+            //         Some('l') => DSPSyntax::IsoIec646Chars,
+            //     }
+            //     // TODO:
+            // }
+            // debug_assert_eq!(out.len(), cap); I don't think you can guarantee this because of the macros.
+            return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
         }
         // Otherwise, assume it is <idp> "+" <hexstring>
         // FIXME: The AFI can contain hex digits too
-        if !first_part[2..].as_bytes().iter().all(|b| b.is_ascii_digit()) || first_part.len() < 2 {
+        if !first_part[2..].as_bytes().iter().all(|b| b.is_ascii_digit())
+            || first_part.len() < 2
+            || third_part.is_some() {
             return Err(());
         }
         let afi = decode_afi_from_str(&s[0..2])?;
-        let addr_type_info = get_address_type_info(afi);
-        let idp = &first_part.as_bytes()[2..];
-        let mut idp_bytes: Vec<u8> = Vec::with_capacity(idp.len() >> 1);
-        for digit in idp {
-
+        let schema = get_address_type_info(afi).ok_or(())?;
+        let idi_len_digits: usize = get_idi_len_in_digits(schema.network_type).ok_or(())?;
+        if (idi_len_digits % 2) > 0 && syntax == DSPSyntax::Decimal {
+            /* In the encoding specified in ITU-T Rec. X.213, Section A.7, it
+            is not clear how to encode decimal DSPs when the first digit
+            occupies the last nybble of the IDP's last octet. It is not clear
+            if an odd number of hex characters could be used, or if this
+            representation is only suitable for binary DSPs. */
+            return Err(());
         }
-        Err(())
+        let idi_len_bytes: usize = (idi_len_digits >> 1) + 1; // +1 for odd len
+        let dsp_len_bytes: usize = if syntax == DSPSyntax::Decimal {
+            (second_part.len() >> 1) + 1
+        } else {
+            second_part.len()
+        };
+
+        let cap: usize = 1 + idi_len_bytes + dsp_len_bytes;
+        let mut out: Vec<u8> = Vec::with_capacity(cap);
+        out.push(afi);
+        // FIXME: Write leading 1s or 0s
+        write_bcd(&mut out, first_part[2..].as_bytes(), idi_len_digits);
+        hex::decode_to_slice(second_part, &mut out[1+idi_len_bytes..])
+            .map_err(|_| ())?;
+        debug_assert_eq!(out.len(), cap);
+        Ok(X213NetworkAddress { octets: Cow::Owned(out) })
     }
 
 }
 
-// TODO: FromStr
 // TODO: PartialEq, Eq
 // TODO: Hash
 
