@@ -947,12 +947,23 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, ()> {
     let idi_len_digits = get_idi_len_in_digits(schema.network_type).ok_or(())?;
     // FIXME: IDI length in bytes is calculated incorrectly throughout this library.
     let idi_len_bytes = (idi_len_digits >> 1) + 1; // +1 for odd len
-    let mut out: Vec<u8> = Vec::with_capacity(1 + idi_len_bytes);
-    out.push(afi);
-    // FIXME: Write leading 1s or 0s
+    let mut out: Vec<u8> = Vec::new();
+    let idi_pad = if schema.leading_zeroes_in_idi { 0x11 } else { 0x00 };
+    out.resize(1 + idi_len_bytes, idi_pad);
+    out[0] = afi;
+    // let mut out: Vec<u8> = Vec::with_capacity(1 + idi_len_bytes);
+    // out.push(afi);
+    // // FIXME: Write leading 1s or 0s
     write_bcd(&mut out, s[2..].as_bytes(), idi_len_digits);
     debug_assert_eq!(out.len(), 1 + idi_len_bytes);
     return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+}
+
+pub const fn leading_0_in_idi_significant(nt: X213NetworkAddressType) -> bool {
+    nt as usize == X213NetworkAddressType::F69 as usize
+    || nt as usize == X213NetworkAddressType::E163 as usize
+    || nt as usize == X213NetworkAddressType::E164 as usize
+    || nt as usize == X213NetworkAddressType::X121 as usize
 }
 
 #[cfg(feature = "alloc")]
@@ -1001,7 +1012,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
         if let Some(afi) = maybe_afi {
             let schema = get_address_type_info(afi).ok_or(())?;
             let idi_len_digits: usize = get_idi_len_in_digits(schema.network_type).ok_or(())?;
-            let idi_len_bytes: usize = (idi_len_digits >> 1) + 1; // +1 for odd len
+            let idi_len_bytes: usize = (idi_len_digits >> 1) + (idi_len_digits % 2);
             let dsp_len_bytes: usize = third_part
                 .map(|p3| if syntax == DSPSyntax::Decimal {
                     (p3.len() >> 1) + 1
@@ -1013,8 +1024,9 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
 
             let cap: usize = 1 + idi_len_bytes + dsp_len_bytes;
             let mut out: Vec<u8> = Vec::with_capacity(cap);
-            out.push(afi);
-            // FIXME: Write leading 1s or 0s
+            let idi_pad = if schema.leading_zeroes_in_idi { 0x11 } else { 0x00 };
+            out.resize(1 + idi_len_bytes, idi_pad);
+            out[0] = afi;
             write_bcd(&mut out, second_part.as_bytes(), idi_len_digits);
             // This is valid <afi> "+" <idi> [ "+" <dsp> ] syntax.
             // if let Some(p3) = third_part {
@@ -1029,7 +1041,6 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
             return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
         }
         // Otherwise, assume it is <idp> "+" <hexstring>
-        // FIXME: The AFI can contain hex digits too
         if !first_part[2..].as_bytes().iter().all(|b| b.is_ascii_digit())
             || first_part.len() < 2
             || third_part.is_some() {
@@ -1046,7 +1057,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
             representation is only suitable for binary DSPs. */
             return Err(());
         }
-        let idi_len_bytes: usize = (idi_len_digits >> 1) + 1; // +1 for odd len
+        let idi_len_bytes: usize = (idi_len_digits >> 1) + (idi_len_digits % 2);
         let dsp_len_bytes: usize = if syntax == DSPSyntax::Decimal {
             (second_part.len() >> 1) + 1
         } else {
@@ -1055,8 +1066,9 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
 
         let cap: usize = 1 + idi_len_bytes + dsp_len_bytes;
         let mut out: Vec<u8> = Vec::with_capacity(cap);
-        out.push(afi);
-        // FIXME: Write leading 1s or 0s
+        let idi_pad = if schema.leading_zeroes_in_idi { 0x11 } else { 0x00 };
+        out.resize(1 + idi_len_bytes, idi_pad);
+        out[0] = afi;
         write_bcd(&mut out, first_part[2..].as_bytes(), idi_len_digits);
         hex::decode_to_slice(second_part, &mut out[1+idi_len_bytes..])
             .map_err(|_| ())?;
