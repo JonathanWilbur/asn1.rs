@@ -1012,6 +1012,13 @@ fn u16_to_decimal_bytes(mut n: u16) -> [u8; 5] {
     ]
 }
 
+// TODO: Use this
+pub enum RFC1278ParseError <'a> {
+    Malformed,
+    Unsupported,
+    ResolveDNS(&'a str),
+}
+
 #[cfg(feature = "alloc")]
 impl <'a> FromStr for X213NetworkAddress<'a> {
     type Err = ();
@@ -1110,7 +1117,6 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
                     if !third_part.chars().all(|c| c.is_alphanumeric() || c == '+' || c == '-' || c == '.') {
                         return Err(());
                     }
-                    // out.extend(&third_part.as_bytes()[1..]);
                     let out = [
                         bcd_buf.as_ref(),
                         third_part[1..].as_ref(),
@@ -1173,8 +1179,57 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
                     }
                     if third_part == X25_PREFIX_STR {
                         // "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
-                        let _dsp = &third_part[X25_PREFIX_STR.len()..];
-                        todo!();
+                        // X.25(80)+02+00002340555+CUDF+892796
+                        // let _dsp = &third_part[X25_PREFIX_STR.len()..];
+                        // todo!();
+                        let prefix = parts.next();
+                        let dte = parts.next();
+                        let cudf_of_pid = parts.next();
+                        let cudf_of_pid_hex = parts.next();
+                        if prefix.is_none()
+                            || dte.is_none()
+                            || (cudf_of_pid.is_some() && cudf_of_pid_hex.is_none()) {
+                            return Err(());
+                        }
+                        let prefix = prefix.unwrap();
+                        let dte = dte.unwrap();
+                        if !prefix.bytes().all(|b| b.is_ascii_digit())
+                            || !dte.bytes().all(|b| b.is_ascii_digit()) {
+                            return Err(());
+                        }
+                        bcd_buf.push_str(prefix);
+                        match cudf_of_pid {
+                            Some("PID") => bcd_buf.push_digit_u8(0x31),
+                            Some("CUDF") => bcd_buf.push_digit_u8(0x32),
+                            Some(_) => return Err(()),
+                            None => bcd_buf.push_digit_u8(0x30), // DTE-only
+                        };
+                        if let Some(hexstr) = cudf_of_pid_hex {
+                            let mut hexout: [u8; 20] = [0; 20];
+                            if (hexstr.len() % 2) > 0 || hexstr.len() > 14 {
+                                // If my calculations are correct, only a
+                                // 7-byte long CUDF/PID fits in an NSAP addr.
+                                return Err(());
+                            }
+                            let bytelen = hexstr.len() >> 1;
+                            hex::decode_to_slice(hexstr, &mut hexout[0..bytelen])
+                                .map_err(|_| ())?;
+                            // This is the CUDF/PID length field
+                            bcd_buf.push_digit_u8(bytelen as u8 + 0x30);
+                            // Then the CUDF/PID itself
+                            for b in hexout[0..bytelen].iter() {
+                                let b_dec = u8_to_decimal_bytes(*b);
+                                bcd_buf.push_ascii_bytes(b_dec.as_slice());
+                            }
+                        }
+                        let dte_len_bytes = (dte.len() >> 1) + (dte.len() % 2);
+                        if bcd_buf.len_in_bytes() + dte_len_bytes > 20 {
+                            return Err(());
+                        }
+                        bcd_buf.push_str(dte);
+                        return Ok(X213NetworkAddress {
+                            octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
+                        });
                     }
                     if third_part == ECMA_117_BINARY_STR {
                         // "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
@@ -1299,7 +1354,7 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        let cases: [(&str, &[u8]); 3] = [
+        let cases: [(&str, &[u8]); 4] = [
             ("NS+a433bb93c1", &[0xa4, 0x33, 0xbb, 0x93, 0xc1]),
             ("X121+234219200300", &[0x36, 0x00, 0x23, 0x42, 0x19, 0x20, 0x03, 0x00 ]),
             ("TELEX+00728722+RFC-1006+03+10.0.0.6", &[
@@ -1308,6 +1363,16 @@ mod tests {
                 0x03,
                 0x01, 0x00, 0x00, 0x00, 0x00, 0x06, // 10.0.0.6
             ]),
+            // This one deviates from RFC 1278. It seems like it had quotes
+            // around the CUDF in error. I am not totally sure.
+            ("TELEX+00728722+X.25(80)+02+00002340555+CUDF+892796", &[
+                0x54,
+                0x00, 0x72, 0x87, 0x22,
+                0x02,
+                0x23, // CUDF, which is 3 octets encoded as 9 digits
+                0x13, 0x70, 0x39, 0x15, 0x00, // The last 0 here is for the DTE
+                0x00, 0x02, 0x34, 0x05, 0x55, // All but the first digit of the DTE
+            ])
         ];
         for (case_str, expected) in cases {
             let actual = X213NetworkAddress::from_str(case_str);
