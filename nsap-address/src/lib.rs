@@ -849,6 +849,7 @@ impl <'a> Display for X213NetworkAddress<'a> {
         f.write_char('+')?;
         let idi_len = get_idi_len_in_digits(info.network_type).unwrap();
         let idi_len_in_bytes: usize = idi_len >> 1;
+        // TODO: Display RFC-1006 / X.25(80), etc.
         match info.dsp_syntax {
             DSPSyntax::Decimal => {
                 match self.dsp_digits() {
@@ -914,6 +915,7 @@ fn decode_afi_from_str(s: &str) -> Result<AFI, ()> {
     Ok(out[0])
 }
 
+// FIXME: Get rid of this entirely
 // TODO: Use the new bias arg
 fn write_bcd(out: &mut Vec<u8>, mut digits: &[u8], idi_len_digits: usize, bias: isize) {
     if digits.len() == 0 {
@@ -961,18 +963,21 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, ()> {
     // because we don't know how long the IDI is.
     let schema = get_address_type_info(afi).ok_or(())?;
     let idi_len_digits = get_idi_len_in_digits(schema.network_type).ok_or(())?;
-    // FIXME: IDI length in bytes is calculated incorrectly throughout this library.
-    let idi_len_bytes = (idi_len_digits >> 1) + 1; // +1 for odd len
-    let mut out: Vec<u8> = Vec::new();
-    let idi_pad = if schema.leading_zeroes_in_idi { 0x11 } else { 0x00 };
-    out.resize(1 + idi_len_bytes, idi_pad);
-    out[0] = afi;
-    // let mut out: Vec<u8> = Vec::with_capacity(1 + idi_len_bytes);
-    // out.push(afi);
-    // // FIXME: Write leading 1s or 0s
-    write_bcd(&mut out, s[2..].as_bytes(), idi_len_digits, 0);
-    debug_assert_eq!(out.len(), 1 + idi_len_bytes);
-    return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+    let mut bcd_buf = BCDBuffer::new();
+    bcd_buf.push_byte(afi);
+    let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
+    let mut idi_deficit = idi_len_digits.saturating_sub(s.len() - 2);
+    while idi_deficit > 0 {
+        bcd_buf.push_nybble(idi_pad);
+        idi_deficit -= 1;
+    }
+    bcd_buf.push_str(&s[2..]);
+    if (bcd_buf.i % 2) > 0 {
+        bcd_buf.push_nybble(0xF);
+    }
+    return Ok(X213NetworkAddress {
+        octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
+    });
 }
 
 pub const fn leading_0_in_idi_significant(nt: X213NetworkAddressType) -> bool {
@@ -1309,7 +1314,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
         }
         let idi_len_bytes: usize = (idi_len_digits >> 1) + (idi_len_digits % 2);
         let dsp_len_bytes: usize = if syntax == DSPSyntax::Decimal {
-            (second_part.len() >> 1) + 1
+            (second_part.len() >> 1) + (second_part.len() % 2)
         } else {
             second_part.len()
         };
