@@ -22,11 +22,13 @@
 #![no_std]
 #![allow(non_camel_case_types)]
 mod data;
+mod bcd;
 use core::fmt::{Display, Write};
 use core::error::Error;
 use core::convert::TryFrom;
 use core::iter::{Iterator, FusedIterator};
 use crate::data::{get_address_type_info, X213NetworkAddressInfo};
+use bcd::BCDBuffer;
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
