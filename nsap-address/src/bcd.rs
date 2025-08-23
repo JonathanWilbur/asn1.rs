@@ -15,14 +15,23 @@ impl BCDBuffer {
         BCDBuffer { bytes: [0; 20], i: 0 }
     }
 
-    pub fn push_digit_char(&mut self, c: char) {
-        debug_assert!(c.is_ascii_digit(), "non-ascii digit passed into push_digit_char");
-        // let ascii = unsafe { c.as_ascii_unchecked() };
-        self.push_digit_u8(c as u8)
+    pub fn push_str(&mut self, s: &str) {
+        debug_assert!(s.is_ascii(), "non-ascii passed into BCDBuffer::push_str");
+        s.bytes().for_each(|b| self.push_digit_u8(b));
     }
 
+    pub fn push_ascii_bytes(&mut self, bytes: &[u8]) {
+        debug_assert!(bytes.is_ascii(), "non-ascii passed into BCDBuffer::push_ascii_bytes");
+        bytes.iter().for_each(|b| self.push_digit_u8(*b));
+    }
+
+    // pub fn push_digit_char(&mut self, c: char) {
+    //     debug_assert!(c.is_ascii_digit(), "non-ascii digit passed into BCDBuffer::push_digit_char");
+    //     self.push_digit_u8(c as u8)
+    // }
+
     pub fn push_digit_u8(&mut self, b: u8) {
-        debug_assert!(b.is_ascii_digit(), "non-ascii digit passed into push_digit_u8");
+        debug_assert!(b.is_ascii_digit(), "non-ascii digit passed into BCDBuffer::push_digit_u8");
         let nybble: u8 = b.saturating_sub(0x30);
         self.push_nybble(nybble);
     }
@@ -66,7 +75,8 @@ mod tests {
     #[test]
     fn test_bcd_buffer_1() {
         let mut bcd = BCDBuffer::new();
-        bcd.push_digit_char('9');
+        // bcd.push_digit_char('9');
+        bcd.push_digit_u8(0x39);
         bcd.push_digit_u8(0x37);
         bcd.push_nybble(0x05);
         bcd.push_byte(0x33);

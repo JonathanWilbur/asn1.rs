@@ -38,6 +38,8 @@ use alloc::borrow::Cow;
 use core::str::FromStr;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use core::net::Ipv4Addr;
 
 // TODO: Support GOSIP NSAP addressing: https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b
 // TODO: Is there a separate ATN addressing? It sounds like ATN uses ISO 6523 (ICD)
@@ -161,10 +163,10 @@ pub const AFI_STR_LOCAL: &str = "LOCAL";
 pub const AFI_STR_URL: &str = "URL"; // TODO: Document that this is not standard
 
 pub const IETF_RFC_1277_TELEX_NUMBER_STR: &str = "00728722";
-pub const IETF_RFC_1006_PREFIX_STR: &str = "RFC-1006+";
-pub const X25_PREFIX_STR: &str = "X.25(80)+";
-pub const ECMA_117_BINARY_STR: &str = "ECMA-117-Binary+";
-pub const ECMA_117_DECIMAL_STR: &str = "ECMA-117-Decimal+";
+pub const IETF_RFC_1006_PREFIX_STR: &str = "RFC-1006";
+pub const X25_PREFIX_STR: &str = "X.25(80)";
+pub const ECMA_117_BINARY_STR: &str = "ECMA-117-Binary";
+pub const ECMA_117_DECIMAL_STR: &str = "ECMA-117-Decimal";
 
 /// This is exported for convenience, since the Internet is most likely to be
 /// used in NSAPs now. If an application only wants / can use Internet NSAPs,
@@ -912,9 +914,21 @@ fn decode_afi_from_str(s: &str) -> Result<AFI, ()> {
     Ok(out[0])
 }
 
-fn write_bcd(out: &mut Vec<u8>, digits: &[u8], idi_len_digits: usize) {
+// TODO: Use the new bias arg
+fn write_bcd(out: &mut Vec<u8>, mut digits: &[u8], idi_len_digits: usize, bias: isize) {
+    if digits.len() == 0 {
+        return;
+    }
+    if bias == -1 { // If -1, write the previous nybble
+        let out_len = out.len();
+        out[out_len - 1] &= 0b1111_0000;
+        out[out_len - 1] |= (digits[0] - 0x30) & 0b0000_1111;
+        digits = &digits[1..];
+    }
+
     let mut out_byte: u8 = 0;
     for (i, digit) in digits.iter().enumerate() {
+        let i = i + bias as usize;
         if (i % 2) > 0 { // On least significant nybble
             out_byte |= *digit - 0x30;
             out.push(out_byte);
@@ -956,7 +970,7 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, ()> {
     // let mut out: Vec<u8> = Vec::with_capacity(1 + idi_len_bytes);
     // out.push(afi);
     // // FIXME: Write leading 1s or 0s
-    write_bcd(&mut out, s[2..].as_bytes(), idi_len_digits);
+    write_bcd(&mut out, s[2..].as_bytes(), idi_len_digits, 0);
     debug_assert_eq!(out.len(), 1 + idi_len_bytes);
     return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
 }
@@ -966,6 +980,36 @@ pub const fn leading_0_in_idi_significant(nt: X213NetworkAddressType) -> bool {
     || nt as usize == X213NetworkAddressType::E163 as usize
     || nt as usize == X213NetworkAddressType::E164 as usize
     || nt as usize == X213NetworkAddressType::X121 as usize
+}
+
+fn u8_to_decimal_bytes(mut n: u8) -> [u8; 3] {
+    let hundreds = n / 100;
+    n %= 100;
+    let tens = n / 10;
+    let ones = n % 10;
+    [
+        b'0' + hundreds,
+        b'0' + tens,
+        b'0' + ones,
+    ]
+}
+
+fn u16_to_decimal_bytes(mut n: u16) -> [u8; 5] {
+    let ten_thousands = (n / 10000) as u8;
+    n %= 10000;
+    let thousands = (n / 1000) as u8;
+    n %= 1000;
+    let hundreds = (n / 100) as u8;
+    n %= 100;
+    let tens = (n / 10) as u8;
+    let ones = (n % 10) as u8;
+    [
+        b'0' + ten_thousands,
+        b'0' + thousands,
+        b'0' + hundreds,
+        b'0' + tens,
+        b'0' + ones,
+    ]
 }
 
 #[cfg(feature = "alloc")]
@@ -990,10 +1034,12 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
             None => return decode_idp_only(first_part),
         };
         if first_part == "NS" {
-            let hexstr = parts.next().ok_or(())?;
             let hexbytes = hex::decode(second_part).map_err(|_| ())?;
             return Ok(X213NetworkAddress { octets: Cow::Owned(hexbytes) });
         }
+
+        let mut bcd_buf = BCDBuffer::new();
+
         let third_part = parts.next();
         let syntax: DSPSyntax = match third_part.and_then(|p3| p3.chars().next()) {
             Some('d') => DSPSyntax::Decimal,
@@ -1012,35 +1058,182 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
         };
         let maybe_afi = naddr_str_to_afi(first_part, second_part.starts_with("0"), syntax);
         if let Some(afi) = maybe_afi {
+            // This MUST be <afi> "+" <idi> [ "+" <dsp> ] syntax.
             let schema = get_address_type_info(afi).ok_or(())?;
             let idi_len_digits: usize = get_idi_len_in_digits(schema.network_type).ok_or(())?;
-            let idi_len_bytes: usize = (idi_len_digits >> 1) + (idi_len_digits % 2);
-            let dsp_len_bytes: usize = third_part
-                .map(|p3| if syntax == DSPSyntax::Decimal {
-                    (p3.len() >> 1) + 1
-                } else {
-                    p3.len()
-                })
-                .unwrap_or(0)
-                ;
+            if second_part.len() > idi_len_digits
+                || !second_part.bytes().all(|b| b.is_ascii_digit()) {
+                return Err(());
+            }
+            bcd_buf.push_byte(afi);
+            let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
+            let mut idi_deficit = idi_len_digits.saturating_sub(second_part.len());
+            while idi_deficit > 0 {
+                bcd_buf.push_nybble(idi_pad);
+                idi_deficit -= 1;
+            }
+            bcd_buf.push_str(&second_part);
+            if (idi_len_digits % 2) > 0 {
+                bcd_buf.push_nybble(0x0F);
+            }
+            if third_part.is_none() {
+                return Ok(X213NetworkAddress {
+                    octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
+                });
+            }
+            let third_part = third_part.unwrap();
+            if third_part.len() < 2 {
+                // Cannot be empty and must have a discriminator (e.g. 'd')
+                return Err(());
+            }
+            return match third_part.as_bytes()[0] as char {
+                'd' => { // decimal syntax
+                    if !third_part.as_bytes()[1..].iter().all(|b| b.is_ascii_digit()) {
+                        return Err(());
+                    }
+                    bcd_buf.push_ascii_bytes(&third_part.as_bytes()[1..]);
+                    Ok(X213NetworkAddress {
+                        octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
+                    })
+                },
+                'x' => {
+                    let hexbytes = hex::decode(&third_part.as_bytes()[1..])
+                        .map_err(|_| ())?;
+                    let out = [
+                        bcd_buf.as_ref(),
+                        hexbytes.as_ref(),
+                    ].concat();
+                    Ok(X213NetworkAddress { octets: Cow::Owned(out) })
+                },
+                'l' => {
+                    // RFC 1278: <other> ::= [0-9a-zA-Z+-.]
+                    if !third_part.chars().all(|c| c.is_alphanumeric() || c == '+' || c == '-' || c == '.') {
+                        return Err(());
+                    }
+                    // out.extend(&third_part.as_bytes()[1..]);
+                    let out = [
+                        bcd_buf.as_ref(),
+                        third_part[1..].as_ref(),
+                    ].concat();
+                    Ok(X213NetworkAddress { octets: Cow::Owned(out) })
+                },
+                _ => {
+                    if third_part == IETF_RFC_1006_PREFIX_STR {
+                        // "RFC-1006" "+" <prefix> "+" <ip> [ "+" <port> [ "+" <tset> ]]
+                        let prefix = parts.next();
+                        let ip = parts.next();
+                        let port = parts.next();
+                        let tset = parts.next();
+                        if prefix.is_none() || ip.is_none() {
+                            return Err(());
+                        }
+                        let prefix = prefix.unwrap();
+                        if prefix.len() != 2 || !prefix.bytes().all(|b| b.is_ascii_digit()) {
+                            return Err(());
+                        }
+                        bcd_buf.push_digit_u8(prefix.as_bytes()[0]);
+                        bcd_buf.push_digit_u8(prefix.as_bytes()[1]);
+                        let ip = ip.unwrap();
+                        let ip = Ipv4Addr::from_str(ip).map_err(|_| ())?;
+                        if port.is_some_and(|p| p.len() != 5) {
+                            return Err(());
+                        }
+                        if tset.is_some_and(|t| t.len() != 5) {
+                            return Err(());
+                        }
+                        // TODO: If <ip> is a domain, return a LookupDomain(str) error
+                        // <ip> ::= <domainstring>
+                        // -- dotted decimal form (e.g., 10.0.0.6) (only ipv4)
+                        // -- or domain (e.g., twg.com)
+                        let port = match port {
+                            Some(p) => Some(u16::from_str(p).map_err(|_| ())?),
+                            None => None,
+                        };
+                        let tset = match tset {
+                            Some(t) => Some(u16::from_str(t).map_err(|_| ())?),
+                            None => None,
+                        };
 
-            let cap: usize = 1 + idi_len_bytes + dsp_len_bytes;
-            let mut out: Vec<u8> = Vec::with_capacity(cap);
-            let idi_pad = if schema.leading_zeroes_in_idi { 0x11 } else { 0x00 };
-            out.resize(1 + idi_len_bytes, idi_pad);
-            out[0] = afi;
-            write_bcd(&mut out, second_part.as_bytes(), idi_len_digits);
-            // This is valid <afi> "+" <idi> [ "+" <dsp> ] syntax.
-            // if let Some(p3) = third_part {
-            //     match p3.get(0) {
-            //         Some('d') => DSPSyntax::Decimal,
-            //         Some('x') => DSPSyntax::Binary,
-            //         Some('l') => DSPSyntax::IsoIec646Chars,
-            //     }
-            //     // TODO:
-            // }
-            // debug_assert_eq!(out.len(), cap); I don't think you can guarantee this because of the macros.
-            return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+                        ip
+                            .octets()
+                            .map(|o| u8_to_decimal_bytes(o))
+                            .iter()
+                            .for_each(|dec_oct| bcd_buf.push_ascii_bytes(dec_oct.as_slice()));
+                        if let Some(port) = port {
+                            let port_str = u16_to_decimal_bytes(port);
+                            bcd_buf.push_ascii_bytes(port_str.as_slice());
+                        }
+                        if let Some(tset) = tset {
+                            let tset_str = u16_to_decimal_bytes(tset);
+                            bcd_buf.push_ascii_bytes(tset_str.as_slice());
+                        }
+                        return Ok(X213NetworkAddress {
+                            octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
+                        });
+                    }
+                    if third_part == X25_PREFIX_STR {
+                        // "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
+                        let _dsp = &third_part[X25_PREFIX_STR.len()..];
+                        todo!();
+                    }
+                    if third_part == ECMA_117_BINARY_STR {
+                        // "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
+                        let d1 = parts.next();
+                        let d2 = parts.next();
+                        let d3 = parts.next();
+                        let d4 = parts.next();
+                        if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
+                            return Err(());
+                        }
+                        let mut subnet_id: [u8; 2] = [0, 0];
+                        let mut selector: [u8; 1] = [0];
+                        // decode_to_slice handles our length-checking.
+                        hex::decode_to_slice(d1.unwrap(), subnet_id.as_mut_slice())
+                            .map_err(|_| ())?;
+                        hex::decode_to_slice(d3.unwrap(), selector.as_mut_slice())
+                            .map_err(|_| ())?;
+                        let subnet_addr = hex::decode(d2.unwrap())
+                            .map_err(|_| ())?;
+                        if subnet_addr.len() > 6 {
+                            return Err(());
+                        }
+                        let mut out: Vec<u8> = Vec::with_capacity(bcd_buf.len_in_bytes() + 9);
+                        out.extend(bcd_buf.as_ref());
+                        out.extend(subnet_id.as_slice());
+                        out.extend(subnet_addr.as_slice());
+                        out.extend(selector.as_slice());
+                        return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+                    }
+                    if third_part == ECMA_117_DECIMAL_STR {
+                        // "ECMA-117-Decimal" "+" <digitstring> "+" <digitstring> "+" <digitstring>
+                        let d1 = parts.next();
+                        let d2 = parts.next();
+                        let d3 = parts.next();
+                        let d4 = parts.next();
+                        if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
+                            return Err(());
+                        }
+                        let d1 = d1.unwrap();
+                        let d2 = d2.unwrap();
+                        let d3 = d3.unwrap();
+                        if d1.len() != 5 || d2.len() > 15 || d3.len() != 3
+                            || !d1.chars().all(|c| c.is_ascii_digit())
+                            || !d2.chars().all(|c| c.is_ascii_digit())
+                            || !d3.chars().all(|c| c.is_ascii_digit()) {
+                            return Err(());
+                        }
+                        bcd_buf.push_str(d1);
+                        bcd_buf.push_str(d2);
+                        bcd_buf.push_str(d3);
+                        return Ok(X213NetworkAddress {
+                            octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
+                        });
+                    }
+                    return Err(()); // Unrecognized alternative
+                }
+            }
+            // TODO: debug_assert_eq!(out.len(), cap); I don't think you can guarantee this because of the macros.
+            // return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
         }
         // Otherwise, assume it is <idp> "+" <hexstring>
         if !first_part[2..].as_bytes().iter().all(|b| b.is_ascii_digit())
@@ -1071,7 +1264,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
         let idi_pad = if schema.leading_zeroes_in_idi { 0x11 } else { 0x00 };
         out.resize(1 + idi_len_bytes, idi_pad);
         out[0] = afi;
-        write_bcd(&mut out, first_part[2..].as_bytes(), idi_len_digits);
+        write_bcd(&mut out, first_part[2..].as_bytes(), idi_len_digits, 0);
         hex::decode_to_slice(second_part, &mut out[1+idi_len_bytes..])
             .map_err(|_| ())?;
         debug_assert_eq!(out.len(), cap);
@@ -1087,6 +1280,8 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
 mod tests {
 
     extern crate alloc;
+    use core::str::FromStr;
+
     use alloc::string::ToString;
     use super::X213NetworkAddress;
 
@@ -1100,6 +1295,26 @@ mod tests {
         let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
         let addr_str = addr.to_string();
         assert_eq!(addr_str, "X121+102030405+d1234567890");
+    }
+
+    #[test]
+    fn test_from_str() {
+        let cases: [(&str, &[u8]); 3] = [
+            ("NS+a433bb93c1", &[0xa4, 0x33, 0xbb, 0x93, 0xc1]),
+            ("X121+234219200300", &[0x36, 0x00, 0x23, 0x42, 0x19, 0x20, 0x03, 0x00 ]),
+            ("TELEX+00728722+RFC-1006+03+10.0.0.6", &[
+                0x54,
+                0x00, 0x72, 0x87, 0x22,
+                0x03,
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x06, // 10.0.0.6
+            ]),
+        ];
+        for (case_str, expected) in cases {
+            let actual = X213NetworkAddress::from_str(case_str);
+            assert!(actual.is_ok(), "failed to parse: {}", case_str);
+            let actual = actual.unwrap();
+            assert_eq!(expected, actual.octets.as_ref(), "{}", case_str);
+        }
     }
 
 }
