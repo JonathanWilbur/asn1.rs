@@ -915,36 +915,6 @@ fn decode_afi_from_str(s: &str) -> Result<AFI, ()> {
     Ok(out[0])
 }
 
-// FIXME: Get rid of this entirely
-// TODO: Use the new bias arg
-fn write_bcd(out: &mut Vec<u8>, mut digits: &[u8], idi_len_digits: usize, bias: isize) {
-    if digits.len() == 0 {
-        return;
-    }
-    if bias == -1 { // If -1, write the previous nybble
-        let out_len = out.len();
-        out[out_len - 1] &= 0b1111_0000;
-        out[out_len - 1] |= (digits[0] - 0x30) & 0b0000_1111;
-        digits = &digits[1..];
-    }
-
-    let mut out_byte: u8 = 0;
-    for (i, digit) in digits.iter().enumerate() {
-        let i = i + bias as usize;
-        if (i % 2) > 0 { // On least significant nybble
-            out_byte |= *digit - 0x30;
-            out.push(out_byte);
-            out_byte = 0;
-        } else { // On most significant nybble
-            out_byte |= (*digit - 0x30) << 4;
-        }
-    }
-    if (idi_len_digits % 2) > 0 {
-        out_byte |= 0x0F;
-        out.push(out_byte);
-    }
-}
-
 /*
 Every valid NSAP string has a second part... except per ITU-T Rec.
 X.213, section A.7, which handles a zero-length DSP.
@@ -1312,23 +1282,23 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
             representation is only suitable for binary DSPs. */
             return Err(());
         }
-        let idi_len_bytes: usize = (idi_len_digits >> 1) + (idi_len_digits % 2);
-        let dsp_len_bytes: usize = if syntax == DSPSyntax::Decimal {
-            (second_part.len() >> 1) + (second_part.len() % 2)
-        } else {
-            second_part.len()
-        };
-
-        let cap: usize = 1 + idi_len_bytes + dsp_len_bytes;
-        let mut out: Vec<u8> = Vec::with_capacity(cap);
-        let idi_pad = if schema.leading_zeroes_in_idi { 0x11 } else { 0x00 };
-        out.resize(1 + idi_len_bytes, idi_pad);
-        out[0] = afi;
-        write_bcd(&mut out, first_part[2..].as_bytes(), idi_len_digits, 0);
-        hex::decode_to_slice(second_part, &mut out[1+idi_len_bytes..])
-            .map_err(|_| ())?;
-        debug_assert_eq!(out.len(), cap);
-        Ok(X213NetworkAddress { octets: Cow::Owned(out) })
+        bcd_buf.push_byte(afi);
+        let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
+        let mut idi_deficit = idi_len_digits.saturating_sub(first_part.len() - 2);
+        while idi_deficit > 0 {
+            bcd_buf.push_nybble(idi_pad);
+            idi_deficit -= 1;
+        }
+        bcd_buf.push_str(&first_part[2..]);
+        if (bcd_buf.i % 2) > 0 {
+            bcd_buf.push_nybble(0xF);
+        }
+        let dsp = hex::decode(second_part).map_err(|_| ())?;
+        let out = [
+            bcd_buf.as_ref(),
+            dsp.as_ref(),
+        ].concat();
+        return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
     }
 
 }
