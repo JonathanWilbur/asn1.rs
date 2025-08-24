@@ -141,17 +141,16 @@ pub const MAX_BIN_DSP_LEN_LOCAL: u8 = 19;
 pub const MAX_ISO_IEC_646_LEN_LOCAL: u8 = 19;
 pub const MAX_NATIONAL_CHAR_LEN_LOCAL: u8 = 9;
 
-// TODO: Rename to make this clear? These are denominated in digits.
-pub const MAX_IDI_LEN_X121: usize = 14; // Up to
-pub const MAX_IDI_LEN_ISO_DCC: usize = 3; // Exactly
-pub const MAX_IDI_LEN_F69: usize = 8; // Up to
-pub const MAX_IDI_LEN_E163: usize = 12; // Up to
-pub const MAX_IDI_LEN_E164: usize = 15; // Up to
-pub const MAX_IDI_LEN_ISO_6523_ICD: usize = 4; // Exactly
-pub const MAX_IDI_LEN_IANA_ICP: usize = 4; // Exactly
-pub const MAX_IDI_LEN_ITU_T_IND: usize = 6; // Exactly
-pub const MAX_IDI_LEN_LOCAL: usize = 0; // Exactly
-pub const MAX_IDI_LEN_URL: usize = 4; // Exactly.
+pub const MAX_IDI_LEN_DIGITS_X121: usize = 14; // Up to
+pub const MAX_IDI_LEN_DIGITS_ISO_DCC: usize = 3; // Exactly
+pub const MAX_IDI_LEN_DIGITS_F69: usize = 8; // Up to
+pub const MAX_IDI_LEN_DIGITS_E163: usize = 12; // Up to
+pub const MAX_IDI_LEN_DIGITS_E164: usize = 15; // Up to
+pub const MAX_IDI_LEN_DIGITS_ISO_6523_ICD: usize = 4; // Exactly
+pub const MAX_IDI_LEN_DIGITS_IANA_ICP: usize = 4; // Exactly
+pub const MAX_IDI_LEN_DIGITS_ITU_T_IND: usize = 6; // Exactly
+pub const MAX_IDI_LEN_DIGITS_LOCAL: usize = 0; // Exactly
+pub const MAX_IDI_LEN_DIGITS_URL: usize = 4; // Exactly.
 
 // DSP Prefixes that start with 0x54, 0x00, 0x72, 0x87, 0x22,
 pub const RFC_1277_WELL_KNOWN_NETWORK_INTL_X25: u8 = 0x01;
@@ -194,6 +193,7 @@ pub const INTERNET_PREFIX_IDI_DIGITS: [u8; 8] = *b"00728722";
 
 const DEFAULT_ITOT_PORT: u16 = 102;
 
+/// X.213 NSAP Domain-Specific Part Syntax
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DSPSyntax {
     Decimal,
@@ -202,6 +202,7 @@ pub enum DSPSyntax {
     NationalChars,
 }
 
+/// X.213 NSAP network address type
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub enum X213NetworkAddressType {
     X121,
@@ -237,26 +238,14 @@ impl TryFrom<AFI> for X213NetworkAddressType {
 
 }
 
+/// An error parsing an NSAP address from bytes
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum NAddressError {
-    NoAFI,
-    NoIDI,
-    NoDSPPrefix,
-    TruncatedDSP,
-    MalformedDSP,
-    UnrecognizedNetworkType,
-    IDPTruncated(usize, usize), // expected, actual
-    InvalidRightPadding,
-    NonDigitInIDI(u8),
-    NonDecimalDigitInDSP(u8),
-    NonISO646Character(u8),
-    InternalError, // Can happen if fields are modified to produce internal incoherence.
-    InvalidHexEncoding,
-    UnsupportedDSPType,
-    IDITooLong,
+pub enum NAddressParseError {
+    TooShort,
+    TooLong,
 }
 
-impl Display for NAddressError {
+impl Display for NAddressParseError {
 
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!("{:?}", self))
@@ -264,7 +253,7 @@ impl Display for NAddressError {
 
 }
 
-impl Error for NAddressError {}
+impl Error for NAddressParseError {}
 
 /// This function was kept around so you can still get the AFI without parsing the whole NSAP.
 pub const fn get_afi_from_n_address (naddr: &[u8]) -> Option<u8> {
@@ -416,6 +405,7 @@ pub const fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> Option<&'
     }
 }
 
+/// Translate an AFI string, such as "X121" to an AFI value
 #[cfg(feature = "alloc")]
 fn naddr_str_to_afi (
     s: &str,
@@ -523,16 +513,16 @@ pub const fn naddr_network_type_to_max_bin_length (nt: X213NetworkAddressType) -
 #[inline]
 pub const fn get_idi_len_in_digits (nt: X213NetworkAddressType) -> Option<usize> {
     match nt {
-        X213NetworkAddressType::X121 => Some(MAX_IDI_LEN_X121),
-        X213NetworkAddressType::ISO_DCC => Some(MAX_IDI_LEN_ISO_DCC),
-        X213NetworkAddressType::F69 => Some(MAX_IDI_LEN_F69),
-        X213NetworkAddressType::E163 => Some(MAX_IDI_LEN_E163),
-        X213NetworkAddressType::E164 => Some(MAX_IDI_LEN_E164),
-        X213NetworkAddressType::ISO_6523_ICD => Some(MAX_IDI_LEN_ISO_6523_ICD),
-        X213NetworkAddressType::IANA_ICP => Some(MAX_IDI_LEN_IANA_ICP), // Not specified in IETF RFC 1278. See: https://www.iana.org/assignments/osi-nsapa-numbers/osi-nsapa-numbBIN.xhtml
-        X213NetworkAddressType::ITU_T_IND => Some(MAX_IDI_LEN_ITU_T_IND), // Not specified in IETF RFC BIN8.
-        X213NetworkAddressType::LOCAL => Some(MAX_IDI_LEN_LOCAL),
-        X213NetworkAddressType::URL => Some(MAX_IDI_LEN_URL),
+        X213NetworkAddressType::X121 => Some(MAX_IDI_LEN_DIGITS_X121),
+        X213NetworkAddressType::ISO_DCC => Some(MAX_IDI_LEN_DIGITS_ISO_DCC),
+        X213NetworkAddressType::F69 => Some(MAX_IDI_LEN_DIGITS_F69),
+        X213NetworkAddressType::E163 => Some(MAX_IDI_LEN_DIGITS_E163),
+        X213NetworkAddressType::E164 => Some(MAX_IDI_LEN_DIGITS_E164),
+        X213NetworkAddressType::ISO_6523_ICD => Some(MAX_IDI_LEN_DIGITS_ISO_6523_ICD),
+        X213NetworkAddressType::IANA_ICP => Some(MAX_IDI_LEN_DIGITS_IANA_ICP), // Not specified in IETF RFC 1278. See: https://www.iana.org/assignments/osi-nsapa-numbers/osi-nsapa-numbBIN.xhtml
+        X213NetworkAddressType::ITU_T_IND => Some(MAX_IDI_LEN_DIGITS_ITU_T_IND), // Not specified in IETF RFC BIN8.
+        X213NetworkAddressType::LOCAL => Some(MAX_IDI_LEN_DIGITS_LOCAL),
+        X213NetworkAddressType::URL => Some(MAX_IDI_LEN_DIGITS_URL),
     }
 }
 
@@ -628,6 +618,7 @@ pub const fn naddr_idi_has_leading_zero (afi: u8) -> bool {
     }
 }
 
+/// BCD Digits Iterator
 #[derive(Debug, Clone)]
 pub struct BCDDigitsIter<'a> {
     idi: &'a [u8],
@@ -639,6 +630,7 @@ pub struct BCDDigitsIter<'a> {
 
 impl <'a> BCDDigitsIter<'a> {
 
+    #[inline]
     pub fn new(
         idi: &'a [u8],
         leading_0_sig: bool,
@@ -712,6 +704,8 @@ impl <'a> Iterator for BCDDigitsIter<'a> {
 
 impl <'a> FusedIterator for BCDDigitsIter<'a> {}
 
+/// X.213 NSAP Address
+///
 /// This type does not implement `PartialEq`, `Eq`, or `Hash`, because:
 ///
 /// 1. Unrecognized encodings could mean that two values cannot be compared for
@@ -823,6 +817,9 @@ impl <'a> X213NetworkAddress <'a> {
         ))
     }
 
+    /// Get the encoded URL
+    ///
+    /// This returns `None` if this NSAP does not encode a URL
     pub fn get_url(&'a self) -> Option<&'a str> {
         let octets = self.octets.as_ref();
         // It couldn't be a valid URL in two characters, AFAIK.
@@ -832,8 +829,9 @@ impl <'a> X213NetworkAddress <'a> {
         str::from_utf8(&octets[3..]).ok()
     }
 
-    /// This **does not** extract an IP address from a URL.
+    /// Get the encoded IP address
     ///
+    /// This returns `None` if this NSAP does not encode an IP address
     /// See: <https://www.rfc-editor.org/rfc/rfc4548.html>
     pub fn get_ip(&self) -> Option<IpAddr> {
         let octets = self.octets.as_ref();
@@ -867,6 +865,9 @@ impl <'a> X213NetworkAddress <'a> {
         }
     }
 
+    /// Get the ISO Transport over TCP (ITOT) socket address
+    ///
+    /// This returns `None` if this NSAP does not encode an ITOT socket address
     pub fn get_itot_socket_addr(&self) -> Option<SocketAddrV4> {
         let octets = self.octets.as_ref();
         if !octets.starts_with(INTERNET_PREFIX.as_slice()) {
@@ -892,28 +893,100 @@ impl <'a> X213NetworkAddress <'a> {
         Some(SocketAddrV4::new(ip, port))
     }
 
+    /// Create a new IANA ICP NSAP address from an IP address
+    #[cfg(feature = "alloc")]
+    pub fn from_ip(ip: &IpAddr) -> Self {
+        match ip {
+            IpAddr::V4(v4) => X213NetworkAddress::from_ipv4(v4),
+            IpAddr::V6(v6) => X213NetworkAddress::from_ipv6(v6),
+        }
+    }
+
+    /// Create a new IANA ICP NSAP address from an IPv4 address
+    #[cfg(feature = "alloc")]
+    pub fn from_ipv4(ip: &Ipv4Addr) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(20);
+        out.extend(&[AFI_IANA_ICP_BIN, 0, 1]);
+        out.extend(ip.octets().as_slice());
+        out.extend([0; 13].as_slice());
+        return X213NetworkAddress { octets: Cow::Owned(out) };
+    }
+
+    /// Create a new IANA ICP NSAP address from an IPv6 address
+    #[cfg(feature = "alloc")]
+    pub fn from_ipv6(ip: &Ipv6Addr) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(20);
+        out.extend(&[AFI_IANA_ICP_BIN, 0, 0]);
+        out.extend(ip.octets().as_slice());
+        out.push(0);
+        return X213NetworkAddress { octets: Cow::Owned(out) };
+    }
+
+    /// Create a new X.519 ITOT URL NSAP address from a URL
+    #[cfg(feature = "alloc")]
+    pub fn from_itot_url(url: &str) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(3 + url.len());
+        out.extend(&[AFI_URL, 0, 0]);
+        out.extend(url.as_bytes());
+        return X213NetworkAddress { octets: Cow::Owned(out) };
+    }
+
+    /// Create a new X.519 Non-OSI (LDAP, IDM, etc.) URL NSAP address from a URL
+    #[cfg(feature = "alloc")]
+    pub fn from_non_osi_url(url: &str) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(3 + url.len());
+        out.extend(&[AFI_URL, 0, 1]);
+        out.extend(url.as_bytes());
+        return X213NetworkAddress { octets: Cow::Owned(out) };
+    }
+
+    /// Create an ITOT NSAP address from a socket address and optional transport set
+    ///
+    /// Note that this only supports IPv4 due to the encoding.
+    #[cfg(feature = "alloc")]
+    pub fn from_itot_socket_addr(addr: &SocketAddrV4, tset: Option<u16>) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(20);
+        out.extend(INTERNET_PREFIX);
+        let mut bcd_buf = BCDBuffer::new();
+        addr.ip()
+            .octets()
+            .map(|o| u8_to_decimal_bytes(o))
+            .iter()
+            .for_each(|dec_oct| bcd_buf.push_ascii_bytes(dec_oct.as_slice()));
+        let port = addr.port();
+        if port != DEFAULT_ITOT_PORT
+            || tset.is_some_and(|t| t != DEFAULT_ITOT_TRANSPORT_SET) {
+            let port_str = u16_to_decimal_bytes(port);
+            bcd_buf.push_ascii_bytes(port_str.as_slice());
+            if let Some(tset) = tset {
+                let tset_str = u16_to_decimal_bytes(tset);
+                bcd_buf.push_ascii_bytes(tset_str.as_slice());
+            } else {
+                bcd_buf.push_nybble(0xF);
+            }
+        }
+        out.extend(bcd_buf.as_ref());
+        return X213NetworkAddress { octets: Cow::Owned(out) };
+    }
+
 }
 
-// TODO: Also support the special directory URL AFI 0xFF
-
 impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
-    type Error = NAddressError;
+    type Error = NAddressParseError;
 
     fn try_from(octets: &'a [u8]) -> Result<Self, Self::Error> {
         if octets.len() < 2 { // I don't think one byte can be a valid address.
-            // FIXME: This should just be TooShort
-            return Err(NAddressError::NoAFI);
+            return Err(NAddressParseError::TooShort);
         }
         /* ITU-T Rec. X.213, Section A.5.4 states that the maximum length MUST
         be 20 octets, but ITU-T Rec. X.519 section 11.4 basically overrules
         that. As such, we are just setting a limit of 248 bytes just to close up
         any attack vectors related to large NSAP addresses. */
-        if octets.len() > 248 {
-            // FIXME: This should just be TooLong
-            return Err(NAddressError::IDITooLong);
+        if octets[0] == AFI_URL && octets.len() > 248 {
+            return Err(NAddressParseError::TooLong);
+        } else if octets[0] != AFI_URL && octets.len() > 20 {
+            return Err(NAddressParseError::TooLong);
         }
-        // TODO: Based on AFI, check that it is not too short
-        // Ok(X213NetworkAddress { octets })
         #[cfg(feature = "alloc")]
         {
             Ok(X213NetworkAddress { octets: Cow::Borrowed(octets) })
@@ -926,10 +999,68 @@ impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
 
 }
 
+#[cfg(feature = "alloc")]
+impl <'a> From<&IpAddr> for X213NetworkAddress<'a> {
+
+    #[inline]
+    fn from(value: &IpAddr) -> Self {
+        X213NetworkAddress::from_ip(value)
+    }
+
+}
+
+#[cfg(feature = "alloc")]
+impl <'a> From<&Ipv4Addr> for X213NetworkAddress<'a> {
+
+    #[inline]
+    fn from(value: &Ipv4Addr) -> Self {
+        X213NetworkAddress::from_ipv4(value)
+    }
+
+}
+
+#[cfg(feature = "alloc")]
+impl <'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
+
+    #[inline]
+    fn from(value: &Ipv6Addr) -> Self {
+        X213NetworkAddress::from_ipv6(value)
+    }
+
+}
+
+fn ipv4_from_slice(bytes: &[u8]) -> Ipv4Addr {
+    debug_assert_eq!(bytes.len(), 6);
+    let oct1: u8 =
+          (((bytes[0] & 0xF0) >> 4) * 100)
+        + (((bytes[0] & 0x0F) >> 0) * 10)
+        + (((bytes[1] & 0xF0) >> 4) * 1)
+        ;
+    let oct2: u8 =
+          (((bytes[1] & 0x0F) >> 0) * 100)
+        + (((bytes[2] & 0xF0) >> 4) * 10)
+        + (((bytes[2] & 0x0F) >> 0) * 1)
+        ;
+    let oct3: u8 =
+          (((bytes[3] & 0xF0) >> 4) * 100)
+        + (((bytes[3] & 0x0F) >> 0) * 10)
+        + (((bytes[4] & 0xF0) >> 4) * 1)
+        ;
+    let oct4: u8 =
+          (((bytes[4] & 0x0F) >> 0) * 100)
+        + (((bytes[5] & 0xF0) >> 4) * 10)
+        + (((bytes[5] & 0x0F) >> 0) * 1)
+        ;
+    Ipv4Addr::new(oct1, oct2, oct3, oct4)
+}
+
+const DEFAULT_ITOT_TRANSPORT_SET: u16 = 1;
+
 impl <'a> Display for X213NetworkAddress<'a> {
 
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self.octets.as_ref().get(0..3) {
+        let octets = self.get_octets();
+        match octets.get(0..3) {
             Some(octs) if octs[0] == AFI_URL => {
                 if let Ok(url) = str::from_utf8(&self.octets[3..]) {
                     if !url.contains('_') {
@@ -939,10 +1070,63 @@ impl <'a> Display for X213NetworkAddress<'a> {
             },
             _ => (),
         };
+        if octets[0] == AFI_IANA_ICP_BIN && octets.len() == 20 {
+            let icp = &octets[1..3];
+            // TODO: Define constants for these
+            if icp == &[0, 0] { // IPv6
+                let ip = Ipv6Addr::from([
+                    octets[3],  octets[4],  octets[5],  octets[6],
+                    octets[7],  octets[8],  octets[9],  octets[10],
+                    octets[11], octets[12], octets[13], octets[14],
+                    octets[15], octets[16], octets[17], octets[18],
+                ]);
+                return write!(f, "IP6+{}", ip);
+            }
+            if icp == &[0, 1] { // IPv4
+                let ip = Ipv4Addr::from([
+                    octets[3],
+                    octets[4],
+                    octets[5],
+                    octets[6],
+                ]);
+                return write!(f, "IP4+{}", ip);
+            }
+        }
+        if octets.starts_with(INTERNET_PREFIX.as_slice())
+            && octets.len() >= INTERNET_PREFIX.len() + 6 {
+            let ip_and_stuff = &octets[INTERNET_PREFIX.len()..];
+            let ip = ipv4_from_slice(&ip_and_stuff[0..6]);
+            let port: u16 = if octets.len() >= INTERNET_PREFIX.len() + 6 + 3 {
+                  (((ip_and_stuff[6] & 0xF0) >> 4) as u16 * 10000)
+                + (((ip_and_stuff[6] & 0x0F) >> 0) as u16 * 1000)
+                + (((ip_and_stuff[7] & 0xF0) >> 4) as u16 * 100)
+                + (((ip_and_stuff[7] & 0x0F) >> 0) as u16 * 10)
+                + (((ip_and_stuff[8] & 0xF0) >> 4) as u16 * 1)
+            } else {
+                DEFAULT_ITOT_PORT
+            };
+            let tset: u16 = if octets.len() >= INTERNET_PREFIX.len() + 6 + 5 {
+                  (((ip_and_stuff[8]  & 0x0F) >> 0) as u16 * 10000)
+                + (((ip_and_stuff[9]  & 0xF0) >> 4) as u16 * 1000)
+                + (((ip_and_stuff[9]  & 0x0F) >> 0) as u16 * 100)
+                + (((ip_and_stuff[10] & 0xF0) >> 4) as u16 * 10)
+                + (((ip_and_stuff[10] & 0x0F) >> 0) as u16 * 1)
+            } else {
+                DEFAULT_ITOT_TRANSPORT_SET
+            };
+            write!(f, "TELEX+00728722+RFC-1006+03+{}", ip)?;
+            if port != DEFAULT_ITOT_PORT {
+                write!(f, "+{}", port)?;
+            }
+            if tset != DEFAULT_ITOT_TRANSPORT_SET {
+                write!(f, "+{}", tset)?;
+            }
+            return Ok(());
+        }
         let (info, idi_digits) = match (self.get_network_type_info(), self.idi_digits()) {
             (Some(i), Some(d)) => (i, d),
             _ => { // If unrecognized, just print in NS+<hex> format
-                let h = hex::encode(self.get_octets());
+                let h = hex::encode(octets);
                 f.write_str("NS+")?;
                 return f.write_str(h.as_str());
             }
@@ -998,12 +1182,11 @@ impl <'a> Display for X213NetworkAddress<'a> {
             },
         };
         Ok(())
-        // DomainSpecificPart::Url(url) => f.write_str(&url),
-        // DomainSpecificPart::IpAddress(ip) => f.write_str(&ip.to_string()),
     }
 
 }
 
+/// Decode an AFI from a `str`, such as "X121"
 fn decode_afi_from_str(s: &str) -> Result<AFI, RFC1278ParseError> {
     debug_assert_eq!(s.len(), 2);
     let mut out: [u8; 1] = [0];
@@ -1049,6 +1232,8 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC127
     });
 }
 
+/// Return `true` if leading zeroes in the IDI are significant
+#[inline]
 pub const fn leading_0_in_idi_significant(nt: X213NetworkAddressType) -> bool {
     nt as usize == X213NetworkAddressType::F69 as usize
     || nt as usize == X213NetworkAddressType::E163 as usize
@@ -1056,6 +1241,7 @@ pub const fn leading_0_in_idi_significant(nt: X213NetworkAddressType) -> bool {
     || nt as usize == X213NetworkAddressType::X121 as usize
 }
 
+/// Convert a u8 to decimal ASCII digits
 fn u8_to_decimal_bytes(mut n: u8) -> [u8; 3] {
     let hundreds = n / 100;
     n %= 100;
@@ -1068,6 +1254,7 @@ fn u8_to_decimal_bytes(mut n: u8) -> [u8; 3] {
     ]
 }
 
+/// Convert a u16 to decimal ASCII digits
 fn u16_to_decimal_bytes(mut n: u16) -> [u8; 5] {
     let ten_thousands = (n / 10000) as u8;
     n %= 10000;
@@ -1086,6 +1273,7 @@ fn u16_to_decimal_bytes(mut n: u16) -> [u8; 5] {
     ]
 }
 
+/// Validate that string is a digitstring and shorter than `max_len`
 #[inline]
 fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError> {
     if s.len() > max_len {
@@ -1097,6 +1285,7 @@ fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError
     Ok(())
 }
 
+/// Whether the character `c` is an `<other>`, per RFC 1278.
 #[inline]
 const fn is_other_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.'
@@ -1125,6 +1314,24 @@ pub enum RFC1278ParseError {
     /// delimiting NSAP addresses in a presentation address string.
     ProhibitedCharacter(char),
 }
+
+#[cfg(feature = "alloc")]
+impl Display for RFC1278ParseError {
+
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            RFC1278ParseError::Malformed => f.write_str("malformed"),
+            RFC1278ParseError::UnrecognizedSyntax => f.write_str("unrecognized syntax"),
+            RFC1278ParseError::UnrecognizedAFI => f.write_str("unrecognized afi"),
+            RFC1278ParseError::ResolveDNS(dns_name) => write!(f, "resolve dns name {}", dns_name),
+            RFC1278ParseError::SpecificationFailure => f.write_str("shortcoming in specifications"),
+            RFC1278ParseError::ProhibitedCharacter(c) => write!(f, "prohibited character {}", c),
+        }
+    }
+
+}
+
+impl Error for RFC1278ParseError {}
 
 #[cfg(feature = "alloc")]
 impl <'a> FromStr for X213NetworkAddress<'a> {
@@ -1173,6 +1380,24 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
                 bcd_buf.as_ref(),
                 url.as_bytes(),
             ].concat();
+            return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+        }
+        if first_part == "IP6" {
+            let ip = Ipv6Addr::from_str(second_part)
+                .map_err(|_| RFC1278ParseError::Malformed)?;
+            let mut out: Vec<u8> = Vec::with_capacity(20);
+            out.extend(&[AFI_IANA_ICP_BIN, 0, 0]);
+            out.extend(ip.octets().as_slice());
+            out.push(0);
+            return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+        }
+        if first_part == "IP4" {
+            let ip = Ipv4Addr::from_str(second_part)
+                .map_err(|_| RFC1278ParseError::Malformed)?;
+            let mut out: Vec<u8> = Vec::with_capacity(20);
+            out.extend(&[AFI_IANA_ICP_BIN, 0, 1]);
+            out.extend(ip.octets().as_slice());
+            out.extend([0; 13].as_slice());
             return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
         }
         let syntax: DSPSyntax = match third_part.and_then(|p3| p3.chars().next()) {
@@ -1457,17 +1682,14 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
 
 }
 
-// TODO: PartialEq, Eq
-// TODO: Hash
-
 #[cfg(test)]
 mod tests {
 
     extern crate alloc;
-    use core::str::FromStr;
-
     use alloc::string::ToString;
-    use super::X213NetworkAddress;
+    use core::{net::SocketAddrV4, str::FromStr};
+
+    use super::{X213NetworkAddress, AFI_IANA_ICP_BIN, AFI_F69_DEC_LEADING_ZERO};
 
     #[test]
     fn test_display_01() {
@@ -1490,6 +1712,25 @@ mod tests {
     }
 
     #[test]
+    fn test_display_02_itot() {
+        let input = &[ 0x54, 0, 0x72, 0x87, 0x22, 3, 1, 0, 0, 0, 0, 6, 0, 0, 0x90, 0, 2 ];
+        let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
+        let addr_str = addr.to_string();
+        assert_eq!(addr_str, "TELEX+00728722+RFC-1006+03+10.0.0.6+9+2");
+    }
+
+    #[test]
+    fn test_display_03_ip() {
+        let input = &[
+            AFI_IANA_ICP_BIN, 0, 1, 192, 168, 1, 100,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+        let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
+        let addr_str = addr.to_string();
+        assert_eq!(addr_str, "IP4+192.168.1.100");
+    }
+
+    #[test]
     fn test_get_url() {
         let input = b"\xFF\x00\x01https://wildboarsoftware.com/x500directory";
         let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
@@ -1497,8 +1738,22 @@ mod tests {
     }
 
     #[test]
+    fn test_from_itot_socket_addr() {
+        let sock = SocketAddrV4::from_str("192.168.1.100:8000").unwrap();
+        let addr = X213NetworkAddress::from_itot_socket_addr(sock, None);
+        // assert_eq!(addr, "https://wildboarsoftware.com/x500directory");
+        assert_eq!(addr.get_octets(), &[
+            AFI_F69_DEC_LEADING_ZERO, // AFI
+            0x00, 0x72, 0x87, 0x22, // IDI
+            0x03, // The DSP prefix "03"
+            0x19, 0x21, 0x68, 0x00, 0x11, 0x00,
+            0x08, 0x00, 0x0F,
+        ]);
+    }
+
+    #[test]
     fn test_from_str() {
-        let cases: [(&str, &[u8]); 5] = [
+        let cases: [(&str, &[u8]); 6] = [
             // Example from RFC 1278
             ("NS+a433bb93c1", &[0xa4, 0x33, 0xbb, 0x93, 0xc1]),
             // Example from RFC 1278
@@ -1524,6 +1779,10 @@ mod tests {
             // Non-standard syntax for X.519 URLs
             ("URL+001+https://wildboarsoftware.com/x500directory",
             b"\xFF\x00\x01https://wildboarsoftware.com/x500directory"),
+            ("IP4+192.168.1.100", &[
+                AFI_IANA_ICP_BIN, 0, 1, 192, 168, 1, 100,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            ]),
         ];
         for (case_str, expected) in cases {
             let actual = X213NetworkAddress::from_str(case_str);
