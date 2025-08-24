@@ -46,7 +46,7 @@ use alloc::vec::Vec;
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 #[cfg(feature = "alloc")]
-use core::net::Ipv4Addr;
+use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
 
@@ -77,6 +77,13 @@ pub const AFI_E164_BIN_LEADING_NON_ZERO: u8 = 0x45;
 pub const AFI_E164_BIN_LEADING_ZERO: u8 = 0x59;
 pub const AFI_ISO_6523_ICD_DEC: u8 = 0x46;
 pub const AFI_ISO_6523_ICD_BIN: u8 = 0x47;
+
+/// Quoting IETF RFC 4548:
+///
+/// > One of these two AFIs ('34') is
+/// > allocated for assignment of NSAPA in Decimal Numeric Format.  This
+/// > document does not address allocation for this AFI as it is not clear
+/// > what use (if any) can be made of this encoding format at this time.
 pub const AFI_IANA_ICP_DEC: u8 = 0x34;
 pub const AFI_IANA_ICP_BIN: u8 = 0x35;
 pub const AFI_ITU_T_IND_DEC: u8 = 0x76;
@@ -177,12 +184,15 @@ pub const ECMA_117_DECIMAL_STR: &str = "ECMA-117-Decimal";
 /// This is exported for convenience, since the Internet is most likely to be
 /// used in NSAPs now. If an application only wants / can use Internet NSAPs,
 /// the NSAPs could be checked to see if they begin with this sequence.
-pub const INTERNET_PREFIX: [u8; 5] = [
+pub const INTERNET_PREFIX: [u8; 6] = [
     AFI_F69_DEC_LEADING_ZERO, // AFI
     0x00, 0x72, 0x87, 0x22, // IDI
+    0x03, // The DSP prefix "03"
 ];
 
 pub const INTERNET_PREFIX_IDI_DIGITS: [u8; 8] = *b"00728722";
+
+const DEFAULT_ITOT_PORT: u16 = 102;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DSPSyntax {
@@ -808,6 +818,65 @@ impl <'a> X213NetworkAddress <'a> {
         str::from_utf8(&octets[3..]).ok()
     }
 
+    /// This **does not** extract an IP address from a URL.
+    ///
+    /// See: <https://www.rfc-editor.org/rfc/rfc4548.html>
+    pub fn get_ip(&self) -> Option<IpAddr> {
+        let octets = self.octets.as_ref();
+        if octets.len() < 7 || octets[0] != AFI_IANA_ICP_BIN {
+            return None;
+        }
+        // See doc comments on AFI_IANA_ICP_DEC for why it is not supported.
+        match (octets[1], octets[2]) {
+            (0, 0) => { // IPv6
+                if octets.len() < 19 {
+                    return None;
+                }
+                let ip = Ipv6Addr::from([
+                    octets[3],  octets[4],  octets[5],  octets[6],
+                    octets[7],  octets[8],  octets[9],  octets[10],
+                    octets[11], octets[12], octets[13], octets[14],
+                    octets[15], octets[16], octets[17], octets[18],
+                ]);
+                Some(IpAddr::V6(ip))
+            },
+            (0, 1) => { // IPv4
+                let ip = Ipv4Addr::from([
+                    octets[3],
+                    octets[4],
+                    octets[5],
+                    octets[6],
+                ]);
+                Some(IpAddr::V4(ip))
+            },
+            _ => None,
+        }
+    }
+
+    pub fn get_itot_socket_addr(&self) -> Option<SocketAddrV4> {
+        let octets = self.octets.as_ref();
+        if !octets.starts_with(INTERNET_PREFIX.as_slice()) {
+            return None;
+        }
+        let dsp = &octets[INTERNET_PREFIX.len()..];
+        if dsp.len() < 12 {
+            return None;
+        }
+        if !dsp.iter().all(|b| b.is_ascii_digit()) {
+            return None;
+        }
+        let dsp = unsafe { str::from_utf8_unchecked(dsp) };
+        let oct1: u8 = dsp[0.. 3].parse().ok()?;
+        let oct2: u8 = dsp[3.. 6].parse().ok()?;
+        let oct3: u8 = dsp[6.. 9].parse().ok()?;
+        let oct4: u8 = dsp[9..12].parse().ok()?;
+        let ip = Ipv4Addr::new(oct1, oct2, oct3, oct4);
+        if dsp.len() < 17 {
+            return Some(SocketAddrV4::new(ip, DEFAULT_ITOT_PORT));
+        }
+        let port: u16 = dsp[12..17].parse().ok()?;
+        Some(SocketAddrV4::new(ip, port))
+    }
 
 }
 

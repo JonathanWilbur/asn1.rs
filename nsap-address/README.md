@@ -7,15 +7,12 @@
 - [x] Character encoding is not correct
 - [x] `URL` encoding
 - [x] Confirm that character encoding prohibits underscores
-- [ ] `get_ip_addr()`
+- [x] `get_ip_addr()`
 - [x] `get_url()`
 - [ ] Support GOSIP NSAP addressing: https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b
-- [ ] Is there a separate ATN addressing? It sounds like ATN uses ISO 6523 (ICD)
-- [ ] String parsing errors
-- [ ] `PartialEq` / `Eq`
-  - [ ] `ICP` and `TELEX` both have encodings, although arguably they are different, since one is ITOT only
-  - [ ] Compare binary encoding with decimal equally
-- [ ] `Hash`
+- [x] String parsing errors
+- [x] ~~`PartialEq` / `Eq`~~ (Not clear how to do this. Just document the decision.)
+- [x] ~~`Hash`~~ (Not clear how to do this. Just document the decision.)
 - [ ] A lot more testing
   - [ ] `0xF` padding
 - [ ] Fuzz Testing
