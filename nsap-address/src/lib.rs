@@ -712,6 +712,20 @@ impl <'a> Iterator for BCDDigitsIter<'a> {
 
 impl <'a> FusedIterator for BCDDigitsIter<'a> {}
 
+/// This type does not implement `PartialEq`, `Eq`, or `Hash`, because:
+///
+/// 1. Unrecognized encodings could mean that two values cannot be compared for
+///    equality because their semantics are unknown.
+/// 2. Even among recognized encodings, it is not clear whether or not the
+///    decimal encoding should always be considered equal to the binary
+///    encoding.
+/// 3. The semantics of the DSP encodings seems to be undefined for most AFIs.
+///
+/// A simple `Eq` or `Hash` implementation could just use the raw octets, but
+/// this could contradict cases where two different encoding should be treated
+/// as equal. Letting the caller explicitly hash or compare the octets is more
+/// clear as to what the underlying behavior is.
+///
 #[derive(Debug)]
 pub struct X213NetworkAddress <'a> {
     #[cfg(feature = "alloc")]
