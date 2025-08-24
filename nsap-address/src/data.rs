@@ -263,6 +263,13 @@ const AFI_INFO: [Option<X213NetworkAddressInfo>; 45] = [
 
 // TODO: Rename to get_nsap_schema()
 pub const fn get_address_type_info(afi: AFI) -> Option<X213NetworkAddressInfo> {
+    if afi == 0xFF {
+        return Some(X213NetworkAddressInfo{
+            network_type: X213NetworkAddressType::URL,
+            leading_zeroes_in_idi: false,
+            dsp_syntax: DSPSyntax::Binary,
+        });
+    }
     let normalized = normalize_afi(afi);
     // Conversion of the BCD to a true binary value.
     let afi_bin: u8 = (((normalized & 0xF0) >> 4) * 10) + (normalized & 0x0F);

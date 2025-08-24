@@ -792,6 +792,15 @@ impl <'a> X213NetworkAddress <'a> {
         ))
     }
 
+    pub fn get_url(&'a self) -> Option<&'a str> {
+        let octets = self.octets.as_ref();
+        // It couldn't be a valid URL in two characters, AFAIK.
+        if octets.len() < 5 || octets[0] != AFI_URL {
+            return None;
+        }
+        str::from_utf8(&octets[3..]).ok()
+    }
+
 
 }
 
@@ -830,6 +839,16 @@ impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
 impl <'a> Display for X213NetworkAddress<'a> {
 
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self.octets.as_ref().get(0..3) {
+            Some(octs) if octs[0] == AFI_URL => {
+                if let Ok(url) = str::from_utf8(&self.octets[3..]) {
+                    if !url.contains('_') {
+                        return write!(f, "URL+{:02X}{:02X}+{}", octs[1], octs[2], url);
+                    }
+                }
+            },
+            _ => (),
+        };
         let (info, idi_digits) = match (self.get_network_type_info(), self.idi_digits()) {
             (Some(i), Some(d)) => (i, d),
             _ => { // If unrecognized, just print in NS+<hex> format
@@ -988,6 +1007,17 @@ fn u16_to_decimal_bytes(mut n: u16) -> [u8; 5] {
     ]
 }
 
+#[inline]
+fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError> {
+    if s.len() > max_len {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    if !s.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    Ok(())
+}
+
 /// Error representing an issue parsing an IETF RFC 1278 NSAP address string
 #[cfg(feature = "alloc")]
 #[derive(Debug)]
@@ -1006,6 +1036,10 @@ pub enum RFC1278ParseError {
     /// Shortcomings in the specification make it ambiguous as to how to parse
     /// or interpret the string
     SpecificationFailure,
+    /// Used a prohibited character in the NSAP address string. One such
+    /// character is the underscore `_`, which is used by RFC 1278 for
+    /// delimiting NSAP addresses in a presentation address string.
+    ProhibitedCharacter(char),
 }
 
 #[cfg(feature = "alloc")]
@@ -1014,10 +1048,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
 
     fn from_str(s: &str) -> Result<Self, RFC1278ParseError> {
         // I think this is the shortest possible: NS+0011 or DCC+1+2
-        if s.len() < 7 {
-            return Err(RFC1278ParseError::Malformed);
-        }
-        if !s.is_ascii() {
+        if s.len() < 7 || !s.is_ascii() {
             return Err(RFC1278ParseError::Malformed);
         }
         let mut parts = s.split('+');
@@ -1034,10 +1065,32 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
                 .map_err(|_| RFC1278ParseError::Malformed)?;
             return Ok(X213NetworkAddress { octets: Cow::Owned(hexbytes) });
         }
-
         let mut bcd_buf = BCDBuffer::new();
-
         let third_part = parts.next();
+        if first_part == "URL" {
+            validate_digitstring(second_part, 4)?;
+            let url = match third_part {
+                Some(u) => u,
+                None => return Err(RFC1278ParseError::Malformed),
+            };
+            /* The URL cannot contain underscores only because RFC 1278 uses
+            underscores to separate NSAP addresses in a presentation address. */
+            if url.contains('_') {
+                return Err(RFC1278ParseError::ProhibitedCharacter('_'));
+            }
+            let mut idi_deficit = 4usize.saturating_sub(second_part.len());
+            while idi_deficit > 0 {
+                bcd_buf.push_nybble(0);
+                idi_deficit -= 1;
+            }
+            bcd_buf.push_str(second_part);
+            let out = [
+                [AFI_URL].as_ref(),
+                bcd_buf.as_ref(),
+                url.as_bytes(),
+            ].concat();
+            return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+        }
         let syntax: DSPSyntax = match third_part.and_then(|p3| p3.chars().next()) {
             Some('d') => DSPSyntax::Decimal,
             Some('x') => DSPSyntax::Binary,
@@ -1343,16 +1396,35 @@ mod tests {
     }
 
     #[test]
+    fn test_display_02_url() {
+        let input = b"\xFF\x00\x01https://wildboarsoftware.com/x500directory";
+        let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
+        let addr_str = addr.to_string();
+        assert_eq!(addr_str, "URL+0001+https://wildboarsoftware.com/x500directory");
+    }
+
+    #[test]
+    fn test_get_url() {
+        let input = b"\xFF\x00\x01https://wildboarsoftware.com/x500directory";
+        let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
+        assert_eq!(addr.get_url().unwrap(), "https://wildboarsoftware.com/x500directory");
+    }
+
+    #[test]
     fn test_from_str() {
-        let cases: [(&str, &[u8]); 4] = [
+        let cases: [(&str, &[u8]); 5] = [
+            // Example from RFC 1278
             ("NS+a433bb93c1", &[0xa4, 0x33, 0xbb, 0x93, 0xc1]),
+            // Example from RFC 1278
             ("X121+234219200300", &[0x36, 0x00, 0x23, 0x42, 0x19, 0x20, 0x03, 0x00 ]),
+            // Example from RFC 1278
             ("TELEX+00728722+RFC-1006+03+10.0.0.6", &[
                 0x54,
                 0x00, 0x72, 0x87, 0x22,
                 0x03,
                 0x01, 0x00, 0x00, 0x00, 0x00, 0x06, // 10.0.0.6
             ]),
+            // Example from RFC 1278
             // This one deviates from RFC 1278. It seems like it had quotes
             // around the CUDF in error. I am not totally sure.
             ("TELEX+00728722+X.25(80)+02+00002340555+CUDF+892796", &[
@@ -1362,7 +1434,10 @@ mod tests {
                 0x23, // CUDF, which is 3 octets encoded as 9 digits
                 0x13, 0x70, 0x39, 0x15, 0x00, // The last 0 here is for the DTE
                 0x00, 0x02, 0x34, 0x05, 0x55, // All but the first digit of the DTE
-            ])
+            ]),
+            // Non-standard syntax for X.519 URLs
+            ("URL+001+https://wildboarsoftware.com/x500directory",
+            b"\xFF\x00\x01https://wildboarsoftware.com/x500directory"),
         ];
         for (case_str, expected) in cases {
             let actual = X213NetworkAddress::from_str(case_str);
