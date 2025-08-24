@@ -2,6 +2,7 @@
 
 ## Deviations from IETF RFC 1278
 
+- `ICP` and `IND` AFIs recognized in the `<afi>-<idi>-<dsp>` syntax
 - `IP4`, `IP6`, and `URL` schemes supported in `FromStr` and `Display`
 
 ## To Do
@@ -12,7 +13,7 @@
 - [ ] Clean up hard-coded strings
 - [x] ~~Support standard macros~~ (Not clear how these actually work)
 - [x] `From` implementations
-- [ ] Support GOSIP NSAP addressing: https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b
+- [ ] I think there are more X.519 formats
 - [ ] A lot more testing
   - [ ] `0xF` padding
 - [ ] Fuzz Testing
@@ -22,3 +23,7 @@
   - [ ] All non-standard things
 - [ ] Doc Comments
 - [ ] Readme Documentation
+
+## To Do (Future)
+
+- [ ] Support GOSIP NSAP addressing: https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b

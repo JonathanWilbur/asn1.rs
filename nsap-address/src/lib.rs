@@ -22,13 +22,63 @@
 #![no_std]
 #![allow(non_camel_case_types)]
 mod bcd;
-mod data;
-mod isoiec646;
+pub mod data;
+pub mod isoiec646;
 use core::fmt::{Display, Write};
 use core::error::Error;
 use core::convert::TryFrom;
 use core::iter::{Iterator, FusedIterator};
-use crate::data::{get_address_type_info, X213NetworkAddressInfo};
+use crate::data::{
+    get_address_type_info,
+    afi_to_network_type,
+    X213NetworkAddressInfo,
+    IETF_RFC_1006_PREFIX_STR,
+    X25_PREFIX_STR,
+    ECMA_117_BINARY_STR,
+    ECMA_117_DECIMAL_STR,
+    INTERNET_PREFIX,
+    AFI_URL,
+    AFI_X121_DEC_LEADING_NON_ZERO,
+    AFI_X121_DEC_LEADING_ZERO,
+    AFI_X121_BIN_LEADING_NON_ZERO,
+    AFI_X121_BIN_LEADING_ZERO,
+    AFI_ISO_DCC_DEC,
+    AFI_ISO_DCC_BIN,
+    AFI_F69_DEC_LEADING_NON_ZERO,
+    AFI_F69_DEC_LEADING_ZERO,
+    AFI_F69_BIN_LEADING_NON_ZERO,
+    AFI_F69_BIN_LEADING_ZERO,
+    AFI_E163_DEC_LEADING_NON_ZERO,
+    AFI_E163_DEC_LEADING_ZERO,
+    AFI_E163_BIN_LEADING_NON_ZERO,
+    AFI_E163_BIN_LEADING_ZERO,
+    AFI_E164_DEC_LEADING_NON_ZERO,
+    AFI_E164_DEC_LEADING_ZERO,
+    AFI_E164_BIN_LEADING_NON_ZERO,
+    AFI_E164_BIN_LEADING_ZERO,
+    AFI_ISO_6523_ICD_DEC,
+    AFI_ISO_6523_ICD_BIN,
+    AFI_IANA_ICP_DEC,
+    AFI_IANA_ICP_BIN,
+    AFI_ITU_T_IND_DEC,
+    AFI_ITU_T_IND_BIN,
+    AFI_LOCAL_DEC,
+    AFI_LOCAL_BIN,
+    AFI_LOCAL_ISO_IEC_646,
+    AFI_LOCAL_NATIONAL,
+    AFI_STR_X121,
+    AFI_STR_DCC,
+    AFI_STR_TELEX,
+    AFI_STR_PSTN,
+    AFI_STR_ISDN,
+    AFI_STR_ICD,
+    AFI_STR_ICP,
+    AFI_STR_IND,
+    AFI_STR_LOCAL,
+    AFI_STR_URL,
+    IANA_ICP_IDI_IPV4,
+    IANA_ICP_IDI_IPV6,
+};
 use bcd::BCDBuffer;
 use isoiec646::{
     char_to_local_iso_iec_646_byte,
@@ -51,145 +101,6 @@ use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
 use alloc::borrow::ToOwned;
 
 pub type AFI = u8;
-
-/// The AFI is mandatory. The IDI may be zero bytes (in the case of Local IDI),
-/// and the DSP (presumably) MUST be present.
-pub const SMALLEST_VALID_NSAP_ADDR: usize = 2;
-
-pub const AFI_URL: u8 = 0xFF; // Specified in ITU-T Rec. X.519 (2019).
-pub const AFI_X121_DEC_LEADING_NON_ZERO: u8 = 0x36;
-pub const AFI_X121_DEC_LEADING_ZERO: u8 = 0x52;
-pub const AFI_X121_BIN_LEADING_NON_ZERO: u8 = 0x37;
-pub const AFI_X121_BIN_LEADING_ZERO: u8 = 0x53;
-pub const AFI_ISO_DCC_DEC: u8 = 0x38;
-pub const AFI_ISO_DCC_BIN: u8 = 0x39;
-pub const AFI_F69_DEC_LEADING_NON_ZERO: u8 = 0x40;
-pub const AFI_F69_DEC_LEADING_ZERO: u8 = 0x54;
-pub const AFI_F69_BIN_LEADING_NON_ZERO: u8 = 0x41;
-pub const AFI_F69_BIN_LEADING_ZERO: u8 = 0x55;
-pub const AFI_E163_DEC_LEADING_NON_ZERO: u8 = 0x42;
-pub const AFI_E163_DEC_LEADING_ZERO: u8 = 0x56;
-pub const AFI_E163_BIN_LEADING_NON_ZERO: u8 = 0x43;
-pub const AFI_E163_BIN_LEADING_ZERO: u8 = 0x57;
-pub const AFI_E164_DEC_LEADING_NON_ZERO: u8 = 0x44;
-pub const AFI_E164_DEC_LEADING_ZERO: u8 = 0x58;
-pub const AFI_E164_BIN_LEADING_NON_ZERO: u8 = 0x45;
-pub const AFI_E164_BIN_LEADING_ZERO: u8 = 0x59;
-pub const AFI_ISO_6523_ICD_DEC: u8 = 0x46;
-pub const AFI_ISO_6523_ICD_BIN: u8 = 0x47;
-
-/// Quoting IETF RFC 4548:
-///
-/// > One of these two AFIs ('34') is
-/// > allocated for assignment of NSAPA in Decimal Numeric Format.  This
-/// > document does not address allocation for this AFI as it is not clear
-/// > what use (if any) can be made of this encoding format at this time.
-pub const AFI_IANA_ICP_DEC: u8 = 0x34;
-pub const AFI_IANA_ICP_BIN: u8 = 0x35;
-pub const AFI_ITU_T_IND_DEC: u8 = 0x76;
-pub const AFI_ITU_T_IND_BIN: u8 = 0x77;
-pub const AFI_LOCAL_DEC: u8 = 0x48;
-pub const AFI_LOCAL_BIN: u8 = 0x49;
-pub const AFI_LOCAL_ISO_IEC_646: u8 = 0x50;
-pub const AFI_LOCAL_NATIONAL: u8 = 0x51;
-pub const GROUP_AFI_X121_DEC_LEADING_NON_ZERO: u8 = 0xBA;
-pub const GROUP_AFI_X121_DEC_LEADING_ZERO: u8 = 0xCA;
-pub const GROUP_AFI_X121_BIN_LEADING_NON_ZERO: u8 = 0xBB;
-pub const GROUP_AFI_X121_BIN_LEADING_ZERO: u8 = 0xCB;
-pub const GROUP_AFI_ISO_DCC_DEC: u8 = 0xBC;
-pub const GROUP_AFI_ISO_DCC_BIN: u8 = 0xBD;
-pub const GROUP_AFI_F69_DEC_LEADING_NON_ZERO: u8 = 0xBE;
-pub const GROUP_AFI_F69_DEC_LEADING_ZERO: u8 = 0xCC;
-pub const GROUP_AFI_F69_BIN_LEADING_NON_ZERO: u8 = 0xBF;
-pub const GROUP_AFI_F69_BIN_LEADING_ZERO: u8 = 0xCD;
-pub const GROUP_AFI_E163_DEC_LEADING_NON_ZERO: u8 = 0xC0;
-pub const GROUP_AFI_E163_DEC_LEADING_ZERO: u8 = 0xCE;
-pub const GROUP_AFI_E163_BIN_LEADING_NON_ZERO: u8 = 0xC1;
-pub const GROUP_AFI_E163_BIN_LEADING_ZERO: u8 = 0xCF;
-pub const GROUP_AFI_E164_DEC_LEADING_NON_ZERO: u8 = 0xC2;
-pub const GROUP_AFI_E164_DEC_LEADING_ZERO: u8 = 0xD0;
-pub const GROUP_AFI_E164_BIN_LEADING_NON_ZERO: u8 = 0xC3;
-pub const GROUP_AFI_E164_BIN_LEADING_ZERO: u8 = 0xD1;
-pub const GROUP_AFI_ISO_6523_ICD_DEC: u8 = 0xC4;
-pub const GROUP_AFI_ISO_6523_ICD_BIN: u8 = 0xC5;
-pub const GROUP_AFI_IANA_ICP_DEC: u8 = 0xB8;
-pub const GROUP_AFI_IANA_ICP_BIN: u8 = 0xB9;
-pub const GROUP_AFI_ITU_T_IND_DEC: u8 = 0xE2;
-pub const GROUP_AFI_ITU_T_IND_BIN: u8 = 0xE3;
-pub const GROUP_AFI_LOCAL_DEC: u8 = 0xC6;
-pub const GROUP_AFI_LOCAL_BIN: u8 = 0xC7;
-pub const GROUP_AFI_LOCAL_ISO_IEC_646: u8 = 0xC8;
-pub const GROUP_AFI_LOCAL_NATIONAL: u8 = 0xC9;
-pub const MAX_DEC_DSP_LEN_X121: u8 = 24;
-pub const MAX_DEC_DSP_LEN_ISO_DCC: u8 = 35;
-pub const MAX_DEC_DSP_LEN_F69: u8 = 30;
-pub const MAX_DEC_DSP_LEN_E163: u8 = 26;
-pub const MAX_DEC_DSP_LEN_E164: u8 = 23;
-pub const MAX_DEC_DSP_LEN_ISO_6523_ICD: u8 = 34;
-pub const MAX_DEC_DSP_LEN_IANA_ICP: u8 = 34;
-pub const MAX_DEC_DSP_LEN_ITU_T_IND: u8 = 32;
-pub const MAX_DEC_DSP_LEN_LOCAL: u8 = 38;
-pub const MAX_BIN_DSP_LEN_X121: u8 = 12;
-pub const MAX_BIN_DSP_LEN_ISO_DCC: u8 = 17;
-pub const MAX_BIN_DSP_LEN_F69: u8 = 15;
-pub const MAX_BIN_DSP_LEN_E163: u8 = 13;
-pub const MAX_BIN_DSP_LEN_E164: u8 = 11;
-pub const MAX_BIN_DSP_LEN_ISO_6523_ICD: u8 = 17;
-pub const MAX_BIN_DSP_LEN_IANA_ICP: u8 = 17;
-pub const MAX_BIN_DSP_LEN_ITU_T_IND: u8 = 16;
-pub const MAX_BIN_DSP_LEN_LOCAL: u8 = 19;
-pub const MAX_ISO_IEC_646_LEN_LOCAL: u8 = 19;
-pub const MAX_NATIONAL_CHAR_LEN_LOCAL: u8 = 9;
-
-pub const MAX_IDI_LEN_DIGITS_X121: usize = 14; // Up to
-pub const MAX_IDI_LEN_DIGITS_ISO_DCC: usize = 3; // Exactly
-pub const MAX_IDI_LEN_DIGITS_F69: usize = 8; // Up to
-pub const MAX_IDI_LEN_DIGITS_E163: usize = 12; // Up to
-pub const MAX_IDI_LEN_DIGITS_E164: usize = 15; // Up to
-pub const MAX_IDI_LEN_DIGITS_ISO_6523_ICD: usize = 4; // Exactly
-pub const MAX_IDI_LEN_DIGITS_IANA_ICP: usize = 4; // Exactly
-pub const MAX_IDI_LEN_DIGITS_ITU_T_IND: usize = 6; // Exactly
-pub const MAX_IDI_LEN_DIGITS_LOCAL: usize = 0; // Exactly
-pub const MAX_IDI_LEN_DIGITS_URL: usize = 4; // Exactly.
-
-// DSP Prefixes that start with 0x54, 0x00, 0x72, 0x87, 0x22,
-pub const RFC_1277_WELL_KNOWN_NETWORK_INTL_X25: u8 = 0x01;
-pub const RFC_1277_WELL_KNOWN_NETWORK_JANET: u8 = 0x02;
-pub const RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET: u8 = 0x03;
-pub const RFC_1277_WELL_KNOWN_NETWORK_IXI: u8 = 0x06;
-pub const ITU_X519_DSP_PREFIX_LDAP: u8 = 0x11;
-pub const ITU_X519_DSP_PREFIX_IDM_OVER_IPV4: u8 = 0x10;
-pub const ITU_X519_DSP_PREFIX_ITOT_OVER_IPV4: u8 = RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET;
-
-pub const ITOT_OVER_IPV4_DEFAULT_PORT: u16 = 102;
-
-pub const AFI_STR_X121: &str = "X121";
-pub const AFI_STR_DCC: &str = "DCC";
-pub const AFI_STR_TELEX: &str = "TELEX";
-pub const AFI_STR_PSTN: &str = "PSTN"; // I think this is E.163
-pub const AFI_STR_ISDN: &str = "ISDN"; // I think this is E.164 FIXME: Unused
-pub const AFI_STR_ICD: &str = "ICD";
-pub const AFI_STR_ICP: &str = "ICP"; // TODO: Document that this is not standard
-pub const AFI_STR_IND: &str = "IND"; // TODO: Document that this is not standard
-pub const AFI_STR_LOCAL: &str = "LOCAL";
-pub const AFI_STR_URL: &str = "URL"; // TODO: Document that this is not standard
-
-pub const IETF_RFC_1277_TELEX_NUMBER_STR: &str = "00728722";
-pub const IETF_RFC_1006_PREFIX_STR: &str = "RFC-1006";
-pub const X25_PREFIX_STR: &str = "X.25(80)";
-pub const ECMA_117_BINARY_STR: &str = "ECMA-117-Binary";
-pub const ECMA_117_DECIMAL_STR: &str = "ECMA-117-Decimal";
-
-/// This is exported for convenience, since the Internet is most likely to be
-/// used in NSAPs now. If an application only wants / can use Internet NSAPs,
-/// the NSAPs could be checked to see if they begin with this sequence.
-pub const INTERNET_PREFIX: [u8; 6] = [
-    AFI_F69_DEC_LEADING_ZERO, // AFI
-    0x00, 0x72, 0x87, 0x22, // IDI
-    0x03, // The DSP prefix "03"
-];
-
-pub const INTERNET_PREFIX_IDI_DIGITS: [u8; 8] = *b"00728722";
 
 const DEFAULT_ITOT_PORT: u16 = 102;
 
@@ -255,139 +166,6 @@ impl Display for NAddressParseError {
 
 impl Error for NAddressParseError {}
 
-/// This function was kept around so you can still get the AFI without parsing the whole NSAP.
-pub const fn get_afi_from_n_address (naddr: &[u8]) -> Option<u8> {
-    if naddr.len() == 0 {
-        return None;
-    }
-    Some(naddr[0])
-}
-
-// TODO: Rename to clarify that this only means that the leading zeroes COULD be
-// significant, but not necessarily that they are, since the IDI is padded with
-// zeroes if the encoded abstract value does not have leading zeroes.
-
-/// Returns `Some(true)` if leading zeroes in the IDI are significant,
-/// `Some(false)` if not, and `None` if it is not known.
-pub const fn idi_leading_0_significant (nt: X213NetworkAddressType) -> Option<bool> {
-    match nt {
-        X213NetworkAddressType::X121
-        | X213NetworkAddressType::F69
-        | X213NetworkAddressType::E163
-        | X213NetworkAddressType::E164 => Some(true),
-        X213NetworkAddressType::IANA_ICP
-        | X213NetworkAddressType::ISO_6523_ICD
-        | X213NetworkAddressType::ISO_DCC
-        | X213NetworkAddressType::ITU_T_IND
-        | X213NetworkAddressType::LOCAL => Some(false),
-        _ => None,
-    }
-}
-
-// FIXME: I think you should combine a lot of these functions into a single
-// AFI -> (network_type, dsp syntax, leading_zeroes) lookup
-
-/// Returns `Some(true)` if leading zeroes in the IDI are significant,
-/// `Some(false)` if not, and `None` if it is not known.
-///
-/// Quoting X.213:
-/// "The numerically greater AFI value is used when the first significant digit in the IDI is zero."
-pub const fn idi_leading_0_significant_by_afi (afi: AFI) -> Option<bool> {
-    match afi {
-        0x52 // X.121 IDI with leading zeroes
-        | 0x54 // F.69 IDI with leading zeroes
-        | 0x56 // E.163 IDI with leading zeroes
-        | 0x58 // E.164 IDI with leading zeroes
-        => Some(true),
-        0x36 // X.121 IDI with no leading zeroes
-        | 0x38 // ISO DCC IDI
-        | 0x40 // F.69 IDI with no leading zeroes
-        | 0x42 // E.163 IDI with no leading zeroes
-        | 0x44 // E.164 IDI with no leading zeroes
-        | 0x46 // ISO 6523-ICD IDI
-        | 0x34 // IANA ICP IDI
-        | 0x76 // ITU-T IND IDI
-        | 0x48 // Local IDI
-        => Some(false),
-        _ => None, // Otherwise, unknown
-    }
-}
-
-/// Translate an individual AFI to its group equivalent
-#[inline]
-pub const fn individual_afi_to_group_afi (afi: u8) -> Option<u8> {
-    match afi {
-        0x10..=0x99 => Some(afi + 0x90),
-        _ => None,
-    }
-}
-
-/// Translate a group AFI to its individual equivalent
-#[inline]
-pub const fn group_afi_to_individual_afi (afi: u8) -> Option<u8> {
-    match afi {
-        0xA0..=0xF9 => Some(afi - 0x90),
-        _ => None,
-    }
-}
-
-/// Return `true` if this is an individual AFI
-#[inline]
-pub const fn is_individual_afi (afi: u8) -> bool {
-    afi >= 0x10 && afi <= 0x99
-}
-
-/// Return `true` if this is a group AFI
-#[inline]
-pub const fn is_group_afi (afi: u8) -> bool {
-    afi >= 0xA0 && afi <= 0xF9
-}
-
-/// Return `true` if this is an invalid AFI
-#[inline]
-pub const fn is_invalid_afi (afi: u8) -> bool {
-    !is_individual_afi(afi) && !is_group_afi(afi)
-}
-
-/// Return get the N-address network type from the AFI
-pub const fn afi_to_network_type (afi: AFI) -> Option<X213NetworkAddressType> {
-    let ind_afi = match group_afi_to_individual_afi(afi) {
-        Some(x) => x,
-        None => afi,
-    };
-    match ind_afi {
-        AFI_X121_DEC_LEADING_NON_ZERO
-        | AFI_X121_DEC_LEADING_ZERO
-        | AFI_X121_BIN_LEADING_NON_ZERO
-        | AFI_X121_BIN_LEADING_ZERO => Some(X213NetworkAddressType::X121),
-        AFI_ISO_DCC_DEC
-        | AFI_ISO_DCC_BIN => Some(X213NetworkAddressType::ISO_DCC),
-        AFI_F69_DEC_LEADING_NON_ZERO
-        | AFI_F69_DEC_LEADING_ZERO
-        | AFI_F69_BIN_LEADING_NON_ZERO
-        | AFI_F69_BIN_LEADING_ZERO => Some(X213NetworkAddressType::F69),
-        AFI_E163_DEC_LEADING_NON_ZERO
-        | AFI_E163_DEC_LEADING_ZERO
-        | AFI_E163_BIN_LEADING_NON_ZERO
-        | AFI_E163_BIN_LEADING_ZERO => Some(X213NetworkAddressType::E163),
-        AFI_E164_DEC_LEADING_NON_ZERO
-        | AFI_E164_DEC_LEADING_ZERO
-        | AFI_E164_BIN_LEADING_NON_ZERO
-        | AFI_E164_BIN_LEADING_ZERO => Some(X213NetworkAddressType::E164),
-        AFI_ISO_6523_ICD_DEC
-        | AFI_ISO_6523_ICD_BIN => Some(X213NetworkAddressType::ISO_6523_ICD),
-        AFI_IANA_ICP_DEC
-        | AFI_IANA_ICP_BIN => Some(X213NetworkAddressType::IANA_ICP),
-        AFI_ITU_T_IND_DEC
-        | AFI_ITU_T_IND_BIN => Some(X213NetworkAddressType::ITU_T_IND),
-        AFI_LOCAL_DEC
-        | AFI_LOCAL_BIN
-        | AFI_LOCAL_ISO_IEC_646
-        | AFI_LOCAL_NATIONAL => Some(X213NetworkAddressType::LOCAL),
-        _ => None,
-    }
-}
-
 /// Convert the network type to a string
 #[inline]
 pub const fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> Option<&'static str> {
@@ -416,205 +194,62 @@ fn naddr_str_to_afi (
     I implemented this as doubly-nested matching so that string comparison
     does not happen for every single case. */
     match s {
-        crate::AFI_STR_X121 => match (dsp_syntax, leading0) {
+        crate::data::AFI_STR_X121 => match (dsp_syntax, leading0) {
             (DSPSyntax::Decimal, false) => Some(AFI_X121_DEC_LEADING_NON_ZERO),
             (DSPSyntax::Decimal, true) => Some(AFI_X121_DEC_LEADING_ZERO),
             (DSPSyntax::Binary, false) => Some(AFI_X121_BIN_LEADING_NON_ZERO),
             (DSPSyntax::Binary, true) => Some(AFI_X121_BIN_LEADING_ZERO),
             _ => None,
         },
-        crate::AFI_STR_DCC => match dsp_syntax {
+        crate::data::AFI_STR_DCC => match dsp_syntax {
             DSPSyntax::Decimal => Some(AFI_ISO_DCC_DEC),
             DSPSyntax::Binary => Some(AFI_ISO_DCC_BIN),
             _ => None,
         },
-        crate::AFI_STR_TELEX => match (dsp_syntax, leading0) {
+        crate::data::AFI_STR_TELEX => match (dsp_syntax, leading0) {
             (DSPSyntax::Decimal, false) => Some(AFI_F69_DEC_LEADING_NON_ZERO),
             (DSPSyntax::Decimal, true) => Some(AFI_F69_DEC_LEADING_ZERO),
             (DSPSyntax::Binary, false) => Some(AFI_F69_BIN_LEADING_NON_ZERO),
             (DSPSyntax::Binary, true) => Some(AFI_F69_BIN_LEADING_ZERO),
             _ => None,
         },
-        crate::AFI_STR_PSTN => match (dsp_syntax, leading0) {
+        crate::data::AFI_STR_PSTN => match (dsp_syntax, leading0) {
             (DSPSyntax::Decimal, false) => Some(AFI_E163_DEC_LEADING_NON_ZERO),
             (DSPSyntax::Decimal, true) => Some(AFI_E163_DEC_LEADING_ZERO),
             (DSPSyntax::Binary, false) => Some(AFI_E163_BIN_LEADING_NON_ZERO),
             (DSPSyntax::Binary, true) => Some(AFI_E163_BIN_LEADING_ZERO),
             _ => None,
         },
-        crate::AFI_STR_ISDN => match (dsp_syntax, leading0) {
+        crate::data::AFI_STR_ISDN => match (dsp_syntax, leading0) {
             (DSPSyntax::Decimal, false) => Some(AFI_E164_DEC_LEADING_NON_ZERO),
             (DSPSyntax::Decimal, true) => Some(AFI_E164_DEC_LEADING_ZERO),
             (DSPSyntax::Binary, false) => Some(AFI_E164_BIN_LEADING_NON_ZERO),
             (DSPSyntax::Binary, true) => Some(AFI_E164_BIN_LEADING_ZERO),
             _ => None,
         },
-        crate::AFI_STR_ICD => match dsp_syntax {
+        crate::data::AFI_STR_ICD => match dsp_syntax {
             DSPSyntax::Decimal => Some(AFI_ISO_6523_ICD_DEC),
             DSPSyntax::Binary => Some(AFI_ISO_6523_ICD_BIN),
             _ => None,
         },
-        crate::AFI_STR_ICP => match dsp_syntax {
+        crate::data::AFI_STR_ICP => match dsp_syntax {
             DSPSyntax::Decimal => Some(AFI_IANA_ICP_DEC),
             DSPSyntax::Binary => Some(AFI_IANA_ICP_BIN),
             _ => None,
         },
-        crate::AFI_STR_IND => match dsp_syntax {
+        crate::data::AFI_STR_IND => match dsp_syntax {
             DSPSyntax::Decimal => Some(AFI_ITU_T_IND_DEC),
             DSPSyntax::Binary => Some(AFI_ITU_T_IND_BIN),
             _ => None,
         },
-        crate::AFI_STR_LOCAL => match dsp_syntax {
+        crate::data::AFI_STR_LOCAL => match dsp_syntax {
             DSPSyntax::Decimal => Some(AFI_LOCAL_DEC),
             DSPSyntax::Binary => Some(AFI_LOCAL_BIN),
             DSPSyntax::IsoIec646Chars => Some(AFI_LOCAL_ISO_IEC_646),
             DSPSyntax::NationalChars => Some(AFI_LOCAL_NATIONAL),
         },
-        crate::AFI_STR_URL => Some(AFI_URL),
+        crate::data::AFI_STR_URL => Some(AFI_URL),
         _ => None,
-    }
-}
-
-/// Get the max decimal length given a network address type
-#[inline]
-pub const fn naddr_network_type_to_max_dec_length (nt: X213NetworkAddressType) -> Option<u8> {
-    match nt {
-        X213NetworkAddressType::X121 => Some(MAX_DEC_DSP_LEN_X121),
-        X213NetworkAddressType::ISO_DCC => Some(MAX_DEC_DSP_LEN_ISO_DCC),
-        X213NetworkAddressType::F69 => Some(MAX_DEC_DSP_LEN_F69),
-        X213NetworkAddressType::E163 => Some(MAX_DEC_DSP_LEN_E163),
-        X213NetworkAddressType::E164 => Some(MAX_DEC_DSP_LEN_E164),
-        X213NetworkAddressType::ISO_6523_ICD => Some(MAX_DEC_DSP_LEN_ISO_6523_ICD),
-        X213NetworkAddressType::IANA_ICP => Some(MAX_DEC_DSP_LEN_IANA_ICP), // Not specified in IETF RFC 1278. See: https://www.iana.org/assignments/osi-nsapa-numbers/osi-nsapa-numbers.xhtml
-        X213NetworkAddressType::ITU_T_IND => Some(MAX_DEC_DSP_LEN_ITU_T_IND), // Not specified in IETF RFC 1278.
-        X213NetworkAddressType::LOCAL => Some(MAX_DEC_DSP_LEN_LOCAL),
-        X213NetworkAddressType::URL => None,
-    }
-}
-
-/// Get the max binary length given a network address type
-#[inline]
-pub const fn naddr_network_type_to_max_bin_length (nt: X213NetworkAddressType) -> Option<u8> {
-    match nt {
-        X213NetworkAddressType::X121 => Some(MAX_BIN_DSP_LEN_X121),
-        X213NetworkAddressType::ISO_DCC => Some(MAX_BIN_DSP_LEN_ISO_DCC),
-        X213NetworkAddressType::F69 => Some(MAX_BIN_DSP_LEN_F69),
-        X213NetworkAddressType::E163 => Some(MAX_BIN_DSP_LEN_E163),
-        X213NetworkAddressType::E164 => Some(MAX_BIN_DSP_LEN_E164),
-        X213NetworkAddressType::ISO_6523_ICD => Some(MAX_BIN_DSP_LEN_ISO_6523_ICD),
-        X213NetworkAddressType::IANA_ICP => Some(MAX_DEC_DSP_LEN_IANA_ICP), // Not specified in IETF RFC 1278. See: https://www.iana.org/assignments/osi-nsapa-numbers/osi-nsapa-numbBIN.xhtml
-        X213NetworkAddressType::ITU_T_IND => Some(MAX_DEC_DSP_LEN_ITU_T_IND), // Not specified in IETF RFC BIN8.
-        X213NetworkAddressType::LOCAL => Some(MAX_BIN_DSP_LEN_LOCAL),
-        X213NetworkAddressType::URL => Some(u8::MAX), // There really is no limit, but 255 characters is good enough.
-    }
-}
-
-/// Get the max IDI length (in digits) given a network address type
-#[inline]
-pub const fn get_idi_len_in_digits (nt: X213NetworkAddressType) -> Option<usize> {
-    match nt {
-        X213NetworkAddressType::X121 => Some(MAX_IDI_LEN_DIGITS_X121),
-        X213NetworkAddressType::ISO_DCC => Some(MAX_IDI_LEN_DIGITS_ISO_DCC),
-        X213NetworkAddressType::F69 => Some(MAX_IDI_LEN_DIGITS_F69),
-        X213NetworkAddressType::E163 => Some(MAX_IDI_LEN_DIGITS_E163),
-        X213NetworkAddressType::E164 => Some(MAX_IDI_LEN_DIGITS_E164),
-        X213NetworkAddressType::ISO_6523_ICD => Some(MAX_IDI_LEN_DIGITS_ISO_6523_ICD),
-        X213NetworkAddressType::IANA_ICP => Some(MAX_IDI_LEN_DIGITS_IANA_ICP), // Not specified in IETF RFC 1278. See: https://www.iana.org/assignments/osi-nsapa-numbers/osi-nsapa-numbBIN.xhtml
-        X213NetworkAddressType::ITU_T_IND => Some(MAX_IDI_LEN_DIGITS_ITU_T_IND), // Not specified in IETF RFC BIN8.
-        X213NetworkAddressType::LOCAL => Some(MAX_IDI_LEN_DIGITS_LOCAL),
-        X213NetworkAddressType::URL => Some(MAX_IDI_LEN_DIGITS_URL),
-    }
-}
-
-/// Return `true` if the DSP is in binary format
-pub const fn naddr_dsp_is_binary (afi: u8) -> bool {
-    let ind_afi = match group_afi_to_individual_afi(afi) {
-        Some(x) => x,
-        None => afi,
-    };
-    match ind_afi {
-        AFI_X121_BIN_LEADING_NON_ZERO
-        | AFI_X121_BIN_LEADING_ZERO
-        | AFI_ISO_DCC_BIN
-        | AFI_F69_BIN_LEADING_NON_ZERO
-        | AFI_F69_BIN_LEADING_ZERO
-        | AFI_E163_BIN_LEADING_NON_ZERO
-        | AFI_E163_BIN_LEADING_ZERO
-        | AFI_E164_BIN_LEADING_NON_ZERO
-        | AFI_E164_BIN_LEADING_ZERO
-        | AFI_ISO_6523_ICD_BIN
-        | AFI_IANA_ICP_BIN
-        | AFI_ITU_T_IND_BIN
-        | AFI_LOCAL_BIN
-        | AFI_URL => true,
-        _ => false,
-    }
-}
-
-/// Return `true` if the DSP is in decimal format
-pub const fn naddr_dsp_is_decimal (afi: u8) -> bool {
-    let ind_afi = match group_afi_to_individual_afi(afi) {
-        Some(x) => x,
-        None => afi,
-    };
-    match ind_afi {
-        AFI_X121_DEC_LEADING_NON_ZERO
-        | AFI_X121_DEC_LEADING_ZERO
-        | AFI_ISO_DCC_DEC
-        | AFI_F69_DEC_LEADING_NON_ZERO
-        | AFI_F69_DEC_LEADING_ZERO
-        | AFI_E163_DEC_LEADING_NON_ZERO
-        | AFI_E163_DEC_LEADING_ZERO
-        | AFI_E164_DEC_LEADING_NON_ZERO
-        | AFI_E164_DEC_LEADING_ZERO
-        | AFI_ISO_6523_ICD_DEC
-        | AFI_IANA_ICP_DEC
-        | AFI_ITU_T_IND_DEC
-        | AFI_LOCAL_DEC => true,
-        _ => false,
-    }
-}
-
-/// Return `true` if the DSP is in ISO/IEC 646 format
-pub const fn naddr_dsp_is_iso_iec_646 (afi: u8) -> bool {
-    let ind_afi = match group_afi_to_individual_afi(afi) {
-        Some(x) => x,
-        None => afi,
-    };
-    match ind_afi {
-        AFI_LOCAL_ISO_IEC_646 => true,
-        _ => false,
-    }
-}
-
-/// Return `true` if the DSP is in nationally-defined format
-pub const fn naddr_dsp_is_national (afi: u8) -> bool {
-    let ind_afi = match group_afi_to_individual_afi(afi) {
-        Some(x) => x,
-        None => afi,
-    };
-    match ind_afi {
-        AFI_LOCAL_NATIONAL => true,
-        _ => false,
-    }
-}
-
-/// Return `true` if the IDI has leading zeroes
-pub const fn naddr_idi_has_leading_zero (afi: u8) -> bool {
-    let ind_afi = match group_afi_to_individual_afi(afi) {
-        Some(x) => x,
-        None => afi,
-    };
-    match ind_afi {
-        AFI_X121_DEC_LEADING_ZERO
-        | AFI_X121_BIN_LEADING_ZERO
-        | AFI_F69_DEC_LEADING_ZERO
-        | AFI_F69_BIN_LEADING_ZERO
-        | AFI_E163_DEC_LEADING_ZERO
-        | AFI_E163_BIN_LEADING_ZERO
-        | AFI_E164_DEC_LEADING_ZERO
-        | AFI_E164_BIN_LEADING_ZERO => true,
-        _ => false,
     }
 }
 
@@ -636,13 +271,13 @@ impl <'a> BCDDigitsIter<'a> {
         leading_0_sig: bool,
         ignore_last_nybble: bool,
         least_sig_nybble: bool,
+        processing_leading_digits: bool,
     ) -> BCDDigitsIter<'a> {
         BCDDigitsIter{
             idi,
             leading_0_sig,
             ignore_last_nybble,
-            // FIXME: This should be false when processing the DSP
-            processing_leading_digits: true, // Start off handling leading digits
+            processing_leading_digits, // Start off handling leading digits
             least_sig_nybble, // Start off on the MSn
         }
     }
@@ -782,7 +417,7 @@ impl <'a> X213NetworkAddress <'a> {
         let leading_0_sig = addr_type_info.leading_zeroes_in_idi;
         let is_dsp_decimal = matches!(addr_type_info.dsp_syntax, DSPSyntax::Decimal);
         // TODO: Return IDI len from get_address_type_info()?
-        let idi_len = get_idi_len_in_digits(addr_type_info.network_type)?;
+        let idi_len = addr_type_info.max_idi_len_digits as usize;
         let idi_len_in_bytes = idi_len >> 1;
         let odd_len_idi: bool = (idi_len % 2) > 0;
         let idi = &self.octets[1..1+idi_len_in_bytes];
@@ -791,6 +426,7 @@ impl <'a> X213NetworkAddress <'a> {
             leading_0_sig,
             is_dsp_decimal && odd_len_idi,
             false,
+            true,
         ))
     }
 
@@ -800,7 +436,7 @@ impl <'a> X213NetworkAddress <'a> {
         if !is_dsp_decimal {
             return None;
         }
-        let idi_len = get_idi_len_in_digits(addr_type_info.network_type)?;
+        let idi_len = addr_type_info.max_idi_len_digits as usize;
         let idi_len_in_bytes: usize = idi_len >> 1;
         let odd_len_idi: bool = (idi_len % 2) > 0;
         // This needs to take the byte before if odd number of IDI digits
@@ -814,6 +450,7 @@ impl <'a> X213NetworkAddress <'a> {
             false, // No leading zeroes supported in DSPs
             false, // Only ignore the last nybble if it is 0x0F
             start_on_lsn,
+            false,
         ))
     }
 
@@ -1072,8 +709,7 @@ impl <'a> Display for X213NetworkAddress<'a> {
         };
         if octets[0] == AFI_IANA_ICP_BIN && octets.len() == 20 {
             let icp = &octets[1..3];
-            // TODO: Define constants for these
-            if icp == &[0, 0] { // IPv6
+            if icp == IANA_ICP_IDI_IPV6.as_slice() {
                 let ip = Ipv6Addr::from([
                     octets[3],  octets[4],  octets[5],  octets[6],
                     octets[7],  octets[8],  octets[9],  octets[10],
@@ -1082,7 +718,7 @@ impl <'a> Display for X213NetworkAddress<'a> {
                 ]);
                 return write!(f, "IP6+{}", ip);
             }
-            if icp == &[0, 1] { // IPv4
+            if icp == IANA_ICP_IDI_IPV4.as_slice() {
                 let ip = Ipv4Addr::from([
                     octets[3],
                     octets[4],
@@ -1140,9 +776,8 @@ impl <'a> Display for X213NetworkAddress<'a> {
             f.write_char((digit + 0x30) as char)?;
         }
         f.write_char('+')?;
-        let idi_len = get_idi_len_in_digits(info.network_type).unwrap();
+        let idi_len = info.max_idi_len_digits as usize;
         let idi_len_in_bytes: usize = idi_len >> 1;
-        // TODO: Display RFC-1006 / X.25(80), etc.
         match info.dsp_syntax {
             DSPSyntax::Decimal => {
                 match self.dsp_digits() {
@@ -1213,8 +848,7 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC127
     // because we don't know how long the IDI is.
     let schema = get_address_type_info(afi)
         .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
-    let idi_len_digits = get_idi_len_in_digits(schema.network_type)
-        .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
+    let idi_len_digits = schema.max_idi_len_digits as usize;
     let mut bcd_buf = BCDBuffer::new();
     bcd_buf.push_byte(afi);
     let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
@@ -1420,8 +1054,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
             // This MUST be <afi> "+" <idi> [ "+" <dsp> ] syntax.
             let schema = get_address_type_info(afi)
                 .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
-            let idi_len_digits: usize = get_idi_len_in_digits(schema.network_type)
-                .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
+            let idi_len_digits: usize = schema.max_idi_len_digits as usize;
             if second_part.len() > idi_len_digits
                 || !second_part.bytes().all(|b| b.is_ascii_digit()) {
                 return Err(RFC1278ParseError::Malformed);
@@ -1651,8 +1284,7 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
         let afi = decode_afi_from_str(&s[0..2])?;
         let schema = get_address_type_info(afi)
             .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
-        let idi_len_digits: usize = get_idi_len_in_digits(schema.network_type)
-            .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
+        let idi_len_digits: usize = schema.max_idi_len_digits as usize;
         if (idi_len_digits % 2) > 0 && syntax == DSPSyntax::Decimal {
             /* In the encoding specified in ITU-T Rec. X.213, Section A.7, it
             is not clear how to encode decimal DSPs when the first digit
@@ -1740,7 +1372,7 @@ mod tests {
     #[test]
     fn test_from_itot_socket_addr() {
         let sock = SocketAddrV4::from_str("192.168.1.100:8000").unwrap();
-        let addr = X213NetworkAddress::from_itot_socket_addr(sock, None);
+        let addr = X213NetworkAddress::from_itot_socket_addr(&sock, None);
         // assert_eq!(addr, "https://wildboarsoftware.com/x500directory");
         assert_eq!(addr.get_octets(), &[
             AFI_F69_DEC_LEADING_ZERO, // AFI
