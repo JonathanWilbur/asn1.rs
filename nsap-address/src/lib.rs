@@ -21,14 +21,19 @@
 //! should handle unrecognized NSAP syntaxes gracefully.
 #![no_std]
 #![allow(non_camel_case_types)]
-mod data;
 mod bcd;
+mod data;
+mod isoiec646;
 use core::fmt::{Display, Write};
 use core::error::Error;
 use core::convert::TryFrom;
 use core::iter::{Iterator, FusedIterator};
 use crate::data::{get_address_type_info, X213NetworkAddressInfo};
 use bcd::BCDBuffer;
+use isoiec646::{
+    char_to_local_iso_iec_646_byte,
+    local_iso_iec_646_byte_to_char,
+};
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -42,6 +47,8 @@ use alloc::vec::Vec;
 use alloc::string::String;
 #[cfg(feature = "alloc")]
 use core::net::Ipv4Addr;
+#[cfg(feature = "alloc")]
+use alloc::borrow::ToOwned;
 
 pub type AFI = u8;
 
@@ -899,22 +906,11 @@ impl <'a> Display for X213NetworkAddress<'a> {
             },
             DSPSyntax::IsoIec646Chars => {
                 let dsp = &self.octets[1+idi_len_in_bytes..];
-                // Although the ISO/IEC 646 syntax can take any graphic
-                // characters and SPACE, the IETF RFC 1278 string formatting
-                // only accepts alphanumerics, +, -, and period. I think part of
-                // this is because the underscore is used to separate NSAP
-                // addresses in the same specification.
-                if dsp.iter().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'+' | b'-' | b'.')) {
-                    f.write_char('l')?;
-                    for c in dsp {
-                        f.write_char((*c).into())?;
-                    }
-                } else {
-                    // If the DSP is not ASCII (which it should be), just write hex
-                    f.write_char('x')?;
-                    for byte in dsp {
-                        f.write_fmt(format_args!("{:02X}", *byte))?;
-                    }
+                let decode = dsp
+                    .iter()
+                    .map(|b| local_iso_iec_646_byte_to_char(*b).unwrap_or('?'));
+                for c in decode {
+                    f.write_char(c)?;
                 }
             },
         };
@@ -1016,6 +1012,11 @@ fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError
         return Err(RFC1278ParseError::Malformed);
     }
     Ok(())
+}
+
+#[inline]
+const fn is_other_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.'
 }
 
 /// Error representing an issue parsing an IETF RFC 1278 NSAP address string
@@ -1159,20 +1160,22 @@ impl <'a> FromStr for X213NetworkAddress<'a> {
                 },
                 'l' => {
                     // RFC 1278: <other> ::= [0-9a-zA-Z+-.]
-                    if !third_part.chars().all(|c| c.is_alphanumeric() || c == '+' || c == '-' || c == '.') {
+                    if !third_part.chars().all(is_other_char) {
                         return Err(RFC1278ParseError::Malformed);
                     }
-                    let out = [
-                        bcd_buf.as_ref(),
-                        third_part[1..].as_ref(),
-                    ].concat();
+                    let outlen = bcd_buf.len_in_bytes() + third_part.len();
+                    let mut out = Vec::with_capacity(outlen);
+                    out.extend(bcd_buf.as_ref());
+                    out.extend(third_part[1..]
+                        .chars()
+                        // We check for permitted characters above, so the
+                        // unwrap() below should never fail.
+                        .map(|c| char_to_local_iso_iec_646_byte(c).unwrap()));
                     Ok(X213NetworkAddress { octets: Cow::Owned(out) })
                 },
                 _ => {
                     if third_part == IETF_RFC_1006_PREFIX_STR {
                         // "RFC-1006" "+" <prefix> "+" <ip> [ "+" <port> [ "+" <tset> ]]
-
-                        use alloc::borrow::ToOwned;
                         let prefix = parts.next();
                         let ip = parts.next();
                         let port = parts.next();

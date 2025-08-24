@@ -4,9 +4,9 @@
 
 - [ ] Inline buffer so most strings can be decoded in `no_std`
 - [ ] Clean up hard-coded strings
-- [ ] Character encoding is not correct
+- [x] Character encoding is not correct
 - [x] `URL` encoding
-- [ ] Confirm that character encoding prohibits underscores
+- [x] Confirm that character encoding prohibits underscores
 - [ ] `get_ip_addr()`
 - [x] `get_url()`
 - [ ] Support GOSIP NSAP addressing: https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b
