@@ -23,11 +23,12 @@
 #![allow(non_camel_case_types)]
 pub mod bcd;
 pub mod data;
+mod display;
 pub mod error;
 pub mod isoiec646;
 mod parse;
 mod utils;
-use core::fmt::{Display, Write};
+use core::fmt::Display;
 use core::convert::TryFrom;
 use crate::data::{
     get_address_type_info,
@@ -46,15 +47,11 @@ use crate::data::{
     AFI_STR_IND,
     AFI_STR_LOCAL,
     AFI_STR_URL,
-    IANA_ICP_IDI_IPV4,
-    IANA_ICP_IDI_IPV6,
 };
-use bcd::{BCDBuffer, BCDDigitsIter};
-use error::NAddressParseError;
-use isoiec646::{
-    local_iso_iec_646_byte_to_char,
-};
-use parse::parse_nsap;
+use crate::bcd::{BCDBuffer, BCDDigitsIter};
+use crate::display::{fmt_naddr_type, fmt_naddr};
+use crate::error::NAddressParseError;
+use crate::parse::parse_nsap;
 use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 
 #[cfg(feature = "alloc")]
@@ -102,9 +99,9 @@ impl Display for X213NetworkAddressType {
 
     /// Prints a human-readable string, per the procedures defined in
     /// [IETF RFC 1278](https://datatracker.ietf.org/doc/rfc1278/).
+    #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let s = naddr_network_type_to_str(*self);
-        f.write_str(s)
+        fmt_naddr_type(self, f)
     }
 
 }
@@ -463,166 +460,12 @@ impl <'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
 
 }
 
-/// Decode a BCD-encoded IPv4 address. Returns `None` upon integer overflow.
-fn ipv4_from_slice(bytes: &[u8]) -> Option<Ipv4Addr> {
-    debug_assert_eq!(bytes.len(), 6);
-    let oct1: u32 =
-          (((bytes[0] & 0xF0) >> 4) as u32 * 100)
-        + (((bytes[0] & 0x0F) >> 0) as u32 * 10)
-        + (((bytes[1] & 0xF0) >> 4) as u32 * 1)
-        ;
-    let oct2: u32 =
-          (((bytes[1] & 0x0F) >> 0) as u32 * 100)
-        + (((bytes[2] & 0xF0) >> 4) as u32 * 10)
-        + (((bytes[2] & 0x0F) >> 0) as u32 * 1)
-        ;
-    let oct3: u32 =
-          (((bytes[3] & 0xF0) >> 4) as u32 * 100)
-        + (((bytes[3] & 0x0F) >> 0) as u32 * 10)
-        + (((bytes[4] & 0xF0) >> 4) as u32 * 1)
-        ;
-    let oct4: u32 =
-          (((bytes[4] & 0x0F) >> 0) as u32 * 100)
-        + (((bytes[5] & 0xF0) >> 4) as u32 * 10)
-        + (((bytes[5] & 0x0F) >> 0) as u32 * 1)
-        ;
-    let oct1: u8 = oct1.try_into().ok()?;
-    let oct2: u8 = oct2.try_into().ok()?;
-    let oct3: u8 = oct3.try_into().ok()?;
-    let oct4: u8 = oct4.try_into().ok()?;
-    Some(Ipv4Addr::new(oct1, oct2, oct3, oct4))
-}
-
 const DEFAULT_ITOT_TRANSPORT_SET: u16 = 1;
 
 impl <'a> Display for X213NetworkAddress<'a> {
 
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let octets = self.get_octets();
-        match octets.get(0..3) {
-            Some(octs) if octs[0] == AFI_URL => {
-                if let Ok(url) = str::from_utf8(&self.octets[3..]) {
-                    if !url.contains('_') {
-                        return write!(f, "URL+{:02X}{:02X}+{}", octs[1], octs[2], url);
-                    }
-                }
-            },
-            _ => (),
-        };
-        if octets[0] == AFI_IANA_ICP_BIN && octets.len() == 20 {
-            let icp = &octets[1..3];
-            if icp == IANA_ICP_IDI_IPV6.as_slice() {
-                let ip = Ipv6Addr::from([
-                    octets[3],  octets[4],  octets[5],  octets[6],
-                    octets[7],  octets[8],  octets[9],  octets[10],
-                    octets[11], octets[12], octets[13], octets[14],
-                    octets[15], octets[16], octets[17], octets[18],
-                ]);
-                return write!(f, "IP6+{}", ip);
-            }
-            if icp == IANA_ICP_IDI_IPV4.as_slice() {
-                let ip = Ipv4Addr::from([
-                    octets[3],
-                    octets[4],
-                    octets[5],
-                    octets[6],
-                ]);
-                return write!(f, "IP4+{}", ip);
-            }
-        }
-        if octets.starts_with(INTERNET_PREFIX.as_slice())
-            && octets.len() >= INTERNET_PREFIX.len() + 6 {
-            let ip_and_stuff = &octets[INTERNET_PREFIX.len()..];
-            let ip = ipv4_from_slice(&ip_and_stuff[0..6]);
-            let port: u32 = if octets.len() >= INTERNET_PREFIX.len() + 6 + 3 {
-                  (((ip_and_stuff[6] & 0xF0) >> 4) as u32 * 10000)
-                + (((ip_and_stuff[6] & 0x0F) >> 0) as u32 * 1000)
-                + (((ip_and_stuff[7] & 0xF0) >> 4) as u32 * 100)
-                + (((ip_and_stuff[7] & 0x0F) >> 0) as u32 * 10)
-                + (((ip_and_stuff[8] & 0xF0) >> 4) as u32 * 1)
-            } else {
-                DEFAULT_ITOT_PORT as u32
-            };
-            let tset: u32 = if octets.len() >= INTERNET_PREFIX.len() + 6 + 5 {
-                  (((ip_and_stuff[8]  & 0x0F) >> 0) as u32 * 10000)
-                + (((ip_and_stuff[9]  & 0xF0) >> 4) as u32 * 1000)
-                + (((ip_and_stuff[9]  & 0x0F) >> 0) as u32 * 100)
-                + (((ip_and_stuff[10] & 0xF0) >> 4) as u32 * 10)
-                + (((ip_and_stuff[10] & 0x0F) >> 0) as u32 * 1)
-            } else {
-                DEFAULT_ITOT_TRANSPORT_SET as u32
-            };
-            let port: u16 = port.try_into().unwrap_or(0);
-            let tset: u16 = tset.try_into().unwrap_or(DEFAULT_ITOT_TRANSPORT_SET);
-            if let Some(ip) = ip {
-                write!(f, "TELEX+00728722+RFC-1006+03+{}", ip)?;
-                if port != DEFAULT_ITOT_PORT {
-                    write!(f, "+{}", port)?;
-                }
-                if tset != DEFAULT_ITOT_TRANSPORT_SET {
-                    write!(f, "+{}", tset)?;
-                }
-                return Ok(());
-            }
-        }
-        let (info, idi_digits) = match (self.get_network_type_info(), self.idi_digits()) {
-            (Some(i), Some(d)) => (i, d),
-            _ => { // If unrecognized, just print in NS+<hex> format
-                let h = hex::encode(octets);
-                f.write_str("NS+")?;
-                return f.write_str(h.as_str());
-            }
-        };
-        info.network_type.fmt(f)?;
-        f.write_char('+')?;
-        for digit in idi_digits {
-            f.write_char((digit + 0x30) as char)?;
-        }
-        f.write_char('+')?;
-        let idi_len = info.max_idi_len_digits as usize;
-        let idi_len_in_bytes: usize = idi_len >> 1;
-        match info.dsp_syntax {
-            DSPSyntax::Decimal => {
-                match self.dsp_digits() {
-                    Some(dsp_digits) => {
-                        f.write_char('d')?;
-                        for digit in dsp_digits {
-                            f.write_char((digit + 0x30).into())?;
-                        }
-                    },
-                    None => { // This shouldn't happen
-                        f.write_char('x')?;
-                        match self.get_octets().get(1+idi_len_in_bytes..) {
-                            Some(dsp) => {
-                                for byte in dsp {
-                                    f.write_fmt(format_args!("{:02X}", *byte))?;
-                                }
-                            },
-                            None => (),
-                        };
-
-                    },
-                };
-            },
-            DSPSyntax::Binary | DSPSyntax::NationalChars => {
-                // FIXME: Make this part of get_schema
-                let dsp = &self.octets[1+idi_len_in_bytes..];
-                f.write_char('x')?;
-                for byte in dsp {
-                    f.write_fmt(format_args!("{:02X}", *byte))?;
-                }
-            },
-            DSPSyntax::IsoIec646Chars => {
-                let dsp = &self.octets[1+idi_len_in_bytes..];
-                let decode = dsp
-                    .iter()
-                    .map(|b| local_iso_iec_646_byte_to_char(*b).unwrap_or('?'));
-                for c in decode {
-                    f.write_char(c)?;
-                }
-            },
-        };
-        Ok(())
+        fmt_naddr(self, f)
     }
 
 }
