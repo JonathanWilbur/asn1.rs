@@ -1,5 +1,8 @@
 # X.213 NSAP Library
 
+ITU-T Recommendation X.213 NSAP address parsing and printing.
+
+
 ## Deviations from IETF RFC 1278
 
 - `ICP` and `IND` AFIs recognized in the `<afi>-<idi>-<dsp>` syntax
@@ -7,13 +10,16 @@
 
 ## To Do
 
-- [x] `impl Error`
+- [ ] Stricter validation in `TryFrom<&[u8]>`
+  - [ ] `URL`
+  - [ ] `IP4`
+  - [ ] `IP6`
+  - [ ] `ICP`
+  - [ ] ITOT
 - [ ] Refactor into separate files so its not all so huge
+  - I think you could move the `from_str()` code into a separate file
 - [ ] Inline buffer so most strings can be decoded in `no_std`
 - [ ] Clean up hard-coded strings
-- [x] ~~Support standard macros~~ (Not clear how these actually work)
-- [x] `From` implementations
-- [ ] I think there are more X.519 formats
 - [ ] A lot more testing
   - [ ] `0xF` padding
 - [ ] Fuzz Testing

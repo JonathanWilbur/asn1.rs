@@ -2,6 +2,16 @@
 name = "nsap-address"
 version = "1.0.0"
 edition = "2024"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "ITU-T Rec. X.213 NSAP address parsing, printing, etc."
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/nsap-address"
+license = "MIT"
+keywords = ["nsap", "x213", "osi"]
+categories = ["network-programming", "no-std"]
 
 [dependencies]
 hex = "0.4.3"
@@ -9,3 +19,6 @@ hex = "0.4.3"
 [features]
 default = ["alloc"]
 alloc = []
+x25 = []
+ecma117 = []
+nonstd = []

@@ -1,4 +1,4 @@
-
+use core::iter::{Iterator, FusedIterator};
 
 /// This uses a fixed-length buffer of 20 bytes, because NSAP addresses are
 /// forbidden from exceeding 20 bytes, with an exception for URLs established in
@@ -67,6 +67,93 @@ impl AsRef<[u8]> for BCDBuffer {
     }
 
 }
+
+
+/// BCD Digits Iterator
+#[derive(Debug, Clone)]
+pub struct BCDDigitsIter<'a> {
+    idi: &'a [u8],
+    least_sig_nybble: bool,
+    leading_0_sig: bool,
+    processing_leading_digits: bool,
+    ignore_last_nybble: bool,
+}
+
+impl <'a> BCDDigitsIter<'a> {
+
+    #[inline]
+    pub fn new(
+        idi: &'a [u8],
+        leading_0_sig: bool,
+        ignore_last_nybble: bool,
+        least_sig_nybble: bool,
+        processing_leading_digits: bool,
+    ) -> BCDDigitsIter<'a> {
+        BCDDigitsIter{
+            idi,
+            leading_0_sig,
+            ignore_last_nybble,
+            processing_leading_digits, // Start off handling leading digits
+            least_sig_nybble, // Start off on the MSn
+        }
+    }
+
+}
+
+/// This SHOULD BE an ASCII digit, but might not be. It is on the caller to
+/// check this and determine what to do if this has a non-digit value.
+pub type ShouldBeASCIIDigit = u8;
+
+impl <'a> Iterator for BCDDigitsIter<'a> {
+    type Item = ShouldBeASCIIDigit;
+
+    /// This implementation does NOT handle malformed digits. The caller MUST
+    /// check for non-ASCII digits being returned
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.idi.len() > 0 {
+            let nybble: u8 = if self.least_sig_nybble {
+                self.idi[0] & 0b0000_1111
+            } else {
+                (self.idi[0] & 0b1111_0000) >> 4
+            };
+            if self.least_sig_nybble {
+                self.least_sig_nybble = false;
+                self.idi = &self.idi[1..];
+            } else {
+                self.least_sig_nybble = true;
+            }
+            if self.processing_leading_digits {
+                let leading_digit: u8 = if self.leading_0_sig { 1 } else { 0 };
+                if nybble == leading_digit {
+                    continue;
+                } else {
+                    self.processing_leading_digits = false;
+                }
+            }
+            // If the last nybble is 0b1111, it is padding.
+            // If the DSP is in decimal digits, the last nybble of the
+            if self.idi.len() == 0 && (nybble == 0b1111 || self.ignore_last_nybble) {
+                return None;
+            }
+            return Some(nybble);
+        }
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let mut max_digits = self.idi.len() << 1; // Double it
+        if self.least_sig_nybble {
+            max_digits = max_digits.saturating_sub(1);
+        }
+        if self.ignore_last_nybble {
+            max_digits = max_digits.saturating_sub(1);
+        }
+        // Every digit could be a leading digit
+        (0, Some(max_digits))
+    }
+}
+
+impl <'a> FusedIterator for BCDDigitsIter<'a> {}
 
 #[cfg(test)]
 mod tests {
