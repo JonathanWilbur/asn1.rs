@@ -10,14 +10,7 @@ ITU-T Recommendation X.213 NSAP address parsing and printing.
 
 ## To Do
 
-- [ ] Stricter validation in `TryFrom<&[u8]>`
-  - [ ] `URL`
-  - [ ] `IP4`
-  - [ ] `IP6`
-  - [ ] `ICP`
-  - [ ] ITOT
-- [ ] Refactor into separate files so its not all so huge
-  - I think you could move the `from_str()` code into a separate file
+- [ ] `from_bytes_unchecked()`
 - [ ] Inline buffer so most strings can be decoded in `no_std`
 - [ ] Clean up hard-coded strings
 - [ ] A lot more testing

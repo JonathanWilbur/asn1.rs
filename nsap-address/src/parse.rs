@@ -351,10 +351,10 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                     let ip = ip.unwrap();
                     let ip = Ipv4Addr::from_str(ip)
                         .map_err(|_| RFC1278ParseError::ResolveDNS(ip.to_owned()))?;
-                    if port.is_some_and(|p| p.len() != 5) {
+                    if port.is_some_and(|p| p.len() == 0) {
                         return Err(RFC1278ParseError::Malformed);
                     }
-                    if tset.is_some_and(|t| t.len() != 5) {
+                    if tset.is_some_and(|t| t.len() == 0) {
                         return Err(RFC1278ParseError::Malformed);
                     }
                     let port = match port {

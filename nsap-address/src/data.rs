@@ -134,6 +134,12 @@ pub const ECMA_117_DECIMAL_STR: &str = "ECMA-117-Decimal";
 pub const IANA_ICP_IDI_IPV4: [u8; 2] = [0, 1];
 pub const IANA_ICP_IDI_IPV6: [u8; 2] = [0, 0];
 
+pub const RFC_1277_PREFIX: [u8; 5] = [
+    AFI_F69_DEC_LEADING_ZERO, // AFI
+    0x00, 0x72, 0x87, 0x22, // IDI
+];
+
+// FIXME: Get rid of this
 /// This is exported for convenience, since the Internet is most likely to be
 /// used in NSAPs now. If an application only wants / can use Internet NSAPs,
 /// the NSAPs could be checked to see if they begin with this sequence.

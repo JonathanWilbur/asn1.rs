@@ -9,6 +9,8 @@ use alloc::string::String;
 pub enum NAddressParseError {
     TooShort,
     TooLong,
+    MalformedDSP,
+    NonDigitsInIDI,
 }
 
 impl Display for NAddressParseError {

@@ -31,22 +31,7 @@ mod utils;
 use core::fmt::Display;
 use core::convert::TryFrom;
 use crate::data::{
-    get_address_type_info,
-    afi_to_network_type,
-    X213NetworkAddressInfo,
-    INTERNET_PREFIX,
-    AFI_URL,
-    AFI_IANA_ICP_BIN,
-    AFI_STR_X121,
-    AFI_STR_DCC,
-    AFI_STR_TELEX,
-    AFI_STR_PSTN,
-    AFI_STR_ISDN,
-    AFI_STR_ICD,
-    AFI_STR_ICP,
-    AFI_STR_IND,
-    AFI_STR_LOCAL,
-    AFI_STR_URL,
+    afi_to_network_type, get_address_type_info, X213NetworkAddressInfo, AFI_IANA_ICP_BIN, AFI_STR_DCC, AFI_STR_ICD, AFI_STR_ICP, AFI_STR_IND, AFI_STR_ISDN, AFI_STR_LOCAL, AFI_STR_PSTN, AFI_STR_TELEX, AFI_STR_URL, AFI_STR_X121, AFI_URL, INTERNET_PREFIX, RFC_1277_PREFIX
 };
 use crate::bcd::{BCDBuffer, BCDDigitsIter};
 use crate::display::{fmt_naddr_type, fmt_naddr};
@@ -250,9 +235,9 @@ impl <'a> X213NetworkAddress <'a> {
     ///
     /// This returns `None` if this NSAP does not encode a URL
     pub fn get_url(&'a self) -> Option<&'a str> {
-        let octets = self.octets.as_ref();
+        let octets = self.get_octets();
         // It couldn't be a valid URL in two characters, AFAIK.
-        if octets.len() < 5 || octets[0] != AFI_URL {
+        if octets.len() <= 5 || octets[0] != AFI_URL {
             return None;
         }
         str::from_utf8(&octets[3..]).ok()
@@ -300,27 +285,40 @@ impl <'a> X213NetworkAddress <'a> {
     ///
     /// This returns `None` if this NSAP does not encode an ITOT socket address
     pub fn get_itot_socket_addr(&self) -> Option<SocketAddrV4> {
-        let octets = self.octets.as_ref();
+        let octets = self.get_octets();
         if !octets.starts_with(INTERNET_PREFIX.as_slice()) {
             return None;
         }
         let dsp = &octets[INTERNET_PREFIX.len()..];
-        if dsp.len() < 12 {
+        if dsp.len() < 6 {
             return None;
         }
-        if !dsp.iter().all(|b| b.is_ascii_digit()) {
-            return None;
-        }
-        let dsp = unsafe { str::from_utf8_unchecked(dsp) };
-        let oct1: u8 = dsp[0.. 3].parse().ok()?;
-        let oct2: u8 = dsp[3.. 6].parse().ok()?;
-        let oct3: u8 = dsp[6.. 9].parse().ok()?;
-        let oct4: u8 = dsp[9..12].parse().ok()?;
+        let mut bcd = BCDDigitsIter::new(dsp, false, false, false, false);
+        let oct1digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
+        let oct2digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
+        let oct3digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
+        let oct4digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
+        let oct1str = unsafe { str::from_utf8_unchecked(oct1digs.as_slice()) };
+        let oct2str = unsafe { str::from_utf8_unchecked(oct2digs.as_slice()) };
+        let oct3str = unsafe { str::from_utf8_unchecked(oct3digs.as_slice()) };
+        let oct4str = unsafe { str::from_utf8_unchecked(oct4digs.as_slice()) };
+        let oct1: u8 = oct1str.parse().ok()?;
+        let oct2: u8 = oct2str.parse().ok()?;
+        let oct3: u8 = oct3str.parse().ok()?;
+        let oct4: u8 = oct4str.parse().ok()?;
         let ip = Ipv4Addr::new(oct1, oct2, oct3, oct4);
-        if dsp.len() < 17 {
+        if dsp.len() < 9 {
             return Some(SocketAddrV4::new(ip, DEFAULT_ITOT_PORT));
         }
-        let port: u16 = dsp[12..17].parse().ok()?;
+        let portstr = [
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+        ];
+        let portstr = unsafe { str::from_utf8_unchecked(portstr.as_slice()) };
+        let port: u16 = portstr.parse().ok()?;
         Some(SocketAddrV4::new(ip, port))
     }
 
@@ -402,22 +400,81 @@ impl <'a> X213NetworkAddress <'a> {
 
 }
 
+fn validate_decimal(bytes: &[u8]) -> bool {
+    for byte in bytes {
+        if (byte & 0b0000_1111) > 9 {
+            return false;
+        }
+        if (byte & 0b1111_0000) > 0b1001_0000 {
+            return false;
+        }
+    }
+    true
+}
+
 impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
     type Error = NAddressParseError;
 
     fn try_from(octets: &'a [u8]) -> Result<Self, Self::Error> {
-        if octets.len() < 2 { // I don't think one byte can be a valid address.
+        let len = octets.len();
+        if len < 2 { // I don't think one byte can be a valid address.
             return Err(NAddressParseError::TooShort);
         }
         /* ITU-T Rec. X.213, Section A.5.4 states that the maximum length MUST
         be 20 octets, but ITU-T Rec. X.519 section 11.4 basically overrules
         that. As such, we are just setting a limit of 248 bytes just to close up
         any attack vectors related to large NSAP addresses. */
-        if octets[0] == AFI_URL && octets.len() > 248 {
-            return Err(NAddressParseError::TooLong);
-        } else if octets[0] != AFI_URL && octets.len() > 20 {
+        if octets[0] != AFI_URL && len > 20 {
             return Err(NAddressParseError::TooLong);
         }
+
+        match octets[0] {
+            crate::AFI_URL => {
+                if len > 248 {
+                    return Err(NAddressParseError::TooLong);
+                }
+                if len <= 5 { // I think you can't have a valid URL under two characters.
+                    return Err(NAddressParseError::TooShort);
+                }
+                if !validate_decimal(&octets[1..3]) {
+                    return Err(NAddressParseError::NonDigitsInIDI);
+                }
+            },
+            crate::AFI_IANA_ICP_BIN => {
+                if len > 20 {
+                    return Err(NAddressParseError::TooLong);
+                }
+                if len < 20 {
+                    return Err(NAddressParseError::TooShort);
+                }
+                if !validate_decimal(&octets[1..3]) {
+                    return Err(NAddressParseError::NonDigitsInIDI);
+                }
+            },
+            _ => (),
+        };
+
+        if len >= RFC_1277_PREFIX.len() + 7 && octets.starts_with(RFC_1277_PREFIX.as_slice()) {
+            match octets[RFC_1277_PREFIX.len()] {
+                crate::data::RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET
+                | crate::data::ITU_X519_DSP_PREFIX_LDAP
+                | crate::data::ITU_X519_DSP_PREFIX_IDM_OVER_IPV4
+                // | crate::data::ITU_X519_DSP_PREFIX_ITOT_OVER_IPV4 (duplicate)
+                => {
+                    let end_of_digits = match len {
+                        12 => 12,
+                        15 => 14,
+                        17 => 17,
+                        _ => return Err(NAddressParseError::MalformedDSP),
+                    };
+                    if !validate_decimal(&octets[6..end_of_digits]) {
+                        return Err(NAddressParseError::MalformedDSP);
+                    }
+                },
+                _ => (),
+            };
+        }
+
         #[cfg(feature = "alloc")]
         {
             Ok(X213NetworkAddress { octets: Cow::Borrowed(octets) })
@@ -486,7 +543,8 @@ mod tests {
 
     extern crate alloc;
     use alloc::string::ToString;
-    use core::{net::SocketAddrV4, str::FromStr};
+    use core::str::FromStr;
+    use core::net::{SocketAddrV4, Ipv4Addr};
 
     use super::{X213NetworkAddress, AFI_IANA_ICP_BIN};
     use super::data::AFI_F69_DEC_LEADING_ZERO;
@@ -572,7 +630,6 @@ mod tests {
         assert!(maybe_addr.is_err());
     }
 
-    // TODO: stricter validation of binaries
     #[test]
     #[ignore]
     fn test_ip_overflow_4() {
@@ -584,7 +641,15 @@ mod tests {
         ];
         let maybe_addr = X213NetworkAddress::try_from(input);
         assert!(maybe_addr.is_err());
-        // assert_eq!(maybe_addr.unwrap().to_string().as_str(), "<- Just for debugging");
+    }
+
+    #[test]
+    fn test_get_itot_socket_adder() {
+        let input = "TELEX+00728722+RFC-1006+03+255.0.0.2+65535+2";
+        let addr = X213NetworkAddress::from_str(input).unwrap();
+        let sock = addr.get_itot_socket_addr().unwrap();
+        assert_eq!(sock.ip(), &Ipv4Addr::new(255, 0, 0, 2));
+        assert_eq!(sock.port(), 65535);
     }
 
 }

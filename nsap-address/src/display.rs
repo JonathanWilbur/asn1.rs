@@ -219,10 +219,7 @@ mod tests {
 
     extern crate alloc;
     use alloc::string::ToString;
-    use core::{net::SocketAddrV4, str::FromStr};
-
     use super::{X213NetworkAddress, AFI_IANA_ICP_BIN};
-    use super::data::AFI_F69_DEC_LEADING_ZERO;
 
     #[test]
     fn test_display_01() {
