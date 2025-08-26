@@ -1,4 +1,20 @@
+#[cfg(feature = "alloc")]
+extern crate alloc;
+#[cfg(feature = "alloc")]
+use alloc::borrow::Cow;
+#[cfg(feature = "alloc")]
+use core::str::FromStr;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use core::net::{Ipv4Addr, Ipv6Addr};
+#[cfg(feature = "alloc")]
+use alloc::borrow::ToOwned;
+#[cfg(feature = "alloc")]
 use crate::{X213NetworkAddress, DSPSyntax, AFI};
+#[cfg(feature = "alloc")]
+use crate::bcd::BCDBuffer;
+#[cfg(feature = "alloc")]
 use crate::data::{
     get_address_type_info,
     AFI_URL,
@@ -35,28 +51,18 @@ use crate::data::{
     IETF_RFC_1006_PREFIX_STR,
     X25_PREFIX_STR,
 };
-use crate::bcd::BCDBuffer;
+#[cfg(feature = "alloc")]
 use crate::isoiec646::char_to_local_iso_iec_646_byte;
+#[cfg(feature = "alloc")]
+use crate::error::RFC1278ParseError;
+#[cfg(feature = "alloc")]
 use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 
 #[cfg(feature = "alloc")]
-extern crate alloc;
-#[cfg(feature = "alloc")]
-use alloc::borrow::Cow;
-#[cfg(feature = "alloc")]
-use core::str::FromStr;
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
-use core::net::{Ipv4Addr, Ipv6Addr};
-#[cfg(feature = "alloc")]
-use alloc::borrow::ToOwned;
-#[cfg(feature = "alloc")]
-use crate::error::RFC1278ParseError;
-
 pub(crate) type ParseResult<'a> = Result<X213NetworkAddress<'a>, RFC1278ParseError>;
 
 /// Validate that string is a digitstring and shorter than `max_len`
+#[cfg(feature = "alloc")]
 #[inline]
 fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError> {
     if s.len() > max_len {
@@ -69,6 +75,7 @@ fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError
 }
 
 /// Decode an AFI from a `str`, such as "X121"
+#[cfg(feature = "alloc")]
 fn decode_afi_from_str(s: &str) -> Result<AFI, RFC1278ParseError> {
     debug_assert_eq!(s.len(), 2);
     let mut out: [u8; 1] = [0];
@@ -86,6 +93,7 @@ second <hexstring> non-optional, since this is optional in X.213.
 X.213 also says that the first byte of the <idp> may be hex,
 which RFC 1278 does not permit.
 */
+#[cfg(feature = "alloc")]
 fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC1278ParseError> {
     if !s[2..].as_bytes().iter().all(|b| b.is_ascii_digit()) {
         return Err(RFC1278ParseError::Malformed);
@@ -114,6 +122,7 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC127
 }
 
 /// Whether the character `c` is an `<other>`, per RFC 1278.
+#[cfg(feature = "alloc")]
 #[inline]
 const fn is_other_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.'
@@ -189,6 +198,7 @@ fn naddr_str_to_afi (
     }
 }
 
+#[cfg(feature = "alloc")]
 pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     // I think this is the shortest possible: NS+0011 or DCC+1+2
     if s.len() < 7 || !s.is_ascii() {

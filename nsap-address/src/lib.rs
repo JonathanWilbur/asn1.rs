@@ -30,14 +30,28 @@ mod parse;
 mod utils;
 use core::fmt::Display;
 use core::convert::TryFrom;
+use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
+use crate::bcd::BCDDigitsIter;
 use crate::data::{
-    afi_to_network_type, get_address_type_info, X213NetworkAddressInfo, AFI_IANA_ICP_BIN, AFI_STR_DCC, AFI_STR_ICD, AFI_STR_ICP, AFI_STR_IND, AFI_STR_ISDN, AFI_STR_LOCAL, AFI_STR_PSTN, AFI_STR_TELEX, AFI_STR_URL, AFI_STR_X121, AFI_URL, INTERNET_PREFIX, RFC_1277_PREFIX
+    afi_to_network_type, get_address_type_info,
+    X213NetworkAddressInfo,
+    AFI_IANA_ICP_BIN,
+    AFI_STR_DCC,
+    AFI_STR_ICD,
+    AFI_STR_ICP,
+    AFI_STR_IND,
+    AFI_STR_ISDN,
+    AFI_STR_LOCAL,
+    AFI_STR_PSTN,
+    AFI_STR_TELEX,
+    AFI_STR_URL,
+    AFI_STR_X121,
+    AFI_URL,
+    INTERNET_PREFIX,
+    RFC_1277_PREFIX,
 };
-use crate::bcd::{BCDBuffer, BCDDigitsIter};
 use crate::display::{fmt_naddr_type, fmt_naddr};
 use crate::error::NAddressParseError;
-use crate::parse::parse_nsap;
-use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -48,9 +62,13 @@ use core::str::FromStr;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 #[cfg(feature = "alloc")]
-use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
+use crate::bcd::BCDBuffer;
 #[cfg(feature = "alloc")]
-use error::RFC1278ParseError;
+use crate::error::RFC1278ParseError;
+#[cfg(feature = "alloc")]
+use crate::parse::parse_nsap;
+#[cfg(feature = "alloc")]
+use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 
 pub type AFI = u8;
 
@@ -117,6 +135,11 @@ pub const fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> &'static 
         X213NetworkAddressType::URL => AFI_STR_URL, // Not specified in IETF RFC 1278.
     }
 }
+
+// enum InlineOrHeap<'a> {
+//     Inline((u8, [u8; 20])),
+//     Heap(&'a [u8]),
+// }
 
 /// X.213 NSAP Address
 ///
@@ -517,6 +540,7 @@ impl <'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
 
 }
 
+#[cfg(feature = "alloc")]
 const DEFAULT_ITOT_TRANSPORT_SET: u16 = 1;
 
 impl <'a> Display for X213NetworkAddress<'a> {

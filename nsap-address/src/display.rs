@@ -1,4 +1,5 @@
 use core::fmt::{Display, Write};
+use core::net::{Ipv4Addr, Ipv6Addr};
 use crate::{X213NetworkAddress, X213NetworkAddressType, DSPSyntax};
 use crate::data::{
     INTERNET_PREFIX,
@@ -18,11 +19,6 @@ use crate::data::{
     IANA_ICP_IDI_IPV6,
 };
 use crate::isoiec646::local_iso_iec_646_byte_to_char;
-
-#[cfg(feature = "alloc")]
-extern crate alloc;
-#[cfg(feature = "alloc")]
-use core::net::{Ipv4Addr, Ipv6Addr};
 
 const DEFAULT_ITOT_PORT: u16 = 102;
 

@@ -10,6 +10,10 @@ ITU-T Recommendation X.213 NSAP address parsing and printing.
 
 ## To Do
 
+- [ ] `From<Vec<u8>>`
+- [ ] `from_decimal_dsp(afi, idi, dsp)`
+- [ ] `from_binary_dsp(afi, idi, dsp)`
+- [ ] `from_isoiso646_dsp(afi, idi, dsp)`
 - [ ] `from_bytes_unchecked()`
 - [ ] Inline buffer so most strings can be decoded in `no_std`
 - [ ] Clean up hard-coded strings
