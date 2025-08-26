@@ -1,8 +1,6 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 #[cfg(feature = "alloc")]
-use alloc::borrow::Cow;
-#[cfg(feature = "alloc")]
 use core::str::FromStr;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -116,9 +114,7 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC127
     if (bcd_buf.i % 2) > 0 {
         bcd_buf.push_nybble(0xF);
     }
-    return Ok(X213NetworkAddress {
-        octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
-    });
+    Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()))
 }
 
 /// Whether the character `c` is an `<other>`, per RFC 1278.
@@ -216,7 +212,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     if first_part == "NS" {
         let hexbytes = hex::decode(second_part)
             .map_err(|_| RFC1278ParseError::Malformed)?;
-        return Ok(X213NetworkAddress { octets: Cow::Owned(hexbytes) });
+        return Ok(X213NetworkAddress::Heap(hexbytes));
     }
     let mut bcd_buf = BCDBuffer::new();
     let third_part = parts.next();
@@ -242,7 +238,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
             bcd_buf.as_ref(),
             url.as_bytes(),
         ].concat();
-        return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+        return Ok(X213NetworkAddress::Heap(out));
     }
     if first_part == "IP6" {
         let ip = Ipv6Addr::from_str(second_part)
@@ -251,7 +247,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         out.extend(&[AFI_IANA_ICP_BIN, 0, 0]);
         out.extend(ip.octets().as_slice());
         out.push(0);
-        return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+        return Ok(X213NetworkAddress::Heap(out));
     }
     if first_part == "IP4" {
         let ip = Ipv4Addr::from_str(second_part)
@@ -260,7 +256,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         out.extend(&[AFI_IANA_ICP_BIN, 0, 1]);
         out.extend(ip.octets().as_slice());
         out.extend([0; 13].as_slice());
-        return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+        return Ok(X213NetworkAddress::Heap(out));
     }
     let syntax: DSPSyntax = match third_part.and_then(|p3| p3.chars().next()) {
         Some('d') => DSPSyntax::Decimal,
@@ -299,9 +295,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
             bcd_buf.push_nybble(0x0F);
         }
         if third_part.is_none() {
-            return Ok(X213NetworkAddress {
-                octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
-            });
+            return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
         }
         let third_part = third_part.unwrap();
         if third_part.len() < 2 {
@@ -314,9 +308,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                     return Err(RFC1278ParseError::Malformed);
                 }
                 bcd_buf.push_ascii_bytes(&third_part.as_bytes()[1..]);
-                Ok(X213NetworkAddress {
-                    octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
-                })
+                Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()))
             },
             'x' => {
                 let hexbytes = hex::decode(&third_part.as_bytes()[1..])
@@ -325,7 +317,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                     bcd_buf.as_ref(),
                     hexbytes.as_ref(),
                 ].concat();
-                Ok(X213NetworkAddress { octets: Cow::Owned(out) })
+                Ok(X213NetworkAddress::Heap(out))
             },
             'l' => {
                 // RFC 1278: <other> ::= [0-9a-zA-Z+-.]
@@ -340,7 +332,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                     // We check for permitted characters above, so the
                     // unwrap() below should never fail.
                     .map(|c| char_to_local_iso_iec_646_byte(c).unwrap()));
-                Ok(X213NetworkAddress { octets: Cow::Owned(out) })
+                Ok(X213NetworkAddress::Heap(out))
             },
             _ => {
                 if third_part == IETF_RFC_1006_PREFIX_STR {
@@ -391,9 +383,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                         let tset_str = u16_to_decimal_bytes(tset);
                         bcd_buf.push_ascii_bytes(tset_str.as_slice());
                     }
-                    return Ok(X213NetworkAddress {
-                        octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
-                    });
+                    return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
                 }
                 if third_part == X25_PREFIX_STR {
                     // "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
@@ -442,9 +432,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                         return Err(RFC1278ParseError::Malformed);
                     }
                     bcd_buf.push_str(dte);
-                    return Ok(X213NetworkAddress {
-                        octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
-                    });
+                    return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
                 }
                 if third_part == ECMA_117_BINARY_STR {
                     // "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
@@ -472,7 +460,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                     out.extend(subnet_id.as_slice());
                     out.extend(subnet_addr.as_slice());
                     out.extend(selector.as_slice());
-                    return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+                    return Ok(X213NetworkAddress::Heap(out));
                 }
                 if third_part == ECMA_117_DECIMAL_STR {
                     // "ECMA-117-Decimal" "+" <digitstring> "+" <digitstring> "+" <digitstring>
@@ -495,9 +483,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                     bcd_buf.push_str(d1);
                     bcd_buf.push_str(d2);
                     bcd_buf.push_str(d3);
-                    return Ok(X213NetworkAddress {
-                        octets: Cow::Owned(bcd_buf.as_ref().to_vec()),
-                    });
+                    return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
                 }
                 return Err(RFC1278ParseError::UnrecognizedSyntax);
             }
@@ -537,7 +523,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         bcd_buf.as_ref(),
         dsp.as_ref(),
     ].concat();
-    return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
+    return Ok(X213NetworkAddress::Heap(out));
 }
 
 #[cfg(all(test, feature = "alloc"))]
@@ -585,7 +571,7 @@ mod tests {
             let actual = X213NetworkAddress::from_str(case_str);
             assert!(actual.is_ok(), "failed to parse: {}", case_str);
             let actual = actual.unwrap();
-            assert_eq!(expected, actual.octets.as_ref(), "{}", case_str);
+            assert_eq!(expected, actual.get_octets(), "{}", case_str);
         }
     }
 

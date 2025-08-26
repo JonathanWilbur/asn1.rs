@@ -56,8 +56,6 @@ use crate::error::NAddressParseError;
 #[cfg(feature = "alloc")]
 extern crate alloc;
 #[cfg(feature = "alloc")]
-use alloc::borrow::Cow;
-#[cfg(feature = "alloc")]
 use core::str::FromStr;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -165,16 +163,6 @@ pub enum X213NetworkAddress <'a> {
 
 impl <'a> X213NetworkAddress <'a> {
 
-    #[cfg(feature = "alloc")]
-    #[inline]
-    pub const fn get_octets(&'a self) -> &'a [u8] {
-        match &self.octets {
-            Cow::Borrowed(o) => o,
-            Cow::Owned(o) => o.as_slice(),
-        }
-    }
-
-    #[cfg(not(feature = "alloc"))]
     #[inline]
     pub fn get_octets(&'a self) -> &'a [u8] {
         match &self {
@@ -366,7 +354,7 @@ impl <'a> X213NetworkAddress <'a> {
         out.extend(&[AFI_IANA_ICP_BIN, 0, 1]);
         out.extend(ip.octets().as_slice());
         out.extend([0; 13].as_slice());
-        return X213NetworkAddress { octets: Cow::Owned(out) };
+        return X213NetworkAddress::Heap(out);
     }
 
     /// Create a new IANA ICP NSAP address from an IPv6 address
@@ -376,7 +364,7 @@ impl <'a> X213NetworkAddress <'a> {
         out.extend(&[AFI_IANA_ICP_BIN, 0, 0]);
         out.extend(ip.octets().as_slice());
         out.push(0);
-        return X213NetworkAddress { octets: Cow::Owned(out) };
+        return X213NetworkAddress::Heap(out);
     }
 
     /// Create a new X.519 ITOT URL NSAP address from a URL
@@ -385,7 +373,7 @@ impl <'a> X213NetworkAddress <'a> {
         let mut out: Vec<u8> = Vec::with_capacity(3 + url.len());
         out.extend(&[AFI_URL, 0, 0]);
         out.extend(url.as_bytes());
-        return X213NetworkAddress { octets: Cow::Owned(out) };
+        return X213NetworkAddress::Heap(out);
     }
 
     /// Create a new X.519 Non-OSI (LDAP, IDM, etc.) URL NSAP address from a URL
@@ -394,7 +382,7 @@ impl <'a> X213NetworkAddress <'a> {
         let mut out: Vec<u8> = Vec::with_capacity(3 + url.len());
         out.extend(&[AFI_URL, 0, 1]);
         out.extend(url.as_bytes());
-        return X213NetworkAddress { octets: Cow::Owned(out) };
+        return X213NetworkAddress::Heap(out);
     }
 
     /// Create an ITOT NSAP address from a socket address and optional transport set
@@ -423,7 +411,7 @@ impl <'a> X213NetworkAddress <'a> {
             }
         }
         out.extend(bcd_buf.as_ref());
-        return X213NetworkAddress { octets: Cow::Owned(out) };
+        return X213NetworkAddress::Heap(out);
     }
 
 }
