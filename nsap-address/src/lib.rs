@@ -136,11 +136,6 @@ pub const fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> &'static 
     }
 }
 
-// enum InlineOrHeap<'a> {
-//     Inline((u8, [u8; 20])),
-//     Heap(&'a [u8]),
-// }
-
 /// X.213 NSAP Address
 ///
 /// This type does not implement `PartialEq`, `Eq`, or `Hash`, because:
@@ -158,32 +153,40 @@ pub const fn naddr_network_type_to_str (nt: X213NetworkAddressType) -> &'static 
 /// clear as to what the underlying behavior is.
 ///
 #[derive(Debug)]
-pub struct X213NetworkAddress <'a> {
+pub enum X213NetworkAddress <'a> {
     #[cfg(feature = "alloc")]
-    pub(crate) octets: Cow<'a, [u8]>,
-    #[cfg(not(feature = "alloc"))]
-    pub(crate) octets: &'a [u8],
+    Heap(Vec<u8>),
+    /// Even though NSAPs are capped at 20 bytes, this inline buffer accepts up
+    /// to 22 just so that programming errors are less likely to result in
+    /// reading out-of-bounds.
+    Inline((u8, [u8; 22])),
+    Borrowed(&'a [u8]),
 }
 
 impl <'a> X213NetworkAddress <'a> {
 
+    #[cfg(feature = "alloc")]
     #[inline]
     pub const fn get_octets(&'a self) -> &'a [u8] {
-        #[cfg(feature = "alloc")]
-        {
-            match &self.octets {
-                Cow::Borrowed(o) => o,
-                Cow::Owned(o) => o.as_slice(),
-            }
+        match &self.octets {
+            Cow::Borrowed(o) => o,
+            Cow::Owned(o) => o.as_slice(),
         }
-        #[cfg(not(feature = "alloc"))]
-        {
-            &self.octets
+    }
+
+    #[cfg(not(feature = "alloc"))]
+    #[inline]
+    pub fn get_octets(&'a self) -> &'a [u8] {
+        match &self {
+            #[cfg(feature = "alloc")]
+            X213NetworkAddress::Heap(o) => o.as_ref(),
+            X213NetworkAddress::Inline((sz, buf)) => &buf[0..*sz as usize],
+            X213NetworkAddress::Borrowed(o) => *o,
         }
     }
 
     #[inline]
-    pub const fn afi(&self) -> u8 {
+    pub fn afi(&self) -> u8 {
         if self.get_octets().len() > 0 {
             self.get_octets()[0]
         } else {
@@ -204,12 +207,12 @@ impl <'a> X213NetworkAddress <'a> {
     // }
 
     #[inline]
-    pub const fn get_network_type_info(&self) -> Option<X213NetworkAddressInfo> {
+    pub fn get_network_type_info(&self) -> Option<X213NetworkAddressInfo> {
         get_address_type_info(self.afi())
     }
 
     #[inline]
-    pub const fn get_network_type(&self) -> Option<X213NetworkAddressType> {
+    pub fn get_network_type(&self) -> Option<X213NetworkAddressType> {
         afi_to_network_type(self.afi())
     }
 
@@ -220,7 +223,8 @@ impl <'a> X213NetworkAddress <'a> {
         let idi_len = addr_type_info.max_idi_len_digits as usize;
         let idi_len_in_bytes = idi_len >> 1;
         let odd_len_idi: bool = (idi_len % 2) > 0;
-        let idi = &self.octets[1..1+idi_len_in_bytes];
+        let octets = self.get_octets();
+        let idi = &octets[1..1+idi_len_in_bytes];
         Some(BCDDigitsIter::new(
             idi,
             leading_0_sig,
@@ -239,11 +243,12 @@ impl <'a> X213NetworkAddress <'a> {
         let idi_len = addr_type_info.max_idi_len_digits as usize;
         let idi_len_in_bytes: usize = idi_len >> 1;
         let odd_len_idi: bool = (idi_len % 2) > 0;
+        let octets = self.get_octets();
         // This needs to take the byte before if odd number of IDI digits
         let (dsp, start_on_lsn) = if is_dsp_decimal && odd_len_idi {
-            (&self.octets[idi_len_in_bytes..], true)
+            (&octets[idi_len_in_bytes..], true)
         } else {
-            (&self.octets[1+idi_len_in_bytes..], false)
+            (&octets[1+idi_len_in_bytes..], false)
         };
         Some(BCDDigitsIter::new(
             dsp,
@@ -273,7 +278,7 @@ impl <'a> X213NetworkAddress <'a> {
     /// This returns `None` if this NSAP does not encode an IP address
     /// See: <https://www.rfc-editor.org/rfc/rfc4548.html>
     pub fn get_ip(&self) -> Option<IpAddr> {
-        let octets = self.octets.as_ref();
+        let octets = self.get_octets();
         if octets.len() < 7 || octets[0] != AFI_IANA_ICP_BIN {
             return None;
         }
@@ -497,15 +502,7 @@ impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
                 _ => (),
             };
         }
-
-        #[cfg(feature = "alloc")]
-        {
-            Ok(X213NetworkAddress { octets: Cow::Borrowed(octets) })
-        }
-        #[cfg(not(feature = "alloc"))]
-        {
-            Ok(X213NetworkAddress { octets })
-        }
+        Ok(X213NetworkAddress::Borrowed(octets))
     }
 
 }
@@ -567,10 +564,12 @@ mod tests {
 
     extern crate alloc;
     use alloc::string::ToString;
+    #[cfg(feature = "alloc")]
     use core::str::FromStr;
+    #[cfg(feature = "alloc")]
     use core::net::{SocketAddrV4, Ipv4Addr};
-
     use super::{X213NetworkAddress, AFI_IANA_ICP_BIN};
+    #[cfg(feature = "alloc")]
     use super::data::AFI_F69_DEC_LEADING_ZERO;
 
     #[test]
@@ -619,6 +618,7 @@ mod tests {
         assert_eq!(addr.get_url().unwrap(), "https://wildboarsoftware.com/x500directory");
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_from_itot_socket_addr() {
         let sock = SocketAddrV4::from_str("192.168.1.100:8000").unwrap();
@@ -633,6 +633,7 @@ mod tests {
         ]);
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_ip_overflow_1() {
         let input = "IP4+999.999.2.100";
@@ -640,6 +641,7 @@ mod tests {
         assert!(maybe_addr.is_err());
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_ip_overflow_2() {
         let input = "TELEX+00728722+RFC-1006+03+256.0.0.2+9+2";
@@ -647,6 +649,7 @@ mod tests {
         assert!(maybe_addr.is_err());
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_ip_overflow_3() {
         let input = "TELEX+00728722+RFC-1006+03+0.255.255.255+99999+88888";
@@ -667,6 +670,7 @@ mod tests {
         assert!(maybe_addr.is_err());
     }
 
+    #[cfg(feature = "alloc")]
     #[test]
     fn test_get_itot_socket_adder() {
         let input = "TELEX+00728722+RFC-1006+03+255.0.0.2+65535+2";

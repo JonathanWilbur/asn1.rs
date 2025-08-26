@@ -540,12 +540,13 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     return Ok(X213NetworkAddress { octets: Cow::Owned(out) });
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "alloc"))]
 mod tests {
 
     use core::str::FromStr;
 
-    use super::{X213NetworkAddress, AFI_IANA_ICP_BIN};
+    use crate::X213NetworkAddress;
+    use crate::AFI_IANA_ICP_BIN;
 
     #[test]
     fn test_from_str() {

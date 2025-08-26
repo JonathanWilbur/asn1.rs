@@ -86,7 +86,7 @@ pub(crate) fn fmt_naddr(
     let octets = naddr.get_octets();
     match octets.get(0..3) {
         Some(octs) if octs[0] == AFI_URL => {
-            if let Ok(url) = str::from_utf8(&naddr.octets[3..]) {
+            if let Ok(url) = str::from_utf8(&octets[3..]) {
                 if !url.contains('_') {
                     return write!(f, "URL+{:02X}{:02X}+{}", octs[1], octs[2], url);
                 }
@@ -191,14 +191,14 @@ pub(crate) fn fmt_naddr(
         },
         DSPSyntax::Binary | DSPSyntax::NationalChars => {
             // FIXME: Make this part of get_schema
-            let dsp = &naddr.octets[1+idi_len_in_bytes..];
+            let dsp = &octets[1+idi_len_in_bytes..];
             f.write_char('x')?;
             for byte in dsp {
                 f.write_fmt(format_args!("{:02X}", *byte))?;
             }
         },
         DSPSyntax::IsoIec646Chars => {
-            let dsp = &naddr.octets[1+idi_len_in_bytes..];
+            let dsp = &octets[1+idi_len_in_bytes..];
             let decode = dsp
                 .iter()
                 .map(|b| local_iso_iec_646_byte_to_char(*b).unwrap_or('?'));
