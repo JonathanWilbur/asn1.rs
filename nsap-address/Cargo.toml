@@ -17,7 +17,7 @@ categories = ["network-programming", "no-std"]
 hex = "0.4.3"
 
 [features]
-default = []
+default = ["alloc"]
 alloc = []
 x25 = []
 ecma117 = []

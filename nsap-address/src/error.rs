@@ -45,6 +45,9 @@ pub enum RFC1278ParseError {
     /// character is the underscore `_`, which is used by RFC 1278 for
     /// delimiting NSAP addresses in a presentation address string.
     ProhibitedCharacter(char),
+    /// The string is too large to parse into an NSAP address. This only happens
+    /// when heap allocation (`alloc`) is not enabled.
+    TooLarge,
 }
 
 #[cfg(feature = "alloc")]
@@ -58,6 +61,7 @@ impl Display for RFC1278ParseError {
             RFC1278ParseError::ResolveDNS(dns_name) => write!(f, "resolve dns name {}", dns_name),
             RFC1278ParseError::SpecificationFailure => f.write_str("shortcoming in specifications"),
             RFC1278ParseError::ProhibitedCharacter(c) => write!(f, "prohibited character {}", c),
+            RFC1278ParseError::TooLarge => write!(f, "too large"),
         }
     }
 

@@ -339,7 +339,6 @@ impl <'a> X213NetworkAddress <'a> {
     }
 
     /// Create a new IANA ICP NSAP address from an IP address
-    #[cfg(feature = "alloc")]
     pub fn from_ip(ip: &IpAddr) -> Self {
         match ip {
             IpAddr::V4(v4) => X213NetworkAddress::from_ipv4(v4),
@@ -348,23 +347,21 @@ impl <'a> X213NetworkAddress <'a> {
     }
 
     /// Create a new IANA ICP NSAP address from an IPv4 address
-    #[cfg(feature = "alloc")]
     pub fn from_ipv4(ip: &Ipv4Addr) -> Self {
-        let mut out: Vec<u8> = Vec::with_capacity(20);
-        out.extend(&[AFI_IANA_ICP_BIN, 0, 1]);
-        out.extend(ip.octets().as_slice());
-        out.extend([0; 13].as_slice());
-        return X213NetworkAddress::Heap(out);
+        let mut out: [u8; 22] = [0; 22];
+        out[0..3].copy_from_slice(&[AFI_IANA_ICP_BIN, 0, 1]);
+        out[3..7].copy_from_slice(ip.octets().as_slice());
+        // IANA ICP NSAP addresses are always 20 bytes
+        return X213NetworkAddress::Inline((20, out));
     }
 
     /// Create a new IANA ICP NSAP address from an IPv6 address
-    #[cfg(feature = "alloc")]
     pub fn from_ipv6(ip: &Ipv6Addr) -> Self {
-        let mut out: Vec<u8> = Vec::with_capacity(20);
-        out.extend(&[AFI_IANA_ICP_BIN, 0, 0]);
-        out.extend(ip.octets().as_slice());
-        out.push(0);
-        return X213NetworkAddress::Heap(out);
+        let mut out: [u8; 22] = [0; 22];
+        out[0..3].copy_from_slice(&[AFI_IANA_ICP_BIN, 0, 0]);
+        out[3..19].copy_from_slice(ip.octets().as_slice());
+        // IANA ICP NSAP addresses are always 20 bytes
+        return X213NetworkAddress::Inline((20, out));
     }
 
     /// Create a new X.519 ITOT URL NSAP address from a URL
@@ -388,10 +385,9 @@ impl <'a> X213NetworkAddress <'a> {
     /// Create an ITOT NSAP address from a socket address and optional transport set
     ///
     /// Note that this only supports IPv4 due to the encoding.
-    #[cfg(feature = "alloc")]
     pub fn from_itot_socket_addr(addr: &SocketAddrV4, tset: Option<u16>) -> Self {
-        let mut out: Vec<u8> = Vec::with_capacity(20);
-        out.extend(INTERNET_PREFIX);
+        let mut out: [u8; 22] = [0; 22];
+        out[0..6].copy_from_slice(INTERNET_PREFIX.as_slice());
         let mut bcd_buf = BCDBuffer::new();
         addr.ip()
             .octets()
@@ -410,8 +406,11 @@ impl <'a> X213NetworkAddress <'a> {
                 bcd_buf.push_nybble(0xF);
             }
         }
-        out.extend(bcd_buf.as_ref());
-        return X213NetworkAddress::Heap(out);
+        let bcd_len = bcd_buf.len_in_bytes();
+        debug_assert_eq!(bcd_len, bcd_buf.as_ref().len());
+        debug_assert!(bcd_len < 19);
+        out[6..6+bcd_len].copy_from_slice(bcd_buf.as_ref());
+        X213NetworkAddress::Inline((6 + bcd_len as u8, out))
     }
 
 }
@@ -495,7 +494,6 @@ impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
 
 }
 
-#[cfg(feature = "alloc")]
 impl <'a> From<&IpAddr> for X213NetworkAddress<'a> {
 
     #[inline]
@@ -505,7 +503,6 @@ impl <'a> From<&IpAddr> for X213NetworkAddress<'a> {
 
 }
 
-#[cfg(feature = "alloc")]
 impl <'a> From<&Ipv4Addr> for X213NetworkAddress<'a> {
 
     #[inline]
@@ -515,7 +512,6 @@ impl <'a> From<&Ipv4Addr> for X213NetworkAddress<'a> {
 
 }
 
-#[cfg(feature = "alloc")]
 impl <'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
 
     #[inline]
@@ -525,7 +521,6 @@ impl <'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
 
 }
 
-#[cfg(feature = "alloc")]
 const DEFAULT_ITOT_TRANSPORT_SET: u16 = 1;
 
 impl <'a> Display for X213NetworkAddress<'a> {
@@ -606,7 +601,6 @@ mod tests {
         assert_eq!(addr.get_url().unwrap(), "https://wildboarsoftware.com/x500directory");
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_from_itot_socket_addr() {
         let sock = SocketAddrV4::from_str("192.168.1.100:8000").unwrap();

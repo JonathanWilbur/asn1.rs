@@ -194,6 +194,121 @@ fn naddr_str_to_afi (
     }
 }
 
+fn parse_url(idi: &str, url: &str) -> ParseResult<'static> {
+    /* The URL cannot contain underscores only because RFC 1278 uses
+    underscores to separate NSAP addresses in a presentation address. */
+    if url.contains('_') {
+        return Err(RFC1278ParseError::ProhibitedCharacter('_'));
+    }
+    let mut bcd_buf = BCDBuffer::new();
+    bcd_buf.push_byte(AFI_URL);
+    let mut idi_deficit = 4usize.saturating_sub(idi.len());
+    while idi_deficit > 0 {
+        bcd_buf.push_nybble(0);
+        idi_deficit -= 1;
+    }
+    bcd_buf.push_str(idi);
+    if url.len() > 17 {
+        if cfg!(feature = "alloc") {
+            let out = [
+                bcd_buf.as_ref(),
+                url.as_bytes(),
+            ].concat();
+            return Ok(X213NetworkAddress::Heap(out));
+        } else {
+            return Err(RFC1278ParseError::TooLarge);
+        }
+    }
+    let mut out: [u8; 22] = [0; 22];
+    out[0..3].copy_from_slice(bcd_buf.as_ref());
+    out[3..3+url.len()].copy_from_slice(url.as_bytes());
+    Ok(X213NetworkAddress::Inline((3 + url.len() as u8, out)))
+}
+
+/// Parse the part that comes after "NS+"
+fn parse_ns_dsp(ns: &str) -> ParseResult<'static> {
+    let len = ns.len() / 2;
+    if len > 20 {
+        if cfg!(feature = "alloc") {
+            // We want to tolerate any size, because this could encode a URL NSAP.
+            let hexbytes = hex::decode(ns)
+                .map_err(|_| RFC1278ParseError::Malformed)?;
+            return Ok(X213NetworkAddress::Heap(hexbytes));
+        } else {
+            return Err(RFC1278ParseError::TooLarge);
+        }
+    }
+    let mut out: [u8; 22] = [0; 22];
+    hex::decode_to_slice(ns, &mut out[0..len])
+        .map_err(|_| RFC1278ParseError::Malformed)?;
+    return Ok(X213NetworkAddress::Inline((len as u8, out)));
+}
+
+fn parse_decimal_dsp(mut bcd_buf: BCDBuffer, dsp: &str) -> ParseResult<'static> {
+    if !dsp.as_bytes()[1..].iter().all(|b| b.is_ascii_digit()) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    bcd_buf.push_ascii_bytes(&dsp.as_bytes()[1..]);
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_buf.len_in_bytes()].copy_from_slice(bcd_buf.as_ref());
+    Ok(X213NetworkAddress::Inline((bcd_buf.len_in_bytes() as u8, out)))
+}
+
+fn parse_hexadecimal_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
+    let dsp_len = dsp.as_bytes()[1..].len() >> 1;
+    let bcd_len = idp.len_in_bytes();
+    if bcd_len + dsp_len > 20 {
+        if cfg!(feature = "alloc") {
+            let hexbytes = hex::decode(&dsp.as_bytes()[1..])
+                .map_err(|_| RFC1278ParseError::Malformed)?;
+            let out = [
+                idp.as_ref(),
+                hexbytes.as_ref(),
+            ].concat();
+            return Ok(X213NetworkAddress::Heap(out));
+        } else {
+            return Err(RFC1278ParseError::TooLarge);
+        }
+    }
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(idp.as_ref());
+    hex::decode_to_slice(
+        &dsp.as_bytes()[1..],
+        &mut out[bcd_len..bcd_len+dsp_len]
+    ).map_err(|_| RFC1278ParseError::Malformed)?;
+    Ok(X213NetworkAddress::Inline(((bcd_len + dsp_len) as u8, out)))
+}
+
+fn parse_textual_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
+    // RFC 1278: <other> ::= [0-9a-zA-Z+-.]
+    if !dsp.chars().all(is_other_char) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    let bcd_len = idp.len_in_bytes();
+    let outlen = bcd_len + dsp[1..].len();
+    if outlen > 20 {
+        if cfg!(feature = "alloc") {
+            let mut out = Vec::with_capacity(outlen);
+            out.extend(idp.as_ref());
+            out.extend(dsp[1..]
+                .chars()
+                // We check for permitted characters above, so the
+                // unwrap() below should never fail.
+                .map(|c| char_to_local_iso_iec_646_byte(c).unwrap()));
+            return Ok(X213NetworkAddress::Heap(out));
+        } else {
+            return Err(RFC1278ParseError::TooLarge);
+        }
+    }
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(idp.as_ref());
+    for (i, c) in dsp[1..].chars().enumerate() {
+        out[bcd_len + i] = char_to_local_iso_iec_646_byte(c)
+            .map_err(|_| RFC1278ParseError::Malformed)?;
+    }
+    Ok(X213NetworkAddress::Inline((outlen as u8, out)))
+}
+
 #[cfg(feature = "alloc")]
 pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     // I think this is the shortest possible: NS+0011 or DCC+1+2
@@ -210,53 +325,27 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         None => return decode_idp_only(first_part),
     };
     if first_part == "NS" {
-        let hexbytes = hex::decode(second_part)
-            .map_err(|_| RFC1278ParseError::Malformed)?;
-        return Ok(X213NetworkAddress::Heap(hexbytes));
+        return parse_ns_dsp(second_part);
     }
     let mut bcd_buf = BCDBuffer::new();
     let third_part = parts.next();
     if first_part == "URL" {
         validate_digitstring(second_part, 4)?;
-        let url = match third_part {
-            Some(u) => u,
-            None => return Err(RFC1278ParseError::Malformed),
-        };
-        /* The URL cannot contain underscores only because RFC 1278 uses
-        underscores to separate NSAP addresses in a presentation address. */
-        if url.contains('_') {
-            return Err(RFC1278ParseError::ProhibitedCharacter('_'));
+        if parts.next().is_some() {
+            return Err(RFC1278ParseError::Malformed);
         }
-        let mut idi_deficit = 4usize.saturating_sub(second_part.len());
-        while idi_deficit > 0 {
-            bcd_buf.push_nybble(0);
-            idi_deficit -= 1;
-        }
-        bcd_buf.push_str(second_part);
-        let out = [
-            [AFI_URL].as_ref(),
-            bcd_buf.as_ref(),
-            url.as_bytes(),
-        ].concat();
-        return Ok(X213NetworkAddress::Heap(out));
+        let url = &s[5 + second_part.len()..];
+        return parse_url(second_part, url);
     }
     if first_part == "IP6" {
         let ip = Ipv6Addr::from_str(second_part)
             .map_err(|_| RFC1278ParseError::Malformed)?;
-        let mut out: Vec<u8> = Vec::with_capacity(20);
-        out.extend(&[AFI_IANA_ICP_BIN, 0, 0]);
-        out.extend(ip.octets().as_slice());
-        out.push(0);
-        return Ok(X213NetworkAddress::Heap(out));
+        return Ok(X213NetworkAddress::from_ipv6(&ip));
     }
     if first_part == "IP4" {
         let ip = Ipv4Addr::from_str(second_part)
             .map_err(|_| RFC1278ParseError::Malformed)?;
-        let mut out: Vec<u8> = Vec::with_capacity(20);
-        out.extend(&[AFI_IANA_ICP_BIN, 0, 1]);
-        out.extend(ip.octets().as_slice());
-        out.extend([0; 13].as_slice());
-        return Ok(X213NetworkAddress::Heap(out));
+        return Ok(X213NetworkAddress::from_ipv4(&ip));
     }
     let syntax: DSPSyntax = match third_part.and_then(|p3| p3.chars().next()) {
         Some('d') => DSPSyntax::Decimal,
@@ -303,37 +392,9 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
             return Err(RFC1278ParseError::Malformed);
         }
         return match third_part.as_bytes()[0] as char {
-            'd' => { // decimal syntax
-                if !third_part.as_bytes()[1..].iter().all(|b| b.is_ascii_digit()) {
-                    return Err(RFC1278ParseError::Malformed);
-                }
-                bcd_buf.push_ascii_bytes(&third_part.as_bytes()[1..]);
-                Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()))
-            },
-            'x' => {
-                let hexbytes = hex::decode(&third_part.as_bytes()[1..])
-                    .map_err(|_| RFC1278ParseError::Malformed)?;
-                let out = [
-                    bcd_buf.as_ref(),
-                    hexbytes.as_ref(),
-                ].concat();
-                Ok(X213NetworkAddress::Heap(out))
-            },
-            'l' => {
-                // RFC 1278: <other> ::= [0-9a-zA-Z+-.]
-                if !third_part.chars().all(is_other_char) {
-                    return Err(RFC1278ParseError::Malformed);
-                }
-                let outlen = bcd_buf.len_in_bytes() + third_part.len();
-                let mut out = Vec::with_capacity(outlen);
-                out.extend(bcd_buf.as_ref());
-                out.extend(third_part[1..]
-                    .chars()
-                    // We check for permitted characters above, so the
-                    // unwrap() below should never fail.
-                    .map(|c| char_to_local_iso_iec_646_byte(c).unwrap()));
-                Ok(X213NetworkAddress::Heap(out))
-            },
+            'd' => parse_decimal_dsp(bcd_buf, third_part),
+            'x' => parse_hexadecimal_dsp(bcd_buf, third_part),
+            'l' => parse_textual_dsp(bcd_buf, third_part),
             _ => {
                 if third_part == IETF_RFC_1006_PREFIX_STR {
                     // "RFC-1006" "+" <prefix> "+" <ip> [ "+" <port> [ "+" <tset> ]]
@@ -383,6 +444,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
                         let tset_str = u16_to_decimal_bytes(tset);
                         bcd_buf.push_ascii_bytes(tset_str.as_slice());
                     }
+                    // TODO: Non-alloc version
                     return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
                 }
                 if third_part == X25_PREFIX_STR {
