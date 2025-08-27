@@ -31,7 +31,8 @@ mod utils;
 use core::fmt::Display;
 use core::convert::TryFrom;
 use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
-use crate::bcd::BCDDigitsIter;
+use core::str::FromStr;
+use crate::bcd::{BCDDigitsIter, BCDBuffer};
 use crate::data::{
     afi_to_network_type, get_address_type_info,
     X213NetworkAddressInfo,
@@ -51,22 +52,14 @@ use crate::data::{
     RFC_1277_PREFIX,
 };
 use crate::display::{fmt_naddr_type, fmt_naddr};
-use crate::error::NAddressParseError;
+use crate::error::{NAddressParseError, RFC1278ParseError};
+use crate::parse::parse_nsap;
+use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
 #[cfg(feature = "alloc")]
-use core::str::FromStr;
-#[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
-use crate::bcd::BCDBuffer;
-#[cfg(feature = "alloc")]
-use crate::error::RFC1278ParseError;
-#[cfg(feature = "alloc")]
-use crate::parse::parse_nsap;
-#[cfg(feature = "alloc")]
-use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 
 pub type AFI = u8;
 
@@ -531,7 +524,6 @@ impl <'a> Display for X213NetworkAddress<'a> {
 
 }
 
-#[cfg(feature = "alloc")]
 impl <'a> FromStr for X213NetworkAddress<'a> {
     type Err = RFC1278ParseError;
 
@@ -547,12 +539,9 @@ mod tests {
 
     extern crate alloc;
     use alloc::string::ToString;
-    #[cfg(feature = "alloc")]
     use core::str::FromStr;
-    #[cfg(feature = "alloc")]
-    use core::net::{SocketAddrV4, Ipv4Addr};
+    use core::net::{Ipv4Addr, SocketAddrV4};
     use super::{X213NetworkAddress, AFI_IANA_ICP_BIN};
-    #[cfg(feature = "alloc")]
     use super::data::AFI_F69_DEC_LEADING_ZERO;
 
     #[test]
@@ -615,7 +604,6 @@ mod tests {
         ]);
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_ip_overflow_1() {
         let input = "IP4+999.999.2.100";
@@ -623,7 +611,6 @@ mod tests {
         assert!(maybe_addr.is_err());
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_ip_overflow_2() {
         let input = "TELEX+00728722+RFC-1006+03+256.0.0.2+9+2";
@@ -631,7 +618,6 @@ mod tests {
         assert!(maybe_addr.is_err());
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_ip_overflow_3() {
         let input = "TELEX+00728722+RFC-1006+03+0.255.255.255+99999+88888";
@@ -652,7 +638,6 @@ mod tests {
         assert!(maybe_addr.is_err());
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_get_itot_socket_adder() {
         let input = "TELEX+00728722+RFC-1006+03+255.0.0.2+65535+2";

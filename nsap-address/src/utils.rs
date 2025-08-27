@@ -1,6 +1,5 @@
 
 /// Convert a u8 to decimal ASCII digits
-#[cfg(feature = "alloc")]
 pub(crate) fn u8_to_decimal_bytes(mut n: u8) -> [u8; 3] {
     let hundreds = n / 100;
     n %= 100;
@@ -14,7 +13,6 @@ pub(crate) fn u8_to_decimal_bytes(mut n: u8) -> [u8; 3] {
 }
 
 /// Convert a u16 to decimal ASCII digits
-#[cfg(feature = "alloc")]
 pub(crate) fn u16_to_decimal_bytes(mut n: u16) -> [u8; 5] {
     let ten_thousands = (n / 10000) as u8;
     n %= 10000;

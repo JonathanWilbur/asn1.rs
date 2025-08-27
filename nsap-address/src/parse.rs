@@ -1,18 +1,13 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
-#[cfg(feature = "alloc")]
 use core::str::FromStr;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
 use core::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
-#[cfg(feature = "alloc")]
 use crate::{X213NetworkAddress, DSPSyntax, AFI};
-#[cfg(feature = "alloc")]
 use crate::bcd::BCDBuffer;
-#[cfg(feature = "alloc")]
 use crate::data::{
     get_address_type_info,
     AFI_URL,
@@ -49,18 +44,13 @@ use crate::data::{
     IETF_RFC_1006_PREFIX_STR,
     X25_PREFIX_STR,
 };
-#[cfg(feature = "alloc")]
 use crate::isoiec646::char_to_local_iso_iec_646_byte;
-#[cfg(feature = "alloc")]
 use crate::error::RFC1278ParseError;
-#[cfg(feature = "alloc")]
 use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 
-#[cfg(feature = "alloc")]
 pub(crate) type ParseResult<'a> = Result<X213NetworkAddress<'a>, RFC1278ParseError>;
 
 /// Validate that string is a digitstring and shorter than `max_len`
-#[cfg(feature = "alloc")]
 #[inline]
 fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError> {
     if s.len() > max_len {
@@ -73,7 +63,6 @@ fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError
 }
 
 /// Decode an AFI from a `str`, such as "X121"
-#[cfg(feature = "alloc")]
 fn decode_afi_from_str(s: &str) -> Result<AFI, RFC1278ParseError> {
     debug_assert_eq!(s.len(), 2);
     let mut out: [u8; 1] = [0];
@@ -91,7 +80,6 @@ second <hexstring> non-optional, since this is optional in X.213.
 X.213 also says that the first byte of the <idp> may be hex,
 which RFC 1278 does not permit.
 */
-#[cfg(feature = "alloc")]
 fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC1278ParseError> {
     if !s[2..].as_bytes().iter().all(|b| b.is_ascii_digit()) {
         return Err(RFC1278ParseError::Malformed);
@@ -114,18 +102,19 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC127
     if (bcd_buf.i % 2) > 0 {
         bcd_buf.push_nybble(0xF);
     }
-    Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()))
+    let bcd_len = bcd_buf.len_in_bytes();
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
+    Ok(X213NetworkAddress::Inline((bcd_len as u8, out)))
 }
 
 /// Whether the character `c` is an `<other>`, per RFC 1278.
-#[cfg(feature = "alloc")]
 #[inline]
 const fn is_other_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '.'
 }
 
 /// Translate an AFI string, such as "X121" to an AFI value
-#[cfg(feature = "alloc")]
 fn naddr_str_to_afi (
     s: &str,
     leading0: bool,
@@ -209,13 +198,16 @@ fn parse_url(idi: &str, url: &str) -> ParseResult<'static> {
     }
     bcd_buf.push_str(idi);
     if url.len() > 17 {
-        if cfg!(feature = "alloc") {
+        #[cfg(feature = "alloc")]
+        {
             let out = [
                 bcd_buf.as_ref(),
                 url.as_bytes(),
             ].concat();
             return Ok(X213NetworkAddress::Heap(out));
-        } else {
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
             return Err(RFC1278ParseError::TooLarge);
         }
     }
@@ -229,12 +221,15 @@ fn parse_url(idi: &str, url: &str) -> ParseResult<'static> {
 fn parse_ns_dsp(ns: &str) -> ParseResult<'static> {
     let len = ns.len() / 2;
     if len > 20 {
-        if cfg!(feature = "alloc") {
+        #[cfg(feature = "alloc")]
+        {
             // We want to tolerate any size, because this could encode a URL NSAP.
             let hexbytes = hex::decode(ns)
                 .map_err(|_| RFC1278ParseError::Malformed)?;
             return Ok(X213NetworkAddress::Heap(hexbytes));
-        } else {
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
             return Err(RFC1278ParseError::TooLarge);
         }
     }
@@ -258,7 +253,8 @@ fn parse_hexadecimal_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
     let dsp_len = dsp.as_bytes()[1..].len() >> 1;
     let bcd_len = idp.len_in_bytes();
     if bcd_len + dsp_len > 20 {
-        if cfg!(feature = "alloc") {
+        #[cfg(feature = "alloc")]
+        {
             let hexbytes = hex::decode(&dsp.as_bytes()[1..])
                 .map_err(|_| RFC1278ParseError::Malformed)?;
             let out = [
@@ -266,7 +262,9 @@ fn parse_hexadecimal_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
                 hexbytes.as_ref(),
             ].concat();
             return Ok(X213NetworkAddress::Heap(out));
-        } else {
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
             return Err(RFC1278ParseError::TooLarge);
         }
     }
@@ -287,7 +285,8 @@ fn parse_textual_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
     let bcd_len = idp.len_in_bytes();
     let outlen = bcd_len + dsp[1..].len();
     if outlen > 20 {
-        if cfg!(feature = "alloc") {
+        #[cfg(feature = "alloc")]
+        {
             let mut out = Vec::with_capacity(outlen);
             out.extend(idp.as_ref());
             out.extend(dsp[1..]
@@ -296,7 +295,9 @@ fn parse_textual_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
                 // unwrap() below should never fail.
                 .map(|c| char_to_local_iso_iec_646_byte(c).unwrap()));
             return Ok(X213NetworkAddress::Heap(out));
-        } else {
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
             return Err(RFC1278ParseError::TooLarge);
         }
     }
@@ -309,7 +310,211 @@ fn parse_textual_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
     Ok(X213NetworkAddress::Inline((outlen as u8, out)))
 }
 
-#[cfg(feature = "alloc")]
+fn parse_idp_and_dsp(idp: &str, dsp: &str, syntax: DSPSyntax) -> ParseResult<'static> {
+    if !idp[2..].bytes().all(|b| b.is_ascii_digit()) || idp.len() < 2 {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    let afi = decode_afi_from_str(&idp[0..2])?;
+    let schema = get_address_type_info(afi)
+        .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
+    let idi_len_digits: usize = schema.max_idi_len_digits as usize;
+    if (idi_len_digits % 2) > 0 && syntax == DSPSyntax::Decimal {
+        /* In the encoding specified in ITU-T Rec. X.213, Section A.7, it
+        is not clear how to encode decimal DSPs when the first digit
+        occupies the last nybble of the IDP's last octet. It is not clear
+        if an odd number of hex characters could be used, or if this
+        representation is only suitable for binary DSPs. */
+        return Err(RFC1278ParseError::SpecificationFailure);
+    }
+    let mut bcd_buf = BCDBuffer::new();
+    bcd_buf.push_byte(afi);
+    let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
+    let mut idi_deficit = idi_len_digits.saturating_sub(idp.len() - 2);
+    while idi_deficit > 0 {
+        bcd_buf.push_nybble(idi_pad);
+        idi_deficit -= 1;
+    }
+    bcd_buf.push_str(&idp[2..]);
+    if (bcd_buf.i % 2) > 0 {
+        bcd_buf.push_nybble(0xF);
+    }
+    let bcd_len = bcd_buf.len_in_bytes();
+    let dsp_len = dsp.len() >> 1; // Half it, due to hex encoding
+    let len = bcd_len + dsp_len;
+    if len > 20 {
+        #[cfg(feature = "alloc")]
+        {
+            let hexbytes = hex::decode(dsp)
+                .map_err(|_| RFC1278ParseError::Malformed)?;
+            return Ok(X213NetworkAddress::Heap(hexbytes));
+        }
+        #[cfg(not(feature = "alloc"))]
+        {
+            return Err(RFC1278ParseError::TooLarge);
+
+        }
+    }
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
+    hex::decode_to_slice(dsp, &mut out[bcd_len..bcd_len + dsp_len])
+        .map_err(|_| RFC1278ParseError::Malformed)?;
+    return Ok(X213NetworkAddress::Inline((len as u8, out)));
+}
+
+// "RFC-1006" "+" <prefix> "+" <ip> [ "+" <port> [ "+" <tset> ]]
+fn parse_rfc_1006_dsp (
+    mut bcd_buf: BCDBuffer,
+    prefix: &str,
+    ip: &str,
+    port: Option<&str>,
+    tset: Option<&str>,
+) -> ParseResult<'static> {
+    if prefix.len() != 2 || !prefix.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    bcd_buf.push_digit_u8(prefix.as_bytes()[0]);
+    bcd_buf.push_digit_u8(prefix.as_bytes()[1]);
+    let ip = Ipv4Addr::from_str(ip)
+        .map_err(|_| {
+            #[cfg(feature = "alloc")]
+            {
+                RFC1278ParseError::ResolveDNSWithName(ip.to_owned())
+            }
+            #[cfg(not(feature = "alloc"))]
+            {
+                RFC1278ParseError::ResolveDNS
+            }
+        })?;
+    if port.is_some_and(|p| p.len() == 0) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    if tset.is_some_and(|t| t.len() == 0) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    let port = match port {
+        Some(p) => Some(u16::from_str(p)
+            .map_err(|_| RFC1278ParseError::Malformed)?),
+        None => None,
+    };
+    let tset = match tset {
+        Some(t) => Some(u16::from_str(t)
+            .map_err(|_| RFC1278ParseError::Malformed)?),
+        None => None,
+    };
+
+    ip
+        .octets()
+        .map(|o| u8_to_decimal_bytes(o))
+        .iter()
+        .for_each(|dec_oct| bcd_buf.push_ascii_bytes(dec_oct.as_slice()));
+    if let Some(port) = port {
+        let port_str = u16_to_decimal_bytes(port);
+        bcd_buf.push_ascii_bytes(port_str.as_slice());
+    }
+    if let Some(tset) = tset {
+        let tset_str = u16_to_decimal_bytes(tset);
+        bcd_buf.push_ascii_bytes(tset_str.as_slice());
+    }
+    let bcd_len = bcd_buf.len_in_bytes();
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
+    Ok(X213NetworkAddress::Inline((bcd_len as u8, out)))
+}
+
+
+// "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
+fn parse_x25_dsp (
+    mut bcd_buf: BCDBuffer,
+    prefix: &str,
+    dte: &str,
+    cudf_of_pid: Option<&str>,
+    cudf_of_pid_hex: Option<&str>,
+) -> ParseResult<'static> {
+    if !prefix.bytes().all(|b| b.is_ascii_digit())
+        || !dte.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    bcd_buf.push_str(prefix);
+    match cudf_of_pid {
+        Some("PID") => bcd_buf.push_digit_u8(0x31),
+        Some("CUDF") => bcd_buf.push_digit_u8(0x32),
+        Some(_) => return Err(RFC1278ParseError::Malformed),
+        None => bcd_buf.push_digit_u8(0x30), // DTE-only
+    };
+    if let Some(hexstr) = cudf_of_pid_hex {
+        let mut hexout: [u8; 20] = [0; 20];
+        if (hexstr.len() % 2) > 0 || hexstr.len() > 14 {
+            // If my calculations are correct, only a
+            // 7-byte long CUDF/PID fits in an NSAP addr.
+            return Err(RFC1278ParseError::Malformed);
+        }
+        let bytelen = hexstr.len() >> 1;
+        hex::decode_to_slice(hexstr, &mut hexout[0..bytelen])
+            .map_err(|_| RFC1278ParseError::Malformed)?;
+        // This is the CUDF/PID length field
+        bcd_buf.push_digit_u8(bytelen as u8 + 0x30);
+        // Then the CUDF/PID itself
+        for b in hexout[0..bytelen].iter() {
+            let b_dec = u8_to_decimal_bytes(*b);
+            bcd_buf.push_ascii_bytes(b_dec.as_slice());
+        }
+    }
+    let dte_len_bytes = (dte.len() >> 1) + (dte.len() % 2);
+    if bcd_buf.len_in_bytes() + dte_len_bytes > 20 {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    bcd_buf.push_str(dte);
+    let bcd_len = bcd_buf.len_in_bytes();
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
+    Ok(X213NetworkAddress::Inline((bcd_len as u8, out)))
+}
+
+// "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
+fn parse_ecma117_binary_dsp(
+    bcd_buf: BCDBuffer,
+    d1: &str,
+    d2: &str,
+    d3: &str,
+) -> ParseResult<'static> {
+    if d2.len() > 12 {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    let bcd_len = bcd_buf.len_in_bytes();
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
+    hex::decode_to_slice(d1, &mut out[bcd_len..bcd_len+2])
+        .map_err(|_| RFC1278ParseError::Malformed)?;
+    let d2len = d2.len() >> 1;
+    hex::decode_to_slice(d2, &mut out[bcd_len+2..bcd_len+2+d2len])
+        .map_err(|_| RFC1278ParseError::Malformed)?;
+    hex::decode_to_slice(d3, &mut out[bcd_len+2+d2len..bcd_len+2+d2len+1])
+        .map_err(|_| RFC1278ParseError::Malformed)?;
+    Ok(X213NetworkAddress::Inline(((bcd_len+2+d2len+1) as u8, out)))
+}
+
+// "ECMA-117-Decimal" "+" <digitstring> "+" <digitstring> "+" <digitstring>
+fn parse_ecma117_decimal_dsp(
+    mut bcd_buf: BCDBuffer,
+    d1: &str,
+    d2: &str,
+    d3: &str,
+) -> ParseResult<'static> {
+    if d1.len() != 5 || d2.len() > 15 || d3.len() != 3
+        || !d1.chars().all(|c| c.is_ascii_digit())
+        || !d2.chars().all(|c| c.is_ascii_digit())
+        || !d3.chars().all(|c| c.is_ascii_digit()) {
+        return Err(RFC1278ParseError::Malformed);
+    }
+    bcd_buf.push_str(d1);
+    bcd_buf.push_str(d2);
+    bcd_buf.push_str(d3);
+    let bcd_len = bcd_buf.len_in_bytes();
+    let mut out: [u8; 22] = [0; 22];
+    out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
+    Ok(X213NetworkAddress::Inline((bcd_len as u8, out)))
+}
+
 pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     // I think this is the shortest possible: NS+0011 or DCC+1+2
     if s.len() < 7 || !s.is_ascii() {
@@ -363,232 +568,101 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         }
     };
     let maybe_afi = naddr_str_to_afi(first_part, second_part.starts_with("0"), syntax);
-    if let Some(afi) = maybe_afi {
-        // This MUST be <afi> "+" <idi> [ "+" <dsp> ] syntax.
-        let schema = get_address_type_info(afi)
-            .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
-        let idi_len_digits: usize = schema.max_idi_len_digits as usize;
-        if second_part.len() > idi_len_digits
-            || !second_part.bytes().all(|b| b.is_ascii_digit()) {
+    if maybe_afi.is_none() {
+        // Otherwise, assume it is <idp> "+" <hexstring>
+        if third_part.is_some() {
             return Err(RFC1278ParseError::Malformed);
         }
-        bcd_buf.push_byte(afi);
-        let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
-        let mut idi_deficit = idi_len_digits.saturating_sub(second_part.len());
-        while idi_deficit > 0 {
-            bcd_buf.push_nybble(idi_pad);
-            idi_deficit -= 1;
-        }
-        bcd_buf.push_str(&second_part);
-        if (idi_len_digits % 2) > 0 {
-            bcd_buf.push_nybble(0x0F);
-        }
-        if third_part.is_none() {
-            return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
-        }
-        let third_part = third_part.unwrap();
-        if third_part.len() < 2 {
-            // Cannot be empty and must have a discriminator (e.g. 'd')
-            return Err(RFC1278ParseError::Malformed);
-        }
-        return match third_part.as_bytes()[0] as char {
-            'd' => parse_decimal_dsp(bcd_buf, third_part),
-            'x' => parse_hexadecimal_dsp(bcd_buf, third_part),
-            'l' => parse_textual_dsp(bcd_buf, third_part),
-            _ => {
-                if third_part == IETF_RFC_1006_PREFIX_STR {
-                    // "RFC-1006" "+" <prefix> "+" <ip> [ "+" <port> [ "+" <tset> ]]
-                    let prefix = parts.next();
-                    let ip = parts.next();
-                    let port = parts.next();
-                    let tset = parts.next();
-                    if prefix.is_none() || ip.is_none() {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    let prefix = prefix.unwrap();
-                    if prefix.len() != 2 || !prefix.bytes().all(|b| b.is_ascii_digit()) {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    bcd_buf.push_digit_u8(prefix.as_bytes()[0]);
-                    bcd_buf.push_digit_u8(prefix.as_bytes()[1]);
-                    let ip = ip.unwrap();
-                    let ip = Ipv4Addr::from_str(ip)
-                        .map_err(|_| RFC1278ParseError::ResolveDNS(ip.to_owned()))?;
-                    if port.is_some_and(|p| p.len() == 0) {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    if tset.is_some_and(|t| t.len() == 0) {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    let port = match port {
-                        Some(p) => Some(u16::from_str(p)
-                            .map_err(|_| RFC1278ParseError::Malformed)?),
-                        None => None,
-                    };
-                    let tset = match tset {
-                        Some(t) => Some(u16::from_str(t)
-                            .map_err(|_| RFC1278ParseError::Malformed)?),
-                        None => None,
-                    };
-
-                    ip
-                        .octets()
-                        .map(|o| u8_to_decimal_bytes(o))
-                        .iter()
-                        .for_each(|dec_oct| bcd_buf.push_ascii_bytes(dec_oct.as_slice()));
-                    if let Some(port) = port {
-                        let port_str = u16_to_decimal_bytes(port);
-                        bcd_buf.push_ascii_bytes(port_str.as_slice());
-                    }
-                    if let Some(tset) = tset {
-                        let tset_str = u16_to_decimal_bytes(tset);
-                        bcd_buf.push_ascii_bytes(tset_str.as_slice());
-                    }
-                    // TODO: Non-alloc version
-                    return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
-                }
-                if third_part == X25_PREFIX_STR {
-                    // "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
-                    let prefix = parts.next();
-                    let dte = parts.next();
-                    let cudf_of_pid = parts.next();
-                    let cudf_of_pid_hex = parts.next();
-                    if prefix.is_none()
-                        || dte.is_none()
-                        || (cudf_of_pid.is_some() && cudf_of_pid_hex.is_none()) {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    let prefix = prefix.unwrap();
-                    let dte = dte.unwrap();
-                    if !prefix.bytes().all(|b| b.is_ascii_digit())
-                        || !dte.bytes().all(|b| b.is_ascii_digit()) {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    bcd_buf.push_str(prefix);
-                    match cudf_of_pid {
-                        Some("PID") => bcd_buf.push_digit_u8(0x31),
-                        Some("CUDF") => bcd_buf.push_digit_u8(0x32),
-                        Some(_) => return Err(RFC1278ParseError::Malformed),
-                        None => bcd_buf.push_digit_u8(0x30), // DTE-only
-                    };
-                    if let Some(hexstr) = cudf_of_pid_hex {
-                        let mut hexout: [u8; 20] = [0; 20];
-                        if (hexstr.len() % 2) > 0 || hexstr.len() > 14 {
-                            // If my calculations are correct, only a
-                            // 7-byte long CUDF/PID fits in an NSAP addr.
-                            return Err(RFC1278ParseError::Malformed);
-                        }
-                        let bytelen = hexstr.len() >> 1;
-                        hex::decode_to_slice(hexstr, &mut hexout[0..bytelen])
-                            .map_err(|_| RFC1278ParseError::Malformed)?;
-                        // This is the CUDF/PID length field
-                        bcd_buf.push_digit_u8(bytelen as u8 + 0x30);
-                        // Then the CUDF/PID itself
-                        for b in hexout[0..bytelen].iter() {
-                            let b_dec = u8_to_decimal_bytes(*b);
-                            bcd_buf.push_ascii_bytes(b_dec.as_slice());
-                        }
-                    }
-                    let dte_len_bytes = (dte.len() >> 1) + (dte.len() % 2);
-                    if bcd_buf.len_in_bytes() + dte_len_bytes > 20 {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    bcd_buf.push_str(dte);
-                    return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
-                }
-                if third_part == ECMA_117_BINARY_STR {
-                    // "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
-                    let d1 = parts.next();
-                    let d2 = parts.next();
-                    let d3 = parts.next();
-                    let d4 = parts.next();
-                    if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    let mut subnet_id: [u8; 2] = [0, 0];
-                    let mut selector: [u8; 1] = [0];
-                    // decode_to_slice handles our length-checking.
-                    hex::decode_to_slice(d1.unwrap(), subnet_id.as_mut_slice())
-                        .map_err(|_| RFC1278ParseError::Malformed)?;
-                    hex::decode_to_slice(d3.unwrap(), selector.as_mut_slice())
-                        .map_err(|_| RFC1278ParseError::Malformed)?;
-                    let subnet_addr = hex::decode(d2.unwrap())
-                        .map_err(|_| RFC1278ParseError::Malformed)?;
-                    if subnet_addr.len() > 6 {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    let mut out: Vec<u8> = Vec::with_capacity(bcd_buf.len_in_bytes() + 9);
-                    out.extend(bcd_buf.as_ref());
-                    out.extend(subnet_id.as_slice());
-                    out.extend(subnet_addr.as_slice());
-                    out.extend(selector.as_slice());
-                    return Ok(X213NetworkAddress::Heap(out));
-                }
-                if third_part == ECMA_117_DECIMAL_STR {
-                    // "ECMA-117-Decimal" "+" <digitstring> "+" <digitstring> "+" <digitstring>
-                    let d1 = parts.next();
-                    let d2 = parts.next();
-                    let d3 = parts.next();
-                    let d4 = parts.next();
-                    if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    let d1 = d1.unwrap();
-                    let d2 = d2.unwrap();
-                    let d3 = d3.unwrap();
-                    if d1.len() != 5 || d2.len() > 15 || d3.len() != 3
-                        || !d1.chars().all(|c| c.is_ascii_digit())
-                        || !d2.chars().all(|c| c.is_ascii_digit())
-                        || !d3.chars().all(|c| c.is_ascii_digit()) {
-                        return Err(RFC1278ParseError::Malformed);
-                    }
-                    bcd_buf.push_str(d1);
-                    bcd_buf.push_str(d2);
-                    bcd_buf.push_str(d3);
-                    return Ok(X213NetworkAddress::Heap(bcd_buf.as_ref().to_vec()));
-                }
-                return Err(RFC1278ParseError::UnrecognizedSyntax);
-            }
-        }
+        return parse_idp_and_dsp(first_part, second_part, syntax);
     }
-    // Otherwise, assume it is <idp> "+" <hexstring>
-    if !first_part[2..].as_bytes().iter().all(|b| b.is_ascii_digit())
-        || first_part.len() < 2
-        || third_part.is_some() {
-        return Err(RFC1278ParseError::Malformed);
-    }
-    let afi = decode_afi_from_str(&s[0..2])?;
+    let afi = maybe_afi.unwrap();
+    // This MUST be <afi> "+" <idi> [ "+" <dsp> ] syntax.
     let schema = get_address_type_info(afi)
         .ok_or(RFC1278ParseError::UnrecognizedAFI)?;
     let idi_len_digits: usize = schema.max_idi_len_digits as usize;
-    if (idi_len_digits % 2) > 0 && syntax == DSPSyntax::Decimal {
-        /* In the encoding specified in ITU-T Rec. X.213, Section A.7, it
-        is not clear how to encode decimal DSPs when the first digit
-        occupies the last nybble of the IDP's last octet. It is not clear
-        if an odd number of hex characters could be used, or if this
-        representation is only suitable for binary DSPs. */
-        return Err(RFC1278ParseError::SpecificationFailure);
+    if second_part.len() > idi_len_digits
+        || !second_part.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(RFC1278ParseError::Malformed);
     }
     bcd_buf.push_byte(afi);
     let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
-    let mut idi_deficit = idi_len_digits.saturating_sub(first_part.len() - 2);
+    let mut idi_deficit = idi_len_digits.saturating_sub(second_part.len());
     while idi_deficit > 0 {
         bcd_buf.push_nybble(idi_pad);
         idi_deficit -= 1;
     }
-    bcd_buf.push_str(&first_part[2..]);
-    if (bcd_buf.i % 2) > 0 {
-        bcd_buf.push_nybble(0xF);
+    bcd_buf.push_str(&second_part);
+    if (idi_len_digits % 2) > 0 {
+        bcd_buf.push_nybble(0x0F);
     }
-    let dsp = hex::decode(second_part).map_err(|_| RFC1278ParseError::Malformed)?;
-    let out = [
-        bcd_buf.as_ref(),
-        dsp.as_ref(),
-    ].concat();
-    return Ok(X213NetworkAddress::Heap(out));
+    if third_part.is_none() {
+        let bcd_len = bcd_buf.len_in_bytes();
+        let mut out: [u8; 22] = [0; 22];
+        out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
+        return Ok(X213NetworkAddress::Inline((bcd_len as u8, out)));
+    }
+    let third_part = third_part.unwrap();
+    if third_part.len() < 2 {
+        // Cannot be empty and must have a discriminator (e.g. 'd')
+        return Err(RFC1278ParseError::Malformed);
+    }
+    if third_part == IETF_RFC_1006_PREFIX_STR {
+        // "RFC-1006" "+" <prefix> "+" <ip> [ "+" <port> [ "+" <tset> ]]
+        let prefix = parts.next();
+        let ip = parts.next();
+        if prefix.is_none() || ip.is_none() {
+            return Err(RFC1278ParseError::Malformed);
+        }
+        let prefix = prefix.unwrap();
+        let ip = ip.unwrap();
+        return parse_rfc_1006_dsp(bcd_buf, prefix, ip, parts.next(), parts.next());
+    }
+    if third_part == X25_PREFIX_STR {
+        // "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
+        let prefix = parts.next();
+        let dte = parts.next();
+        let cudf_of_pid = parts.next();
+        let cudf_of_pid_hex = parts.next();
+        if prefix.is_none()
+            || dte.is_none()
+            || (cudf_of_pid.is_some() && cudf_of_pid_hex.is_none()) {
+            return Err(RFC1278ParseError::Malformed);
+        }
+        let prefix = prefix.unwrap();
+        let dte = dte.unwrap();
+        return parse_x25_dsp(bcd_buf, prefix, dte, cudf_of_pid, cudf_of_pid_hex);
+    }
+    if third_part == ECMA_117_BINARY_STR {
+        // "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
+        let d1 = parts.next();
+        let d2 = parts.next();
+        let d3 = parts.next();
+        let d4 = parts.next();
+        if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
+            return Err(RFC1278ParseError::Malformed);
+        }
+        return parse_ecma117_binary_dsp(bcd_buf, d1.unwrap(), d2.unwrap(), d3.unwrap());
+    }
+    if third_part == ECMA_117_DECIMAL_STR {
+        // "ECMA-117-Decimal" "+" <digitstring> "+" <digitstring> "+" <digitstring>
+        let d1 = parts.next();
+        let d2 = parts.next();
+        let d3 = parts.next();
+        let d4 = parts.next();
+        if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
+            return Err(RFC1278ParseError::Malformed);
+        }
+        return parse_ecma117_decimal_dsp(bcd_buf, d1.unwrap(), d2.unwrap(), d3.unwrap());
+    }
+    match third_part.as_bytes()[0] as char {
+        'd' => parse_decimal_dsp(bcd_buf, third_part),
+        'x' => parse_hexadecimal_dsp(bcd_buf, third_part),
+        'l' => parse_textual_dsp(bcd_buf, third_part),
+        _ => Err(RFC1278ParseError::UnrecognizedSyntax)
+    }
 }
 
-#[cfg(all(test, feature = "alloc"))]
+#[cfg(test)]
 mod tests {
 
     use core::str::FromStr;
@@ -622,12 +696,30 @@ mod tests {
                 0x00, 0x02, 0x34, 0x05, 0x55, // All but the first digit of the DTE
             ]),
             // Non-standard syntax for X.519 URLs
-            ("URL+001+https://wildboarsoftware.com/x500directory",
-            b"\xFF\x00\x01https://wildboarsoftware.com/x500directory"),
+            ("URL+001+https://asdf.com",
+            b"\xFF\x00\x01https://asdf.com"),
             ("IP4+192.168.1.100", &[
                 AFI_IANA_ICP_BIN, 0, 1, 192, 168, 1, 100,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             ]),
+        ];
+        for (case_str, expected) in cases {
+            let actual = X213NetworkAddress::from_str(case_str);
+            assert!(actual.is_ok(), "failed to parse: {}", case_str);
+            let actual = actual.unwrap();
+            assert_eq!(expected, actual.get_octets(), "{}", case_str);
+        }
+    }
+
+    // This test only works if alloc is enabled, usually because the encodings
+    // are too long.
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn test_from_str_alloc() {
+        let cases: [(&str, &[u8]); 1] = [
+            // Non-standard syntax for X.519 URLs
+            ("URL+001+https://wildboarsoftware.com/x500directory",
+            b"\xFF\x00\x01https://wildboarsoftware.com/x500directory"),
         ];
         for (case_str, expected) in cases {
             let actual = X213NetworkAddress::from_str(case_str);
