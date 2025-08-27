@@ -549,8 +549,6 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     if first_part == "NS" {
         return parse_ns_dsp(second_part);
     }
-    let mut bcd_buf = BCDBuffer::new();
-    let third_part = parts.next();
     #[cfg(feature = "nonstd")]
     if first_part == AFI_STR_URL {
         validate_digitstring(second_part, 4)?;
@@ -560,14 +558,21 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         let url = &s[5 + second_part.len()..];
         return parse_url(second_part, url);
     }
+    let third_part = parts.next();
     #[cfg(feature = "nonstd")]
     if first_part == IPV6_STR {
+        if third_part.is_some() {
+            return Err(RFC1278ParseError::Malformed);
+        }
         let ip = Ipv6Addr::from_str(second_part)
             .map_err(|_| RFC1278ParseError::Malformed)?;
         return Ok(X213NetworkAddress::from_ipv6(&ip));
     }
     #[cfg(feature = "nonstd")]
     if first_part == IPV4_STR {
+        if third_part.is_some() {
+            return Err(RFC1278ParseError::Malformed);
+        }
         let ip = Ipv4Addr::from_str(second_part)
             .map_err(|_| RFC1278ParseError::Malformed)?;
         return Ok(X213NetworkAddress::from_ipv4(&ip));
@@ -604,6 +609,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         || !second_part.bytes().all(|b| b.is_ascii_digit()) {
         return Err(RFC1278ParseError::Malformed);
     }
+    let mut bcd_buf = BCDBuffer::new();
     bcd_buf.push_byte(afi);
     let idi_pad = if schema.leading_zeroes_in_idi { 1 } else { 0 };
     let mut idi_deficit = idi_len_digits.saturating_sub(second_part.len());
@@ -635,7 +641,13 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         }
         let prefix = prefix.unwrap();
         let ip = ip.unwrap();
-        return parse_rfc_1006_dsp(bcd_buf, prefix, ip, parts.next(), parts.next());
+        let port = parts.next();
+        let tset = parts.next();
+        let invalid_part = parts.next(); // Should not exist
+        if invalid_part.is_some() {
+            return Err(RFC1278ParseError::Malformed);
+        }
+        return parse_rfc_1006_dsp(bcd_buf, prefix, ip, port, tset);
     }
     #[cfg(feature = "x25")]
     if third_part == X25_PREFIX_STR {
@@ -644,8 +656,10 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         let dte = parts.next();
         let cudf_of_pid = parts.next();
         let cudf_of_pid_hex = parts.next();
+        let invalid_part = parts.next(); // Should not exist
         if prefix.is_none()
             || dte.is_none()
+            || invalid_part.is_some()
             || (cudf_of_pid.is_some() && cudf_of_pid_hex.is_none()) {
             return Err(RFC1278ParseError::Malformed);
         }
@@ -659,7 +673,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         let d1 = parts.next();
         let d2 = parts.next();
         let d3 = parts.next();
-        let d4 = parts.next();
+        let d4 = parts.next(); // Should not exist
         if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
             return Err(RFC1278ParseError::Malformed);
         }
@@ -671,11 +685,14 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         let d1 = parts.next();
         let d2 = parts.next();
         let d3 = parts.next();
-        let d4 = parts.next();
+        let d4 = parts.next(); // Should not exist
         if d1.is_none() || d2.is_none() || d3.is_none() || d4.is_some() {
             return Err(RFC1278ParseError::Malformed);
         }
         return parse_ecma117_decimal_dsp(bcd_buf, d1.unwrap(), d2.unwrap(), d3.unwrap());
+    }
+    if parts.next().is_some() {
+        return Err(RFC1278ParseError::Malformed);
     }
     match third_part.as_bytes()[0] as char {
         'd' => parse_decimal_dsp(bcd_buf, third_part),

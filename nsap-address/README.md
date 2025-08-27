@@ -10,9 +10,7 @@ ITU-T Recommendation X.213 NSAP address parsing and printing.
 
 ## To Do
 
-- [x] `to_ns_string()`
-- [x] `write_ns_string(f)`
-- [ ] Check trailing parts
+- [x] Check trailing parts
 - [ ] A lot more testing
   - [ ] `0xF` padding
 - [ ] Fuzz Testing
