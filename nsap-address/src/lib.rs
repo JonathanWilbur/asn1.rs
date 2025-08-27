@@ -59,6 +59,8 @@ use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 #[cfg(feature = "alloc")]
 extern crate alloc;
 #[cfg(feature = "alloc")]
+use alloc::string::String;
+#[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
 pub type AFI = u8;
@@ -412,6 +414,38 @@ impl <'a> X213NetworkAddress <'a> {
         debug_assert!(bcd_len < 19);
         out[6..6+bcd_len].copy_from_slice(bcd_buf.as_ref());
         X213NetworkAddress::Inline((6 + bcd_len as u8, out))
+    }
+
+    /// Convert to a `String` using the `NS+<hex>` syntax
+    ///
+    /// This is desirable for portability / interoperability: the `NS+<hex>`
+    /// syntax is the easiest display syntax to parse and leaves no ambiguity of
+    /// encoding. This is a great choice if you are exporting an NSAP address in
+    /// string format for use in other systems.
+    ///
+    /// The output looks like `NS+A433BB93C1`.
+    #[cfg(feature = "alloc")]
+    pub fn to_ns_string(&self) -> String {
+        [
+            "NS+",
+            hex::encode(self.get_octets()).as_str(),
+        ].join("")
+    }
+
+    /// Display using the `NS+<hex>` syntax
+    ///
+    /// This is desirable for portability / interoperability: the `NS+<hex>`
+    /// syntax is the easiest display syntax to parse and leaves no ambiguity of
+    /// encoding. This is a great choice if you are exporting an NSAP address in
+    /// string format for use in other systems.
+    ///
+    /// The output looks like `NS+A433BB93C1`.
+    pub fn fmt_as_ns_string(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("NS+")?;
+        for byte in self.get_octets() {
+            f.write_fmt(format_args!("{:02X}", *byte))?;
+        }
+        Ok(())
     }
 
 }

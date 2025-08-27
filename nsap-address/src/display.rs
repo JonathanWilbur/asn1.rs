@@ -149,11 +149,7 @@ pub(crate) fn fmt_naddr(
     }
     let (info, idi_digits) = match (naddr.get_network_type_info(), naddr.idi_digits()) {
         (Some(i), Some(d)) => (i, d),
-        _ => { // If unrecognized, just print in NS+<hex> format
-            let h = hex::encode(octets);
-            f.write_str("NS+")?;
-            return f.write_str(h.as_str());
-        }
+        _ => return naddr.fmt_as_ns_string(f),
     };
     let is_non_standard: bool = matches!(info.network_type,
         X213NetworkAddressType::URL
@@ -167,9 +163,7 @@ pub(crate) fn fmt_naddr(
         (is_non_standard && !cfg!(feature = "nonstddisplay"))
         || is_group_afi(naddr.afi());
     if cant_display {
-        let h = hex::encode(octets);
-        f.write_str("NS+")?;
-        return f.write_str(h.as_str());
+        return naddr.fmt_as_ns_string(f);
     }
     info.network_type.fmt(f)?;
     f.write_char('+')?;
