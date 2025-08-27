@@ -3,47 +3,57 @@ extern crate alloc;
 use core::str::FromStr;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-use core::net::{Ipv4Addr, Ipv6Addr};
+use core::net::Ipv4Addr;
+#[cfg(feature = "nonstd")]
+use core::net::Ipv6Addr;
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
 use crate::{X213NetworkAddress, DSPSyntax, AFI};
 use crate::bcd::BCDBuffer;
 use crate::data::{
     get_address_type_info,
-    AFI_URL,
-    AFI_X121_DEC_LEADING_NON_ZERO,
-    AFI_X121_DEC_LEADING_ZERO,
-    AFI_X121_BIN_LEADING_NON_ZERO,
-    AFI_X121_BIN_LEADING_ZERO,
-    AFI_ISO_DCC_DEC,
-    AFI_ISO_DCC_BIN,
-    AFI_F69_DEC_LEADING_NON_ZERO,
-    AFI_F69_DEC_LEADING_ZERO,
-    AFI_F69_BIN_LEADING_NON_ZERO,
-    AFI_F69_BIN_LEADING_ZERO,
-    AFI_E163_DEC_LEADING_NON_ZERO,
-    AFI_E163_DEC_LEADING_ZERO,
     AFI_E163_BIN_LEADING_NON_ZERO,
     AFI_E163_BIN_LEADING_ZERO,
-    AFI_E164_DEC_LEADING_NON_ZERO,
-    AFI_E164_DEC_LEADING_ZERO,
+    AFI_E163_DEC_LEADING_NON_ZERO,
+    AFI_E163_DEC_LEADING_ZERO,
     AFI_E164_BIN_LEADING_NON_ZERO,
     AFI_E164_BIN_LEADING_ZERO,
-    AFI_ISO_6523_ICD_DEC,
+    AFI_E164_DEC_LEADING_NON_ZERO,
+    AFI_E164_DEC_LEADING_ZERO,
+    AFI_F69_BIN_LEADING_NON_ZERO,
+    AFI_F69_BIN_LEADING_ZERO,
+    AFI_F69_DEC_LEADING_NON_ZERO,
+    AFI_F69_DEC_LEADING_ZERO,
     AFI_ISO_6523_ICD_BIN,
-    AFI_IANA_ICP_DEC,
-    AFI_IANA_ICP_BIN,
-    AFI_ITU_T_IND_DEC,
-    AFI_ITU_T_IND_BIN,
-    AFI_LOCAL_DEC,
+    AFI_ISO_6523_ICD_DEC,
+    AFI_ISO_DCC_BIN,
+    AFI_ISO_DCC_DEC,
     AFI_LOCAL_BIN,
+    AFI_LOCAL_DEC,
     AFI_LOCAL_ISO_IEC_646,
     AFI_LOCAL_NATIONAL,
+    AFI_URL,
+    AFI_X121_BIN_LEADING_NON_ZERO,
+    AFI_X121_BIN_LEADING_ZERO,
+    AFI_X121_DEC_LEADING_NON_ZERO,
+    AFI_X121_DEC_LEADING_ZERO,
     ECMA_117_BINARY_STR,
-    ECMA_117_DECIMAL_STR,
     IETF_RFC_1006_PREFIX_STR,
-    X25_PREFIX_STR,
 };
+#[cfg(feature = "nonstd")]
+use crate::data::{
+    AFI_IANA_ICP_BIN,
+    AFI_IANA_ICP_DEC,
+    AFI_ITU_T_IND_BIN,
+    AFI_ITU_T_IND_DEC,
+    AFI_STR_URL,
+    IPV4_STR,
+    IPV6_STR,
+};
+#[cfg(feature = "x25")]
+use crate::data::X25_PREFIX_STR;
+#[cfg(feature = "x25")]
+use crate::data::ECMA_117_DECIMAL_STR;
 use crate::isoiec646::char_to_local_iso_iec_646_byte;
 use crate::error::RFC1278ParseError;
 use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
@@ -51,6 +61,7 @@ use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
 pub(crate) type ParseResult<'a> = Result<X213NetworkAddress<'a>, RFC1278ParseError>;
 
 /// Validate that string is a digitstring and shorter than `max_len`
+#[cfg(feature = "nonstd")]
 #[inline]
 fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError> {
     if s.len() > max_len {
@@ -162,11 +173,13 @@ fn naddr_str_to_afi (
             DSPSyntax::Binary => Some(AFI_ISO_6523_ICD_BIN),
             _ => None,
         },
+        #[cfg(feature = "nonstd")]
         crate::data::AFI_STR_ICP => match dsp_syntax {
             DSPSyntax::Decimal => Some(AFI_IANA_ICP_DEC),
             DSPSyntax::Binary => Some(AFI_IANA_ICP_BIN),
             _ => None,
         },
+        #[cfg(feature = "nonstd")]
         crate::data::AFI_STR_IND => match dsp_syntax {
             DSPSyntax::Decimal => Some(AFI_ITU_T_IND_DEC),
             DSPSyntax::Binary => Some(AFI_ITU_T_IND_BIN),
@@ -183,6 +196,7 @@ fn naddr_str_to_afi (
     }
 }
 
+#[cfg(feature = "nonstd")]
 fn parse_url(idi: &str, url: &str) -> ParseResult<'static> {
     /* The URL cannot contain underscores only because RFC 1278 uses
     underscores to separate NSAP addresses in a presentation address. */
@@ -423,6 +437,7 @@ fn parse_rfc_1006_dsp (
 
 
 // "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
+#[cfg(feature = "x25")]
 fn parse_x25_dsp (
     mut bcd_buf: BCDBuffer,
     prefix: &str,
@@ -471,6 +486,7 @@ fn parse_x25_dsp (
 }
 
 // "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
+#[cfg(feature = "ecma117")]
 fn parse_ecma117_binary_dsp(
     bcd_buf: BCDBuffer,
     d1: &str,
@@ -494,6 +510,7 @@ fn parse_ecma117_binary_dsp(
 }
 
 // "ECMA-117-Decimal" "+" <digitstring> "+" <digitstring> "+" <digitstring>
+#[cfg(feature = "ecma117")]
 fn parse_ecma117_decimal_dsp(
     mut bcd_buf: BCDBuffer,
     d1: &str,
@@ -534,7 +551,8 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     }
     let mut bcd_buf = BCDBuffer::new();
     let third_part = parts.next();
-    if first_part == "URL" {
+    #[cfg(feature = "nonstd")]
+    if first_part == AFI_STR_URL {
         validate_digitstring(second_part, 4)?;
         if parts.next().is_some() {
             return Err(RFC1278ParseError::Malformed);
@@ -542,12 +560,14 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         let url = &s[5 + second_part.len()..];
         return parse_url(second_part, url);
     }
-    if first_part == "IP6" {
+    #[cfg(feature = "nonstd")]
+    if first_part == IPV6_STR {
         let ip = Ipv6Addr::from_str(second_part)
             .map_err(|_| RFC1278ParseError::Malformed)?;
         return Ok(X213NetworkAddress::from_ipv6(&ip));
     }
-    if first_part == "IP4" {
+    #[cfg(feature = "nonstd")]
+    if first_part == IPV4_STR {
         let ip = Ipv4Addr::from_str(second_part)
             .map_err(|_| RFC1278ParseError::Malformed)?;
         return Ok(X213NetworkAddress::from_ipv4(&ip));
@@ -556,7 +576,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         Some('d') => DSPSyntax::Decimal,
         Some('x') => DSPSyntax::Binary,
         Some('l') => DSPSyntax::IsoIec646Chars,
-        _ => if third_part.is_some_and(|p3| p3.starts_with("ECMA-117-Binary+")) {
+        _ => if third_part.is_some_and(|p3| p3.starts_with(ECMA_117_BINARY_STR)) {
             DSPSyntax::Binary
         } else {
             // All other encodings are assumed to be decimal.
@@ -617,6 +637,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         let ip = ip.unwrap();
         return parse_rfc_1006_dsp(bcd_buf, prefix, ip, parts.next(), parts.next());
     }
+    #[cfg(feature = "x25")]
     if third_part == X25_PREFIX_STR {
         // "X.25(80)" "+" <prefix> "+" <dte> [ "+" <cudf-or-pid> "+" <hexstring> ]
         let prefix = parts.next();
@@ -632,6 +653,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         let dte = dte.unwrap();
         return parse_x25_dsp(bcd_buf, prefix, dte, cudf_of_pid, cudf_of_pid_hex);
     }
+    #[cfg(feature = "ecma117")]
     if third_part == ECMA_117_BINARY_STR {
         // "ECMA-117-Binary" "+" <hexstring> "+" <hexstring> "+" <hexstring>
         let d1 = parts.next();
@@ -643,6 +665,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         }
         return parse_ecma117_binary_dsp(bcd_buf, d1.unwrap(), d2.unwrap(), d3.unwrap());
     }
+    #[cfg(feature = "ecma117")]
     if third_part == ECMA_117_DECIMAL_STR {
         // "ECMA-117-Decimal" "+" <digitstring> "+" <digitstring> "+" <digitstring>
         let d1 = parts.next();
@@ -668,11 +691,12 @@ mod tests {
     use core::str::FromStr;
 
     use crate::X213NetworkAddress;
+    #[cfg(feature = "nonstd")]
     use crate::AFI_IANA_ICP_BIN;
 
     #[test]
     fn test_from_str() {
-        let cases: [(&str, &[u8]); 6] = [
+        let cases: [(&str, &[u8]); 3] = [
             // Example from RFC 1278
             ("NS+a433bb93c1", &[0xa4, 0x33, 0xbb, 0x93, 0xc1]),
             // Example from RFC 1278
@@ -684,6 +708,20 @@ mod tests {
                 0x03,
                 0x01, 0x00, 0x00, 0x00, 0x00, 0x06, // 10.0.0.6
             ]),
+        ];
+        for (case_str, expected) in cases {
+            let actual = X213NetworkAddress::from_str(case_str);
+            assert!(actual.is_ok(), "failed to parse: {}", case_str);
+            let actual = actual.unwrap();
+            assert_eq!(expected, actual.get_octets(), "{}", case_str);
+        }
+    }
+
+    // This test only works if X.25 parsing is enabled
+    #[cfg(feature = "x25")]
+    #[test]
+    fn test_from_str_x25() {
+        let cases: [(&str, &[u8]); 1] = [
             // Example from RFC 1278
             // This one deviates from RFC 1278. It seems like it had quotes
             // around the CUDF in error. I am not totally sure.
@@ -695,6 +733,20 @@ mod tests {
                 0x13, 0x70, 0x39, 0x15, 0x00, // The last 0 here is for the DTE
                 0x00, 0x02, 0x34, 0x05, 0x55, // All but the first digit of the DTE
             ]),
+        ];
+        for (case_str, expected) in cases {
+            let actual = X213NetworkAddress::from_str(case_str);
+            assert!(actual.is_ok(), "failed to parse: {}", case_str);
+            let actual = actual.unwrap();
+            assert_eq!(expected, actual.get_octets(), "{}", case_str);
+        }
+    }
+
+    // This test only works if non-standard behavior is enabled
+    #[cfg(feature = "nonstd")]
+    #[test]
+    fn test_from_str_nonstd() {
+        let cases: [(&str, &[u8]); 2] = [
             // Non-standard syntax for X.519 URLs
             ("URL+001+https://asdf.com",
             b"\xFF\x00\x01https://asdf.com"),
@@ -713,7 +765,7 @@ mod tests {
 
     // This test only works if alloc is enabled, usually because the encodings
     // are too long.
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "nonstd"))]
     #[test]
     fn test_from_str_alloc() {
         let cases: [(&str, &[u8]); 1] = [

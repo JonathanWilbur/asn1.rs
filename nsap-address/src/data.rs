@@ -131,6 +131,9 @@ pub const X25_PREFIX_STR: &str = "X.25(80)";
 pub const ECMA_117_BINARY_STR: &str = "ECMA-117-Binary";
 pub const ECMA_117_DECIMAL_STR: &str = "ECMA-117-Decimal";
 
+pub const IPV4_STR: &str = "IP4";
+pub const IPV6_STR: &str = "IP6";
+
 pub const IANA_ICP_IDI_IPV4: [u8; 2] = [0, 1];
 pub const IANA_ICP_IDI_IPV6: [u8; 2] = [0, 0];
 
@@ -500,4 +503,16 @@ pub const fn afi_to_network_type (afi: AFI) -> Option<X213NetworkAddressType> {
         Some(info) => Some(info.network_type),
         None => None,
     }
+}
+
+/// Returns `true` if an AFI is an individual AFI
+pub const fn is_individual_afi (afi: AFI) -> bool {
+    let individual = group_afi_to_individual_afi(afi);
+    afi == individual
+}
+
+/// Returns `true` if an AFI is a group AFI
+pub const fn is_group_afi (afi: AFI) -> bool {
+    let individual = group_afi_to_individual_afi(afi);
+    afi != individual
 }

@@ -175,17 +175,25 @@ impl <'a> X213NetworkAddress <'a> {
         }
     }
 
-    // #[inline]
-    // pub const fn idi(&self) -> &'a [u8] {
-    //     if self.octets.len() > 0 {
-    //         // Sorry for the unsafe code. I was just trying to do
-    //         // &self.idp[1..self.idp.len()] in a const fn.
-    //         let slice = &self.octets;
-    //         unsafe { core::slice::from_raw_parts(slice.as_ptr().add(1), slice.len() - 1) }
-    //     } else {
-    //         panic!("Zero-length IDP in an X.213 network address")
-    //     }
-    // }
+    #[cfg(feature = "alloc")]
+    pub fn from_vec_unchecked(octets: Vec<u8>) -> X213NetworkAddress<'static> {
+        X213NetworkAddress::Heap(octets)
+    }
+
+    #[cfg(feature = "alloc")]
+    pub fn from_vec(octets: Vec<u8>) -> Result<X213NetworkAddress<'static>, NAddressParseError> {
+        validate_raw_nsap(octets.as_ref())?;
+        Ok(X213NetworkAddress::Heap(octets))
+    }
+
+    pub fn from_slice_unchecked(octets: &'a [u8]) -> X213NetworkAddress<'a> {
+        X213NetworkAddress::Borrowed(octets)
+    }
+
+    pub fn from_slice(octets: &'a [u8]) -> Result<X213NetworkAddress<'a>, NAddressParseError> {
+        validate_raw_nsap(octets.as_ref())?;
+        Ok(X213NetworkAddress::Borrowed(octets))
+    }
 
     #[inline]
     pub fn get_network_type_info(&self) -> Option<X213NetworkAddressInfo> {
@@ -420,69 +428,85 @@ fn validate_decimal(bytes: &[u8]) -> bool {
     true
 }
 
-impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
-    type Error = NAddressParseError;
+fn validate_raw_nsap<'a>(octets: &'a [u8]) -> Result<(), NAddressParseError> {
+    let len = octets.len();
+    if len < 2 { // I don't think one byte can be a valid address.
+        return Err(NAddressParseError::TooShort);
+    }
+    /* ITU-T Rec. X.213, Section A.5.4 states that the maximum length MUST
+    be 20 octets, but ITU-T Rec. X.519 section 11.4 basically overrules
+    that. As such, we are just setting a limit of 248 bytes just to close up
+    any attack vectors related to large NSAP addresses. */
+    if octets[0] != AFI_URL && len > 20 {
+        return Err(NAddressParseError::TooLong);
+    }
 
-    fn try_from(octets: &'a [u8]) -> Result<Self, Self::Error> {
-        let len = octets.len();
-        if len < 2 { // I don't think one byte can be a valid address.
-            return Err(NAddressParseError::TooShort);
-        }
-        /* ITU-T Rec. X.213, Section A.5.4 states that the maximum length MUST
-        be 20 octets, but ITU-T Rec. X.519 section 11.4 basically overrules
-        that. As such, we are just setting a limit of 248 bytes just to close up
-        any attack vectors related to large NSAP addresses. */
-        if octets[0] != AFI_URL && len > 20 {
-            return Err(NAddressParseError::TooLong);
-        }
+    match octets[0] {
+        crate::AFI_URL => {
+            if len > 248 {
+                return Err(NAddressParseError::TooLong);
+            }
+            if len <= 5 { // I think you can't have a valid URL under two characters.
+                return Err(NAddressParseError::TooShort);
+            }
+            if !validate_decimal(&octets[1..3]) {
+                return Err(NAddressParseError::NonDigitsInIDI);
+            }
+        },
+        crate::AFI_IANA_ICP_BIN => {
+            if len > 20 {
+                return Err(NAddressParseError::TooLong);
+            }
+            if len < 20 {
+                return Err(NAddressParseError::TooShort);
+            }
+            if !validate_decimal(&octets[1..3]) {
+                return Err(NAddressParseError::NonDigitsInIDI);
+            }
+        },
+        _ => (),
+    };
 
-        match octets[0] {
-            crate::AFI_URL => {
-                if len > 248 {
-                    return Err(NAddressParseError::TooLong);
-                }
-                if len <= 5 { // I think you can't have a valid URL under two characters.
-                    return Err(NAddressParseError::TooShort);
-                }
-                if !validate_decimal(&octets[1..3]) {
-                    return Err(NAddressParseError::NonDigitsInIDI);
-                }
-            },
-            crate::AFI_IANA_ICP_BIN => {
-                if len > 20 {
-                    return Err(NAddressParseError::TooLong);
-                }
-                if len < 20 {
-                    return Err(NAddressParseError::TooShort);
-                }
-                if !validate_decimal(&octets[1..3]) {
-                    return Err(NAddressParseError::NonDigitsInIDI);
+    if len >= RFC_1277_PREFIX.len() + 7 && octets.starts_with(RFC_1277_PREFIX.as_slice()) {
+        match octets[RFC_1277_PREFIX.len()] {
+            crate::data::RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET
+            | crate::data::ITU_X519_DSP_PREFIX_LDAP
+            | crate::data::ITU_X519_DSP_PREFIX_IDM_OVER_IPV4
+            // | crate::data::ITU_X519_DSP_PREFIX_ITOT_OVER_IPV4 (duplicate)
+            => {
+                let end_of_digits = match len {
+                    12 => 12,
+                    15 => 14,
+                    17 => 17,
+                    _ => return Err(NAddressParseError::MalformedDSP),
+                };
+                if !validate_decimal(&octets[6..end_of_digits]) {
+                    return Err(NAddressParseError::MalformedDSP);
                 }
             },
             _ => (),
         };
+    }
+    Ok(())
+}
 
-        if len >= RFC_1277_PREFIX.len() + 7 && octets.starts_with(RFC_1277_PREFIX.as_slice()) {
-            match octets[RFC_1277_PREFIX.len()] {
-                crate::data::RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET
-                | crate::data::ITU_X519_DSP_PREFIX_LDAP
-                | crate::data::ITU_X519_DSP_PREFIX_IDM_OVER_IPV4
-                // | crate::data::ITU_X519_DSP_PREFIX_ITOT_OVER_IPV4 (duplicate)
-                => {
-                    let end_of_digits = match len {
-                        12 => 12,
-                        15 => 14,
-                        17 => 17,
-                        _ => return Err(NAddressParseError::MalformedDSP),
-                    };
-                    if !validate_decimal(&octets[6..end_of_digits]) {
-                        return Err(NAddressParseError::MalformedDSP);
-                    }
-                },
-                _ => (),
-            };
-        }
+impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
+    type Error = NAddressParseError;
+
+    fn try_from(octets: &'a [u8]) -> Result<Self, Self::Error> {
+        validate_raw_nsap(octets)?;
         Ok(X213NetworkAddress::Borrowed(octets))
+    }
+
+}
+
+#[cfg(feature = "alloc")]
+impl <'a> TryFrom<Vec<u8>> for X213NetworkAddress <'a> {
+    type Error = NAddressParseError;
+
+    fn try_from(octets: Vec<u8>) -> Result<Self, Self::Error> {
+        validate_raw_nsap(octets.as_ref())?;
+        Ok(X213NetworkAddress::Heap(octets))
     }
 
 }
@@ -541,7 +565,10 @@ mod tests {
     use alloc::string::ToString;
     use core::str::FromStr;
     use core::net::{Ipv4Addr, SocketAddrV4};
-    use super::{X213NetworkAddress, AFI_IANA_ICP_BIN};
+    use super::X213NetworkAddress;
+
+    #[cfg(feature = "nonstddisplay")]
+    use super::data::AFI_IANA_ICP_BIN;
     use super::data::AFI_F69_DEC_LEADING_ZERO;
 
     #[test]
@@ -556,6 +583,7 @@ mod tests {
         assert_eq!(addr_str, "X121+102030405+d1234567890");
     }
 
+    #[cfg(feature = "nonstddisplay")]
     #[test]
     fn test_display_02_url() {
         let input = b"\xFF\x00\x01https://wildboarsoftware.com/x500directory";
@@ -572,6 +600,7 @@ mod tests {
         assert_eq!(addr_str, "TELEX+00728722+RFC-1006+03+10.0.0.6+9+2");
     }
 
+    #[cfg(feature = "nonstddisplay")]
     #[test]
     fn test_display_03_ip() {
         let input = &[
@@ -604,6 +633,7 @@ mod tests {
         ]);
     }
 
+    #[cfg(feature = "nonstd")]
     #[test]
     fn test_ip_overflow_1() {
         let input = "IP4+999.999.2.100";

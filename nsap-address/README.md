@@ -10,20 +10,18 @@ ITU-T Recommendation X.213 NSAP address parsing and printing.
 
 ## To Do
 
-- [ ] `From<Vec<u8>>`
-- [ ] `from_decimal_dsp(afi, idi, dsp)`
-- [ ] `from_binary_dsp(afi, idi, dsp)`
-- [ ] `from_isoiso646_dsp(afi, idi, dsp)`
-- [ ] `from_bytes_unchecked()`
-- [ ] Inline buffer so most strings can be decoded in `no_std`
-- [ ] Clean up hard-coded strings
+- [x] Feature flags
+  - [x] `x25`
+  - [x] `ecma117`
+  - [x] All non-standard things
+  - [x] Non-standard display
+- [ ] `to_ns_string()`
+- [ ] `write_ns_string(f)`
+- [ ] Check trailing parts
+- [x] Display `URL`, `IP4`, and `IP6`
 - [ ] A lot more testing
   - [ ] `0xF` padding
 - [ ] Fuzz Testing
-- [ ] Feature flags
-  - [ ] `x25`
-  - [ ] `ecma117`
-  - [ ] All non-standard things
 - [ ] Doc Comments
 - [ ] Readme Documentation
 

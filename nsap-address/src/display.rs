@@ -1,20 +1,15 @@
 use core::fmt::{Display, Write};
-use core::net::{Ipv4Addr, Ipv6Addr};
+use core::net::Ipv4Addr;
+#[cfg(feature = "nonstddisplay")]
+use core::net::Ipv6Addr;
 use crate::{X213NetworkAddress, X213NetworkAddressType, DSPSyntax};
 use crate::data::{
-    INTERNET_PREFIX,
+    is_group_afi, AFI_STR_DCC, AFI_STR_ICD, AFI_STR_ICP, AFI_STR_IND, AFI_STR_ISDN, AFI_STR_LOCAL, AFI_STR_PSTN, AFI_STR_TELEX, AFI_STR_URL, AFI_STR_X121, INTERNET_PREFIX
+};
+#[cfg(feature = "nonstddisplay")]
+use crate::data::{
     AFI_URL,
     AFI_IANA_ICP_BIN,
-    AFI_STR_X121,
-    AFI_STR_DCC,
-    AFI_STR_TELEX,
-    AFI_STR_PSTN,
-    AFI_STR_ISDN,
-    AFI_STR_ICD,
-    AFI_STR_ICP,
-    AFI_STR_IND,
-    AFI_STR_LOCAL,
-    AFI_STR_URL,
     IANA_ICP_IDI_IPV4,
     IANA_ICP_IDI_IPV6,
 };
@@ -84,6 +79,7 @@ pub(crate) fn fmt_naddr(
     f: &mut core::fmt::Formatter<'_>,
 ) -> core::fmt::Result {
     let octets = naddr.get_octets();
+    #[cfg(feature = "nonstddisplay")]
     match octets.get(0..3) {
         Some(octs) if octs[0] == AFI_URL => {
             if let Ok(url) = str::from_utf8(&octets[3..]) {
@@ -94,6 +90,7 @@ pub(crate) fn fmt_naddr(
         },
         _ => (),
     };
+    #[cfg(feature = "nonstddisplay")]
     if octets[0] == AFI_IANA_ICP_BIN && octets.len() == 20 {
         let icp = &octets[1..3];
         if icp == IANA_ICP_IDI_IPV6.as_slice() {
@@ -158,6 +155,22 @@ pub(crate) fn fmt_naddr(
             return f.write_str(h.as_str());
         }
     };
+    let is_non_standard: bool = matches!(info.network_type,
+        X213NetworkAddressType::URL
+        | X213NetworkAddressType::IANA_ICP
+        | X213NetworkAddressType::ITU_T_IND);
+    /* We don't display group AFIs using the <afi>+<idi>+<dsp> syntax because it
+    is ambiguous what the underlying AFI is for <afi>. I think the sensible
+    conclusion is that <afi> always refers to the individual AFI, so we use the
+    NS+<hex> syntax whenever the group AFI is used to clear any ambiguity. */
+    let cant_display: bool =
+        (is_non_standard && !cfg!(feature = "nonstddisplay"))
+        || is_group_afi(naddr.afi());
+    if cant_display {
+        let h = hex::encode(octets);
+        f.write_str("NS+")?;
+        return f.write_str(h.as_str());
+    }
     info.network_type.fmt(f)?;
     f.write_char('+')?;
     for digit in idi_digits {
@@ -190,7 +203,6 @@ pub(crate) fn fmt_naddr(
             };
         },
         DSPSyntax::Binary | DSPSyntax::NationalChars => {
-            // FIXME: Make this part of get_schema
             let dsp = &octets[1+idi_len_in_bytes..];
             f.write_char('x')?;
             for byte in dsp {
@@ -215,7 +227,9 @@ mod tests {
 
     extern crate alloc;
     use alloc::string::ToString;
-    use super::{X213NetworkAddress, AFI_IANA_ICP_BIN};
+    use crate::X213NetworkAddress;
+    #[cfg(feature = "nonstddisplay")]
+    use crate::data::AFI_IANA_ICP_BIN;
 
     #[test]
     fn test_display_01() {
@@ -229,6 +243,7 @@ mod tests {
         assert_eq!(addr_str, "X121+102030405+d1234567890");
     }
 
+    #[cfg(feature = "nonstddisplay")]
     #[test]
     fn test_display_02_url() {
         let input = b"\xFF\x00\x01https://wildboarsoftware.com/x500directory";
@@ -245,6 +260,7 @@ mod tests {
         assert_eq!(addr_str, "TELEX+00728722+RFC-1006+03+10.0.0.6+9+2");
     }
 
+    #[cfg(feature = "nonstddisplay")]
     #[test]
     fn test_display_03_ip() {
         let input = &[
