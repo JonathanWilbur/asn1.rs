@@ -136,7 +136,7 @@ impl <'a> X213NetworkAddress <'a> {
         match &self {
             #[cfg(feature = "alloc")]
             X213NetworkAddress::Heap(o) => o.as_ref(),
-            X213NetworkAddress::Inline((sz, buf)) => &buf[0..*sz as usize],
+            X213NetworkAddress::Inline((sz, buf)) => &buf[0..(*sz).clamp(0u8, 20u8) as usize],
             X213NetworkAddress::Borrowed(o) => *o,
         }
     }
