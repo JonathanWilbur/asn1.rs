@@ -28,23 +28,19 @@ pub mod error;
 pub mod isoiec646;
 mod parse;
 mod utils;
-use core::fmt::Display;
-use core::convert::TryFrom;
-use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
-use core::str::FromStr;
-use crate::bcd::{BCDDigitsIter, BCDBuffer};
+use crate::bcd::{BCDBuffer, BCDDigitsIter};
 use crate::data::{
+    AFI_IANA_ICP_BIN, AFI_URL, INTERNET_PREFIX, RFC_1277_PREFIX, X213NetworkAddressInfo,
     afi_to_network_type, get_address_type_info,
-    X213NetworkAddressInfo,
-    AFI_IANA_ICP_BIN,
-    AFI_URL,
-    INTERNET_PREFIX,
-    RFC_1277_PREFIX,
 };
-use crate::display::{fmt_naddr_type, fmt_naddr};
+use crate::display::{fmt_naddr, fmt_naddr_type};
 use crate::error::{NAddressParseError, RFC1278ParseError};
 use crate::parse::parse_nsap;
-use crate::utils::{u16_to_decimal_bytes, u8_to_decimal_bytes};
+use crate::utils::{u8_to_decimal_bytes, u16_to_decimal_bytes};
+use core::convert::TryFrom;
+use core::fmt::Display;
+use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
+use core::str::FromStr;
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -82,14 +78,12 @@ pub enum X213NetworkAddressType {
 }
 
 impl Display for X213NetworkAddressType {
-
     /// Prints a human-readable string, per the procedures defined in
     /// [IETF RFC 1278](https://datatracker.ietf.org/doc/rfc1278/).
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         fmt_naddr_type(self, f)
     }
-
 }
 
 impl TryFrom<AFI> for X213NetworkAddressType {
@@ -99,7 +93,6 @@ impl TryFrom<AFI> for X213NetworkAddressType {
     fn try_from(value: AFI) -> Result<Self, Self::Error> {
         afi_to_network_type(value).ok_or(())
     }
-
 }
 
 /// X.213 NSAP Address
@@ -119,7 +112,7 @@ impl TryFrom<AFI> for X213NetworkAddressType {
 /// clear as to what the underlying behavior is.
 ///
 #[derive(Debug)]
-pub enum X213NetworkAddress <'a> {
+pub enum X213NetworkAddress<'a> {
     #[cfg(feature = "alloc")]
     Heap(Vec<u8>),
     /// Even though NSAPs are capped at 20 bytes, this inline buffer accepts up
@@ -129,8 +122,7 @@ pub enum X213NetworkAddress <'a> {
     Borrowed(&'a [u8]),
 }
 
-impl <'a> X213NetworkAddress <'a> {
-
+impl<'a> X213NetworkAddress<'a> {
     #[inline]
     pub fn get_octets(&'a self) -> &'a [u8] {
         match &self {
@@ -188,7 +180,7 @@ impl <'a> X213NetworkAddress <'a> {
         let idi_len_in_bytes = (idi_len >> 1) + (idi_len % 2);
         let odd_len_idi: bool = (idi_len % 2) > 0;
         let octets = self.get_octets();
-        let idi = &octets[1..1+idi_len_in_bytes];
+        let idi = &octets[1..1 + idi_len_in_bytes];
         Some(BCDDigitsIter::new(
             idi,
             leading_0_sig,
@@ -212,7 +204,7 @@ impl <'a> X213NetworkAddress <'a> {
         let (dsp, start_on_lsn) = if is_dsp_decimal && odd_len_idi {
             (&octets[idi_len_in_bytes..], true)
         } else {
-            (&octets[1+idi_len_in_bytes..], false)
+            (&octets[1 + idi_len_in_bytes..], false)
         };
         Some(BCDDigitsIter::new(
             dsp,
@@ -248,27 +240,23 @@ impl <'a> X213NetworkAddress <'a> {
         }
         // See doc comments on AFI_IANA_ICP_DEC for why it is not supported.
         match (octets[1], octets[2]) {
-            (0, 0) => { // IPv6
+            (0, 0) => {
+                // IPv6
                 if octets.len() < 19 {
                     return None;
                 }
                 let ip = Ipv6Addr::from([
-                    octets[3],  octets[4],  octets[5],  octets[6],
-                    octets[7],  octets[8],  octets[9],  octets[10],
-                    octets[11], octets[12], octets[13], octets[14],
-                    octets[15], octets[16], octets[17], octets[18],
+                    octets[3], octets[4], octets[5], octets[6], octets[7], octets[8], octets[9],
+                    octets[10], octets[11], octets[12], octets[13], octets[14], octets[15],
+                    octets[16], octets[17], octets[18],
                 ]);
                 Some(IpAddr::V6(ip))
-            },
-            (0, 1) => { // IPv4
-                let ip = Ipv4Addr::from([
-                    octets[3],
-                    octets[4],
-                    octets[5],
-                    octets[6],
-                ]);
+            }
+            (0, 1) => {
+                // IPv4
+                let ip = Ipv4Addr::from([octets[3], octets[4], octets[5], octets[6]]);
                 Some(IpAddr::V4(ip))
-            },
+            }
             _ => None,
         }
     }
@@ -286,10 +274,10 @@ impl <'a> X213NetworkAddress <'a> {
             return None;
         }
         let mut bcd = BCDDigitsIter::new(dsp, false, false, false, false);
-        let oct1digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
-        let oct2digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
-        let oct3digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
-        let oct4digs = [ bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30 ];
+        let oct1digs = [bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30];
+        let oct2digs = [bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30];
+        let oct3digs = [bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30];
+        let oct4digs = [bcd.next()? + 0x30, bcd.next()? + 0x30, bcd.next()? + 0x30];
         let oct1str = unsafe { str::from_utf8_unchecked(oct1digs.as_slice()) };
         let oct2str = unsafe { str::from_utf8_unchecked(oct2digs.as_slice()) };
         let oct3str = unsafe { str::from_utf8_unchecked(oct3digs.as_slice()) };
@@ -371,8 +359,7 @@ impl <'a> X213NetworkAddress <'a> {
             .iter()
             .for_each(|dec_oct| bcd_buf.push_ascii_bytes(dec_oct.as_slice()));
         let port = addr.port();
-        if port != DEFAULT_ITOT_PORT
-            || tset.is_some_and(|t| t != DEFAULT_ITOT_TRANSPORT_SET) {
+        if port != DEFAULT_ITOT_PORT || tset.is_some_and(|t| t != DEFAULT_ITOT_TRANSPORT_SET) {
             let port_str = u16_to_decimal_bytes(port);
             bcd_buf.push_ascii_bytes(port_str.as_slice());
             if let Some(tset) = tset {
@@ -385,7 +372,7 @@ impl <'a> X213NetworkAddress <'a> {
         let bcd_len = bcd_buf.len_in_bytes();
         debug_assert_eq!(bcd_len, bcd_buf.as_ref().len());
         debug_assert!(bcd_len < 19);
-        out[6..6+bcd_len].copy_from_slice(bcd_buf.as_ref());
+        out[6..6 + bcd_len].copy_from_slice(bcd_buf.as_ref());
         X213NetworkAddress::Inline((6 + bcd_len as u8, out))
     }
 
@@ -399,10 +386,7 @@ impl <'a> X213NetworkAddress <'a> {
     /// The output looks like `NS+A433BB93C1`.
     #[cfg(feature = "alloc")]
     pub fn to_ns_string(&self) -> String {
-        [
-            "NS+",
-            hex::encode(self.get_octets()).as_str(),
-        ].join("")
+        ["NS+", hex::encode(self.get_octets()).as_str()].join("")
     }
 
     /// Display using the `NS+<hex>` syntax
@@ -420,7 +404,6 @@ impl <'a> X213NetworkAddress <'a> {
         }
         Ok(())
     }
-
 }
 
 fn validate_decimal(bytes: &[u8]) -> bool {
@@ -437,7 +420,8 @@ fn validate_decimal(bytes: &[u8]) -> bool {
 
 fn validate_raw_nsap<'a>(octets: &'a [u8]) -> Result<(), NAddressParseError> {
     let len = octets.len();
-    if len < 2 { // I don't think one byte can be a valid address.
+    if len < 2 {
+        // I don't think one byte can be a valid address.
         return Err(NAddressParseError::TooShort);
     }
     /* ITU-T Rec. X.213, Section A.5.4 states that the maximum length MUST
@@ -453,13 +437,14 @@ fn validate_raw_nsap<'a>(octets: &'a [u8]) -> Result<(), NAddressParseError> {
             if len > 248 {
                 return Err(NAddressParseError::TooLong);
             }
-            if len <= 5 { // I think you can't have a valid URL under two characters.
+            if len <= 5 {
+                // I think you can't have a valid URL under two characters.
                 return Err(NAddressParseError::TooShort);
             }
             if !validate_decimal(&octets[1..3]) {
                 return Err(NAddressParseError::NonDigitsInIDI);
             }
-        },
+        }
         crate::AFI_IANA_ICP_BIN => {
             if len > 20 {
                 return Err(NAddressParseError::TooLong);
@@ -470,7 +455,7 @@ fn validate_raw_nsap<'a>(octets: &'a [u8]) -> Result<(), NAddressParseError> {
             if !validate_decimal(&octets[1..3]) {
                 return Err(NAddressParseError::NonDigitsInIDI);
             }
-        },
+        }
         _ => (),
     };
 
@@ -497,95 +482,83 @@ fn validate_raw_nsap<'a>(octets: &'a [u8]) -> Result<(), NAddressParseError> {
     Ok(())
 }
 
-impl <'a> TryFrom<&'a [u8]> for X213NetworkAddress <'a> {
+impl<'a> TryFrom<&'a [u8]> for X213NetworkAddress<'a> {
     type Error = NAddressParseError;
 
     fn try_from(octets: &'a [u8]) -> Result<Self, Self::Error> {
         validate_raw_nsap(octets)?;
         Ok(X213NetworkAddress::Borrowed(octets))
     }
-
 }
 
 #[cfg(feature = "alloc")]
-impl <'a> TryFrom<Vec<u8>> for X213NetworkAddress <'a> {
+impl<'a> TryFrom<Vec<u8>> for X213NetworkAddress<'a> {
     type Error = NAddressParseError;
 
     fn try_from(octets: Vec<u8>) -> Result<Self, Self::Error> {
         validate_raw_nsap(octets.as_ref())?;
         Ok(X213NetworkAddress::Heap(octets))
     }
-
 }
 
-impl <'a> From<&IpAddr> for X213NetworkAddress<'a> {
-
+impl<'a> From<&IpAddr> for X213NetworkAddress<'a> {
     #[inline]
     fn from(value: &IpAddr) -> Self {
         X213NetworkAddress::from_ip(value)
     }
-
 }
 
-impl <'a> From<&Ipv4Addr> for X213NetworkAddress<'a> {
-
+impl<'a> From<&Ipv4Addr> for X213NetworkAddress<'a> {
     #[inline]
     fn from(value: &Ipv4Addr) -> Self {
         X213NetworkAddress::from_ipv4(value)
     }
-
 }
 
-impl <'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
-
+impl<'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
     #[inline]
     fn from(value: &Ipv6Addr) -> Self {
         X213NetworkAddress::from_ipv6(value)
     }
-
 }
 
 const DEFAULT_ITOT_TRANSPORT_SET: u16 = 1;
 
-impl <'a> Display for X213NetworkAddress<'a> {
-
+impl<'a> Display for X213NetworkAddress<'a> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         fmt_naddr(self, f)
     }
-
 }
 
-impl <'a> FromStr for X213NetworkAddress<'a> {
+impl<'a> FromStr for X213NetworkAddress<'a> {
     type Err = RFC1278ParseError;
 
     #[inline]
     fn from_str(s: &str) -> Result<Self, RFC1278ParseError> {
         parse_nsap(s)
     }
-
 }
 
 #[cfg(test)]
 mod tests {
 
     extern crate alloc;
+    use crate::data::{AFI_IANA_ICP_BIN, AFI_ISO_DCC_DEC, AFI_X121_DEC_LEADING_ZERO};
     use alloc::string::ToString;
     use alloc::vec::Vec;
+    use core::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4};
     use core::str::FromStr;
-    use core::net::{Ipv4Addr, SocketAddrV4, Ipv6Addr};
-    use crate::data::{AFI_IANA_ICP_BIN, AFI_ISO_DCC_DEC, AFI_X121_DEC_LEADING_ZERO};
 
     use super::X213NetworkAddress;
 
+    use super::data::AFI_F69_DEC_LEADING_ZERO;
     #[cfg(feature = "nonstddisplay")]
     use super::data::AFI_IANA_ICP_BIN;
-    use super::data::AFI_F69_DEC_LEADING_ZERO;
 
     #[test]
     fn test_display_01() {
         let input = [
-            0x36u8,
-            0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, // IDI = 102030405
+            0x36u8, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, // IDI = 102030405
             0x12, 0x34, 0x56, 0x78, 0x90,
         ];
         let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
@@ -599,12 +572,17 @@ mod tests {
         let input = b"\xFF\x00\x01https://wildboarsoftware.com/x500directory";
         let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
         let addr_str = addr.to_string();
-        assert_eq!(addr_str, "URL+0001+https://wildboarsoftware.com/x500directory");
+        assert_eq!(
+            addr_str,
+            "URL+0001+https://wildboarsoftware.com/x500directory"
+        );
     }
 
     #[test]
     fn test_display_02_itot() {
-        let input = &[ 0x54, 0, 0x72, 0x87, 0x22, 3, 1, 0, 0, 0, 0, 6, 0, 0, 0x90, 0, 2 ];
+        let input = &[
+            0x54, 0, 0x72, 0x87, 0x22, 3, 1, 0, 0, 0, 0, 6, 0, 0, 0x90, 0, 2,
+        ];
         let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
         let addr_str = addr.to_string();
         assert_eq!(addr_str, "TELEX+00728722+RFC-1006+03+10.0.0.6+9+2");
@@ -614,8 +592,26 @@ mod tests {
     #[test]
     fn test_display_03_ip() {
         let input = &[
-            AFI_IANA_ICP_BIN, 0, 1, 192, 168, 1, 100,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            AFI_IANA_ICP_BIN,
+            0,
+            1,
+            192,
+            168,
+            1,
+            100,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
         ];
         let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
         let addr_str = addr.to_string();
@@ -626,7 +622,10 @@ mod tests {
     fn test_get_url() {
         let input = b"\xFF\x00\x01https://wildboarsoftware.com/x500directory";
         let addr = X213NetworkAddress::try_from(input.as_slice()).unwrap();
-        assert_eq!(addr.get_url().unwrap(), "https://wildboarsoftware.com/x500directory");
+        assert_eq!(
+            addr.get_url().unwrap(),
+            "https://wildboarsoftware.com/x500directory"
+        );
     }
 
     #[test]
@@ -634,13 +633,26 @@ mod tests {
         let sock = SocketAddrV4::from_str("192.168.1.100:8000").unwrap();
         let addr = X213NetworkAddress::from_itot_socket_addr(&sock, None);
         // assert_eq!(addr, "https://wildboarsoftware.com/x500directory");
-        assert_eq!(addr.get_octets(), &[
-            AFI_F69_DEC_LEADING_ZERO, // AFI
-            0x00, 0x72, 0x87, 0x22, // IDI
-            0x03, // The DSP prefix "03"
-            0x19, 0x21, 0x68, 0x00, 0x11, 0x00,
-            0x08, 0x00, 0x0F,
-        ]);
+        assert_eq!(
+            addr.get_octets(),
+            &[
+                AFI_F69_DEC_LEADING_ZERO, // AFI
+                0x00,
+                0x72,
+                0x87,
+                0x22, // IDI
+                0x03, // The DSP prefix "03"
+                0x19,
+                0x21,
+                0x68,
+                0x00,
+                0x11,
+                0x00,
+                0x08,
+                0x00,
+                0x0F,
+            ]
+        );
     }
 
     #[cfg(feature = "nonstd")]
@@ -669,10 +681,8 @@ mod tests {
     #[ignore]
     fn test_ip_overflow_4() {
         let input: &[u8] = &[
-            0x54,
-            0x00, 0x72, 0x87, 0x22,
-            0x03,
-            0x99, 0x90, 0x00, 0x00, 0x00, 0x06, // 999.0.0.6
+            0x54, 0x00, 0x72, 0x87, 0x22, 0x03, 0x99, 0x90, 0x00, 0x00, 0x00,
+            0x06, // 999.0.0.6
         ];
         let maybe_addr = X213NetworkAddress::try_from(input);
         assert!(maybe_addr.is_err());
@@ -693,7 +703,7 @@ mod tests {
         let input = "X121+00123456789+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]);
+        assert_eq!(digits.as_slice(), &[0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
 
     #[test]
@@ -701,7 +711,7 @@ mod tests {
         let input = "X121+023+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 0, 2, 3 ]);
+        assert_eq!(digits.as_slice(), &[0, 2, 3]);
     }
 
     // Up to 8 digits, leading zero significant
@@ -710,7 +720,7 @@ mod tests {
         let input = "TELEX+01234+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 0, 1, 2, 3, 4 ]);
+        assert_eq!(digits.as_slice(), &[0, 1, 2, 3, 4]);
     }
 
     // Up to 12 digits, leading zero significant
@@ -719,7 +729,7 @@ mod tests {
         let input = "PSTN+8883334022+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 8, 8, 8, 3, 3, 3, 4, 0, 2, 2 ]);
+        assert_eq!(digits.as_slice(), &[8, 8, 8, 3, 3, 3, 4, 0, 2, 2]);
     }
 
     // Up to 15 digits, leading zero significant
@@ -728,7 +738,7 @@ mod tests {
         let input = "ISDN+0018883334022+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 0, 0, 1, 8, 8, 8, 3, 3, 3, 4, 0, 2, 2 ]);
+        assert_eq!(digits.as_slice(), &[0, 0, 1, 8, 8, 8, 3, 3, 3, 4, 0, 2, 2]);
     }
 
     #[test]
@@ -736,7 +746,7 @@ mod tests {
         let input = "ICD+0023+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 2, 3 ]);
+        assert_eq!(digits.as_slice(), &[2, 3]);
     }
 
     #[cfg(feature = "nonstd")]
@@ -745,7 +755,7 @@ mod tests {
         let input = "ICP+0001+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 1 ]);
+        assert_eq!(digits.as_slice(), &[1]);
     }
 
     #[cfg(feature = "nonstd")]
@@ -754,7 +764,7 @@ mod tests {
         let input = "IND+0123+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 1, 2, 3 ]);
+        assert_eq!(digits.as_slice(), &[1, 2, 3]);
     }
 
     #[test]
@@ -771,7 +781,7 @@ mod tests {
         let input = "URL+0001+x0824";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.idi_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 1 ]);
+        assert_eq!(digits.as_slice(), &[1]);
     }
 
     #[test]
@@ -779,12 +789,22 @@ mod tests {
         let input = "X121+00123456789+d2929";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.dsp_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 2, 9, 2, 9 ]);
-        assert_eq!(addr.get_octets(), &[
-            AFI_X121_DEC_LEADING_ZERO,
-            0x11, 0x10, 0x01, 0x23, 0x45, 0x67, 0x89,
-            0x29, 0x29,
-        ]);
+        assert_eq!(digits.as_slice(), &[2, 9, 2, 9]);
+        assert_eq!(
+            addr.get_octets(),
+            &[
+                AFI_X121_DEC_LEADING_ZERO,
+                0x11,
+                0x10,
+                0x01,
+                0x23,
+                0x45,
+                0x67,
+                0x89,
+                0x29,
+                0x29,
+            ]
+        );
     }
 
     #[test]
@@ -792,34 +812,73 @@ mod tests {
         let input = "DCC+840+d1298";
         let addr = X213NetworkAddress::from_str(input).unwrap();
         let digits: Vec<u8> = addr.dsp_digits().unwrap().collect();
-        assert_eq!(digits.as_slice(), &[ 1, 2, 9, 8 ]);
-        assert_eq!(addr.get_octets(), &[
-            AFI_ISO_DCC_DEC, 0x84, 0x01, 0x29, 0x8F,
-        ]);
+        assert_eq!(digits.as_slice(), &[1, 2, 9, 8]);
+        assert_eq!(
+            addr.get_octets(),
+            &[AFI_ISO_DCC_DEC, 0x84, 0x01, 0x29, 0x8F,]
+        );
     }
 
     #[test]
     fn test_from_ipv4() {
         let input = Ipv4Addr::new(192, 168, 1, 255);
         let addr = X213NetworkAddress::from_ipv4(&input);
-        assert_eq!(addr.get_octets(), &[
-            AFI_IANA_ICP_BIN,
-            0, 1, // Ipv4
-            192, 168, 1, 255, // The IP address
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Required padding
-        ]);
+        assert_eq!(
+            addr.get_octets(),
+            &[
+                AFI_IANA_ICP_BIN,
+                0,
+                1, // Ipv4
+                192,
+                168,
+                1,
+                255, // The IP address
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0, // Required padding
+            ]
+        );
     }
 
     #[test]
     fn test_from_ipv6() {
         let input = Ipv6Addr::new(1, 2, 3, 4, 5, 6, 7, 8);
         let addr = X213NetworkAddress::from_ipv6(&input);
-        assert_eq!(addr.get_octets(), &[
-            AFI_IANA_ICP_BIN,
-            0, 0, // Ipv4
-            0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, // IP address
-            0, // Required padding
-        ]);
+        assert_eq!(
+            addr.get_octets(),
+            &[
+                AFI_IANA_ICP_BIN,
+                0,
+                0, // Ipv4
+                0,
+                1,
+                0,
+                2,
+                0,
+                3,
+                0,
+                4,
+                0,
+                5,
+                0,
+                6,
+                0,
+                7,
+                0,
+                8, // IP address
+                0, // Required padding
+            ]
+        );
     }
 
     #[test]
@@ -834,5 +893,4 @@ mod tests {
         let addr = X213NetworkAddress::from_str(input).unwrap();
         assert_eq!(addr.to_ns_string().as_str(), "NS+388401298f");
     }
-
 }

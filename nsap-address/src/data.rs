@@ -139,7 +139,10 @@ pub const IANA_ICP_IDI_IPV6: [u8; 2] = [0, 0];
 
 pub const RFC_1277_PREFIX: [u8; 5] = [
     AFI_F69_DEC_LEADING_ZERO, // AFI
-    0x00, 0x72, 0x87, 0x22, // IDI
+    0x00,
+    0x72,
+    0x87,
+    0x22, // IDI
 ];
 
 // FIXME: Get rid of this
@@ -148,14 +151,17 @@ pub const RFC_1277_PREFIX: [u8; 5] = [
 /// the NSAPs could be checked to see if they begin with this sequence.
 pub const INTERNET_PREFIX: [u8; 6] = [
     AFI_F69_DEC_LEADING_ZERO, // AFI
-    0x00, 0x72, 0x87, 0x22, // IDI
+    0x00,
+    0x72,
+    0x87,
+    0x22, // IDI
     0x03, // The DSP prefix "03"
 ];
 
 pub const INTERNET_PREFIX_IDI_DIGITS: [u8; 8] = *b"00728722";
 
 /// Maps group AFIs to individual ones per Table A.2 in ITU-T Rec. X.213
-pub(crate) const fn group_afi_to_individual_afi (afi: AFI) -> AFI {
+pub(crate) const fn group_afi_to_individual_afi(afi: AFI) -> AFI {
     match afi {
         0xA1 => 0x11,
         0xA2 => 0x12,
@@ -271,112 +277,112 @@ pub struct X213NetworkAddressInfo {
 /// "The numerically greater AFI value is used when the first significant digit
 /// in the IDI is zero."
 const AFI_INFO: [Option<X213NetworkAddressInfo>; 45] = [
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::IANA_ICP,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_IANA_ICP,
         idi_len_exact: true,
     }), // 34
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::IANA_ICP,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_IANA_ICP,
         idi_len_exact: true,
     }), // 35
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::X121,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_X121,
         idi_len_exact: false,
     }), // 36
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::X121,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_X121,
         idi_len_exact: false,
     }), // 37
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::ISO_DCC,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_ISO_DCC,
         idi_len_exact: true,
     }), // 38
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::ISO_DCC,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_ISO_DCC,
         idi_len_exact: true,
     }), // 39
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::F69,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_F69,
         idi_len_exact: false,
     }), // 40
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::F69,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_F69,
         idi_len_exact: false,
     }), // 41
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E163,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_E163,
         idi_len_exact: false,
     }), // 42
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E163,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_E163,
         idi_len_exact: false,
     }), // 43
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E164,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_E164,
         idi_len_exact: false,
     }), // 44
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E164,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_E164,
         idi_len_exact: false,
     }), // 45
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::ISO_6523_ICD,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_ISO_6523_ICD,
         idi_len_exact: true,
     }), // 46
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::ISO_6523_ICD,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_ISO_6523_ICD,
         idi_len_exact: true,
     }), // 47
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::LOCAL,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_LOCAL,
         idi_len_exact: true,
     }), // 48
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::LOCAL,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
@@ -385,56 +391,56 @@ const AFI_INFO: [Option<X213NetworkAddressInfo>; 45] = [
     }), // 49
     None, // 50
     None, // 51
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::X121,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_X121,
         idi_len_exact: false,
     }), // 52
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::X121,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_X121,
         idi_len_exact: false,
     }), // 53
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::F69,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_F69,
         idi_len_exact: false,
     }), // 54
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::F69,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_F69,
         idi_len_exact: false,
     }), // 55
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E163,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_E163,
         idi_len_exact: false,
     }), // 56
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E163,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Binary,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_E163,
         idi_len_exact: false,
     }), // 57
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E164,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_E164,
         idi_len_exact: false,
     }), // 58
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::E164,
         leading_zeroes_in_idi: true,
         dsp_syntax: DSPSyntax::Binary,
@@ -457,14 +463,14 @@ const AFI_INFO: [Option<X213NetworkAddressInfo>; 45] = [
     None, // 73
     None, // 74
     None, // 75
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::ITU_T_IND,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Decimal,
         max_idi_len_digits: MAX_IDI_LEN_DIGITS_ITU_T_IND,
         idi_len_exact: true,
     }), // 76
-    Some(X213NetworkAddressInfo{
+    Some(X213NetworkAddressInfo {
         network_type: X213NetworkAddressType::ITU_T_IND,
         leading_zeroes_in_idi: false,
         dsp_syntax: DSPSyntax::Binary,
@@ -477,7 +483,7 @@ const AFI_INFO: [Option<X213NetworkAddressInfo>; 45] = [
 // TODO: Rename to get_nsap_schema()
 pub const fn get_address_type_info(afi: AFI) -> Option<X213NetworkAddressInfo> {
     if afi == 0xFF {
-        return Some(X213NetworkAddressInfo{
+        return Some(X213NetworkAddressInfo {
             network_type: X213NetworkAddressType::URL,
             leading_zeroes_in_idi: false,
             dsp_syntax: DSPSyntax::Binary,
@@ -498,7 +504,7 @@ pub const fn get_address_type_info(afi: AFI) -> Option<X213NetworkAddressInfo> {
 
 /// Return get the N-address network type from the AFI
 #[inline]
-pub const fn afi_to_network_type (afi: AFI) -> Option<X213NetworkAddressType> {
+pub const fn afi_to_network_type(afi: AFI) -> Option<X213NetworkAddressType> {
     match get_address_type_info(afi) {
         Some(info) => Some(info.network_type),
         None => None,
@@ -506,13 +512,13 @@ pub const fn afi_to_network_type (afi: AFI) -> Option<X213NetworkAddressType> {
 }
 
 /// Returns `true` if an AFI is an individual AFI
-pub const fn is_individual_afi (afi: AFI) -> bool {
+pub const fn is_individual_afi(afi: AFI) -> bool {
     let individual = group_afi_to_individual_afi(afi);
     afi == individual
 }
 
 /// Returns `true` if an AFI is a group AFI
-pub const fn is_group_afi (afi: AFI) -> bool {
+pub const fn is_group_afi(afi: AFI) -> bool {
     let individual = group_afi_to_individual_afi(afi);
     afi != individual
 }
@@ -529,5 +535,4 @@ mod tests {
             let _ = get_address_type_info(i);
         }
     }
-
 }

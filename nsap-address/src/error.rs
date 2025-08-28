@@ -1,5 +1,5 @@
-use core::fmt::Display;
 use core::error::Error;
+use core::fmt::Display;
 
 #[cfg(feature = "alloc")]
 use alloc::string::String;
@@ -14,11 +14,9 @@ pub enum NAddressParseError {
 }
 
 impl Display for NAddressParseError {
-
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!("{:?}", self))
     }
-
 }
 
 impl Error for NAddressParseError {}
@@ -55,21 +53,21 @@ pub enum RFC1278ParseError {
 }
 
 impl Display for RFC1278ParseError {
-
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             RFC1278ParseError::Malformed => f.write_str("malformed"),
             RFC1278ParseError::UnrecognizedSyntax => f.write_str("unrecognized syntax"),
             RFC1278ParseError::UnrecognizedAFI => f.write_str("unrecognized afi"),
             #[cfg(feature = "alloc")]
-            RFC1278ParseError::ResolveDNSWithName(dns_name) => write!(f, "resolve dns name {}", dns_name),
+            RFC1278ParseError::ResolveDNSWithName(dns_name) => {
+                write!(f, "resolve dns name {}", dns_name)
+            }
             RFC1278ParseError::SpecificationFailure => f.write_str("shortcoming in specifications"),
             RFC1278ParseError::ProhibitedCharacter(c) => write!(f, "prohibited character {}", c),
             RFC1278ParseError::TooLarge => write!(f, "too large"),
             RFC1278ParseError::ResolveDNS => write!(f, "resolve dns name"),
         }
     }
-
 }
 
 impl Error for RFC1278ParseError {}

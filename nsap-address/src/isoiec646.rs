@@ -69,10 +69,7 @@ pub const fn char_to_local_iso_iec_646_byte(c: char) -> Result<u8, ()> {
 #[cfg(test)]
 mod tests {
 
-    use super::{
-        char_to_local_iso_iec_646_byte,
-        local_iso_iec_646_byte_to_char,
-    };
+    use super::{char_to_local_iso_iec_646_byte, local_iso_iec_646_byte_to_char};
 
     #[test]
     fn test_char_to_local_iso_iec_646_byte() {
@@ -94,5 +91,4 @@ mod tests {
             assert_eq!(decoded, c);
         }
     }
-
 }

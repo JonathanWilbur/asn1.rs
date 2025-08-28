@@ -1,4 +1,4 @@
-use core::iter::{Iterator, FusedIterator};
+use core::iter::{FusedIterator, Iterator};
 
 /// This uses a fixed-length buffer of 20 bytes, because NSAP addresses are
 /// forbidden from exceeding 20 bytes, with an exception for URLs established in
@@ -10,9 +10,11 @@ pub struct BCDBuffer {
 }
 
 impl BCDBuffer {
-
     pub fn new() -> Self {
-        BCDBuffer { bytes: [0; 20], i: 0 }
+        BCDBuffer {
+            bytes: [0; 20],
+            i: 0,
+        }
     }
 
     pub fn push_str(&mut self, s: &str) {
@@ -21,19 +23,26 @@ impl BCDBuffer {
     }
 
     pub fn push_ascii_bytes(&mut self, bytes: &[u8]) {
-        debug_assert!(bytes.is_ascii(), "non-ascii passed into BCDBuffer::push_ascii_bytes");
+        debug_assert!(
+            bytes.is_ascii(),
+            "non-ascii passed into BCDBuffer::push_ascii_bytes"
+        );
         bytes.iter().for_each(|b| self.push_digit_u8(*b));
     }
 
     pub fn push_digit_u8(&mut self, b: u8) {
-        debug_assert!(b.is_ascii_digit(), "non-ascii digit passed into BCDBuffer::push_digit_u8");
+        debug_assert!(
+            b.is_ascii_digit(),
+            "non-ascii digit passed into BCDBuffer::push_digit_u8"
+        );
         let nybble: u8 = b.saturating_sub(0x30);
         self.push_nybble(nybble);
     }
 
     pub fn push_nybble(&mut self, n: u8) {
         let byte_index = self.i >> 1;
-        if (self.i % 2) > 0 { // least significant nybble
+        if (self.i % 2) > 0 {
+            // least significant nybble
             self.bytes[byte_index as usize] |= n;
         } else {
             self.bytes[byte_index as usize] |= n << 4;
@@ -55,15 +64,12 @@ impl BCDBuffer {
     pub fn len_in_bytes(&self) -> usize {
         ((self.i >> 1) + (self.i % 2)) as usize
     }
-
 }
 
 impl AsRef<[u8]> for BCDBuffer {
-
     fn as_ref(&self) -> &[u8] {
         &self.bytes[0..self.len_in_bytes()]
     }
-
 }
 
 // TODO: Rename the fields of this
@@ -77,8 +83,7 @@ pub struct BCDDigitsIter<'a> {
     ignore_last_nybble: bool,
 }
 
-impl <'a> BCDDigitsIter<'a> {
-
+impl<'a> BCDDigitsIter<'a> {
     #[inline]
     pub fn new(
         idi: &'a [u8],
@@ -87,22 +92,21 @@ impl <'a> BCDDigitsIter<'a> {
         least_sig_nybble: bool,
         processing_leading_digits: bool,
     ) -> BCDDigitsIter<'a> {
-        BCDDigitsIter{
+        BCDDigitsIter {
             idi,
             leading_0_sig,
             ignore_last_nybble,
             processing_leading_digits, // Start off handling leading digits
-            least_sig_nybble, // Start off on the MSn
+            least_sig_nybble,          // Start off on the MSn
         }
     }
-
 }
 
 /// This SHOULD BE an ASCII digit, but might not be. It is on the caller to
 /// check this and determine what to do if this has a non-digit value.
 pub type ShouldBeASCIIDigit = u8;
 
-impl <'a> Iterator for BCDDigitsIter<'a> {
+impl<'a> Iterator for BCDDigitsIter<'a> {
     type Item = ShouldBeASCIIDigit;
 
     /// This implementation does NOT handle malformed digits. The caller MUST
@@ -151,7 +155,7 @@ impl <'a> Iterator for BCDDigitsIter<'a> {
     }
 }
 
-impl <'a> FusedIterator for BCDDigitsIter<'a> {}
+impl<'a> FusedIterator for BCDDigitsIter<'a> {}
 
 #[cfg(test)]
 mod tests {
@@ -169,7 +173,7 @@ mod tests {
         assert_eq!(bcd.len_in_bytes(), 2);
         bcd.push_byte(0x33);
         assert_eq!(bcd.len_in_bytes(), 3);
-        assert_eq!(bcd.as_ref(), [ 0x97, 0x50, 0x33 ].as_slice());
+        assert_eq!(bcd.as_ref(), [0x97, 0x50, 0x33].as_slice());
         assert_eq!(bcd.len_in_bytes(), 3);
     }
 
@@ -185,8 +189,7 @@ mod tests {
         assert_eq!(bcd.len_in_bytes(), 3);
         bcd.push_nybble(0xF);
         assert_eq!(bcd.len_in_bytes(), 3);
-        assert_eq!(bcd.as_ref(), [ 0x97, 0x53, 0x1F ].as_slice());
+        assert_eq!(bcd.as_ref(), [0x97, 0x53, 0x1F].as_slice());
         assert_eq!(bcd.len_in_bytes(), 3);
     }
-
 }

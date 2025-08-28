@@ -19,9 +19,7 @@ crate's author.
 
 ## To Do
 
-- [x] Clamp the `u8` in `get_octets()`
-- [x] Fuzz Testing
-- [ ] Format
+- [x] Format
 - [ ] Doc Comments
 - [ ] Readme Documentation
 
