@@ -10,6 +10,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 bytes = "1.4.0"
+hex = "0.4.3"
 
 [dependencies.wildboar-asn1]
 path = "../asn1"
@@ -32,6 +33,9 @@ path = "../teletex"
 
 [dependencies.idm-frame]
 path = "../idm-frame"
+
+[dependencies.nsap-address]
+path = "../nsap-address"
 
 [[bin]]
 name = "date"
@@ -148,6 +152,13 @@ bench = false
 [[bin]]
 name = "idmframe"
 path = "fuzz_targets/idmframe.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsap"
+path = "fuzz_targets/nsap.rs"
 test = false
 doc = false
 bench = false
