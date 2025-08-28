@@ -1,3 +1,5 @@
+//! Miscellaneous utilties
+
 /// Convert a u8 to decimal ASCII digits
 pub(crate) fn u8_to_decimal_bytes(mut n: u8) -> [u8; 3] {
     let hundreds = n / 100;

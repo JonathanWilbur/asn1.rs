@@ -1,3 +1,4 @@
+//! Parsing X.213 NSAP addresses from strings
 #[cfg(feature = "alloc")]
 extern crate alloc;
 use crate::bcd::BCDBuffer;

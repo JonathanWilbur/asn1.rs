@@ -12,8 +12,6 @@
 //!
 //! This just might be the dumbest way to encode characters I've ever heard of.
 
-// const UNICODE_REPLACEMENT_CHAR: char = '\u{FFFD}';
-
 /// Convert an ISO/IEC 646 byte encoded per ITU-T Rec. X.213 to a UTF-8 `char`
 ///
 /// Returns an `Err` if the byte does not encode a permitted character.
@@ -35,17 +33,6 @@ pub const fn local_iso_iec_646_byte_to_char(b: u8) -> Result<char, ()> {
     debug_assert!(!c.is_ascii_control());
     Ok(c)
 }
-
-/// Convert an ISO/IEC 646 byte encoded per ITU-T Rec. X.213 to a UTF-8 `char`
-///
-/// Returns the Unicode replacement character `U+FFFD` if decoding fails.
-// #[inline]
-// pub const fn local_iso_iec_646_byte_to_char_lossy(b: u8) -> char {
-//     match local_iso_iec_646_byte_to_char(b) {
-//         Ok(c) => c,
-//         Err(_) => UNICODE_REPLACEMENT_CHAR,
-//     }
-// }
 
 /// Convert a UTF-8 `char` to an ISO/IEC 646 byte per ITU-T Rec. X.213
 ///

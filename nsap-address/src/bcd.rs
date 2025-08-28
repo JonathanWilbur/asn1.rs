@@ -1,15 +1,28 @@
+//! Binary-Coded Decimal (BCD) handling
+//!
+//! This isn't generally useful for all uses cases: this is specifically
+//! designed for X.213 NSAP addresses
 use core::iter::{FusedIterator, Iterator};
 
+/// Buffer for writing Binary-Coded Decimal (BCD)
+///
+/// Binary-Coded Decimal (BCD) is extensively used by X.213 NSAP addresses. It
+/// is always used for the Initial Domain Identifier (IDI), but is often used
+/// for the Domain Specific Part (DSP) as well.
+///
 /// This uses a fixed-length buffer of 20 bytes, because NSAP addresses are
 /// forbidden from exceeding 20 bytes, with an exception for URLs established in
 /// ITU-T Rec. X.519. Despite this one exception, no decimal encoding of an NSAP
-/// addresses that exceeds 20 bytes.
+/// address exceeds 20 bytes.
 pub struct BCDBuffer {
     pub bytes: [u8; 20],
     pub i: u8,
 }
 
 impl BCDBuffer {
+
+    /// Create a new BCD buffer
+    #[inline]
     pub fn new() -> Self {
         BCDBuffer {
             bytes: [0; 20],
@@ -17,11 +30,17 @@ impl BCDBuffer {
         }
     }
 
+    /// Push a string of ASCII digits to the BCD buffer.
+    ///
+    /// Each character MUST return `true` from `u8::is_ascii_digit`.
     pub fn push_str(&mut self, s: &str) {
         debug_assert!(s.is_ascii(), "non-ascii passed into BCDBuffer::push_str");
         s.bytes().for_each(|b| self.push_digit_u8(b));
     }
 
+    /// Push a u8 slice of ASCII digits to the BCD buffer.
+    ///
+    /// The entire slice MUST return `true` from `u8::is_ascii_digit`.
     pub fn push_ascii_bytes(&mut self, bytes: &[u8]) {
         debug_assert!(
             bytes.is_ascii(),
@@ -30,6 +49,9 @@ impl BCDBuffer {
         bytes.iter().for_each(|b| self.push_digit_u8(*b));
     }
 
+    /// Push a single ASCII digit into the BCD buffer.
+    ///
+    /// `b` MUST return `true` from `u8::is_ascii_digit`.
     pub fn push_digit_u8(&mut self, b: u8) {
         debug_assert!(
             b.is_ascii_digit(),
@@ -39,6 +61,12 @@ impl BCDBuffer {
         self.push_nybble(nybble);
     }
 
+    /// Push an arbitrary nybble into the BCD buffer
+    ///
+    /// This does not check if the nybble is a binary-coded decimal.
+    /// This is particularly useful for pushing the padding nybble `0b1111`
+    /// that is used to pad an odd number of digits to an integral number of
+    /// octets.
     pub fn push_nybble(&mut self, n: u8) {
         let byte_index = self.i >> 1;
         if (self.i % 2) > 0 {
@@ -54,6 +82,9 @@ impl BCDBuffer {
     /// Push a full byte into the BCD buffer
     ///
     /// If the last nybble prior to pushing is unset, it stays unset at 0.
+    ///
+    /// In other words, if the buffer contains `012` and you use this function
+    /// to push `0x34`, the BCD buffer will then contain `012034`.
     pub fn push_byte(&mut self, byte: u8) {
         let byte_index = self.len_in_bytes();
         self.bytes[byte_index] = byte;
@@ -61,12 +92,15 @@ impl BCDBuffer {
         self.i = self.i.clamp(0, 39);
     }
 
+    /// Get the length of the BCD in bytes.
     pub fn len_in_bytes(&self) -> usize {
         ((self.i >> 1) + (self.i % 2)) as usize
     }
 }
 
 impl AsRef<[u8]> for BCDBuffer {
+    /// Returns the BCD bytes. Use this function to obtain the output of the
+    /// BCD buffer.
     fn as_ref(&self) -> &[u8] {
         &self.bytes[0..self.len_in_bytes()]
     }
@@ -84,6 +118,8 @@ pub struct BCDDigitsIter<'a> {
 }
 
 impl<'a> BCDDigitsIter<'a> {
+
+    /// Create a new BCD digits iterator
     #[inline]
     pub fn new(
         idi: &'a [u8],
@@ -102,6 +138,8 @@ impl<'a> BCDDigitsIter<'a> {
     }
 }
 
+/// An ASCII digit (`0x30..=0x39`)
+///
 /// This SHOULD BE an ASCII digit, but might not be. It is on the caller to
 /// check this and determine what to do if this has a non-digit value.
 pub type ShouldBeASCIIDigit = u8;

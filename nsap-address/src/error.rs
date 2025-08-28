@@ -1,3 +1,4 @@
+//! Error types used in this crate
 use core::error::Error;
 use core::fmt::Display;
 
@@ -7,9 +8,13 @@ use alloc::string::String;
 /// An error parsing an NSAP address from bytes
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum NAddressParseError {
+    /// The NSAP address was too short / truncated
     TooShort,
+    /// The NSAP address was too long
     TooLong,
+    /// The DSP was malformed
     MalformedDSP,
+    /// The IDI contained non-digits
     NonDigitsInIDI,
 }
 

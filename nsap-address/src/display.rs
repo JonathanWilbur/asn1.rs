@@ -1,3 +1,4 @@
+//! Code to implement std::fmt::Display for NSAP addresses
 #[cfg(feature = "nonstddisplay")]
 use crate::data::{AFI_IANA_ICP_BIN, AFI_URL, IANA_ICP_IDI_IPV4, IANA_ICP_IDI_IPV6};
 use crate::data::{

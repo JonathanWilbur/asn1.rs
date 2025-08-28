@@ -1,31 +1,58 @@
+//! Constants, identifiers, codes, data and functions for mapping or lookups
 use crate::{AFI, DSPSyntax, X213NetworkAddressType};
 
 /// The AFI is mandatory. The IDI may be zero bytes (in the case of Local IDI),
 /// and the DSP (presumably) MUST be present.
 pub const SMALLEST_VALID_NSAP_ADDR: usize = 2;
 
-pub const AFI_URL: u8 = 0xFF; // Specified in ITU-T Rec. X.519 (2019).
+/// The URL AFI defined in ITU-T Recommendation X.519 (2019).
+///
+/// The IDI has a fixed length of four digits. The DSP encodes a URL in an
+/// unspecified encoding (presumably UTF-8).
+pub const AFI_URL: u8 = 0xFF;
+/// AFI for an X.121 Address (used for X.25), decimal, leading non-zero digit
 pub const AFI_X121_DEC_LEADING_NON_ZERO: u8 = 0x36;
+/// AFI for an X.121 Address (used for X.25), decimal, leading zero digit
 pub const AFI_X121_DEC_LEADING_ZERO: u8 = 0x52;
+/// AFI for an X.121 Address (used for X.25), binary, leading non-zero digit
 pub const AFI_X121_BIN_LEADING_NON_ZERO: u8 = 0x37;
+/// AFI for an X.121 Address (used for X.25), binary, leading zero digit
 pub const AFI_X121_BIN_LEADING_ZERO: u8 = 0x53;
+/// AFI for ISO Data Country Code (DCC) decimal
 pub const AFI_ISO_DCC_DEC: u8 = 0x38;
+/// AFI for ISO Data Country Code (DCC) binary
 pub const AFI_ISO_DCC_BIN: u8 = 0x39;
+/// AFI for F.69 / Telex, decimal, leading non-zero digit
 pub const AFI_F69_DEC_LEADING_NON_ZERO: u8 = 0x40;
+/// AFI for F.69 / Telex, decimal, leading zero digit
 pub const AFI_F69_DEC_LEADING_ZERO: u8 = 0x54;
+/// AFI for F.69 / Telex, binary, leading non-zero digit
 pub const AFI_F69_BIN_LEADING_NON_ZERO: u8 = 0x41;
+/// AFI for F.69 / Telex, binary, leading zero digit
 pub const AFI_F69_BIN_LEADING_ZERO: u8 = 0x55;
+/// AFI for E.163 number (used in PSTN), decimal, leading non-zero digit
 pub const AFI_E163_DEC_LEADING_NON_ZERO: u8 = 0x42;
+/// AFI for E.163 number (used in PSTN), decimal, leading zero digit
 pub const AFI_E163_DEC_LEADING_ZERO: u8 = 0x56;
+/// AFI for E.163 number (used in PSTN), binary, leading non-zero digit
 pub const AFI_E163_BIN_LEADING_NON_ZERO: u8 = 0x43;
+/// AFI for E.163 number (used in PSTN), binary, leading zero digit
 pub const AFI_E163_BIN_LEADING_ZERO: u8 = 0x57;
+/// AFI for E.164 number (used in ISDN), decimal, leading non-zero digit
 pub const AFI_E164_DEC_LEADING_NON_ZERO: u8 = 0x44;
+/// AFI for E.164 number (used in ISDN), decimal, leading zero digit
 pub const AFI_E164_DEC_LEADING_ZERO: u8 = 0x58;
+/// AFI for E.164 number (used in ISDN), binary, leading non-zero digit
 pub const AFI_E164_BIN_LEADING_NON_ZERO: u8 = 0x45;
+/// AFI for E.164 number (used in ISDN), binary, leading zero digit
 pub const AFI_E164_BIN_LEADING_ZERO: u8 = 0x59;
+/// AFI for ISO/IEC 6523 International Code Designator (ICD), decimal
 pub const AFI_ISO_6523_ICD_DEC: u8 = 0x46;
+/// AFI for ISO/IEC 6523 International Code Designator (ICD), binary
 pub const AFI_ISO_6523_ICD_BIN: u8 = 0x47;
 
+/// AFI for IANA Internet Code Point (ICP), decimal, per IETF RFFC 4548
+///
 /// Quoting IETF RFC 4548:
 ///
 /// > One of these two AFIs ('34') is
@@ -33,110 +60,222 @@ pub const AFI_ISO_6523_ICD_BIN: u8 = 0x47;
 /// > document does not address allocation for this AFI as it is not clear
 /// > what use (if any) can be made of this encoding format at this time.
 pub const AFI_IANA_ICP_DEC: u8 = 0x34;
+
+/// AFI for IANA Internet Code Point (ICP), binary, per IETF RFFC 4548
 pub const AFI_IANA_ICP_BIN: u8 = 0x35;
+
+/// AFI for ITU Rec. E.191.1 International Network Designator (IDN), decimal
 pub const AFI_ITU_T_IND_DEC: u8 = 0x76;
+/// AFI for ITU Rec. E.191.1 International Network Designator (IDN), decimal
 pub const AFI_ITU_T_IND_BIN: u8 = 0x77;
+/// Local AFI, decimal
 pub const AFI_LOCAL_DEC: u8 = 0x48;
+/// Local AFI, binary
 pub const AFI_LOCAL_BIN: u8 = 0x49;
+/// Local AFI, ISO/IEC 646 (ASCII or ASCII-like)
 pub const AFI_LOCAL_ISO_IEC_646: u8 = 0x50;
+/// Local AFI, characters from a national character set
 pub const AFI_LOCAL_NATIONAL: u8 = 0x51;
+
+/// Group AFI for [AFI_X121_DEC_LEADING_NON_ZERO]
 pub const GROUP_AFI_X121_DEC_LEADING_NON_ZERO: u8 = 0xBA;
+/// Group AFI for [AFI_X121_DEC_LEADING_ZERO]
 pub const GROUP_AFI_X121_DEC_LEADING_ZERO: u8 = 0xCA;
+/// Group AFI for [AFI_X121_BIN_LEADING_NON_ZERO]
 pub const GROUP_AFI_X121_BIN_LEADING_NON_ZERO: u8 = 0xBB;
+/// Group AFI for [AFI_X121_BIN_LEADING_ZERO]
 pub const GROUP_AFI_X121_BIN_LEADING_ZERO: u8 = 0xCB;
+/// Group AFI for [AFI_ISO_DCC_DEC]
 pub const GROUP_AFI_ISO_DCC_DEC: u8 = 0xBC;
+/// Group AFI for [AFI_ISO_DCC_BIN]
 pub const GROUP_AFI_ISO_DCC_BIN: u8 = 0xBD;
+/// Group AFI for [AFI_F69_DEC_LEADING_NON_ZERO]
 pub const GROUP_AFI_F69_DEC_LEADING_NON_ZERO: u8 = 0xBE;
+/// Group AFI for [AFI_F69_DEC_LEADING_ZERO]
 pub const GROUP_AFI_F69_DEC_LEADING_ZERO: u8 = 0xCC;
+/// Group AFI for [AFI_F69_BIN_LEADING_NON_ZERO]
 pub const GROUP_AFI_F69_BIN_LEADING_NON_ZERO: u8 = 0xBF;
+/// Group AFI for [AFI_F69_BIN_LEADING_ZERO]
 pub const GROUP_AFI_F69_BIN_LEADING_ZERO: u8 = 0xCD;
+/// Group AFI for [AFI_E163_DEC_LEADING_NON_ZERO]
 pub const GROUP_AFI_E163_DEC_LEADING_NON_ZERO: u8 = 0xC0;
+/// Group AFI for [AFI_E163_DEC_LEADING_ZERO]
 pub const GROUP_AFI_E163_DEC_LEADING_ZERO: u8 = 0xCE;
+/// Group AFI for [AFI_E163_BIN_LEADING_NON_ZERO]
 pub const GROUP_AFI_E163_BIN_LEADING_NON_ZERO: u8 = 0xC1;
+/// Group AFI for [AFI_E163_BIN_LEADING_ZERO]
 pub const GROUP_AFI_E163_BIN_LEADING_ZERO: u8 = 0xCF;
+/// Group AFI for [AFI_E164_DEC_LEADING_NON_ZERO]
 pub const GROUP_AFI_E164_DEC_LEADING_NON_ZERO: u8 = 0xC2;
+/// Group AFI for [AFI_E164_DEC_LEADING_ZERO]
 pub const GROUP_AFI_E164_DEC_LEADING_ZERO: u8 = 0xD0;
+/// Group AFI for [AFI_E164_BIN_LEADING_NON_ZERO]
 pub const GROUP_AFI_E164_BIN_LEADING_NON_ZERO: u8 = 0xC3;
+/// Group AFI for [AFI_E164_BIN_LEADING_ZERO]
 pub const GROUP_AFI_E164_BIN_LEADING_ZERO: u8 = 0xD1;
+/// Group AFI for [AFI_ISO_6523_ICD_DEC]
 pub const GROUP_AFI_ISO_6523_ICD_DEC: u8 = 0xC4;
+/// Group AFI for [AFI_ISO_6523_ICD_BIN]
 pub const GROUP_AFI_ISO_6523_ICD_BIN: u8 = 0xC5;
+/// Group AFI for [AFI_IANA_ICP_DEC]
 pub const GROUP_AFI_IANA_ICP_DEC: u8 = 0xB8;
+/// Group AFI for [AFI_IANA_ICP_BIN]
 pub const GROUP_AFI_IANA_ICP_BIN: u8 = 0xB9;
+/// Group AFI for [AFI_ITU_T_IND_DEC]
 pub const GROUP_AFI_ITU_T_IND_DEC: u8 = 0xE2;
+/// Group AFI for [AFI_ITU_T_IND_BIN]
 pub const GROUP_AFI_ITU_T_IND_BIN: u8 = 0xE3;
+/// Group AFI for [AFI_LOCAL_DEC]
 pub const GROUP_AFI_LOCAL_DEC: u8 = 0xC6;
+/// Group AFI for [AFI_LOCAL_BIN]
 pub const GROUP_AFI_LOCAL_BIN: u8 = 0xC7;
+/// Group AFI for [AFI_LOCAL_ISO_IEC_646]
 pub const GROUP_AFI_LOCAL_ISO_IEC_646: u8 = 0xC8;
+/// Group AFI for [AFI_LOCAL_NATIONAL]
 pub const GROUP_AFI_LOCAL_NATIONAL: u8 = 0xC9;
-pub const MAX_DEC_DSP_LEN_X121: u8 = 24;
-pub const MAX_DEC_DSP_LEN_ISO_DCC: u8 = 35;
-pub const MAX_DEC_DSP_LEN_F69: u8 = 30;
-pub const MAX_DEC_DSP_LEN_E163: u8 = 26;
-pub const MAX_DEC_DSP_LEN_E164: u8 = 23;
-pub const MAX_DEC_DSP_LEN_ISO_6523_ICD: u8 = 34;
-pub const MAX_DEC_DSP_LEN_IANA_ICP: u8 = 34;
-pub const MAX_DEC_DSP_LEN_ITU_T_IND: u8 = 32;
-pub const MAX_DEC_DSP_LEN_LOCAL: u8 = 38;
+
+/// Maximum decimal DSP length in digits for X.121 / X.25 addressing
+pub const MAX_DEC_DSP_LEN_DIGITS_X121: u8 = 24;
+/// Maximum decimal DSP length in digits for ISO DCC
+pub const MAX_DEC_DSP_LEN_DIGITS_ISO_DCC: u8 = 35;
+/// Maximum decimal DSP length in digits for F.69 addressing / Telex
+pub const MAX_DEC_DSP_LEN_DIGITS_F69: u8 = 30;
+/// Maximum decimal DSP length in digits for E.163 / PSTN addressing
+pub const MAX_DEC_DSP_LEN_DIGITS_E163: u8 = 26;
+/// Maximum decimal DSP length in digits for E.164 / ISDN addressing
+pub const MAX_DEC_DSP_LEN_DIGITS_E164: u8 = 23;
+/// Maximum decimal DSP length in digits for ISO/IEC 6523 ICD addressing
+pub const MAX_DEC_DSP_LEN_DIGITS_ISO_6523_ICD: u8 = 34;
+/// Maximum decimal DSP length in digits for IANA ICP (IPv4 or IPv6) addressing
+pub const MAX_DEC_DSP_LEN_DIGITS_IANA_ICP: u8 = 34;
+/// Maximum decimal DSP length in digits for ITU-T IND addressing
+pub const MAX_DEC_DSP_LEN_DIGITS_ITU_T_IND: u8 = 32;
+/// Maximum decimal DSP length in digits for local addressing
+pub const MAX_DEC_DSP_LEN_DIGITS_LOCAL: u8 = 38;
+
+/// Maximum binary DSP length in bytes for X.121 / X.25 addressing
 pub const MAX_BIN_DSP_LEN_X121: u8 = 12;
+/// Maximum binary DSP length in bytes for ISO DCC
 pub const MAX_BIN_DSP_LEN_ISO_DCC: u8 = 17;
+/// Maximum binary DSP length in bytes for F.69 addressing / Telex
 pub const MAX_BIN_DSP_LEN_F69: u8 = 15;
+/// Maximum binary DSP length in bytes for E.163 / PSTN addressing
 pub const MAX_BIN_DSP_LEN_E163: u8 = 13;
+/// Maximum binary DSP length in bytes for E.164 / ISDN addressing
 pub const MAX_BIN_DSP_LEN_E164: u8 = 11;
+/// Maximum binary DSP length in bytes for ISO/IEC 6523 ICD addressing
 pub const MAX_BIN_DSP_LEN_ISO_6523_ICD: u8 = 17;
+/// Maximum binary DSP length in bytes for IANA ICP (IPv4 or IPv6) addressing
 pub const MAX_BIN_DSP_LEN_IANA_ICP: u8 = 17;
+/// Maximum binary DSP length in bytes for ITU-T IND addressing
 pub const MAX_BIN_DSP_LEN_ITU_T_IND: u8 = 16;
+/// Maximum binary DSP length in bytes for local addressing
 pub const MAX_BIN_DSP_LEN_LOCAL: u8 = 19;
+
+/// Maximum ISO/IEC 646-encoded DSP length in bytes for local addressing
 pub const MAX_ISO_IEC_646_LEN_LOCAL: u8 = 19;
+/// Maximum national character-encoded DSP length in bytes for local addressing
 pub const MAX_NATIONAL_CHAR_LEN_LOCAL: u8 = 9;
 
+/// Maximum IDI length in digits for X.121 / X.25 addressing
 pub const MAX_IDI_LEN_DIGITS_X121: u8 = 14; // Up to
+/// Maximum IDI length in digits for ISO DCC
 pub const MAX_IDI_LEN_DIGITS_ISO_DCC: u8 = 3; // Exactly
+/// Maximum IDI length in digits for F.69 addressing / Telex
 pub const MAX_IDI_LEN_DIGITS_F69: u8 = 8; // Up to
+/// Maximum IDI length in digits for E.163 / PSTN addressing
 pub const MAX_IDI_LEN_DIGITS_E163: u8 = 12; // Up to
+/// Maximum IDI length in digits for E.164 / ISDN addressing
 pub const MAX_IDI_LEN_DIGITS_E164: u8 = 15; // Up to
+/// Maximum IDI length in digits for ISO/IEC 6523 ICD addressing
 pub const MAX_IDI_LEN_DIGITS_ISO_6523_ICD: u8 = 4; // Exactly
+/// Maximum IDI length in digits for IANA ICP (IPv4 or IPv6) addressing
 pub const MAX_IDI_LEN_DIGITS_IANA_ICP: u8 = 4; // Exactly
+/// Maximum IDI length in digits for ITU-T IND addressing
 pub const MAX_IDI_LEN_DIGITS_ITU_T_IND: u8 = 6; // Exactly
+/// Maximum IDI length in digits for local addressing
 pub const MAX_IDI_LEN_DIGITS_LOCAL: u8 = 0; // Exactly
+/// Maximum IDI length in digits for ITU-T Rec. X.519 URL NSAPs
 pub const MAX_IDI_LEN_DIGITS_URL: u8 = 4; // Exactly.
 
 // DSP Prefixes that start with 0x54, 0x00, 0x72, 0x87, 0x22,
+
+/// IETF RFC 1277 well-known network: International X.25
 pub const RFC_1277_WELL_KNOWN_NETWORK_INTL_X25: u8 = 0x01;
+/// IETF RFC 1277 well-known network: JANET
+///
+/// See: <https://en.wikipedia.org/wiki/JANET>
 pub const RFC_1277_WELL_KNOWN_NETWORK_JANET: u8 = 0x02;
+/// IETF RFC 1277 well-known network: DARPA/NSF Internet (The internet)
 pub const RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET: u8 = 0x03;
+/// IETF RFC 1277 well-known network: IXI
+///
+/// See: <https://cordis.europa.eu/project/id/2718>
 pub const RFC_1277_WELL_KNOWN_NETWORK_IXI: u8 = 0x06;
+/// ITU-T Rec. X.519 DSP prefix for LDAP
 pub const ITU_X519_DSP_PREFIX_LDAP: u8 = 0x11;
+/// ITU-T Rec. X.519 DSP prefix for IDM over IPv4
+///
+/// See: <https://www.itu.int/rec/T-REC-X.519/en>
 pub const ITU_X519_DSP_PREFIX_IDM_OVER_IPV4: u8 = 0x10;
+/// ITU-T Rec. X.519 DSP prefix for ISO Transport over TCP (ITOT) over IPv4
+///
+/// See: <https://datatracker.ietf.org/doc/rfc2126/>
 pub const ITU_X519_DSP_PREFIX_ITOT_OVER_IPV4: u8 = RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET;
 
+/// Default TCP port for ISO Transport over TCP (ITOT) per IETF RFC 2126
+///
+/// See: <https://datatracker.ietf.org/doc/rfc2126/>
 pub const ITOT_OVER_IPV4_DEFAULT_PORT: u16 = 102;
 
+/// AFI string for X.121 addressing, per IETF RFC 1278
 pub const AFI_STR_X121: &str = "X121";
+/// AFI string for ISO DCC addressing, per IETF RFC 1278
 pub const AFI_STR_DCC: &str = "DCC";
+/// AFI string for Telex / F.69 addressing, per IETF RFC 1278
 pub const AFI_STR_TELEX: &str = "TELEX";
-pub const AFI_STR_PSTN: &str = "PSTN"; // I think this is E.163
-pub const AFI_STR_ISDN: &str = "ISDN"; // I think this is E.164
+/// AFI string for PSTN / E.163 addressing, per IETF RFC 1278
+pub const AFI_STR_PSTN: &str = "PSTN";
+/// AFI string for ISDN / E.164 addressing, per IETF RFC 1278
+pub const AFI_STR_ISDN: &str = "ISDN";
+/// AFI string for ISO/IEC 6523 ICD addressing, per IETF RFC 1278
 pub const AFI_STR_ICD: &str = "ICD";
-/// This not standard
+/// Not-standard AFI string for IANA ICP addressing
 pub const AFI_STR_ICP: &str = "ICP";
-/// This not standard
+/// Not-standard AFI string for ITU-T IND addressing
 pub const AFI_STR_IND: &str = "IND";
+/// AFI string for local addressing, per IETF RFC 1278
 pub const AFI_STR_LOCAL: &str = "LOCAL";
-/// This not standard
+/// Not-standard AFI string for ITU-T Rec. X.519 URL-based addressing
 pub const AFI_STR_URL: &str = "URL";
 
+// TODO: Review if these are used.
+/// IETF RFC 1277 Telex / F.69 number for non-OSI networks
 pub const IETF_RFC_1277_TELEX_NUMBER_STR: &str = "00728722";
+/// IETF RFC 1278 DSP string for ISO Transport over TCP (ITOT)
 pub const IETF_RFC_1006_PREFIX_STR: &str = "RFC-1006";
+/// IETF RFC 1278 DSP string for X.25
 pub const X25_PREFIX_STR: &str = "X.25(80)";
+/// IETF RFC 1278 DSP string for ECMA 117 binary syntax
 pub const ECMA_117_BINARY_STR: &str = "ECMA-117-Binary";
+/// IETF RFC 1278 DSP string for ECMA 117 decimal syntax
 pub const ECMA_117_DECIMAL_STR: &str = "ECMA-117-Decimal";
 
+/// Non-standard string for NSAP-encoded IPv4 addresses
 pub const IPV4_STR: &str = "IP4";
+/// Non-standard string for NSAP-encoded IPv6 addresses
 pub const IPV6_STR: &str = "IP6";
 
+/// IANA-allocated Internet Code Point for IPv4 per IETF RFC 4548
+///
+/// See: <https://www.rfc-editor.org/rfc/rfc4548.html>
 pub const IANA_ICP_IDI_IPV4: [u8; 2] = [0, 1];
+/// IANA-allocated Internet Code Point for IPv6 per IETF RFC 4548
+///
+/// See: <https://www.rfc-editor.org/rfc/rfc4548.html>
 pub const IANA_ICP_IDI_IPV6: [u8; 2] = [0, 0];
 
+/// IETF RFC 1277 NSAP prefix for non-OSI addressing
 pub const RFC_1277_PREFIX: [u8; 5] = [
     AFI_F69_DEC_LEADING_ZERO, // AFI
     0x00,
@@ -157,8 +296,6 @@ pub const INTERNET_PREFIX: [u8; 6] = [
     0x22, // IDI
     0x03, // The DSP prefix "03"
 ];
-
-pub const INTERNET_PREFIX_IDI_DIGITS: [u8; 8] = *b"00728722";
 
 /// Maps group AFIs to individual ones per Table A.2 in ITU-T Rec. X.213
 pub(crate) const fn group_afi_to_individual_afi(afi: AFI) -> AFI {
@@ -255,6 +392,7 @@ pub(crate) const fn group_afi_to_individual_afi(afi: AFI) -> AFI {
     }
 }
 
+/// information about a particular NSAP syntax and what network it addresses
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct X213NetworkAddressInfo {
     /// The network type for this AFI
@@ -481,6 +619,9 @@ const AFI_INFO: [Option<X213NetworkAddressInfo>; 45] = [
 ];
 
 // TODO: Rename to get_nsap_schema()
+/// Get information about the NSAP syntax and network type by AFI
+///
+/// Returns `None` if the AFI is unrecognized.
 pub const fn get_address_type_info(afi: AFI) -> Option<X213NetworkAddressInfo> {
     if afi == 0xFF {
         return Some(X213NetworkAddressInfo {

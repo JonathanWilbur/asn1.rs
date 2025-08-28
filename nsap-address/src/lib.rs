@@ -1,24 +1,4 @@
-//! This module decodes and encodes a Network Service Access Point (NSAP) to and
-//! from the "preferred binary encoding" described in Annex A, Section A.5.3 of
-//! [ITU-T Recommendation X.213 (2001)](https://www.itu.int/rec/T-REC-X.213-200110-I/en).
-//!
-//! In addition to this, it displays and decodes NSAPs to and from
-//! human-readable strings according to the procedures defined in
-//! [IETF RFC 1278](https://datatracker.ietf.org/doc/rfc1278/), drawing on
-//! additional information found in
-//! [IETF RFC 1277](https://datatracker.ietf.org/doc/html/rfc1277).
-//!
-//! There are some deviations to the above, however. Since the human-friendly
-//! string syntax was defined, new AFIs were added, including one for directly
-//! representing IP addresses and another for representing URLs. As such this
-//! library extends the specification, but should be completely backwards
-//! compatible with it.
-//!
-//! You should **not** expect an NSAP decoded from a string to encode back into
-//! the same exact string. You should **not** expect an NSAP decoded from bytes
-//! to encode back into the same exact bytes. You should **not** expect all
-//! NSAP syntaxes to be recognized everywhere; your application and dependencies
-//! should handle unrecognized NSAP syntaxes gracefully.
+#![doc = include_str!("../README.md")]
 #![no_std]
 #![allow(non_camel_case_types)]
 pub mod bcd;
@@ -49,6 +29,7 @@ use alloc::string::String;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
+/// Authority and Format Identifier (AFI): part of an NSAP address
 pub type AFI = u8;
 
 const DEFAULT_ITOT_PORT: u16 = 102;
@@ -95,7 +76,22 @@ impl TryFrom<AFI> for X213NetworkAddressType {
     }
 }
 
-/// X.213 NSAP Address
+/// ITU-T Recommendation X.213 NSAP Address
+///
+/// This is composed of three parts, encoded in this order:
+///
+/// - Authority and Format Identifier (AFI): always a single byte, which
+///   identifies the network type and the syntax of the encoding that follows
+/// - Initial Domain Identifier (IDI): the authority for allocating further
+///   address identifiers, which is always encoded as binary-coded decimal,
+///   and padded with either 0x0 or 0x1 depending on whether leading zeroes are
+///   significant or not until the maximum length is reached in digits.
+/// - Domain-Specific Part (DSP): the remainder of the information that
+///   completes the address and is allocated by the authority identified by the
+///   IDI. It can have four abstract syntaxes: BCD, binary, ISO/IEC 646 string,
+///   and a national character encoding.
+///
+/// Together, the AFI and IDI are referred to as the Initial Domain Part (IDP).
 ///
 /// This type does not implement `PartialEq`, `Eq`, or `Hash`, because:
 ///
@@ -123,6 +119,8 @@ pub enum X213NetworkAddress<'a> {
 }
 
 impl<'a> X213NetworkAddress<'a> {
+
+    /// Get the bytes of the encoded NSAP address
     #[inline]
     pub fn get_octets(&'a self) -> &'a [u8] {
         match &self {
@@ -133,6 +131,7 @@ impl<'a> X213NetworkAddress<'a> {
         }
     }
 
+    /// Get the Authority and Format Identifier (AFI): part of an NSAP address
     #[inline]
     pub fn afi(&self) -> u8 {
         if self.get_octets().len() > 0 {
@@ -142,36 +141,47 @@ impl<'a> X213NetworkAddress<'a> {
         }
     }
 
+    /// Create an NSAP address from its binary encoding as a `Vec<u8>` without checking validity
     #[cfg(feature = "alloc")]
     pub fn from_vec_unchecked(octets: Vec<u8>) -> X213NetworkAddress<'static> {
         X213NetworkAddress::Heap(octets)
     }
 
+    /// Create an NSAP address from its binary encoding as a `Vec<u8>` after checking validity
     #[cfg(feature = "alloc")]
     pub fn from_vec(octets: Vec<u8>) -> Result<X213NetworkAddress<'static>, NAddressParseError> {
         validate_raw_nsap(octets.as_ref())?;
         Ok(X213NetworkAddress::Heap(octets))
     }
 
+    /// Create an NSAP address from its binary encoding as a `&[u8]` without checking validity
     pub fn from_slice_unchecked(octets: &'a [u8]) -> X213NetworkAddress<'a> {
         X213NetworkAddress::Borrowed(octets)
     }
 
+    /// Create an NSAP address from its binary encoding as a `&[u8]` after checking validity
     pub fn from_slice(octets: &'a [u8]) -> Result<X213NetworkAddress<'a>, NAddressParseError> {
         validate_raw_nsap(octets.as_ref())?;
         Ok(X213NetworkAddress::Borrowed(octets))
     }
 
+    /// Get network type info for this NSAP address
     #[inline]
     pub fn get_network_type_info(&self) -> Option<X213NetworkAddressInfo> {
         get_address_type_info(self.afi())
     }
 
+    /// Get the network type for this NSAP address
     #[inline]
     pub fn get_network_type(&self) -> Option<X213NetworkAddressType> {
         afi_to_network_type(self.afi())
     }
 
+    /// Iterate over the IDI digits for this NSAP address
+    ///
+    /// Returns `None` if the AFI is unrecognized, and therefore, that the
+    /// NSAP address cannot be parsed, since the end of the IDI cannot be
+    /// determined.
     pub fn idi_digits(&'a self) -> Option<BCDDigitsIter<'a>> {
         let addr_type_info = get_address_type_info(self.afi())?;
         let leading_0_sig = addr_type_info.leading_zeroes_in_idi;
@@ -190,6 +200,11 @@ impl<'a> X213NetworkAddress<'a> {
         ))
     }
 
+    /// Iterate over the IDI digits for this NSAP address, if the DSP is in decimal
+    ///
+    /// Returns `None` if the AFI is unrecognized, and therefore, that the
+    /// NSAP address cannot be parsed, since the end of the IDI cannot be
+    /// determined. Also returns `None` if the DSP syntax is not decimal.
     pub fn dsp_digits(&'a self) -> Option<BCDDigitsIter<'a>> {
         let addr_type_info = get_address_type_info(self.afi())?;
         let is_dsp_decimal = matches!(addr_type_info.dsp_syntax, DSPSyntax::Decimal);
