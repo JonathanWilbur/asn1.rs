@@ -65,3 +65,34 @@ pub const fn char_to_local_iso_iec_646_byte(c: char) -> Result<u8, ()> {
     let b: u8 = (tens << 4) + ones;
     Ok(b)
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::{
+        char_to_local_iso_iec_646_byte,
+        local_iso_iec_646_byte_to_char,
+    };
+
+    #[test]
+    fn test_char_to_local_iso_iec_646_byte() {
+        let b = char_to_local_iso_iec_646_byte('a').unwrap();
+        assert_eq!(b, 0x65);
+    }
+
+    #[test]
+    fn test_local_iso_iec_646_byte_to_char() {
+        let c = local_iso_iec_646_byte_to_char(0x65).unwrap();
+        assert_eq!(c, 'a');
+    }
+
+    #[test]
+    fn test_iso_iec_646_encode_decode() {
+        for c in ' '..='~' {
+            let encoded = char_to_local_iso_iec_646_byte(c).unwrap();
+            let decoded = local_iso_iec_646_byte_to_char(encoded).unwrap();
+            assert_eq!(decoded, c);
+        }
+    }
+
+}

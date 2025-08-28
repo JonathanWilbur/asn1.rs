@@ -25,11 +25,6 @@ impl BCDBuffer {
         bytes.iter().for_each(|b| self.push_digit_u8(*b));
     }
 
-    // pub fn push_digit_char(&mut self, c: char) {
-    //     debug_assert!(c.is_ascii_digit(), "non-ascii digit passed into BCDBuffer::push_digit_char");
-    //     self.push_digit_u8(c as u8)
-    // }
-
     pub fn push_digit_u8(&mut self, b: u8) {
         debug_assert!(b.is_ascii_digit(), "non-ascii digit passed into BCDBuffer::push_digit_u8");
         let nybble: u8 = b.saturating_sub(0x30);
@@ -47,6 +42,9 @@ impl BCDBuffer {
         self.i = self.i.clamp(0, 39);
     }
 
+    /// Push a full byte into the BCD buffer
+    ///
+    /// If the last nybble prior to pushing is unset, it stays unset at 0.
     pub fn push_byte(&mut self, byte: u8) {
         let byte_index = self.len_in_bytes();
         self.bytes[byte_index] = byte;
@@ -68,7 +66,7 @@ impl AsRef<[u8]> for BCDBuffer {
 
 }
 
-
+// TODO: Rename the fields of this
 /// BCD Digits Iterator
 #[derive(Debug, Clone)]
 pub struct BCDDigitsIter<'a> {
@@ -162,12 +160,33 @@ mod tests {
     #[test]
     fn test_bcd_buffer_1() {
         let mut bcd = BCDBuffer::new();
-        // bcd.push_digit_char('9');
-        bcd.push_digit_u8(0x39);
+        assert_eq!(bcd.len_in_bytes(), 0);
+        bcd.push_digit_u8(b'9');
+        assert_eq!(bcd.len_in_bytes(), 1);
         bcd.push_digit_u8(0x37);
+        assert_eq!(bcd.len_in_bytes(), 1);
         bcd.push_nybble(0x05);
+        assert_eq!(bcd.len_in_bytes(), 2);
         bcd.push_byte(0x33);
+        assert_eq!(bcd.len_in_bytes(), 3);
         assert_eq!(bcd.as_ref(), [ 0x97, 0x50, 0x33 ].as_slice());
+        assert_eq!(bcd.len_in_bytes(), 3);
+    }
+
+    #[test]
+    fn test_bcd_buffer_2() {
+        let mut bcd = BCDBuffer::new();
+        assert_eq!(bcd.len_in_bytes(), 0);
+        bcd.push_digit_u8(0x39);
+        assert_eq!(bcd.len_in_bytes(), 1);
+        bcd.push_ascii_bytes([0x37, 0x35].as_slice());
+        assert_eq!(bcd.len_in_bytes(), 2);
+        bcd.push_str("31");
+        assert_eq!(bcd.len_in_bytes(), 3);
+        bcd.push_nybble(0xF);
+        assert_eq!(bcd.len_in_bytes(), 3);
+        assert_eq!(bcd.as_ref(), [ 0x97, 0x53, 0x1F ].as_slice());
+        assert_eq!(bcd.len_in_bytes(), 3);
     }
 
 }

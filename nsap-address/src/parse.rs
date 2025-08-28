@@ -8,7 +8,7 @@ use core::net::Ipv4Addr;
 use core::net::Ipv6Addr;
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
-use crate::{X213NetworkAddress, DSPSyntax, AFI};
+use crate::{DSPSyntax, X213NetworkAddress, AFI};
 use crate::bcd::BCDBuffer;
 use crate::data::{
     get_address_type_info,
@@ -258,6 +258,9 @@ fn parse_decimal_dsp(mut bcd_buf: BCDBuffer, dsp: &str) -> ParseResult<'static> 
         return Err(RFC1278ParseError::Malformed);
     }
     bcd_buf.push_ascii_bytes(&dsp.as_bytes()[1..]);
+    if (bcd_buf.i % 2) > 0 {
+        bcd_buf.push_nybble(0x0F);
+    }
     let mut out: [u8; 22] = [0; 22];
     out[0..bcd_buf.len_in_bytes()].copy_from_slice(bcd_buf.as_ref());
     Ok(X213NetworkAddress::Inline((bcd_buf.len_in_bytes() as u8, out)))
@@ -618,7 +621,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
         idi_deficit -= 1;
     }
     bcd_buf.push_str(&second_part);
-    if (idi_len_digits % 2) > 0 {
+    if syntax != DSPSyntax::Decimal && (idi_len_digits % 2) > 0 {
         bcd_buf.push_nybble(0x0F);
     }
     if third_part.is_none() {
@@ -707,7 +710,7 @@ mod tests {
 
     use core::str::FromStr;
 
-    use crate::X213NetworkAddress;
+    use crate::{data::AFI_ISO_DCC_BIN, X213NetworkAddress};
     #[cfg(feature = "nonstd")]
     use crate::AFI_IANA_ICP_BIN;
 
@@ -796,6 +799,29 @@ mod tests {
             let actual = actual.unwrap();
             assert_eq!(expected, actual.get_octets(), "{}", case_str);
         }
+    }
+
+    #[test]
+    fn test_parse_too_long_idi() {
+        let input = "ICD+23452+x0824";
+        assert!(X213NetworkAddress::from_str(input).is_err());
+    }
+
+    #[test]
+    fn test_parse_idi_with_non_digits() {
+        let input = "ICD+23F3+x0824";
+        assert!(X213NetworkAddress::from_str(input).is_err());
+    }
+
+    #[test]
+    fn test_padding_nybble_1() {
+        let input = "DCC+840+x0824";
+        let addr = X213NetworkAddress::from_str(input).unwrap();
+        assert_eq!(addr.get_octets(), &[
+            AFI_ISO_DCC_BIN,
+            0x84, 0x0F,
+            0x08, 0x24,
+        ]);
     }
 
 }

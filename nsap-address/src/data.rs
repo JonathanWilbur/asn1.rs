@@ -516,3 +516,18 @@ pub const fn is_group_afi (afi: AFI) -> bool {
     let individual = group_afi_to_individual_afi(afi);
     afi != individual
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::get_address_type_info;
+
+    // This test is really just to make sure we don't panic.
+    #[test]
+    fn test_get_address_type_info() {
+        for i in 0..0xFFu8 {
+            let _ = get_address_type_info(i);
+        }
+    }
+
+}
