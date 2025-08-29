@@ -54,7 +54,8 @@ fn validate_digitstring(s: &str, max_len: usize) -> Result<(), RFC1278ParseError
 fn decode_afi_from_str(s: &str) -> Result<AFI, RFC1278ParseError> {
     debug_assert_eq!(s.len(), 2);
     let mut out: [u8; 1] = [0];
-    hex::decode_to_slice(s, out.as_mut_slice()).map_err(|_| RFC1278ParseError::Malformed)?;
+    faster_hex::hex_decode(s.as_bytes(), out.as_mut_slice())
+        .map_err(|_| RFC1278ParseError::Malformed)?;
     Ok(out[0])
 }
 
@@ -205,8 +206,10 @@ fn parse_ns_dsp(ns: &str) -> ParseResult<'static> {
     if len > 20 {
         #[cfg(feature = "alloc")]
         {
+            let mut hexbytes: Vec<u8> = Vec::with_capacity(len);
             // We want to tolerate any size, because this could encode a URL NSAP.
-            let hexbytes = hex::decode(ns).map_err(|_| RFC1278ParseError::Malformed)?;
+            faster_hex::hex_decode(ns.as_bytes(), &mut hexbytes)
+                .map_err(|_| RFC1278ParseError::Malformed)?;
             return Ok(X213NetworkAddress::Heap(hexbytes));
         }
         #[cfg(not(feature = "alloc"))]
@@ -215,7 +218,8 @@ fn parse_ns_dsp(ns: &str) -> ParseResult<'static> {
         }
     }
     let mut out: [u8; 22] = [0; 22];
-    hex::decode_to_slice(ns, &mut out[0..len]).map_err(|_| RFC1278ParseError::Malformed)?;
+    faster_hex::hex_decode(ns.as_bytes(), &mut out[0..len])
+        .map_err(|_| RFC1278ParseError::Malformed)?;
     return Ok(X213NetworkAddress::Inline((len as u8, out)));
 }
 
@@ -241,8 +245,9 @@ fn parse_hexadecimal_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
     if bcd_len + dsp_len > 20 {
         #[cfg(feature = "alloc")]
         {
-            let hexbytes =
-                hex::decode(&dsp.as_bytes()[1..]).map_err(|_| RFC1278ParseError::Malformed)?;
+            let mut hexbytes: Vec<u8> = Vec::with_capacity(dsp.len() - 1);
+            faster_hex::hex_decode(&dsp.as_bytes()[1..], &mut hexbytes)
+                .map_err(|_| RFC1278ParseError::Malformed)?;
             let out = [idp.as_ref(), hexbytes.as_ref()].concat();
             return Ok(X213NetworkAddress::Heap(out));
         }
@@ -253,7 +258,7 @@ fn parse_hexadecimal_dsp(idp: BCDBuffer, dsp: &str) -> ParseResult<'static> {
     }
     let mut out: [u8; 22] = [0; 22];
     out[0..bcd_len].copy_from_slice(idp.as_ref());
-    hex::decode_to_slice(&dsp.as_bytes()[1..], &mut out[bcd_len..bcd_len + dsp_len])
+    faster_hex::hex_decode(&dsp.as_bytes()[1..], &mut out[bcd_len..bcd_len + dsp_len])
         .map_err(|_| RFC1278ParseError::Malformed)?;
     Ok(X213NetworkAddress::Inline(((bcd_len + dsp_len) as u8, out)))
 }
@@ -326,7 +331,10 @@ fn parse_idp_and_dsp(idp: &str, dsp: &str, syntax: DSPSyntax) -> ParseResult<'st
     if len > 20 {
         #[cfg(feature = "alloc")]
         {
-            let hexbytes = hex::decode(dsp).map_err(|_| RFC1278ParseError::Malformed)?;
+            let mut hexbytes: Vec<u8> = Vec::with_capacity(dsp_len);
+            // We want to tolerate any size, because this could encode a URL NSAP.
+            faster_hex::hex_decode(dsp.as_bytes(), &mut hexbytes)
+                .map_err(|_| RFC1278ParseError::Malformed)?;
             return Ok(X213NetworkAddress::Heap(hexbytes));
         }
         #[cfg(not(feature = "alloc"))]
@@ -336,7 +344,7 @@ fn parse_idp_and_dsp(idp: &str, dsp: &str, syntax: DSPSyntax) -> ParseResult<'st
     }
     let mut out: [u8; 22] = [0; 22];
     out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
-    hex::decode_to_slice(dsp, &mut out[bcd_len..bcd_len + dsp_len])
+    faster_hex::hex_decode(dsp.as_bytes(), &mut out[bcd_len..bcd_len + dsp_len])
         .map_err(|_| RFC1278ParseError::Malformed)?;
     return Ok(X213NetworkAddress::Inline((len as u8, out)));
 }
@@ -424,7 +432,7 @@ fn parse_x25_dsp(
             return Err(RFC1278ParseError::Malformed);
         }
         let bytelen = hexstr.len() >> 1;
-        hex::decode_to_slice(hexstr, &mut hexout[0..bytelen])
+        faster_hex::hex_decode(hexstr, &mut hexout[0..bytelen])
             .map_err(|_| RFC1278ParseError::Malformed)?;
         // This is the CUDF/PID length field
         bcd_buf.push_digit_u8(bytelen as u8 + 0x30);
@@ -459,12 +467,12 @@ fn parse_ecma117_binary_dsp(
     let bcd_len = bcd_buf.len_in_bytes();
     let mut out: [u8; 22] = [0; 22];
     out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
-    hex::decode_to_slice(d1, &mut out[bcd_len..bcd_len + 2])
+    faster_hex::hex_decode(d1, &mut out[bcd_len..bcd_len + 2])
         .map_err(|_| RFC1278ParseError::Malformed)?;
     let d2len = d2.len() >> 1;
-    hex::decode_to_slice(d2, &mut out[bcd_len + 2..bcd_len + 2 + d2len])
+    faster_hex::hex_decode(d2, &mut out[bcd_len + 2..bcd_len + 2 + d2len])
         .map_err(|_| RFC1278ParseError::Malformed)?;
-    hex::decode_to_slice(d3, &mut out[bcd_len + 2 + d2len..bcd_len + 2 + d2len + 1])
+    faster_hex::hex_decode(d3, &mut out[bcd_len + 2 + d2len..bcd_len + 2 + d2len + 1])
         .map_err(|_| RFC1278ParseError::Malformed)?;
     Ok(X213NetworkAddress::Inline((
         (bcd_len + 2 + d2len + 1) as u8,

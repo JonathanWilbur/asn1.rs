@@ -14,7 +14,7 @@ keywords = ["nsap", "x213", "osi"]
 categories = ["network-programming", "no-std"]
 
 [dependencies]
-hex = "0.4.3"
+faster-hex = "0.10.0"
 
 [features]
 default = ["alloc"]

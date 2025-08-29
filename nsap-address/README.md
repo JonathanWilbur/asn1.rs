@@ -141,7 +141,7 @@ crate's author.
 
 ## To Do
 
-- [ ] Use `faster_hex` instead
+- [x] Use `faster_hex` instead
 - [x] Other socket address encoding functions
 - [x] Remaining TODO / FIXME
 - [x] Re-name things?

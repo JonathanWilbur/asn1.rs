@@ -508,7 +508,15 @@ impl<'a> X213NetworkAddress<'a> {
     /// The output looks like `NS+A433BB93C1`.
     #[cfg(feature = "alloc")]
     pub fn to_ns_string(&self) -> String {
-        ["NS+", hex::encode(self.get_octets()).as_str()].join("")
+        let octets = self.get_octets();
+        let len = 3 + (octets.len() << 1);
+        let mut out: Vec<u8> = Vec::with_capacity(len);
+        out.extend(b"NS+");
+        // Just so we don't zero the vec only to write over it all again.
+        unsafe { out.set_len(len); }
+        faster_hex::hex_encode(octets, &mut out[3..])
+            .expect("hex output buffer mis-sized");
+        unsafe { String::from_utf8_unchecked(out) }
     }
 
     /// Display using the `NS+<hex>` syntax
