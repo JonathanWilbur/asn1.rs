@@ -141,9 +141,9 @@ crate's author.
 
 ## To Do
 
-- [ ] One last format
-- [ ] One last test and fuzz testing
-- [ ] Build with stable
+- [x] One last format
+- [x] One last test and fuzz testing
+- [x] Build with stable
 
 ## To Do (Future)
 

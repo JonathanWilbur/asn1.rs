@@ -12,12 +12,13 @@ repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/nsap-address
 license = "MIT"
 keywords = ["nsap", "x213", "osi"]
 categories = ["network-programming", "no-std"]
+rust-version = "1.89"
 
 [dependencies]
-faster-hex = "0.10.0"
+faster-hex = { version = "0.10.0", default-features = false }
 
 [features]
-default = ["alloc"]
+default = ["alloc", "x25", "ecma117", "nonstd", "nonstddisplay"]
 alloc = []
 x25 = []
 ecma117 = []

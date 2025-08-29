@@ -688,8 +688,6 @@ mod tests {
     use super::X213NetworkAddress;
 
     use super::data::AFI_F69_DEC_LEADING_ZERO;
-    #[cfg(feature = "nonstddisplay")]
-    use super::data::AFI_IANA_ICP_BIN;
 
     #[test]
     fn test_display_01() {

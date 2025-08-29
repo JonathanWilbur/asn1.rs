@@ -432,7 +432,7 @@ fn parse_x25_dsp(
             return Err(RFC1278ParseError::Malformed);
         }
         let bytelen = hexstr.len() >> 1;
-        faster_hex::hex_decode(hexstr, &mut hexout[0..bytelen])
+        faster_hex::hex_decode(hexstr.as_bytes(), &mut hexout[0..bytelen])
             .map_err(|_| RFC1278ParseError::Malformed)?;
         // This is the CUDF/PID length field
         bcd_buf.push_digit_u8(bytelen as u8 + 0x30);
@@ -467,12 +467,12 @@ fn parse_ecma117_binary_dsp(
     let bcd_len = bcd_buf.len_in_bytes();
     let mut out: [u8; 22] = [0; 22];
     out[0..bcd_len].copy_from_slice(bcd_buf.as_ref());
-    faster_hex::hex_decode(d1, &mut out[bcd_len..bcd_len + 2])
+    faster_hex::hex_decode(d1.as_bytes(), &mut out[bcd_len..bcd_len + 2])
         .map_err(|_| RFC1278ParseError::Malformed)?;
     let d2len = d2.len() >> 1;
-    faster_hex::hex_decode(d2, &mut out[bcd_len + 2..bcd_len + 2 + d2len])
+    faster_hex::hex_decode(d2.as_bytes(), &mut out[bcd_len + 2..bcd_len + 2 + d2len])
         .map_err(|_| RFC1278ParseError::Malformed)?;
-    faster_hex::hex_decode(d3, &mut out[bcd_len + 2 + d2len..bcd_len + 2 + d2len + 1])
+    faster_hex::hex_decode(d3.as_bytes(), &mut out[bcd_len + 2 + d2len..bcd_len + 2 + d2len + 1])
         .map_err(|_| RFC1278ParseError::Malformed)?;
     Ok(X213NetworkAddress::Inline((
         (bcd_len + 2 + d2len + 1) as u8,
@@ -526,9 +526,6 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     #[cfg(feature = "nonstd")]
     if first_part == AFI_STR_URL {
         validate_digitstring(second_part, 4)?;
-        if parts.next().is_some() {
-            return Err(RFC1278ParseError::Malformed);
-        }
         let url = &s[5 + second_part.len()..];
         return parse_url(second_part, url);
     }
