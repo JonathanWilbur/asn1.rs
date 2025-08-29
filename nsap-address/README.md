@@ -74,7 +74,11 @@ networking, above and beyond those already named, which are:
 
 - `X213NetworkAddress::get_url()`
 - `X213NetworkAddress::get_ip()`
-- `X213NetworkAddress::get_itot_socket_addr()`
+- `X213NetworkAddress::get_rfc1277_socket()`
+
+In a TCP/IP only environment, you'll likely want to invoke all three of these
+methods until one of them returns a result, then perform the appropriate
+connection setup.
 
 Here is an example usage of this crate:
 
@@ -82,13 +86,13 @@ Here is an example usage of this crate:
 extern crate alloc;
 use alloc::vec::Vec;
 use nsap_address::X213NetworkAddress;
-use nsap_address::data::AFI_F69_DEC_LEADING_ZERO;
+use nsap_address::AFI_F69_DEC_LEADING_ZERO;
 use core::net::{IpAddr, Ipv4Addr};
 use core::str::FromStr;
 
 let addrstr = "TELEX+00728722+RFC-1006+03+255.0.0.2+65535+2";
 let addr = X213NetworkAddress::from_str(addrstr).unwrap();
-let sock = addr.get_itot_socket_addr().unwrap();
+let (_, sock, _) = addr.get_rfc1277_socket().unwrap();
 assert_eq!(sock.ip(), &Ipv4Addr::new(255, 0, 0, 2));
 assert_eq!(sock.port(), 65535);
 let idi_digits: Vec<u8> = addr.idi_digits().unwrap().collect();
@@ -138,10 +142,12 @@ crate's author.
 ## To Do
 
 - [ ] Use `faster_hex` instead
-- [ ] Other socket address encoding functions
-- [ ] Remaining TODO / FIXME
-- [ ] Re-name things?
+- [x] Other socket address encoding functions
+- [x] Remaining TODO / FIXME
+- [x] Re-name things?
 - [ ] One last format
+- [ ] One last test and fuzz testing
+- [ ] Build with stable
 - [ ] likely / unlikely
 - [x] Readme Documentation
 

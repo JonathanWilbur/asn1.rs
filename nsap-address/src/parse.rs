@@ -15,7 +15,7 @@ use crate::data::{
     AFI_LOCAL_DEC, AFI_LOCAL_ISO_IEC_646, AFI_LOCAL_NATIONAL, AFI_URL,
     AFI_X121_BIN_LEADING_NON_ZERO, AFI_X121_BIN_LEADING_ZERO, AFI_X121_DEC_LEADING_NON_ZERO,
     AFI_X121_DEC_LEADING_ZERO, ECMA_117_BINARY_STR, IETF_RFC_1006_PREFIX_STR,
-    get_address_type_info,
+    get_nsap_address_schema,
 };
 #[cfg(feature = "nonstd")]
 use crate::data::{
@@ -74,7 +74,7 @@ fn decode_idp_only<'a>(s: &'a str) -> Result<X213NetworkAddress<'static>, RFC127
     let afi = decode_afi_from_str(&s[0..2])?;
     // If the schema is not known, we cannot construct an NSAP,
     // because we don't know how long the IDI is.
-    let schema = get_address_type_info(afi).ok_or(RFC1278ParseError::UnrecognizedAFI)?;
+    let schema = get_nsap_address_schema(afi).ok_or(RFC1278ParseError::UnrecognizedAFI)?;
     let idi_len_digits = schema.max_idi_len_digits as usize;
     let mut bcd_buf = BCDBuffer::new();
     bcd_buf.push_byte(afi);
@@ -298,7 +298,7 @@ fn parse_idp_and_dsp(idp: &str, dsp: &str, syntax: DSPSyntax) -> ParseResult<'st
         return Err(RFC1278ParseError::Malformed);
     }
     let afi = decode_afi_from_str(&idp[0..2])?;
-    let schema = get_address_type_info(afi).ok_or(RFC1278ParseError::UnrecognizedAFI)?;
+    let schema = get_nsap_address_schema(afi).ok_or(RFC1278ParseError::UnrecognizedAFI)?;
     let idi_len_digits: usize = schema.max_idi_len_digits as usize;
     if (idi_len_digits % 2) > 0 && syntax == DSPSyntax::Decimal {
         /* In the encoding specified in ITU-T Rec. X.213, Section A.7, it
@@ -568,7 +568,7 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     }
     let afi = maybe_afi.unwrap();
     // This MUST be <afi> "+" <idi> [ "+" <dsp> ] syntax.
-    let schema = get_address_type_info(afi).ok_or(RFC1278ParseError::UnrecognizedAFI)?;
+    let schema = get_nsap_address_schema(afi).ok_or(RFC1278ParseError::UnrecognizedAFI)?;
     let idi_len_digits: usize = schema.max_idi_len_digits as usize;
     if second_part.len() > idi_len_digits || !second_part.bytes().all(|b| b.is_ascii_digit()) {
         return Err(RFC1278ParseError::Malformed);

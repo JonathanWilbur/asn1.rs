@@ -249,7 +249,6 @@ pub const AFI_STR_LOCAL: &str = "LOCAL";
 /// Not-standard AFI string for ITU-T Rec. X.519 URL-based addressing
 pub const AFI_STR_URL: &str = "URL";
 
-// TODO: Review if these are used.
 /// IETF RFC 1277 Telex / F.69 number for non-OSI networks
 pub const IETF_RFC_1277_TELEX_NUMBER_STR: &str = "00728722";
 /// IETF RFC 1278 DSP string for ISO Transport over TCP (ITOT)
@@ -282,19 +281,6 @@ pub const RFC_1277_PREFIX: [u8; 5] = [
     0x72,
     0x87,
     0x22, // IDI
-];
-
-// FIXME: Get rid of this
-/// This is exported for convenience, since the Internet is most likely to be
-/// used in NSAPs now. If an application only wants / can use Internet NSAPs,
-/// the NSAPs could be checked to see if they begin with this sequence.
-pub const INTERNET_PREFIX: [u8; 6] = [
-    AFI_F69_DEC_LEADING_ZERO, // AFI
-    0x00,
-    0x72,
-    0x87,
-    0x22, // IDI
-    0x03, // The DSP prefix "03"
 ];
 
 /// Maps group AFIs to individual ones per Table A.2 in ITU-T Rec. X.213
@@ -618,11 +604,10 @@ const AFI_INFO: [Option<X213NetworkAddressInfo>; 45] = [
     None, // 78
 ];
 
-// TODO: Rename to get_nsap_schema()
 /// Get information about the NSAP syntax and network type by AFI
 ///
 /// Returns `None` if the AFI is unrecognized.
-pub const fn get_address_type_info(afi: AFI) -> Option<X213NetworkAddressInfo> {
+pub const fn get_nsap_address_schema(afi: AFI) -> Option<X213NetworkAddressInfo> {
     if afi == 0xFF {
         return Some(X213NetworkAddressInfo {
             network_type: X213NetworkAddressType::URL,
@@ -646,7 +631,7 @@ pub const fn get_address_type_info(afi: AFI) -> Option<X213NetworkAddressInfo> {
 /// Return get the N-address network type from the AFI
 #[inline]
 pub const fn afi_to_network_type(afi: AFI) -> Option<X213NetworkAddressType> {
-    match get_address_type_info(afi) {
+    match get_nsap_address_schema(afi) {
         Some(info) => Some(info.network_type),
         None => None,
     }
@@ -667,13 +652,13 @@ pub const fn is_group_afi(afi: AFI) -> bool {
 #[cfg(test)]
 mod tests {
 
-    use super::get_address_type_info;
+    use super::get_nsap_address_schema;
 
     // This test is really just to make sure we don't panic.
     #[test]
-    fn test_get_address_type_info() {
+    fn test_get_nsap_address_schema() {
         for i in 0..0xFFu8 {
-            let _ = get_address_type_info(i);
+            let _ = get_nsap_address_schema(i);
         }
     }
 }

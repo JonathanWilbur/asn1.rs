@@ -1,20 +1,18 @@
 #![doc = include_str!("../README.md")]
 #![no_std]
 #![allow(non_camel_case_types)]
-pub mod bcd;
-pub mod data;
+mod bcd;
+mod data;
 mod display;
-pub mod error;
-pub mod isoiec646;
+mod error;
+mod isoiec646;
 mod parse;
 mod utils;
-use crate::bcd::{BCDBuffer, BCDDigitsIter};
-use crate::data::{
-    AFI_IANA_ICP_BIN, AFI_URL, INTERNET_PREFIX, RFC_1277_PREFIX, X213NetworkAddressInfo,
-    afi_to_network_type, get_address_type_info,
-};
+pub use data::*;
+pub use bcd::*;
+pub use error::*;
+pub use isoiec646::*;
 use crate::display::{fmt_naddr, fmt_naddr_type};
-use crate::error::{NAddressParseError, RFC1278ParseError};
 use crate::parse::parse_nsap;
 use crate::utils::{u8_to_decimal_bytes, u16_to_decimal_bytes};
 use core::convert::TryFrom;
@@ -32,30 +30,114 @@ use alloc::vec::Vec;
 /// Authority and Format Identifier (AFI): part of an NSAP address
 pub type AFI = u8;
 
-const DEFAULT_ITOT_PORT: u16 = 102;
+/// Network identifier, encoded as Binary-Coded Decimal (BCD), per IETF RFC 1277
+pub type Rfc1277NetworkId = u8;
+
+/// Transport set, per IETF RFC 1277
+pub type Rfc1277TransportSet = u16;
+
+/// The default ISO Transport over TCP transport set (t-set) per IETF RFC 1277
+pub const DEFAULT_ITOT_TRANSPORT_SET: Rfc1277TransportSet = 1;
+
+/// Socket information, per IETF RFC 1277
+pub type Rfc1277SocketInfo = (Rfc1277NetworkId, SocketAddrV4, Rfc1277TransportSet);
 
 /// X.213 NSAP Domain-Specific Part Syntax
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DSPSyntax {
+    /// Binary-Coded Decimal (BCD) with 0b1111 used as padding to produce an
+    /// integral number of octets
     Decimal,
+    /// Opaque binary encoding
     Binary,
+    /// ISO/IEC 646 characters, which is basically ASCII
     IsoIec646Chars,
+    /// Characters from a national character set
     NationalChars,
 }
 
 /// X.213 NSAP network address type
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub enum X213NetworkAddressType {
+    /// IDI based on ITU-T Recommendation X.121 address for use in X.25 Networks
+    ///
+    /// Quoting ITU-T Recommendation X.213 (2001):
+    ///
+    /// > The IDI consists of an international public data network number of up
+    /// > to 14 digits allocated according to ITU-T Rec. X.121, commencing with
+    /// > the Data Network Identification Code. The full X.121 number
+    /// > identifies an authority responsible for allocating and assigning
+    /// > values of the DSP.
+    ///
+    /// See: <https://www.itu.int/rec/T-REC-X.121-200010-I/en>
     X121,
+    /// IDI based on International Organization for Standardization (ISO) Data Country Code (DCC)
+    ///
+    /// Quoting / Paraphrasing ITU-T Recommendation X.213 (2001):
+    ///
+    /// The IDI consists of a fixed length 3-digit numeric code allocated
+    /// according to ISO 3166-1. The DSP is allocated and assigned by the ISO
+    /// member body or sponsored organization to which the ISO DCC value has
+    /// been assigned, or by an organization designated by the holder of the
+    /// ISO DCC value to carry out this responsibility.
+    ///
+    /// See: <https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes>
     ISO_DCC,
+    /// IDI based on ITU-T Recommendation F.69 address for use in Telex
+    ///
+    /// Quoting ITU-T Recommendation X.213 (2001):
+    ///
+    /// > The IDI consists of a telex number of up to 8 digits, allocated
+    /// > according to ITU-T Rec. F.69, commencing with a 2- or
+    /// > 3-digit destination code. The full telex number identifies an
+    /// > authority responsible for allocating and assigning values of the DSP.
+    ///
+    /// A particular IDI for this network type is used to provide a namespace
+    /// for IP networking within NSAP addressing: `00728722`. Its usage is
+    /// described in IETF RFC
+    ///
+    /// See: <https://www.itu.int/rec/T-REC-F.69-199406-I/en>
     F69,
+    /// IDI based on ITU-T Rec. E.163 address for use in the PSTN
+    ///
+    /// This is a phone number. This network type was deprecated at or before
+    /// 2001 and you should use E.164 addressing instead.
+    ///
+    /// See: <https://www.itu.int/rec/T-REC-E.163/en>
     E163,
+    /// IDI based on ITU-T Rec. E.164 address for use in the ISDN
+    ///
+    /// This is a phone number.
+    ///
+    /// Quoting ITU-T Recommendation X.213 (2001):
+    ///
+    /// > The IDI consists of an international public telecommunication
+    /// > numbering plan number of up to 15 digits allocated
+    /// > according to ITU-T Rec. E.164, commencing with the E.164
+    /// > international number country code. The full E.164 number
+    /// > identifies an authority responsible for allocating and assigning
+    /// > values of the DSP.
+    ///
+    /// See: <https://www.itu.int/rec/T-REC-E.164/en>
     E164,
+    /// IDI is an assigned ISO/IEC 6523-1 International Code Designator (ICD)
     ISO_6523_ICD,
+    /// IPv4 or IPv6 address, depending on the IDI, which is assigned by IANA
+    ///
+    /// For either version, the IP address is encoded in binary format, and
+    /// padded with zeroes to be exactly 20 bytes in total, after the AFI and
+    /// IDI (which identifies the version).
+    ///
+    /// See: <https://www.rfc-editor.org/rfc/rfc4548.html>
     IANA_ICP,
+    /// International Network Designator (IND)
     ITU_T_IND,
+    /// Locally-assigned DSP
     LOCAL,
-    URL, // Defined (without a name) in ITU-T Rec. X.519.
+    /// Special URL encoding defined (without a name) in ITU-T Rec. X.519.
+    ///
+    /// See: <https://www.itu.int/rec/T-REC-X.519>, Section 11.4
+    URL,
 }
 
 impl Display for X213NetworkAddressType {
@@ -109,12 +191,15 @@ impl TryFrom<AFI> for X213NetworkAddressType {
 ///
 #[derive(Debug)]
 pub enum X213NetworkAddress<'a> {
+    /// Allocation on the heap
     #[cfg(feature = "alloc")]
     Heap(Vec<u8>),
+    /// Allocation on the stack
     /// Even though NSAPs are capped at 20 bytes, this inline buffer accepts up
     /// to 22 just so that programming errors are less likely to result in
     /// reading out-of-bounds.
     Inline((u8, [u8; 22])),
+    /// Reference to an existing allocation
     Borrowed(&'a [u8]),
 }
 
@@ -168,7 +253,7 @@ impl<'a> X213NetworkAddress<'a> {
     /// Get network type info for this NSAP address
     #[inline]
     pub fn get_network_type_info(&self) -> Option<X213NetworkAddressInfo> {
-        get_address_type_info(self.afi())
+        get_nsap_address_schema(self.afi())
     }
 
     /// Get the network type for this NSAP address
@@ -183,7 +268,7 @@ impl<'a> X213NetworkAddress<'a> {
     /// NSAP address cannot be parsed, since the end of the IDI cannot be
     /// determined.
     pub fn idi_digits(&'a self) -> Option<BCDDigitsIter<'a>> {
-        let addr_type_info = get_address_type_info(self.afi())?;
+        let addr_type_info = get_nsap_address_schema(self.afi())?;
         let leading_0_sig = addr_type_info.leading_zeroes_in_idi;
         let is_dsp_decimal = matches!(addr_type_info.dsp_syntax, DSPSyntax::Decimal);
         let idi_len = addr_type_info.max_idi_len_digits as usize;
@@ -206,7 +291,7 @@ impl<'a> X213NetworkAddress<'a> {
     /// NSAP address cannot be parsed, since the end of the IDI cannot be
     /// determined. Also returns `None` if the DSP syntax is not decimal.
     pub fn dsp_digits(&'a self) -> Option<BCDDigitsIter<'a>> {
-        let addr_type_info = get_address_type_info(self.afi())?;
+        let addr_type_info = get_nsap_address_schema(self.afi())?;
         let is_dsp_decimal = matches!(addr_type_info.dsp_syntax, DSPSyntax::Decimal);
         if !is_dsp_decimal {
             return None;
@@ -276,15 +361,19 @@ impl<'a> X213NetworkAddress<'a> {
         }
     }
 
-    /// Get the ISO Transport over TCP (ITOT) socket address
+    /// Get the RFC 1277 socket address info
+    ///
+    /// Specifically, if this returns `Some(_)`, it contains a tuple of the
+    /// IP network, the socket address, and optionally, the transport-set, as
+    /// defined in IETF RFC 1277, in that order.
     ///
     /// This returns `None` if this NSAP does not encode an ITOT socket address
-    pub fn get_itot_socket_addr(&self) -> Option<SocketAddrV4> {
+    pub fn get_rfc1277_socket(&self) -> Option<Rfc1277SocketInfo> {
         let octets = self.get_octets();
-        if !octets.starts_with(INTERNET_PREFIX.as_slice()) {
+        if !octets.starts_with(RFC_1277_PREFIX.as_slice()) {
             return None;
         }
-        let dsp = &octets[INTERNET_PREFIX.len()..];
+        let dsp = &octets[RFC_1277_PREFIX.len() + 1..];
         if dsp.len() < 6 {
             return None;
         }
@@ -303,7 +392,7 @@ impl<'a> X213NetworkAddress<'a> {
         let oct4: u8 = oct4str.parse().ok()?;
         let ip = Ipv4Addr::new(oct1, oct2, oct3, oct4);
         if dsp.len() < 9 {
-            return Some(SocketAddrV4::new(ip, DEFAULT_ITOT_PORT));
+            return Some((octets[5], SocketAddrV4::new(ip, ITOT_OVER_IPV4_DEFAULT_PORT), DEFAULT_ITOT_TRANSPORT_SET));
         }
         let portstr = [
             bcd.next()? + 0x30,
@@ -314,7 +403,19 @@ impl<'a> X213NetworkAddress<'a> {
         ];
         let portstr = unsafe { str::from_utf8_unchecked(portstr.as_slice()) };
         let port: u16 = portstr.parse().ok()?;
-        Some(SocketAddrV4::new(ip, port))
+        if dsp.len() < 11 {
+            return Some((octets[5], SocketAddrV4::new(ip, ITOT_OVER_IPV4_DEFAULT_PORT), DEFAULT_ITOT_TRANSPORT_SET));
+        }
+        let tsetstr = [
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+            bcd.next()? + 0x30,
+        ];
+        let tsetstr = unsafe { str::from_utf8_unchecked(tsetstr.as_slice()) };
+        let tset: Rfc1277TransportSet = tsetstr.parse().ok()?;
+        Some((octets[5], SocketAddrV4::new(ip, port), tset))
     }
 
     /// Create a new IANA ICP NSAP address from an IP address
@@ -364,9 +465,14 @@ impl<'a> X213NetworkAddress<'a> {
     /// Create an ITOT NSAP address from a socket address and optional transport set
     ///
     /// Note that this only supports IPv4 due to the encoding.
-    pub fn from_itot_socket_addr(addr: &SocketAddrV4, tset: Option<u16>) -> Self {
+    pub fn from_socket_addr_v4(
+        network: u8,
+        addr: &SocketAddrV4,
+        tset: Option<u16>
+    ) -> Self {
         let mut out: [u8; 22] = [0; 22];
-        out[0..6].copy_from_slice(INTERNET_PREFIX.as_slice());
+        out[0..5].copy_from_slice(RFC_1277_PREFIX.as_slice());
+        out[5] = network;
         let mut bcd_buf = BCDBuffer::new();
         addr.ip()
             .octets()
@@ -374,7 +480,8 @@ impl<'a> X213NetworkAddress<'a> {
             .iter()
             .for_each(|dec_oct| bcd_buf.push_ascii_bytes(dec_oct.as_slice()));
         let port = addr.port();
-        if port != DEFAULT_ITOT_PORT || tset.is_some_and(|t| t != DEFAULT_ITOT_TRANSPORT_SET) {
+        if port != ITOT_OVER_IPV4_DEFAULT_PORT
+            || tset.is_some_and(|t| t != DEFAULT_ITOT_TRANSPORT_SET) {
             let port_str = u16_to_decimal_bytes(port);
             bcd_buf.push_ascii_bytes(port_str.as_slice());
             if let Some(tset) = tset {
@@ -537,8 +644,6 @@ impl<'a> From<&Ipv6Addr> for X213NetworkAddress<'a> {
     }
 }
 
-const DEFAULT_ITOT_TRANSPORT_SET: u16 = 1;
-
 impl<'a> Display for X213NetworkAddress<'a> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         fmt_naddr(self, f)
@@ -558,7 +663,7 @@ impl<'a> FromStr for X213NetworkAddress<'a> {
 mod tests {
 
     extern crate alloc;
-    use crate::data::{AFI_IANA_ICP_BIN, AFI_ISO_DCC_DEC, AFI_X121_DEC_LEADING_ZERO};
+    use crate::data::{AFI_IANA_ICP_BIN, AFI_ISO_DCC_DEC, AFI_X121_DEC_LEADING_ZERO, RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET};
     use alloc::string::ToString;
     use alloc::vec::Vec;
     use core::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4};
@@ -646,7 +751,11 @@ mod tests {
     #[test]
     fn test_from_itot_socket_addr() {
         let sock = SocketAddrV4::from_str("192.168.1.100:8000").unwrap();
-        let addr = X213NetworkAddress::from_itot_socket_addr(&sock, None);
+        let addr = X213NetworkAddress::from_socket_addr_v4(
+            RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET,
+            &sock,
+            None,
+        );
         // assert_eq!(addr, "https://wildboarsoftware.com/x500directory");
         assert_eq!(
             addr.get_octets(),
@@ -707,7 +816,7 @@ mod tests {
     fn test_get_itot_socket_adder() {
         let input = "TELEX+00728722+RFC-1006+03+255.0.0.2+65535+2";
         let addr = X213NetworkAddress::from_str(input).unwrap();
-        let sock = addr.get_itot_socket_addr().unwrap();
+        let (_, sock, _) = addr.get_rfc1277_socket().unwrap();
         assert_eq!(sock.ip(), &Ipv4Addr::new(255, 0, 0, 2));
         assert_eq!(sock.port(), 65535);
     }

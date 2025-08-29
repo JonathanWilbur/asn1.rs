@@ -1,9 +1,10 @@
 //! Code to implement std::fmt::Display for NSAP addresses
+use crate::DEFAULT_ITOT_TRANSPORT_SET;
 #[cfg(feature = "nonstddisplay")]
 use crate::data::{AFI_IANA_ICP_BIN, AFI_URL, IANA_ICP_IDI_IPV4, IANA_ICP_IDI_IPV6};
 use crate::data::{
-    AFI_STR_DCC, AFI_STR_ICD, AFI_STR_ICP, AFI_STR_IND, AFI_STR_ISDN, AFI_STR_LOCAL, AFI_STR_PSTN,
-    AFI_STR_TELEX, AFI_STR_URL, AFI_STR_X121, INTERNET_PREFIX, is_group_afi,
+    is_group_afi, AFI_STR_DCC, AFI_STR_ICD, AFI_STR_ICP, AFI_STR_IND, AFI_STR_ISDN, AFI_STR_LOCAL, AFI_STR_PSTN, AFI_STR_TELEX, AFI_STR_URL, AFI_STR_X121, ITU_X519_DSP_PREFIX_IDM_OVER_IPV4, ITU_X519_DSP_PREFIX_LDAP, RFC_1277_PREFIX, RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET,
+    ITOT_OVER_IPV4_DEFAULT_PORT,
 };
 use crate::isoiec646::local_iso_iec_646_byte_to_char;
 use crate::{DSPSyntax, X213NetworkAddress, X213NetworkAddressType};
@@ -12,7 +13,6 @@ use core::net::Ipv4Addr;
 #[cfg(feature = "nonstddisplay")]
 use core::net::Ipv6Addr;
 
-const DEFAULT_ITOT_PORT: u16 = 102;
 
 /// Convert the network type to a string
 #[inline]
@@ -61,8 +61,6 @@ fn ipv4_from_slice(bytes: &[u8]) -> Option<Ipv4Addr> {
     Some(Ipv4Addr::new(oct1, oct2, oct3, oct4))
 }
 
-const DEFAULT_ITOT_TRANSPORT_SET: u16 = 1;
-
 pub(crate) fn fmt_naddr(
     naddr: &X213NetworkAddress<'_>,
     f: &mut core::fmt::Formatter<'_>,
@@ -95,19 +93,26 @@ pub(crate) fn fmt_naddr(
             return write!(f, "IP4+{}", ip);
         }
     }
-    if octets.starts_with(INTERNET_PREFIX.as_slice()) && octets.len() >= INTERNET_PREFIX.len() + 6 {
-        let ip_and_stuff = &octets[INTERNET_PREFIX.len()..];
+    let is_rfc1278_ip: bool = octets.starts_with(RFC_1277_PREFIX.as_slice())
+        && octets.len() >= RFC_1277_PREFIX.len() + 7
+        && matches!(octets[5],
+            RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET
+            | ITU_X519_DSP_PREFIX_IDM_OVER_IPV4
+            | ITU_X519_DSP_PREFIX_LDAP
+        );
+    if is_rfc1278_ip {
+        let ip_and_stuff = &octets[RFC_1277_PREFIX.len()+1..];
         let ip = ipv4_from_slice(&ip_and_stuff[0..6]);
-        let port: u32 = if octets.len() >= INTERNET_PREFIX.len() + 6 + 3 {
+        let port: u32 = if octets.len() >= RFC_1277_PREFIX.len() + 1 + 6 + 3 {
             (((ip_and_stuff[6] & 0xF0) >> 4) as u32 * 10000)
                 + (((ip_and_stuff[6] & 0x0F) >> 0) as u32 * 1000)
                 + (((ip_and_stuff[7] & 0xF0) >> 4) as u32 * 100)
                 + (((ip_and_stuff[7] & 0x0F) >> 0) as u32 * 10)
                 + (((ip_and_stuff[8] & 0xF0) >> 4) as u32 * 1)
         } else {
-            DEFAULT_ITOT_PORT as u32
+            ITOT_OVER_IPV4_DEFAULT_PORT as u32
         };
-        let tset: u32 = if octets.len() >= INTERNET_PREFIX.len() + 6 + 5 {
+        let tset: u32 = if octets.len() >= RFC_1277_PREFIX.len() + 1 + 6 + 5 {
             (((ip_and_stuff[8] & 0x0F) >> 0) as u32 * 10000)
                 + (((ip_and_stuff[9] & 0xF0) >> 4) as u32 * 1000)
                 + (((ip_and_stuff[9] & 0x0F) >> 0) as u32 * 100)
@@ -120,7 +125,7 @@ pub(crate) fn fmt_naddr(
         let tset: u16 = tset.try_into().unwrap_or(DEFAULT_ITOT_TRANSPORT_SET);
         if let Some(ip) = ip {
             write!(f, "TELEX+00728722+RFC-1006+03+{}", ip)?;
-            if port != DEFAULT_ITOT_PORT {
+            if port != ITOT_OVER_IPV4_DEFAULT_PORT {
                 write!(f, "+{}", port)?;
             }
             if tset != DEFAULT_ITOT_TRANSPORT_SET {

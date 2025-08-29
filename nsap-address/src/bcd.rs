@@ -106,11 +106,10 @@ impl AsRef<[u8]> for BCDBuffer {
     }
 }
 
-// TODO: Rename the fields of this
 /// BCD Digits Iterator
 #[derive(Debug, Clone)]
 pub struct BCDDigitsIter<'a> {
-    idi: &'a [u8],
+    bytes: &'a [u8],
     least_sig_nybble: bool,
     leading_0_sig: bool,
     processing_leading_digits: bool,
@@ -122,14 +121,14 @@ impl<'a> BCDDigitsIter<'a> {
     /// Create a new BCD digits iterator
     #[inline]
     pub fn new(
-        idi: &'a [u8],
+        bytes: &'a [u8],
         leading_0_sig: bool,
         ignore_last_nybble: bool,
         least_sig_nybble: bool,
         processing_leading_digits: bool,
     ) -> BCDDigitsIter<'a> {
         BCDDigitsIter {
-            idi,
+            bytes,
             leading_0_sig,
             ignore_last_nybble,
             processing_leading_digits, // Start off handling leading digits
@@ -150,15 +149,15 @@ impl<'a> Iterator for BCDDigitsIter<'a> {
     /// This implementation does NOT handle malformed digits. The caller MUST
     /// check for non-ASCII digits being returned
     fn next(&mut self) -> Option<Self::Item> {
-        while self.idi.len() > 0 {
+        while self.bytes.len() > 0 {
             let nybble: u8 = if self.least_sig_nybble {
-                self.idi[0] & 0b0000_1111
+                self.bytes[0] & 0b0000_1111
             } else {
-                (self.idi[0] & 0b1111_0000) >> 4
+                (self.bytes[0] & 0b1111_0000) >> 4
             };
             if self.least_sig_nybble {
                 self.least_sig_nybble = false;
-                self.idi = &self.idi[1..];
+                self.bytes = &self.bytes[1..];
             } else {
                 self.least_sig_nybble = true;
             }
@@ -172,7 +171,7 @@ impl<'a> Iterator for BCDDigitsIter<'a> {
             }
             // If the last nybble is 0b1111, it is padding.
             // If the DSP is in decimal digits, the last nybble of the
-            if self.idi.len() == 0 && (nybble == 0b1111 || self.ignore_last_nybble) {
+            if self.bytes.len() == 0 && (nybble == 0b1111 || self.ignore_last_nybble) {
                 return None;
             }
             return Some(nybble);
@@ -181,7 +180,7 @@ impl<'a> Iterator for BCDDigitsIter<'a> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let mut max_digits = self.idi.len() << 1; // Double it
+        let mut max_digits = self.bytes.len() << 1; // Double it
         if self.least_sig_nybble {
             max_digits = max_digits.saturating_sub(1);
         }
