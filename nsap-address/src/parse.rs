@@ -526,6 +526,10 @@ pub(crate) fn parse_nsap<'a>(s: &'a str) -> ParseResult<'static> {
     #[cfg(feature = "nonstd")]
     if first_part == AFI_STR_URL {
         validate_digitstring(second_part, 4)?;
+        if parts.next().is_none() {
+            return Err(RFC1278ParseError::Malformed);
+        }
+        // This indexing assumes "URL+" + second part + "+"
         let url = &s[5 + second_part.len()..];
         return parse_url(second_part, url);
     }

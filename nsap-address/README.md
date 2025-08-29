@@ -139,12 +139,6 @@ crate's author.
 - `ICP` and `IND` AFIs recognized in the `<afi>-<idi>-<dsp>` syntax
 - `IP4`, `IP6`, and `URL` schemes supported in `FromStr` and `Display`
 
-## To Do
-
-- [x] One last format
-- [x] One last test and fuzz testing
-- [x] Build with stable
-
 ## To Do (Future)
 
 - [ ] Support [GOSIP NSAP addressing](https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b)

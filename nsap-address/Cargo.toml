@@ -18,7 +18,7 @@ rust-version = "1.89"
 faster-hex = { version = "0.10.0", default-features = false }
 
 [features]
-default = ["alloc", "x25", "ecma117", "nonstd", "nonstddisplay"]
+default = ["alloc"]
 alloc = []
 x25 = []
 ecma117 = []
