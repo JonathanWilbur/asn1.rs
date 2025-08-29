@@ -20,7 +20,6 @@ pub struct BCDBuffer {
 }
 
 impl BCDBuffer {
-
     /// Create a new BCD buffer
     #[inline]
     pub fn new() -> Self {
@@ -117,7 +116,6 @@ pub struct BCDDigitsIter<'a> {
 }
 
 impl<'a> BCDDigitsIter<'a> {
-
     /// Create a new BCD digits iterator
     #[inline]
     pub fn new(

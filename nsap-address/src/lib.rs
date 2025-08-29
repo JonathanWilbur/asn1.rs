@@ -8,17 +8,17 @@ mod error;
 mod isoiec646;
 mod parse;
 mod utils;
-pub use data::*;
-pub use bcd::*;
-pub use error::*;
-pub use isoiec646::*;
 use crate::display::{fmt_naddr, fmt_naddr_type};
 use crate::parse::parse_nsap;
 use crate::utils::{u8_to_decimal_bytes, u16_to_decimal_bytes};
+pub use bcd::*;
 use core::convert::TryFrom;
 use core::fmt::Display;
 use core::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddrV4};
 use core::str::FromStr;
+pub use data::*;
+pub use error::*;
+pub use isoiec646::*;
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -204,7 +204,6 @@ pub enum X213NetworkAddress<'a> {
 }
 
 impl<'a> X213NetworkAddress<'a> {
-
     /// Get the bytes of the encoded NSAP address
     #[inline]
     pub fn get_octets(&'a self) -> &'a [u8] {
@@ -392,7 +391,11 @@ impl<'a> X213NetworkAddress<'a> {
         let oct4: u8 = oct4str.parse().ok()?;
         let ip = Ipv4Addr::new(oct1, oct2, oct3, oct4);
         if dsp.len() < 9 {
-            return Some((octets[5], SocketAddrV4::new(ip, ITOT_OVER_IPV4_DEFAULT_PORT), DEFAULT_ITOT_TRANSPORT_SET));
+            return Some((
+                octets[5],
+                SocketAddrV4::new(ip, ITOT_OVER_IPV4_DEFAULT_PORT),
+                DEFAULT_ITOT_TRANSPORT_SET,
+            ));
         }
         let portstr = [
             bcd.next()? + 0x30,
@@ -404,7 +407,11 @@ impl<'a> X213NetworkAddress<'a> {
         let portstr = unsafe { str::from_utf8_unchecked(portstr.as_slice()) };
         let port: u16 = portstr.parse().ok()?;
         if dsp.len() < 11 {
-            return Some((octets[5], SocketAddrV4::new(ip, ITOT_OVER_IPV4_DEFAULT_PORT), DEFAULT_ITOT_TRANSPORT_SET));
+            return Some((
+                octets[5],
+                SocketAddrV4::new(ip, ITOT_OVER_IPV4_DEFAULT_PORT),
+                DEFAULT_ITOT_TRANSPORT_SET,
+            ));
         }
         let tsetstr = [
             bcd.next()? + 0x30,
@@ -465,11 +472,7 @@ impl<'a> X213NetworkAddress<'a> {
     /// Create an ITOT NSAP address from a socket address and optional transport set
     ///
     /// Note that this only supports IPv4 due to the encoding.
-    pub fn from_socket_addr_v4(
-        network: u8,
-        addr: &SocketAddrV4,
-        tset: Option<u16>
-    ) -> Self {
+    pub fn from_socket_addr_v4(network: u8, addr: &SocketAddrV4, tset: Option<u16>) -> Self {
         let mut out: [u8; 22] = [0; 22];
         out[0..5].copy_from_slice(RFC_1277_PREFIX.as_slice());
         out[5] = network;
@@ -481,7 +484,8 @@ impl<'a> X213NetworkAddress<'a> {
             .for_each(|dec_oct| bcd_buf.push_ascii_bytes(dec_oct.as_slice()));
         let port = addr.port();
         if port != ITOT_OVER_IPV4_DEFAULT_PORT
-            || tset.is_some_and(|t| t != DEFAULT_ITOT_TRANSPORT_SET) {
+            || tset.is_some_and(|t| t != DEFAULT_ITOT_TRANSPORT_SET)
+        {
             let port_str = u16_to_decimal_bytes(port);
             bcd_buf.push_ascii_bytes(port_str.as_slice());
             if let Some(tset) = tset {
@@ -513,9 +517,10 @@ impl<'a> X213NetworkAddress<'a> {
         let mut out: Vec<u8> = Vec::with_capacity(len);
         out.extend(b"NS+");
         // Just so we don't zero the vec only to write over it all again.
-        unsafe { out.set_len(len); }
-        faster_hex::hex_encode(octets, &mut out[3..])
-            .expect("hex output buffer mis-sized");
+        unsafe {
+            out.set_len(len);
+        }
+        faster_hex::hex_encode(octets, &mut out[3..]).expect("hex output buffer mis-sized");
         unsafe { String::from_utf8_unchecked(out) }
     }
 
@@ -671,7 +676,10 @@ impl<'a> FromStr for X213NetworkAddress<'a> {
 mod tests {
 
     extern crate alloc;
-    use crate::data::{AFI_IANA_ICP_BIN, AFI_ISO_DCC_DEC, AFI_X121_DEC_LEADING_ZERO, RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET};
+    use crate::data::{
+        AFI_IANA_ICP_BIN, AFI_ISO_DCC_DEC, AFI_X121_DEC_LEADING_ZERO,
+        RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET,
+    };
     use alloc::string::ToString;
     use alloc::vec::Vec;
     use core::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4};

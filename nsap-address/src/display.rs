@@ -3,8 +3,10 @@ use crate::DEFAULT_ITOT_TRANSPORT_SET;
 #[cfg(feature = "nonstddisplay")]
 use crate::data::{AFI_IANA_ICP_BIN, AFI_URL, IANA_ICP_IDI_IPV4, IANA_ICP_IDI_IPV6};
 use crate::data::{
-    is_group_afi, AFI_STR_DCC, AFI_STR_ICD, AFI_STR_ICP, AFI_STR_IND, AFI_STR_ISDN, AFI_STR_LOCAL, AFI_STR_PSTN, AFI_STR_TELEX, AFI_STR_URL, AFI_STR_X121, ITU_X519_DSP_PREFIX_IDM_OVER_IPV4, ITU_X519_DSP_PREFIX_LDAP, RFC_1277_PREFIX, RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET,
-    ITOT_OVER_IPV4_DEFAULT_PORT,
+    AFI_STR_DCC, AFI_STR_ICD, AFI_STR_ICP, AFI_STR_IND, AFI_STR_ISDN, AFI_STR_LOCAL, AFI_STR_PSTN,
+    AFI_STR_TELEX, AFI_STR_URL, AFI_STR_X121, ITOT_OVER_IPV4_DEFAULT_PORT,
+    ITU_X519_DSP_PREFIX_IDM_OVER_IPV4, ITU_X519_DSP_PREFIX_LDAP, RFC_1277_PREFIX,
+    RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET, is_group_afi,
 };
 use crate::isoiec646::local_iso_iec_646_byte_to_char;
 use crate::{DSPSyntax, X213NetworkAddress, X213NetworkAddressType};
@@ -12,7 +14,6 @@ use core::fmt::{Display, Write};
 use core::net::Ipv4Addr;
 #[cfg(feature = "nonstddisplay")]
 use core::net::Ipv6Addr;
-
 
 /// Convert the network type to a string
 #[inline]
@@ -95,13 +96,14 @@ pub(crate) fn fmt_naddr(
     }
     let is_rfc1278_ip: bool = octets.starts_with(RFC_1277_PREFIX.as_slice())
         && octets.len() >= RFC_1277_PREFIX.len() + 7
-        && matches!(octets[5],
+        && matches!(
+            octets[5],
             RFC_1277_WELL_KNOWN_NETWORK_DARPA_NSF_INTERNET
-            | ITU_X519_DSP_PREFIX_IDM_OVER_IPV4
-            | ITU_X519_DSP_PREFIX_LDAP
+                | ITU_X519_DSP_PREFIX_IDM_OVER_IPV4
+                | ITU_X519_DSP_PREFIX_LDAP
         );
     if is_rfc1278_ip {
-        let ip_and_stuff = &octets[RFC_1277_PREFIX.len()+1..];
+        let ip_and_stuff = &octets[RFC_1277_PREFIX.len() + 1..];
         let ip = ipv4_from_slice(&ip_and_stuff[0..6]);
         let port: u32 = if octets.len() >= RFC_1277_PREFIX.len() + 1 + 6 + 3 {
             (((ip_and_stuff[6] & 0xF0) >> 4) as u32 * 10000)

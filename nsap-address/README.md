@@ -141,16 +141,12 @@ crate's author.
 
 ## To Do
 
-- [x] Use `faster_hex` instead
-- [x] Other socket address encoding functions
-- [x] Remaining TODO / FIXME
-- [x] Re-name things?
 - [ ] One last format
 - [ ] One last test and fuzz testing
 - [ ] Build with stable
-- [ ] likely / unlikely
-- [x] Readme Documentation
 
 ## To Do (Future)
 
 - [ ] Support [GOSIP NSAP addressing](https://medium.com/@jacstech/jacs-nsap-structure-8cb9a809228b)
+- [ ] `likely` / `unlikely` branch prediction macros
+
