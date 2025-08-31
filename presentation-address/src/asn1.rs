@@ -1,8 +1,8 @@
 #![allow(non_upper_case_globals)]
-use wildboar_asn1::*;
-use std::sync::Arc;
-use x690::*;
 use crate::PresentationAddress;
+use std::sync::Arc;
+use wildboar_asn1::*;
+use x690::*;
 
 impl TryFrom<&X690Element> for PresentationAddress {
     type Error = ASN1Error;
@@ -12,22 +12,10 @@ impl TryFrom<&X690Element> for PresentationAddress {
 }
 
 pub const _rctl1_components_for_PresentationAddress: &[ComponentSpec; 4] = &[
-    ComponentSpec::opt(
-        "pSelector",
-        TagSelector::tag((TagClass::CONTEXT, 0)),
-    ),
-    ComponentSpec::opt(
-        "pSelector",
-        TagSelector::tag((TagClass::CONTEXT, 1)),
-    ),
-    ComponentSpec::opt(
-        "pSelector",
-        TagSelector::tag((TagClass::CONTEXT, 2)),
-    ),
-    ComponentSpec::req(
-        "nAddresses",
-        TagSelector::tag((TagClass::CONTEXT, 3)),
-    ),
+    ComponentSpec::opt("pSelector", TagSelector::tag((TagClass::CONTEXT, 0))),
+    ComponentSpec::opt("pSelector", TagSelector::tag((TagClass::CONTEXT, 1))),
+    ComponentSpec::opt("pSelector", TagSelector::tag((TagClass::CONTEXT, 2))),
+    ComponentSpec::req("nAddresses", TagSelector::tag((TagClass::CONTEXT, 3))),
 ];
 
 pub const _rctl2_components_for_PresentationAddress: &[ComponentSpec; 0] = &[];
@@ -37,9 +25,11 @@ pub const _eal_components_for_PresentationAddress: &[ComponentSpec; 0] = &[];
 pub fn _decode_PresentationAddress(el: &X690Element) -> ASN1Result<PresentationAddress> {
     let _elements = match &el.value {
         X690Value::Constructed(children) => children,
-        _ => return Err(
-            el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PresentationAddress")
-        ),
+        _ => {
+            return Err(
+                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PresentationAddress")
+            );
+        }
     };
     let _seq_iter = X690StructureIterator::new(
         _elements.as_slice(),
@@ -62,20 +52,24 @@ pub fn _decode_PresentationAddress(el: &X690Element) -> ASN1Result<PresentationA
             "pSelector" => pSelector_ = Some(BER.decode_octet_string(&_el.inner()?)?),
             "sSelector" => sSelector_ = Some(BER.decode_octet_string(&_el.inner()?)?),
             "tSelector" => tSelector_ = Some(BER.decode_octet_string(&_el.inner()?)?),
-            "nAddresses" => nAddresses_ = {
-                let elements = match _el.inner()?.value {
-                    X690Value::Constructed(children) => children,
-                    _ => return Err(el.to_asn1_err_named(
-                        ASN1ErrorCode::invalid_construction,
-                        "nAddresses",
-                    ))
-                };
-                let mut items: SET_OF<OCTET_STRING> = Vec::with_capacity(elements.len());
-                for el in elements.iter() {
-                    items.push(BER.decode_octet_string(el)?);
+            "nAddresses" => {
+                nAddresses_ = {
+                    let elements = match _el.inner()?.value {
+                        X690Value::Constructed(children) => children,
+                        _ => {
+                            return Err(el.to_asn1_err_named(
+                                ASN1ErrorCode::invalid_construction,
+                                "nAddresses",
+                            ));
+                        }
+                    };
+                    let mut items: SET_OF<OCTET_STRING> = Vec::with_capacity(elements.len());
+                    for el in elements.iter() {
+                        items.push(BER.decode_octet_string(el)?);
+                    }
+                    Some(items)
                 }
-                Some(items)
-            },
+            }
             _ => _unrecognized.push(_el.clone()),
         }
     }
@@ -114,12 +108,10 @@ pub fn _encode_PresentationAddress(value_: &PresentationAddress) -> ASN1Result<X
     }
     components_.push(X690Element::new(
         Tag::new(TagClass::CONTEXT, 3),
-        X690Value::from_explicit(
-            X690Element::new(
-                Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-                X690Value::Constructed(Arc::new(encoded_naddresses)),
-            ),
-        ),
+        X690Value::from_explicit(X690Element::new(
+            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
+            X690Value::Constructed(Arc::new(encoded_naddresses)),
+        )),
     ));
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -135,7 +127,7 @@ pub fn _validate_PresentationAddress(el: &X690Element) -> ASN1Result<()> {
         _ => {
             return Err(
                 el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "PresentationAddress")
-            )
+            );
         }
     };
     let _seq_iter = X690StructureIterator::new(
@@ -165,12 +157,14 @@ pub fn _validate_PresentationAddress(el: &X690Element) -> ASN1Result<()> {
                         for sub in subs.iter() {
                             BER.validate_octet_string(&sub)?;
                         }
-                    },
-                    _ => return Err(
-                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "nAddresses")
-                    ),
+                    }
+                    _ => {
+                        return Err(
+                            el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "nAddresses")
+                        );
+                    }
                 }
-            },
+            }
             _ => (),
         }
     }

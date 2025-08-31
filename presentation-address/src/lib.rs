@@ -4,16 +4,16 @@
 
 #[cfg(feature = "x690")]
 mod asn1;
+use core::fmt::{Display, Write};
+use core::iter::{FusedIterator, Iterator};
+use core::str::FromStr;
+use core::write;
 #[cfg(feature = "x690")]
 use x690::X690Element;
-use core::write;
-use core::str::FromStr;
-use core::fmt::{Display, Write};
-use core::iter::{Iterator, FusedIterator};
 
 extern crate alloc;
-use alloc::vec::Vec;
 use alloc::collections::BTreeSet;
+use alloc::vec::Vec;
 
 /// An OSI network layer selector
 ///
@@ -68,8 +68,7 @@ impl PresentationAddress {
         sSelector: Option<Selector>,
         tSelector: Option<Selector>,
         nAddresses: Vec<Selector>,
-        #[cfg(feature = "x690")]
-        _unrecognized: Vec<X690Element>,
+        #[cfg(feature = "x690")] _unrecognized: Vec<X690Element>,
     ) -> Self {
         PresentationAddress {
             pSelector,
@@ -157,7 +156,6 @@ impl PresentationAddress {
         }
         true
     }
-
 }
 
 fn sel_str_to_bytes(s: &str) -> Result<Vec<u8>, ()> {
@@ -166,31 +164,36 @@ fn sel_str_to_bytes(s: &str) -> Result<Vec<u8>, ()> {
         return Err(());
     }
     match s.chars().next() {
-        Some('"') => { // string of <other>
+        Some('"') => {
+            // string of <other>
             if let Some(end_quote_idx) = s[1..].find('"') {
                 let inner_str = &s[1..=end_quote_idx];
                 Ok(inner_str.as_bytes().to_vec())
             } else {
                 Err(())
             }
-        },
-        Some('\'') => { // hexstring
+        }
+        Some('\'') => {
+            // hexstring
             if let Some(end_quote_idx) = s[1..].find('\'') {
                 let inner_str = &s[1..=end_quote_idx];
                 let bytelen = inner_str.len() >> 1;
                 let mut bytes: Vec<u8> = Vec::with_capacity(bytelen);
-                unsafe { bytes.set_len(bytelen); }
+                unsafe {
+                    bytes.set_len(bytelen);
+                }
                 faster_hex::hex_decode(inner_str.as_bytes(), bytes.as_mut_slice())
                     .map_err(|_| ())?;
                 Ok(bytes)
             } else {
                 Err(())
             }
-        },
-        Some('#') => { // u16
+        }
+        Some('#') => {
+            // u16
             let sel = u16::from_str(&s[1..]).map_err(|_| ())?;
             Ok(sel.to_be_bytes().to_vec())
-        },
+        }
         None => Ok(Vec::new()),
         _ => Err(()),
     }
@@ -199,8 +202,7 @@ fn sel_str_to_bytes(s: &str) -> Result<Vec<u8>, ()> {
 fn naddr_str_to_bytes(s: &str) -> Result<Vec<u8>, ()> {
     #[cfg(feature = "nsap-address")]
     {
-        let nsap = nsap_address::X213NetworkAddress::from_str(s)
-            .map_err(|_| ())?;
+        let nsap = nsap_address::X213NetworkAddress::from_str(s).map_err(|_| ())?;
         Ok(nsap.get_octets().to_vec())
     }
     #[cfg(not(feature = "nsap-address"))]
@@ -208,11 +210,13 @@ fn naddr_str_to_bytes(s: &str) -> Result<Vec<u8>, ()> {
         if s.starts_with("NS+") {
             let bytelen = s[3..].len() >> 1;
             let mut bytes: Vec<u8> = Vec::with_capacity(bytelen);
-            unsafe { bytes.set_len(bytelen); }
-            faster_hex::hex_decode(s[3..].as_bytes(), bytes.as_mut_slice())
-                .map_err(|_| ())?;
+            unsafe {
+                bytes.set_len(bytelen);
+            }
+            faster_hex::hex_decode(s[3..].as_bytes(), bytes.as_mut_slice()).map_err(|_| ())?;
             Ok(bytes)
-        } else { // No other syntaxes supported
+        } else {
+            // No other syntaxes supported
             Err(())
         }
     }
@@ -266,7 +270,6 @@ impl FromStr for PresentationAddress {
             Ok(PresentationAddress::new(psel, ssel, tsel, nsaps))
         }
     }
-
 }
 
 // <selector>  ::= '"' <otherstring> '"'        -- IA5
@@ -330,7 +333,6 @@ fn print_naddr(naddr: &[u8], f: &mut core::fmt::Formatter<'_>) -> core::fmt::Res
 }
 
 impl Display for PresentationAddress {
-
     /// Displays the `PresentationAddress` according to
     /// [IETF RFC 1278](https://datatracker.ietf.org/doc/html/rfc1278)
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -358,7 +360,6 @@ impl Display for PresentationAddress {
         }
         Ok(())
     }
-
 }
 
 /// Whether the character `c` is an `<other>`, per RFC 1278.
@@ -380,11 +381,13 @@ pub struct RFC1278SelectorIterator<'a> {
     selectors_read: u8,
 }
 
-impl <'a> RFC1278SelectorIterator <'a> {
-
+impl<'a> RFC1278SelectorIterator<'a> {
     /// Create a new `RFC1278SelectorIterator`
-    pub fn new (s: &'a str) -> Self {
-        RFC1278SelectorIterator{ s, selectors_read: 0 }
+    pub fn new(s: &'a str) -> Self {
+        RFC1278SelectorIterator {
+            s,
+            selectors_read: 0,
+        }
     }
 
     /// Get the remainder of the string not yet parsed
@@ -392,10 +395,9 @@ impl <'a> RFC1278SelectorIterator <'a> {
     /// This can be used to obtain the network addresses part of the
     /// presentation address: just iterate over all selectors and the string
     /// that remains is the network addresses part.
-    pub fn remainder (&self) -> &'a str {
+    pub fn remainder(&self) -> &'a str {
         self.s
     }
-
 }
 
 // <selector>  ::= '"' <otherstring> '"'        -- IA5
@@ -404,7 +406,7 @@ impl <'a> RFC1278SelectorIterator <'a> {
 //                 | "#" <digitstring>          -- US GOSIP            40
 //                 | "'" <hexstring> "'H"       -- Hex
 //                 | ""                         -- Empty but present
-impl <'a> Iterator for RFC1278SelectorIterator<'a> {
+impl<'a> Iterator for RFC1278SelectorIterator<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -419,14 +421,14 @@ impl <'a> Iterator for RFC1278SelectorIterator<'a> {
                 self.s = rest;
                 self.selectors_read += 1;
                 Some(sel)
-            },
+            }
             // We are at the start of the Network addresses now. All done.
             _ => None,
         }
     }
 }
 
-impl <'a> FusedIterator for RFC1278SelectorIterator <'a> {}
+impl<'a> FusedIterator for RFC1278SelectorIterator<'a> {}
 
 #[cfg(test)]
 mod tests {
@@ -467,15 +469,24 @@ mod tests {
             "'01020304'H/\"HIMOM\"/#65534/NS+5400728722030100000000060000900002"
         };
         let paddr = PresentationAddress::from_str(input).unwrap();
-        assert_eq!(paddr.pSelector.unwrap().as_slice(), [1u8, 2, 3, 4,].as_slice());
+        assert_eq!(
+            paddr.pSelector.unwrap().as_slice(),
+            [1u8, 2, 3, 4,].as_slice()
+        );
         assert_eq!(paddr.sSelector.unwrap().as_slice(), b"HIMOM");
-        assert_eq!(paddr.tSelector.unwrap().as_slice(), 65534u16.to_be_bytes().as_slice());
+        assert_eq!(
+            paddr.tSelector.unwrap().as_slice(),
+            65534u16.to_be_bytes().as_slice()
+        );
         assert_eq!(paddr.nAddresses.len(), 1);
-        assert_eq!(paddr.nAddresses[0].as_slice(), &[
-            // TELEX+00728722+RFC-1006+03+10.0.0.6+9+2
-            0x54, 0x00, 0x72, 0x87, 0x22, 0x03, 0x01, 0x00,
-            0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x90, 0x00, 0x02,
-        ]);
+        assert_eq!(
+            paddr.nAddresses[0].as_slice(),
+            &[
+                // TELEX+00728722+RFC-1006+03+10.0.0.6+9+2
+                0x54, 0x00, 0x72, 0x87, 0x22, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00,
+                0x90, 0x00, 0x02,
+            ]
+        );
     }
 
     #[test]
@@ -486,29 +497,41 @@ mod tests {
             "'01020304'H/\"HIMOM\"/#65534/NS+5400728722030100000000060000900002_NS+FF00013132333435"
         };
         let paddr = PresentationAddress::from_str(input).unwrap();
-        assert_eq!(paddr.pSelector.unwrap().as_slice(), [1u8, 2, 3, 4,].as_slice());
+        assert_eq!(
+            paddr.pSelector.unwrap().as_slice(),
+            [1u8, 2, 3, 4,].as_slice()
+        );
         assert_eq!(paddr.sSelector.unwrap().as_slice(), b"HIMOM");
-        assert_eq!(paddr.tSelector.unwrap().as_slice(), 65534u16.to_be_bytes().as_slice());
+        assert_eq!(
+            paddr.tSelector.unwrap().as_slice(),
+            65534u16.to_be_bytes().as_slice()
+        );
         assert_eq!(paddr.nAddresses.len(), 2);
-        assert_eq!(paddr.nAddresses[0].as_slice(), &[
-            // TELEX+00728722+RFC-1006+03+10.0.0.6+9+2
-            0x54, 0x00, 0x72, 0x87, 0x22, 0x03, 0x01, 0x00,
-            0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x90, 0x00, 0x02,
-        ]);
-        assert_eq!(paddr.nAddresses[1].as_slice(), &[
-            0xFF, 0x00, 0x01, 0x31, 0x32, 0x33, 0x34, 0x35
-        ]);
+        assert_eq!(
+            paddr.nAddresses[0].as_slice(),
+            &[
+                // TELEX+00728722+RFC-1006+03+10.0.0.6+9+2
+                0x54, 0x00, 0x72, 0x87, 0x22, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00,
+                0x90, 0x00, 0x02,
+            ]
+        );
+        assert_eq!(
+            paddr.nAddresses[1].as_slice(),
+            &[0xFF, 0x00, 0x01, 0x31, 0x32, 0x33, 0x34, 0x35]
+        );
     }
 
     #[test]
     fn test_display_01() {
         let paddr = PresentationAddress::new(
-            Some(vec![ 1, 2, 3, 4 ]),
+            Some(vec![1, 2, 3, 4]),
             Some(b"HIMOM".to_vec()),
-            Some(vec![ 0xFF, 0xFE ]),
+            Some(vec![0xFF, 0xFE]),
             vec![
                 // TELEX+00728722+RFC-1006+03+10.0.0.6+9+2
-                vec![ 0x54, 0, 0x72, 0x87, 0x22, 3, 1, 0, 0, 0, 0, 6, 0, 0, 0x90, 0, 2 ],
+                vec![
+                    0x54, 0, 0x72, 0x87, 0x22, 3, 1, 0, 0, 0, 0, 6, 0, 0, 0x90, 0, 2,
+                ],
             ],
             #[cfg(feature = "x690")]
             vec![],
@@ -520,5 +543,4 @@ mod tests {
         };
         assert_eq!(paddr.to_string().as_str(), expected);
     }
-
 }
