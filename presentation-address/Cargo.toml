@@ -1,6 +1,6 @@
 [package]
 name = "presentation-address"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 authors = [
     "Jonathan M. Wilbur <jonathan@wilbur.space>",
@@ -17,11 +17,11 @@ rust-version = "1.89"
 [dependencies]
 wildboar-asn1 = { path = "../asn1", version = "3", optional = true }
 x690 = { path = "../x690", version = "1", optional = true }
-nsap-address = { path = "../nsap-address", version = "1", optional = true, features = ["alloc", "nonstd"] }
+nsap-address = { path = "../nsap-address", version = "1", optional = true, features = ["alloc"] }
 faster-hex = { version = "0.10.0", default-features = false }
 
 [features]
-default = []
+default = ["nsap-address"]
 x690 = ["dep:x690", "dep:wildboar-asn1"]
 nonstd = ["nsap-address/nonstd"]
 nonstddisplay = ["nsap-address/nonstddisplay"]
