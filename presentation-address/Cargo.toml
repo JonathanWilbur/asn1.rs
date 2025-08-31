@@ -1,0 +1,29 @@
+[package]
+name = "presentation-address"
+version = "1.0.0"
+edition = "2024"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "OSI Networking PresentationAddress"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/presentation-address"
+license = "MIT"
+keywords = ["x520", "osi"]
+categories = ["network-programming", "no-std"]
+rust-version = "1.89"
+
+[dependencies]
+wildboar-asn1 = { path = "../asn1", version = "3", optional = true }
+x690 = { path = "../x690", version = "1", optional = true }
+nsap-address = { path = "../nsap-address", version = "1", optional = true, features = ["alloc", "nonstd"] }
+faster-hex = { version = "0.10.0", default-features = false }
+
+[features]
+default = []
+x690 = ["dep:x690", "dep:wildboar-asn1"]
+nonstd = ["nsap-address/nonstd"]
+nonstddisplay = ["nsap-address/nonstddisplay"]
+x25 = ["nsap-address/x25"]
+ecma117 = ["nsap-address/ecma117"]
