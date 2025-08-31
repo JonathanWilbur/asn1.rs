@@ -143,7 +143,7 @@ impl PresentationAddress {
         if self.nAddresses.len() != other.nAddresses.len() {
             return false;
         }
-        let mut selfn = BTreeSet::from_iter(self.nAddresses.iter());
+        let selfn = BTreeSet::from_iter(self.nAddresses.iter());
         let mut othern = BTreeSet::from_iter(other.nAddresses.iter());
         // This prevents duplicates from being a problem.
         if selfn.len() != othern.len() {
