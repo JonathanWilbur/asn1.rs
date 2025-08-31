@@ -3,7 +3,7 @@
 #![allow(non_snake_case)]
 
 #[cfg(feature = "x690")]
-mod asn1;
+pub mod asn1;
 use core::fmt::{Display, Write};
 use core::iter::{FusedIterator, Iterator};
 use core::str::FromStr;

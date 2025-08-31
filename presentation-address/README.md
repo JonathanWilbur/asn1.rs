@@ -59,7 +59,8 @@ reviewed by the crate's author.
 
 There's not really much to this library other than `PresentationAddress`. You
 can print it, since it implements `std::fmt::Display`, you can parse them, since
-it implements `std::str::FromStr`.
+it implements `std::str::FromStr`. Both of these implementations adhere to
+[IETF RFC 1278](https://datatracker.ietf.org/doc/html/rfc1278).
 
 You cannot compare them using an implementation of `PartialEq`, `Eq`, or `Hash`.
 The rationale for this is that NSAP addresses are basically boundlessly complex
@@ -80,7 +81,7 @@ To this end, you have two options provided by this crate:
 Both of these naively compare N-addresses byte-for-byte, even though there could
 exist multiple ways to represent the same underlying address. The former only
 checks that the `self` `PresentationAddress` has a subset of the N-addresses
-that the other has, whereas the latter expects both to have the exact same
+that the `other` has, whereas the latter expects both to have the exact same
 (though they may still appear in any order).
 
 ## Feature Flags
@@ -92,7 +93,7 @@ that the other has, whereas the latter expects both to have the exact same
 - `x690`: Enable encoding, decoding, and validating the encoding of
   `PresentationAddress` according to the Basic Encoding Rules (BER) defined
   in
-  [ITU-T Recommendation X.690](https://www.itu.int/itu-t/recommendations/rec.aspx?rec=X.690)/
+  [ITU-T Recommendation X.690](https://www.itu.int/itu-t/recommendations/rec.aspx?rec=X.690)
 
 The feature flags `nonstd`, `nonstddisplay`, `x25`, and `ecma117` are simply
 forwarded to `nsap-address`. You should read

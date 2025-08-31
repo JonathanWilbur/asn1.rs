@@ -1,3 +1,4 @@
+//! Basic Encoding Rules (BER) functions for encoding, decoding, and validating `PresentationAddress`
 #![allow(non_upper_case_globals)]
 use crate::PresentationAddress;
 use std::sync::Arc;
@@ -11,6 +12,7 @@ impl TryFrom<&X690Element> for PresentationAddress {
     }
 }
 
+/// Root Component Type Lists 1 components for `PresentationAddress`
 pub const _rctl1_components_for_PresentationAddress: &[ComponentSpec; 4] = &[
     ComponentSpec::opt("pSelector", TagSelector::tag((TagClass::CONTEXT, 0))),
     ComponentSpec::opt("pSelector", TagSelector::tag((TagClass::CONTEXT, 1))),
@@ -18,10 +20,13 @@ pub const _rctl1_components_for_PresentationAddress: &[ComponentSpec; 4] = &[
     ComponentSpec::req("nAddresses", TagSelector::tag((TagClass::CONTEXT, 3))),
 ];
 
+/// Root Component Type Lists 2 components for `PresentationAddress`
 pub const _rctl2_components_for_PresentationAddress: &[ComponentSpec; 0] = &[];
 
+/// Extension Additions List components for `PresentationAddress`
 pub const _eal_components_for_PresentationAddress: &[ComponentSpec; 0] = &[];
 
+/// Decode a `PresentationAddress` from BER / DER encoding
 pub fn _decode_PresentationAddress(el: &X690Element) -> ASN1Result<PresentationAddress> {
     let _elements = match &el.value {
         X690Value::Constructed(children) => children,
@@ -82,6 +87,7 @@ pub fn _decode_PresentationAddress(el: &X690Element) -> ASN1Result<PresentationA
     })
 }
 
+/// Encode a `PresentationAddress` into BER / DER encoding
 pub fn _encode_PresentationAddress(value_: &PresentationAddress) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(4);
     if let Some(v_) = &value_.pSelector {
@@ -121,6 +127,7 @@ pub fn _encode_PresentationAddress(value_: &PresentationAddress) -> ASN1Result<X
     ))
 }
 
+/// Validate (without decoding) a `PresentationAddress`'s BER / DER encoding
 pub fn _validate_PresentationAddress(el: &X690Element) -> ASN1Result<()> {
     let _elements = match &el.value {
         X690Value::Constructed(children) => children,
