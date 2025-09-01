@@ -37,6 +37,10 @@ path = "../idm-frame"
 [dependencies.nsap-address]
 path = "../nsap-address"
 
+[dependencies.presentation-address]
+path = "../presentation-address"
+features = ["x690", "nsap-address"]
+
 [[bin]]
 name = "date"
 path = "fuzz_targets/date.rs"
@@ -159,6 +163,13 @@ bench = false
 [[bin]]
 name = "nsap"
 path = "fuzz_targets/nsap.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "presaddr"
+path = "fuzz_targets/presaddr.rs"
 test = false
 doc = false
 bench = false
