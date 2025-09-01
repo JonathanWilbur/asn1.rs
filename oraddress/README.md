@@ -60,12 +60,17 @@ So only one has to match for equality.
     - [ ] unformatted-postal-address (printable / teletex)
     - [ ] extended-network-address (complex weird syntax)
     - [ ] terminal-type (u16)
-- [ ] `FromStr` (Should decode to the non-extension syntax, if possible)
-- [ ] `Display` (Should prefer the UniversalString, if present)
+- [ ] RFC 1685 `FromStr` (Should decode to the non-extension syntax, if possible)
+- [ ] RFC 1685 `Display` (Should prefer the UniversalString, if present)
 - [ ] `PartialEq` / `Eq` (Matches if any encoding of the string matches)
 - [x] ~~`Hash`~~ (Not possible.)
+- [ ] Size limits on DDAs
 - [ ] DCC -> ISO (Just map strings to strings instead)
 - [ ] Inline
+- [ ] `ComponentSpec::req` and `opt`
+- [ ] More string size checks
+  - [ ] `TeletexOrganizationalUnitName`, for example
+- [ ] Fix `with_capacity()`
 - [ ] Const
 - [ ] Unit Tests
 - [ ] Format

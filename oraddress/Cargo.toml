@@ -18,3 +18,4 @@ wildboar-asn1 = { version = "3", path = "../asn1" }
 x690 = { version = "1", path = "../x690" }
 teletex = { version = "1", path = "../teletex" }
 presentation-address = { version = "1", path = "../presentation-address", features = ["x690"] }
+heapless = "0.9.1"

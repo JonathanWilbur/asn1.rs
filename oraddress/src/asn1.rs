@@ -48,6 +48,7 @@ pub struct ORAddress {
     pub extension_attributes: OPTIONAL<ExtensionAttributes>,
 }
 impl ORAddress {
+    #[inline]
     pub fn new(
         built_in_standard_attributes: BuiltInStandardAttributes,
         built_in_domain_defined_attributes: OPTIONAL<BuiltInDomainDefinedAttributes>,
@@ -62,6 +63,7 @@ impl ORAddress {
 }
 impl TryFrom<&X690Element> for ORAddress {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ORAddress(el)
     }
@@ -106,7 +108,7 @@ pub fn _decode_ORAddress(el: &X690Element) -> ASN1Result<ORAddress> {
         _eal_components_for_ORAddress,
         _rctl2_components_for_ORAddress,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut built_in_standard_attributes_: OPTIONAL<BuiltInStandardAttributes> = None;
     let mut built_in_domain_defined_attributes_: OPTIONAL<BuiltInDomainDefinedAttributes> = None;
@@ -117,16 +119,13 @@ pub fn _decode_ORAddress(el: &X690Element) -> ASN1Result<ORAddress> {
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "built-in-standard-attributes" => {
-                built_in_standard_attributes_ = Some(_decode_BuiltInStandardAttributes(_el)?)
-            }
-            "built-in-domain-defined-attributes" => {
+            "built-in-standard-attributes" =>
+                built_in_standard_attributes_ = Some(_decode_BuiltInStandardAttributes(_el)?),
+            "built-in-domain-defined-attributes" =>
                 built_in_domain_defined_attributes_ =
-                    Some(_decode_BuiltInDomainDefinedAttributes(_el)?)
-            }
-            "extension-attributes" => {
-                extension_attributes_ = Some(_decode_ExtensionAttributes(_el)?)
-            }
+                    Some(_decode_BuiltInDomainDefinedAttributes(_el)?),
+            "extension-attributes" =>
+                extension_attributes_ = Some(_decode_ExtensionAttributes(_el)?),
             _ => {
                 return Err(_el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ORAddress"))
             }
@@ -167,7 +166,7 @@ pub fn _validate_ORAddress(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_ORAddress,
         _rctl2_components_for_ORAddress,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -203,17 +202,18 @@ pub fn _validate_ORAddress(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct BuiltInStandardAttributes {
-    pub country_name: OPTIONAL<CountryName>,
-    pub administration_domain_name: OPTIONAL<AdministrationDomainName>,
+    pub country_name: OPTIONAL<CountryName>, // TODO: heapless
+    pub administration_domain_name: OPTIONAL<AdministrationDomainName>, // TODO: heapless
     pub network_address: OPTIONAL<NetworkAddress>,
     pub terminal_identifier: OPTIONAL<TerminalIdentifier>,
-    pub private_domain_name: OPTIONAL<PrivateDomainName>,
+    pub private_domain_name: OPTIONAL<PrivateDomainName>, // TODO: heapless
     pub organization_name: OPTIONAL<OrganizationName>,
     pub numeric_user_identifier: OPTIONAL<NumericUserIdentifier>,
-    pub personal_name: OPTIONAL<PersonalName>,
-    pub organizational_unit_names: OPTIONAL<OrganizationalUnitNames>,
+    pub personal_name: OPTIONAL<PersonalName>, // TODO: heapless
+    pub organizational_unit_names: OPTIONAL<OrganizationalUnitNames>, // TODO: heapless
 }
 impl BuiltInStandardAttributes {
+    #[inline]
     pub fn new(
         country_name: OPTIONAL<CountryName>,
         administration_domain_name: OPTIONAL<AdministrationDomainName>,
@@ -237,6 +237,7 @@ impl BuiltInStandardAttributes {
             organizational_unit_names,
         }
     }
+    #[inline]
     pub fn is_empty (&self) -> bool {
         self.country_name.is_none()
         && self.administration_domain_name.is_none()
@@ -250,6 +251,7 @@ impl BuiltInStandardAttributes {
     }
 }
 impl Default for BuiltInStandardAttributes {
+    #[inline]
     fn default() -> Self {
         BuiltInStandardAttributes {
             country_name: None,
@@ -266,6 +268,7 @@ impl Default for BuiltInStandardAttributes {
 }
 impl TryFrom<&X690Element> for BuiltInStandardAttributes {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_BuiltInStandardAttributes(el)
     }
@@ -359,7 +362,7 @@ pub fn _decode_BuiltInStandardAttributes(
         _eal_components_for_BuiltInStandardAttributes,
         _rctl2_components_for_BuiltInStandardAttributes,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut country_name_: OPTIONAL<CountryName> = None;
     let mut administration_domain_name_: OPTIONAL<AdministrationDomainName> = None;
@@ -377,46 +380,24 @@ pub fn _decode_BuiltInStandardAttributes(
         let _el = _maybe_el.unwrap();
         match _component_name {
             "country-name" => country_name_ = Some(_decode_CountryName(_el)?),
-            "administration-domain-name" => {
-                administration_domain_name_ = Some(_decode_AdministrationDomainName(_el)?)
-            }
-            "network-address" => {
-                network_address_ = Some(|el: &X690Element| -> ASN1Result<NetworkAddress> {
-                    Ok(_decode_NetworkAddress(&el.inner()?)?)
-                }(_el)?)
-            }
-            "terminal-identifier" => {
-                terminal_identifier_ = Some(|el: &X690Element| -> ASN1Result<TerminalIdentifier> {
-                    Ok(_decode_TerminalIdentifier(&el.inner()?)?)
-                }(_el)?)
-            }
-            "private-domain-name" => {
-                private_domain_name_ = Some(|el: &X690Element| -> ASN1Result<PrivateDomainName> {
-                    Ok(_decode_PrivateDomainName(&el.inner()?)?)
-                }(_el)?)
-            }
-            "organization-name" => {
-                organization_name_ = Some(|el: &X690Element| -> ASN1Result<OrganizationName> {
-                    Ok(_decode_OrganizationName(&el.inner()?)?)
-                }(_el)?)
-            }
-            "numeric-user-identifier" => {
+            "administration-domain-name" =>
+                administration_domain_name_ = Some(_decode_AdministrationDomainName(_el)?),
+            "network-address" =>
+                network_address_ = Some(_decode_NetworkAddress(&_el.inner()?)?),
+            "terminal-identifier" =>
+                terminal_identifier_ = Some(_decode_TerminalIdentifier(&_el.inner()?)?),
+            "private-domain-name" =>
+                private_domain_name_ = Some(_decode_PrivateDomainName(&_el.inner()?)?),
+            "organization-name" =>
+                organization_name_ = Some(_decode_OrganizationName(&_el.inner()?)?),
+            "numeric-user-identifier" =>
                 numeric_user_identifier_ =
-                    Some(|el: &X690Element| -> ASN1Result<NumericUserIdentifier> {
-                        Ok(_decode_NumericUserIdentifier(&el.inner()?)?)
-                    }(_el)?)
-            }
-            "personal-name" => {
-                personal_name_ = Some(|el: &X690Element| -> ASN1Result<PersonalName> {
-                    Ok(_decode_PersonalName(&el.inner()?)?)
-                }(_el)?)
-            }
-            "organizational-unit-names" => {
+                    Some(_decode_NumericUserIdentifier(&el.inner()?)?),
+            "personal-name" =>
+                personal_name_ = Some(_decode_PersonalName(&el.inner()?)?),
+            "organizational-unit-names" =>
                 organizational_unit_names_ =
-                    Some(|el: &X690Element| -> ASN1Result<OrganizationalUnitNames> {
-                        Ok(_decode_OrganizationalUnitNames(&el.inner()?)?)
-                    }(_el)?)
-            }
+                    Some(_decode_OrganizationalUnitNames(&el.inner()?)?),
             _ => {
                 return Err(_el.to_asn1_err_named(
                     ASN1ErrorCode::invalid_construction,
@@ -441,7 +422,7 @@ pub fn _decode_BuiltInStandardAttributes(
 pub fn _encode_BuiltInStandardAttributes(
     value_: &BuiltInStandardAttributes,
 ) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(14);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(10);
     if let Some(v_) = &value_.country_name {
         components_.push(_encode_CountryName(&v_)?);
     }
@@ -449,60 +430,46 @@ pub fn _encode_BuiltInStandardAttributes(
         components_.push(_encode_AdministrationDomainName(&v_)?);
     }
     if let Some(v_) = &value_.network_address {
-        components_.push(|v_1: &NetworkAddress| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 0),
-                X690Value::from_explicit(_encode_NetworkAddress(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 0),
+            X690Value::from_explicit(_encode_NetworkAddress(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.terminal_identifier {
-        components_.push(|v_1: &TerminalIdentifier| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(_encode_TerminalIdentifier(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(_encode_TerminalIdentifier(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.private_domain_name {
-        components_.push(|v_1: &PrivateDomainName| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(_encode_PrivateDomainName(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(_encode_PrivateDomainName(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.organization_name {
-        components_.push(|v_1: &OrganizationName| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(_encode_OrganizationName(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 3),
+            X690Value::from_explicit(_encode_OrganizationName(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.numeric_user_identifier {
-        components_.push(|v_1: &NumericUserIdentifier| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(_encode_NumericUserIdentifier(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 4),
+            X690Value::from_explicit(_encode_NumericUserIdentifier(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.personal_name {
-        components_.push(|v_1: &PersonalName| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 5),
-                X690Value::from_explicit(_encode_PersonalName(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 5),
+            X690Value::from_explicit(_encode_PersonalName(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.organizational_unit_names {
-        components_.push(|v_1: &OrganizationalUnitNames| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 6),
-                X690Value::from_explicit(_encode_OrganizationalUnitNames(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 6),
+            X690Value::from_explicit(_encode_OrganizationalUnitNames(&v_)?),
+        ));
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -526,7 +493,7 @@ pub fn _validate_BuiltInStandardAttributes(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_BuiltInStandardAttributes,
         _rctl2_components_for_BuiltInStandardAttributes,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -657,6 +624,7 @@ impl PartialEq for CountryName {
 
 impl TryFrom<&X690Element> for CountryName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_CountryName(el)
     }
@@ -732,6 +700,7 @@ pub enum AdministrationDomainName {
 
 impl AsRef<str> for AdministrationDomainName {
 
+    #[inline]
     fn as_ref(&self) -> &str {
         match self {
             AdministrationDomainName::numeric(s) => s,
@@ -743,6 +712,7 @@ impl AsRef<str> for AdministrationDomainName {
 
 impl PartialEq for AdministrationDomainName {
 
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (AdministrationDomainName::numeric(a), AdministrationDomainName::numeric(b)) => compare_numeric_string(a, b),
@@ -754,71 +724,61 @@ impl PartialEq for AdministrationDomainName {
 
 impl TryFrom<&X690Element> for AdministrationDomainName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_AdministrationDomainName(el)
     }
 }
 
 pub fn _decode_AdministrationDomainName(el: &X690Element) -> ASN1Result<AdministrationDomainName> {
-    |el: &X690Element| -> ASN1Result<AdministrationDomainName> {
-        Ok(|el: &X690Element| -> ASN1Result<AdministrationDomainName> {
-            match (el.tag.tag_class, el.tag.tag_number) {
-                (TagClass::UNIVERSAL, 18) => Ok(AdministrationDomainName::numeric(
-                    BER.decode_numeric_string(&el)?,
-                )),
-                (TagClass::UNIVERSAL, 19) => Ok(AdministrationDomainName::printable(
-                    BER.decode_printable_string(&el)?,
-                )),
-                _ => {
-                    return Err(el.to_asn1_err_named(
-                        ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                        "AdministrationDomainName",
-                    ))
-                }
-            }
-        }(&el.inner()?)?)
-    }(&el)
+    let el = el.inner()?;
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => Ok(AdministrationDomainName::numeric(
+            BER.decode_numeric_string(&el)?,
+        )),
+        (TagClass::UNIVERSAL, 19) => Ok(AdministrationDomainName::printable(
+            BER.decode_printable_string(&el)?,
+        )),
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "AdministrationDomainName",
+            ))
+        }
+    }
 }
 
 pub fn _encode_AdministrationDomainName(
     value_: &AdministrationDomainName,
 ) -> ASN1Result<X690Element> {
-    |v_1: &AdministrationDomainName| -> ASN1Result<X690Element> {
-        Ok(X690Element::new(
-            Tag::new(TagClass::APPLICATION, 2),
-            X690Value::from_explicit(
-                |value_: &AdministrationDomainName| -> ASN1Result<X690Element> {
-                    match value_ {
-                        AdministrationDomainName::numeric(v) => BER.encode_numeric_string(&v),
-                        AdministrationDomainName::printable(v) => BER.encode_printable_string(&v),
-                    }
-                }(&v_1)?,
-            ),
-        ))
-    }(&value_)
+    let inner = match value_ {
+        AdministrationDomainName::numeric(v) => BER.encode_numeric_string(&v)?,
+        AdministrationDomainName::printable(v) => BER.encode_printable_string(&v)?,
+    };
+    Ok(X690Element::new(
+        Tag::new(TagClass::APPLICATION, 2),
+        X690Value::from_explicit(inner),
+    ))
 }
 
 pub fn _validate_AdministrationDomainName(el: &X690Element) -> ASN1Result<()> {
-    |el: &X690Element| -> ASN1Result<()> {
-        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 2 {
+    if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 2 {
+        return Err(el.to_asn1_err_named(
+            ASN1ErrorCode::invalid_construction,
+            "AdministrationDomainName",
+        ));
+    }
+    let el = el.inner()?;
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
+        (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
+        _ => {
             return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::invalid_construction,
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
                 "AdministrationDomainName",
-            ));
+            ))
         }
-        Ok(|el: &X690Element| -> ASN1Result<()> {
-            match (el.tag.tag_class, el.tag.tag_number) {
-                (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
-                (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
-                _ => {
-                    return Err(el.to_asn1_err_named(
-                        ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                        "AdministrationDomainName",
-                    ))
-                }
-            }
-        }(&el.inner()?)?)
-    }(&el)
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -828,14 +788,17 @@ pub fn _validate_AdministrationDomainName(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type NetworkAddress = X121Address; // DefinedType
 
+#[inline]
 pub fn _decode_NetworkAddress(el: &X690Element) -> ASN1Result<NetworkAddress> {
     _decode_X121Address(&el)
 }
 
+#[inline]
 pub fn _encode_NetworkAddress(value_: &NetworkAddress) -> ASN1Result<X690Element> {
     _encode_X121Address(&value_)
 }
 
+#[inline]
 pub fn _validate_NetworkAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_X121Address(&el)
 }
@@ -845,16 +808,29 @@ pub fn _validate_NetworkAddress(el: &X690Element) -> ASN1Result<()> {
 /// ```asn1
 /// X121Address  ::=  NumericString(SIZE (1..ub-x121-address-length))
 /// ```
-pub type X121Address = NumericString; // NumericString
+pub type X121Address = heapless::String<ub_x121_address_length, u8>; // NumericString
 
 pub fn _decode_X121Address(el: &X690Element) -> ASN1Result<X121Address> {
-    BER.decode_numeric_string(&el)
+    let decon = deconstruct(el)?;
+    let maybe_invalid = decon.as_ref().iter().position(|b| !is_numeric_char(*b));
+    if let Some(invalid) = maybe_invalid {
+        let code = ASN1ErrorCode::prohibited_character(
+            decon.as_ref()[invalid] as u32,
+            invalid,
+        );
+        return Err(el.to_asn1_err_named(code, "network-address"));
+    }
+    let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+    heapless::String::try_from(s)
+        .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "network-address"))
 }
 
+#[inline]
 pub fn _encode_X121Address(value_: &X121Address) -> ASN1Result<X690Element> {
-    BER.encode_numeric_string(&value_)
+    BER.encode_numeric_string(value_.as_str())
 }
 
+#[inline]
 pub fn _validate_X121Address(el: &X690Element) -> ASN1Result<()> {
     BER.validate_numeric_string(&el)
 }
@@ -864,16 +840,29 @@ pub fn _validate_X121Address(el: &X690Element) -> ASN1Result<()> {
 /// ```asn1
 /// TerminalIdentifier  ::=  PrintableString(SIZE (1..ub-terminal-id-length))
 /// ```
-pub type TerminalIdentifier = PrintableString; // PrintableString
+pub type TerminalIdentifier = heapless::String<ub_terminal_id_length, u8>; // PrintableString
 
 pub fn _decode_TerminalIdentifier(el: &X690Element) -> ASN1Result<TerminalIdentifier> {
-    BER.decode_printable_string(&el)
+    let decon = deconstruct(el)?;
+    let maybe_invalid = decon.as_ref().iter().position(|b| !is_printable_char(*b));
+    if let Some(invalid) = maybe_invalid {
+        let code = ASN1ErrorCode::prohibited_character(
+            decon.as_ref()[invalid] as u32,
+            invalid,
+        );
+        return Err(el.to_asn1_err_named(code, "terminal-identifier"));
+    }
+    let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+    heapless::String::try_from(s)
+        .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "terminal-identifier"))
 }
 
+#[inline]
 pub fn _encode_TerminalIdentifier(value_: &TerminalIdentifier) -> ASN1Result<X690Element> {
-    BER.encode_printable_string(&value_)
+    BER.encode_printable_string(&value_.as_ref())
 }
 
+#[inline]
 pub fn _validate_TerminalIdentifier(el: &X690Element) -> ASN1Result<()> {
     BER.validate_printable_string(&el)
 }
@@ -893,6 +882,7 @@ pub enum PrivateDomainName {
 
 impl AsRef<str> for PrivateDomainName {
 
+    #[inline]
     fn as_ref(&self) -> &str {
         match self {
             PrivateDomainName::numeric(s) => s,
@@ -904,6 +894,7 @@ impl AsRef<str> for PrivateDomainName {
 
 impl PartialEq for PrivateDomainName {
 
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (PrivateDomainName::numeric(a), PrivateDomainName::numeric(b)) => compare_numeric_string(a, b),
@@ -915,6 +906,7 @@ impl PartialEq for PrivateDomainName {
 
 impl TryFrom<&X690Element> for PrivateDomainName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PrivateDomainName(el)
     }
@@ -937,6 +929,7 @@ pub fn _decode_PrivateDomainName(el: &X690Element) -> ASN1Result<PrivateDomainNa
     }
 }
 
+#[inline]
 pub fn _encode_PrivateDomainName(value_: &PrivateDomainName) -> ASN1Result<X690Element> {
     match value_ {
         PrivateDomainName::numeric(v) => BER.encode_numeric_string(&v),
@@ -962,16 +955,29 @@ pub fn _validate_PrivateDomainName(el: &X690Element) -> ASN1Result<()> {
 /// ```asn1
 /// OrganizationName  ::=  PrintableString(SIZE (1..ub-organization-name-length))
 /// ```
-pub type OrganizationName = PrintableString; // PrintableString
+pub type OrganizationName = heapless::String<ub_organization_name_length, u8>; // PrintableString
 
 pub fn _decode_OrganizationName(el: &X690Element) -> ASN1Result<OrganizationName> {
-    BER.decode_printable_string(&el)
+    let decon = deconstruct(el)?;
+    let maybe_invalid = decon.as_ref().iter().position(|b| !is_printable_char(*b));
+    if let Some(invalid) = maybe_invalid {
+        let code = ASN1ErrorCode::prohibited_character(
+            decon.as_ref()[invalid] as u32,
+            invalid,
+        );
+        return Err(el.to_asn1_err_named(code, "organization-name"));
+    }
+    let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+    heapless::String::try_from(s)
+        .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "organization-name"))
 }
 
+#[inline]
 pub fn _encode_OrganizationName(value_: &OrganizationName) -> ASN1Result<X690Element> {
-    BER.encode_printable_string(&value_)
+    BER.encode_printable_string(value_.as_str())
 }
 
+#[inline]
 pub fn _validate_OrganizationName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_printable_string(&el)
 }
@@ -981,16 +987,29 @@ pub fn _validate_OrganizationName(el: &X690Element) -> ASN1Result<()> {
 /// ```asn1
 /// NumericUserIdentifier  ::=  NumericString(SIZE (1..ub-numeric-user-id-length))
 /// ```
-pub type NumericUserIdentifier = NumericString; // NumericString
+pub type NumericUserIdentifier = heapless::String<ub_numeric_user_id_length, u8>; // NumericString
 
 pub fn _decode_NumericUserIdentifier(el: &X690Element) -> ASN1Result<NumericUserIdentifier> {
-    BER.decode_numeric_string(&el)
+    let decon = deconstruct(el)?;
+    let maybe_invalid = decon.as_ref().iter().position(|b| !is_numeric_char(*b));
+    if let Some(invalid) = maybe_invalid {
+        let code = ASN1ErrorCode::prohibited_character(
+            decon.as_ref()[invalid] as u32,
+            invalid,
+        );
+        return Err(el.to_asn1_err_named(code, "numeric-user-identifier"));
+    }
+    let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+    heapless::String::try_from(s)
+        .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "numeric-user-identifier"))
 }
 
+#[inline]
 pub fn _encode_NumericUserIdentifier(value_: &NumericUserIdentifier) -> ASN1Result<X690Element> {
-    BER.encode_numeric_string(&value_)
+    BER.encode_numeric_string(value_.as_str())
 }
 
+#[inline]
 pub fn _validate_NumericUserIdentifier(el: &X690Element) -> ASN1Result<()> {
     BER.validate_numeric_string(&el)
 }
@@ -1082,26 +1101,18 @@ pub fn _decode_PersonalName(el: &X690Element) -> ASN1Result<PersonalName> {
         _rctl2_components_for_PersonalName,
         40,
     )?;
-    let surname_ = |el: &X690Element| -> ASN1Result<PrintableString> {
-        Ok(BER.decode_printable_string(&el.inner()?)?)
-    }(_components.get("surname").unwrap())?;
+    let surname_ = BER.decode_printable_string(&_components.get("surname").unwrap().inner()?)?;
     let given_name_: OPTIONAL<PrintableString> = match _components.get("given-name") {
-        Some(c_) => Some(|el: &X690Element| -> ASN1Result<PrintableString> {
-            Ok(BER.decode_printable_string(&el.inner()?)?)
-        }(c_)?),
+        Some(c_) => Some(BER.decode_printable_string(&c_.inner()?)?),
         _ => None,
     };
     let initials_: OPTIONAL<PrintableString> = match _components.get("initials") {
-        Some(c_) => Some(|el: &X690Element| -> ASN1Result<PrintableString> {
-            Ok(BER.decode_printable_string(&el.inner()?)?)
-        }(c_)?),
+        Some(c_) => Some(BER.decode_printable_string(&c_.inner()?)?),
         _ => None,
     };
     let generation_qualifier_: OPTIONAL<PrintableString> =
         match _components.get("generation-qualifier") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<PrintableString> {
-                Ok(BER.decode_printable_string(&el.inner()?)?)
-            }(c_)?),
+            Some(c_) => Some(BER.decode_printable_string(&c_.inner()?)?),
             _ => None,
         };
     Ok(PersonalName {
@@ -1114,35 +1125,27 @@ pub fn _decode_PersonalName(el: &X690Element) -> ASN1Result<PersonalName> {
 
 pub fn _encode_PersonalName(value_: &PersonalName) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(9);
-    components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-        Ok(X690Element::new(
-            Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
-        ))
-    }(&value_.surname)?);
+    components_.push(X690Element::new(
+        Tag::new(TagClass::CONTEXT, 0),
+        X690Value::from_explicit(BER.encode_printable_string(&value_.surname)?),
+    ));
     if let Some(v_) = &value_.given_name {
-        components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(BER.encode_printable_string(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.initials {
-        components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(BER.encode_printable_string(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.generation_qualifier {
-        components_.push(|v_1: &PrintableString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(BER.encode_printable_string(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 3),
+            X690Value::from_explicit(BER.encode_printable_string(&v_)?),
+        ));
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
@@ -1260,16 +1263,29 @@ pub fn _validate_OrganizationalUnitNames(el: &X690Element) -> ASN1Result<()> {
 /// OrganizationalUnitName  ::=
 ///   PrintableString(SIZE (1..ub-organizational-unit-name-length))
 /// ```
-pub type OrganizationalUnitName = PrintableString; // PrintableString
+pub type OrganizationalUnitName = heapless::String<ub_organizational_unit_name_length, u8>; // PrintableString
 
 pub fn _decode_OrganizationalUnitName(el: &X690Element) -> ASN1Result<OrganizationalUnitName> {
-    BER.decode_printable_string(&el)
+    let decon = deconstruct(el)?;
+    let maybe_invalid = decon.as_ref().iter().position(|b| !is_printable_char(*b));
+    if let Some(invalid) = maybe_invalid {
+        let code = ASN1ErrorCode::prohibited_character(
+            decon.as_ref()[invalid] as u32,
+            invalid,
+        );
+        return Err(el.to_asn1_err_named(code, "OrganizationalUnitName"));
+    }
+    let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+    heapless::String::try_from(s)
+        .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "OrganizationalUnitName"))
 }
 
+#[inline]
 pub fn _encode_OrganizationalUnitName(value_: &OrganizationalUnitName) -> ASN1Result<X690Element> {
-    BER.encode_printable_string(&value_)
+    BER.encode_printable_string(value_.as_str())
 }
 
+#[inline]
 pub fn _validate_OrganizationalUnitName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_printable_string(&el)
 }
@@ -1340,16 +1356,18 @@ pub fn _validate_BuiltInDomainDefinedAttributes(el: &X690Element) -> ASN1Result<
 ///
 #[derive(Debug, Clone)]
 pub struct BuiltInDomainDefinedAttribute {
-    pub type_: PrintableString, // TODO: Limit to 8 bytes
-    pub value: PrintableString, // TODO: Limit to 128 bytes
+    pub type_: heapless::String<ub_domain_defined_attribute_type_length, u8>,
+    pub value: String,
 }
 impl BuiltInDomainDefinedAttribute {
-    pub fn new(type_: PrintableString, value: PrintableString) -> Self {
+    #[inline]
+    pub fn new(type_: heapless::String<ub_domain_defined_attribute_type_length, u8>, value: PrintableString) -> Self {
         BuiltInDomainDefinedAttribute { type_, value }
     }
 }
 impl TryFrom<&X690Element> for BuiltInDomainDefinedAttribute {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_BuiltInDomainDefinedAttribute(el)
     }
@@ -1394,9 +1412,9 @@ pub fn _decode_BuiltInDomainDefinedAttribute(
         _eal_components_for_BuiltInDomainDefinedAttribute,
         _rctl2_components_for_BuiltInDomainDefinedAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
-    let mut type__: OPTIONAL<PrintableString> = None;
+    let mut type__: OPTIONAL<heapless::String<ub_domain_defined_attribute_type_length, u8>> = None;
     let mut value_: OPTIONAL<PrintableString> = None;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1404,7 +1422,21 @@ pub fn _decode_BuiltInDomainDefinedAttribute(
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "type" => type__ = Some(BER.decode_printable_string(_el)?),
+            "type" => type__ = {
+                let decon = deconstruct(_el)?;
+                let maybe_invalid = decon.as_ref().iter().position(|b| !is_printable_char(*b));
+                if let Some(invalid) = maybe_invalid {
+                    let code = ASN1ErrorCode::prohibited_character(
+                        decon.as_ref()[invalid] as u32,
+                        invalid,
+                    );
+                    return Err(el.to_asn1_err_named(code, "BuiltInDomainDefinedAttribute.type"));
+                }
+                let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+                let s: heapless::String<ub_domain_defined_attribute_type_length, u8> = heapless::String::try_from(s)
+                    .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "BuiltInDomainDefinedAttribute.type"))?;
+                Some(s)
+            },
             "value" => value_ = Some(BER.decode_printable_string(_el)?),
             _ => {
                 return Err(_el.to_asn1_err_named(
@@ -1423,8 +1455,8 @@ pub fn _decode_BuiltInDomainDefinedAttribute(
 pub fn _encode_BuiltInDomainDefinedAttribute(
     value_: &BuiltInDomainDefinedAttribute,
 ) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-    components_.push(BER.encode_printable_string(&value_.type_)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(2);
+    components_.push(BER.encode_printable_string(value_.type_.as_str())?);
     components_.push(BER.encode_printable_string(&value_.value)?);
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -1448,7 +1480,7 @@ pub fn _validate_BuiltInDomainDefinedAttribute(el: &X690Element) -> ASN1Result<(
         _eal_components_for_BuiltInDomainDefinedAttribute,
         _rctl2_components_for_BuiltInDomainDefinedAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1529,12 +1561,12 @@ pub fn _validate_ExtensionAttributes(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct ExtensionAttribute {
-    // TODO: Change to u32
-    pub extension_attribute_type: INTEGER,
+    pub extension_attribute_type: u8,
     pub extension_attribute_value: X690Element,
 }
 impl ExtensionAttribute {
-    pub fn new(extension_attribute_type: INTEGER, extension_attribute_value: X690Element) -> Self {
+    #[inline]
+    pub fn new(extension_attribute_type: u8, extension_attribute_value: X690Element) -> Self {
         ExtensionAttribute {
             extension_attribute_type,
             extension_attribute_value,
@@ -1543,6 +1575,7 @@ impl ExtensionAttribute {
 }
 impl TryFrom<&X690Element> for ExtensionAttribute {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtensionAttribute(el)
     }
@@ -1584,9 +1617,9 @@ pub fn _decode_ExtensionAttribute(el: &X690Element) -> ASN1Result<ExtensionAttri
         _eal_components_for_ExtensionAttribute,
         _rctl2_components_for_ExtensionAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
-    let mut extension_attribute_type_: OPTIONAL<INTEGER> = None;
+    let mut extension_attribute_type_: OPTIONAL<u8> = None;
     let mut extension_attribute_value_: OPTIONAL<X690Element> = None;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1594,16 +1627,10 @@ pub fn _decode_ExtensionAttribute(el: &X690Element) -> ASN1Result<ExtensionAttri
         _i += 1;
         let _el = _maybe_el.unwrap();
         match _component_name {
-            "extension-attribute-type" => {
-                extension_attribute_type_ = Some(|el: &X690Element| -> ASN1Result<INTEGER> {
-                    Ok(BER.decode_integer(&el.inner()?)?)
-                }(_el)?)
-            }
-            "extension-attribute-value" => {
-                extension_attribute_value_ = Some(|el: &X690Element| -> ASN1Result<X690Element> {
-                    Ok(x690_identity(&el.inner()?)?)
-                }(_el)?)
-            }
+            "extension-attribute-type" =>
+                extension_attribute_type_ = Some(BER.decode_u8(&_el.inner()?)?),
+            "extension-attribute-value" =>
+                extension_attribute_value_ = Some(_el.inner()?),
             _ => {
                 return Err(_el
                     .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ExtensionAttribute"))
@@ -1617,19 +1644,16 @@ pub fn _decode_ExtensionAttribute(el: &X690Element) -> ASN1Result<ExtensionAttri
 }
 
 pub fn _encode_ExtensionAttribute(value_: &ExtensionAttribute) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(7);
-    components_.push(|v_1: &INTEGER| -> ASN1Result<X690Element> {
-        Ok(X690Element::new(
+    let components_: Vec<X690Element> = vec![
+        X690Element::new(
             Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(BER.encode_integer(&v_1)?),
-        ))
-    }(&value_.extension_attribute_type)?);
-    components_.push(|v_1: &X690Element| -> ASN1Result<X690Element> {
-        Ok(X690Element::new(
+            X690Value::from_explicit(BER.encode_u8(value_.extension_attribute_type)?),
+        ),
+        X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(x690_identity(&v_1)?),
-        ))
-    }(&value_.extension_attribute_value)?);
+            X690Value::from_explicit(value_.extension_attribute_value.clone()),
+        ),
+    ];
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
         X690Value::Constructed(Arc::new(components_)),
@@ -1651,7 +1675,7 @@ pub fn _validate_ExtensionAttribute(el: &X690Element) -> ASN1Result<()> {
         _eal_components_for_ExtensionAttribute,
         _rctl2_components_for_ExtensionAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -1666,7 +1690,7 @@ pub fn _validate_ExtensionAttribute(el: &X690Element) -> ASN1Result<()> {
                         "extension-attribute-type",
                     ));
                 }
-                Ok(BER.validate_integer(&el.inner()?)?)
+                Ok(BER.validate_u8(&el.inner()?)?)
             }(_el)?,
             "extension-attribute-value" => |el: &X690Element| -> ASN1Result<()> {
                 if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
@@ -1783,7 +1807,7 @@ pub fn ExtensionAttributeTable() -> Vec<EXTENSION_ATTRIBUTE> {
 ///   IDENTIFIED BY  1 }
 /// ```
 ///
-///
+#[inline]
 pub const fn common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 1, /* OBJECT_FIELD_SETTING */
@@ -1794,12 +1818,16 @@ pub mod common_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = CommonName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_CommonName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_CommonName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_CommonName(el)
     }
@@ -1812,14 +1840,17 @@ pub mod common_name {
 /// ```
 pub type CommonName = PrintableString; // PrintableString
 
+#[inline]
 pub fn _decode_CommonName(el: &X690Element) -> ASN1Result<CommonName> {
     BER.decode_printable_string(&el)
 }
 
+#[inline]
 pub fn _encode_CommonName(value_: &CommonName) -> ASN1Result<X690Element> {
     BER.encode_printable_string(&value_)
 }
 
+#[inline]
 pub fn _validate_CommonName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_printable_string(&el)
 }
@@ -1832,7 +1863,7 @@ pub fn _validate_CommonName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  2 }
 /// ```
 ///
-///
+#[inline]
 pub const fn teletex_common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 2, /* OBJECT_FIELD_SETTING */
@@ -1843,12 +1874,15 @@ pub mod teletex_common_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = TeletexCommonName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_TeletexCommonName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_TeletexCommonName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_TeletexCommonName(el)
     }
@@ -1861,14 +1895,17 @@ pub mod teletex_common_name {
 /// ```
 pub type TeletexCommonName = TeletexString; // TeletexString
 
+#[inline]
 pub fn _decode_TeletexCommonName(el: &X690Element) -> ASN1Result<TeletexCommonName> {
     BER.decode_t61_string(&el)
 }
 
+#[inline]
 pub fn _encode_TeletexCommonName(value_: &TeletexCommonName) -> ASN1Result<X690Element> {
     BER.encode_t61_string(&value_)
 }
 
+#[inline]
 pub fn _validate_TeletexCommonName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_t61_string(&el)
 }
@@ -1881,7 +1918,7 @@ pub fn _validate_TeletexCommonName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  24 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_common_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 24, /* OBJECT_FIELD_SETTING */
@@ -1892,12 +1929,15 @@ pub mod universal_common_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalCommonName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalCommonName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalCommonName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalCommonName(el)
     }
@@ -1910,14 +1950,17 @@ pub mod universal_common_name {
 /// ```
 pub type UniversalCommonName = UniversalOrBMPString; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalCommonName(el: &X690Element) -> ASN1Result<UniversalCommonName> {
     _decode_UniversalOrBMPString(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalCommonName(value_: &UniversalCommonName) -> ASN1Result<X690Element> {
     _encode_UniversalOrBMPString(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalCommonName(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalOrBMPString(&el)
 }
@@ -1930,7 +1973,7 @@ pub fn _validate_UniversalCommonName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  3 }
 /// ```
 ///
-///
+#[inline]
 pub const fn teletex_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 3, /* OBJECT_FIELD_SETTING */
@@ -1941,12 +1984,15 @@ pub mod teletex_organization_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = TeletexOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_TeletexOrganizationName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_TeletexOrganizationName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_TeletexOrganizationName(el)
     }
@@ -1960,16 +2006,19 @@ pub mod teletex_organization_name {
 /// ```
 pub type TeletexOrganizationName = TeletexString; // TeletexString
 
+#[inline]
 pub fn _decode_TeletexOrganizationName(el: &X690Element) -> ASN1Result<TeletexOrganizationName> {
     BER.decode_t61_string(&el)
 }
 
+#[inline]
 pub fn _encode_TeletexOrganizationName(
     value_: &TeletexOrganizationName,
 ) -> ASN1Result<X690Element> {
     BER.encode_t61_string(&value_)
 }
 
+#[inline]
 pub fn _validate_TeletexOrganizationName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_t61_string(&el)
 }
@@ -1982,7 +2031,7 @@ pub fn _validate_TeletexOrganizationName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  25 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 25, /* OBJECT_FIELD_SETTING */
@@ -1993,12 +2042,15 @@ pub mod universal_organization_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalOrganizationName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalOrganizationName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalOrganizationName(el)
     }
@@ -2011,22 +2063,26 @@ pub mod universal_organization_name {
 /// ```
 pub type UniversalOrganizationName = UniversalOrBMPString; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalOrganizationName(
     el: &X690Element,
 ) -> ASN1Result<UniversalOrganizationName> {
     _decode_UniversalOrBMPString(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalOrganizationName(
     value_: &UniversalOrganizationName,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalOrBMPString(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalOrganizationName(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalOrBMPString(&el)
 }
 
+// TODO: inline all extension attributes
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -2035,7 +2091,7 @@ pub fn _validate_UniversalOrganizationName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  4 }
 /// ```
 ///
-///
+#[inline]
 pub const fn teletex_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 4, /* OBJECT_FIELD_SETTING */
@@ -2046,12 +2102,15 @@ pub mod teletex_personal_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = TeletexPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_TeletexPersonalName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_TeletexPersonalName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_TeletexPersonalName(el)
     }
@@ -2078,6 +2137,7 @@ pub struct TeletexPersonalName {
     pub generation_qualifier: OPTIONAL<TeletexString>,
 }
 impl TeletexPersonalName {
+    #[inline]
     pub fn new(
         surname: TeletexString,
         given_name: OPTIONAL<TeletexString>,
@@ -2094,6 +2154,7 @@ impl TeletexPersonalName {
 }
 impl TryFrom<&X690Element> for TeletexPersonalName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TeletexPersonalName(el)
     }
@@ -2150,26 +2211,18 @@ pub fn _decode_TeletexPersonalName(el: &X690Element) -> ASN1Result<TeletexPerson
         _rctl2_components_for_TeletexPersonalName,
         40,
     )?;
-    let surname_ = |el: &X690Element| -> ASN1Result<TeletexString> {
-        Ok(BER.decode_t61_string(&el.inner()?)?)
-    }(_components.get("surname").unwrap())?;
+    let surname_ = BER.decode_t61_string(&_components.get("surname").unwrap().inner()?)?;
     let given_name_: OPTIONAL<TeletexString> = match _components.get("given-name") {
-        Some(c_) => Some(|el: &X690Element| -> ASN1Result<TeletexString> {
-            Ok(BER.decode_t61_string(&el.inner()?)?)
-        }(c_)?),
+        Some(c_) => Some(BER.decode_t61_string(&c_.inner()?)?),
         _ => None,
     };
     let initials_: OPTIONAL<TeletexString> = match _components.get("initials") {
-        Some(c_) => Some(|el: &X690Element| -> ASN1Result<TeletexString> {
-            Ok(BER.decode_t61_string(&el.inner()?)?)
-        }(c_)?),
+        Some(c_) => Some(BER.decode_t61_string(&c_.inner()?)?),
         _ => None,
     };
     let generation_qualifier_: OPTIONAL<TeletexString> =
         match _components.get("generation-qualifier") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<TeletexString> {
-                Ok(BER.decode_t61_string(&el.inner()?)?)
-            }(c_)?),
+            Some(c_) => Some(BER.decode_t61_string(&c_.inner()?)?),
             _ => None,
         };
     Ok(TeletexPersonalName {
@@ -2181,36 +2234,28 @@ pub fn _decode_TeletexPersonalName(el: &X690Element) -> ASN1Result<TeletexPerson
 }
 
 pub fn _encode_TeletexPersonalName(value_: &TeletexPersonalName) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(9);
-    components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-        Ok(X690Element::new(
-            Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
-        ))
-    }(&value_.surname)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(4);
+    components_.push(X690Element::new(
+        Tag::new(TagClass::CONTEXT, 0),
+        X690Value::from_explicit(BER.encode_t61_string(&value_.surname)?),
+    ));
     if let Some(v_) = &value_.given_name {
-        components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(BER.encode_t61_string(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.initials {
-        components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(BER.encode_t61_string(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.generation_qualifier {
-        components_.push(|v_1: &TeletexString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(BER.encode_t61_string(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 3),
+            X690Value::from_explicit(BER.encode_t61_string(&v_)?),
+        ));
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
@@ -2281,7 +2326,7 @@ pub fn _validate_TeletexPersonalName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  26 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 26, /* OBJECT_FIELD_SETTING */
@@ -2292,12 +2337,15 @@ pub mod universal_personal_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalPersonalName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalPersonalName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalPersonalName(el)
     }
@@ -2327,6 +2375,7 @@ pub struct UniversalPersonalName {
     pub generation_qualifier: OPTIONAL<UniversalOrBMPString>,
 }
 impl UniversalPersonalName {
+    #[inline]
     pub fn new(
         surname: UniversalOrBMPString,
         given_name: OPTIONAL<UniversalOrBMPString>,
@@ -2343,6 +2392,7 @@ impl UniversalPersonalName {
 }
 impl TryFrom<&X690Element> for UniversalPersonalName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UniversalPersonalName(el)
     }
@@ -2399,26 +2449,18 @@ pub fn _decode_UniversalPersonalName(el: &X690Element) -> ASN1Result<UniversalPe
         _rctl2_components_for_UniversalPersonalName,
         40,
     )?;
-    let surname_ = |el: &X690Element| -> ASN1Result<UniversalOrBMPString> {
-        Ok(_decode_UniversalOrBMPString(&el.inner()?)?)
-    }(_components.get("surname").unwrap())?;
+    let surname_ = _decode_UniversalOrBMPString(&_components.get("surname").unwrap().inner()?)?;
     let given_name_: OPTIONAL<UniversalOrBMPString> = match _components.get("given-name") {
-        Some(c_) => Some(|el: &X690Element| -> ASN1Result<UniversalOrBMPString> {
-            Ok(_decode_UniversalOrBMPString(&el.inner()?)?)
-        }(c_)?),
+        Some(c_) => Some(_decode_UniversalOrBMPString(&c_.inner()?)?),
         _ => None,
     };
     let initials_: OPTIONAL<UniversalOrBMPString> = match _components.get("initials") {
-        Some(c_) => Some(|el: &X690Element| -> ASN1Result<UniversalOrBMPString> {
-            Ok(_decode_UniversalOrBMPString(&el.inner()?)?)
-        }(c_)?),
+        Some(c_) => Some(_decode_UniversalOrBMPString(&c_.inner()?)?),
         _ => None,
     };
     let generation_qualifier_: OPTIONAL<UniversalOrBMPString> =
         match _components.get("generation-qualifier") {
-            Some(c_) => Some(|el: &X690Element| -> ASN1Result<UniversalOrBMPString> {
-                Ok(_decode_UniversalOrBMPString(&el.inner()?)?)
-            }(c_)?),
+            Some(c_) => Some(_decode_UniversalOrBMPString(&c_.inner()?)?),
             _ => None,
         };
     Ok(UniversalPersonalName {
@@ -2430,36 +2472,28 @@ pub fn _decode_UniversalPersonalName(el: &X690Element) -> ASN1Result<UniversalPe
 }
 
 pub fn _encode_UniversalPersonalName(value_: &UniversalPersonalName) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(9);
-    components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-        Ok(X690Element::new(
-            Tag::new(TagClass::CONTEXT, 0),
-            X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
-        ))
-    }(&value_.surname)?);
+    let mut components_: Vec<X690Element> = Vec::with_capacity(4);
+    components_.push(X690Element::new(
+        Tag::new(TagClass::CONTEXT, 0),
+        X690Value::from_explicit(_encode_UniversalOrBMPString(&value_.surname)?),
+    ));
     if let Some(v_) = &value_.given_name {
-        components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 1),
+            X690Value::from_explicit(_encode_UniversalOrBMPString(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.initials {
-        components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 2),
-                X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 2),
+            X690Value::from_explicit(_encode_UniversalOrBMPString(&v_)?),
+        ));
     }
     if let Some(v_) = &value_.generation_qualifier {
-        components_.push(|v_1: &UniversalOrBMPString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 3),
-                X690Value::from_explicit(_encode_UniversalOrBMPString(&v_1)?),
-            ))
-        }(&v_)?);
+        components_.push(X690Element::new(
+            Tag::new(TagClass::CONTEXT, 3),
+            X690Value::from_explicit(_encode_UniversalOrBMPString(&v_)?),
+        ));
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET),
@@ -2530,7 +2564,7 @@ pub fn _validate_UniversalPersonalName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  5 }
 /// ```
 ///
-///
+#[inline]
 pub const fn teletex_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 5, /* OBJECT_FIELD_SETTING */
@@ -2541,12 +2575,15 @@ pub mod teletex_organizational_unit_names {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = TeletexOrganizationalUnitNames; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_TeletexOrganizationalUnitNames(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_TeletexOrganizationalUnitNames(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_TeletexOrganizationalUnitNames(el)
     }
@@ -2615,18 +2652,21 @@ pub fn _validate_TeletexOrganizationalUnitNames(el: &X690Element) -> ASN1Result<
 /// ```
 pub type TeletexOrganizationalUnitName = TeletexString; // TeletexString
 
+#[inline]
 pub fn _decode_TeletexOrganizationalUnitName(
     el: &X690Element,
 ) -> ASN1Result<TeletexOrganizationalUnitName> {
     BER.decode_t61_string(&el)
 }
 
+#[inline]
 pub fn _encode_TeletexOrganizationalUnitName(
     value_: &TeletexOrganizationalUnitName,
 ) -> ASN1Result<X690Element> {
     BER.encode_t61_string(&value_)
 }
 
+#[inline]
 pub fn _validate_TeletexOrganizationalUnitName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_t61_string(&el)
 }
@@ -2639,7 +2679,7 @@ pub fn _validate_TeletexOrganizationalUnitName(el: &X690Element) -> ASN1Result<(
 ///   IDENTIFIED BY  27 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_organizational_unit_names() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 27, /* OBJECT_FIELD_SETTING */
@@ -2650,12 +2690,15 @@ pub mod universal_organizational_unit_names {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalOrganizationalUnitNames; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalOrganizationalUnitNames(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalOrganizationalUnitNames(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalOrganizationalUnitNames(el)
     }
@@ -2725,18 +2768,21 @@ pub fn _validate_UniversalOrganizationalUnitNames(el: &X690Element) -> ASN1Resul
 /// ```
 pub type UniversalOrganizationalUnitName = UniversalOrBMPString; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalOrganizationalUnitName(
     el: &X690Element,
 ) -> ASN1Result<UniversalOrganizationalUnitName> {
     _decode_UniversalOrBMPString(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalOrganizationalUnitName(
     value_: &UniversalOrganizationalUnitName,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalOrBMPString(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalOrganizationalUnitName(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalOrBMPString(&el)
 }
@@ -2757,6 +2803,7 @@ pub struct UniversalOrBMPString {
     pub iso_639_language_code: OPTIONAL<PrintableString>,
 }
 impl UniversalOrBMPString {
+    #[inline]
     pub fn new(
         character_encoding: UniversalOrBMPString_character_encoding,
         iso_639_language_code: OPTIONAL<PrintableString>,
@@ -2769,6 +2816,7 @@ impl UniversalOrBMPString {
 }
 impl TryFrom<&X690Element> for UniversalOrBMPString {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UniversalOrBMPString(el)
     }
@@ -2876,7 +2924,7 @@ pub fn _validate_UniversalOrBMPString(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  7 }
 /// ```
 ///
-///
+#[inline]
 pub const fn pds_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 7, /* OBJECT_FIELD_SETTING */
@@ -2887,12 +2935,15 @@ pub mod pds_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PDSName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PDSName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PDSName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PDSName(el)
     }
@@ -2905,14 +2956,17 @@ pub mod pds_name {
 /// ```
 pub type PDSName = PrintableString; // PrintableString
 
+#[inline]
 pub fn _decode_PDSName(el: &X690Element) -> ASN1Result<PDSName> {
     BER.decode_printable_string(&el)
 }
 
+#[inline]
 pub fn _encode_PDSName(value_: &PDSName) -> ASN1Result<X690Element> {
     BER.encode_printable_string(&value_)
 }
 
+#[inline]
 pub fn _validate_PDSName(el: &X690Element) -> ASN1Result<()> {
     BER.validate_printable_string(&el)
 }
@@ -2936,12 +2990,15 @@ pub mod physical_delivery_country_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PhysicalDeliveryCountryName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PhysicalDeliveryCountryName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PhysicalDeliveryCountryName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PhysicalDeliveryCountryName(el)
     }
@@ -2962,6 +3019,7 @@ pub enum PhysicalDeliveryCountryName {
 
 impl TryFrom<&X690Element> for PhysicalDeliveryCountryName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PhysicalDeliveryCountryName(el)
     }
@@ -2986,6 +3044,7 @@ pub fn _decode_PhysicalDeliveryCountryName(
     }
 }
 
+#[inline]
 pub fn _encode_PhysicalDeliveryCountryName(
     value_: &PhysicalDeliveryCountryName,
 ) -> ASN1Result<X690Element> {
@@ -3016,7 +3075,7 @@ pub fn _validate_PhysicalDeliveryCountryName(el: &X690Element) -> ASN1Result<()>
 ///   IDENTIFIED BY  9 }
 /// ```
 ///
-///
+#[inline]
 pub const fn postal_code() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 9, /* OBJECT_FIELD_SETTING */
@@ -3027,12 +3086,15 @@ pub mod postal_code {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PostalCode; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PostalCode(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PostalCode(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PostalCode(el)
     }
@@ -3054,6 +3116,7 @@ pub enum PostalCode {
 
 impl TryFrom<&X690Element> for PostalCode {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PostalCode(el)
     }
@@ -3074,6 +3137,7 @@ pub fn _decode_PostalCode(el: &X690Element) -> ASN1Result<PostalCode> {
     }
 }
 
+#[inline]
 pub fn _encode_PostalCode(value_: &PostalCode) -> ASN1Result<X690Element> {
     match value_ {
         PostalCode::numeric_code(v) => BER.encode_numeric_string(&v),
@@ -3102,7 +3166,7 @@ pub fn _validate_PostalCode(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  10 }
 /// ```
 ///
-///
+#[inline]
 pub const fn physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 10, /* OBJECT_FIELD_SETTING */
@@ -3113,12 +3177,15 @@ pub mod physical_delivery_office_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PhysicalDeliveryOfficeName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PhysicalDeliveryOfficeName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PhysicalDeliveryOfficeName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PhysicalDeliveryOfficeName(el)
     }
@@ -3131,18 +3198,21 @@ pub mod physical_delivery_office_name {
 /// ```
 pub type PhysicalDeliveryOfficeName = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_PhysicalDeliveryOfficeName(
     el: &X690Element,
 ) -> ASN1Result<PhysicalDeliveryOfficeName> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_PhysicalDeliveryOfficeName(
     value_: &PhysicalDeliveryOfficeName,
 ) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_PhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -3155,7 +3225,7 @@ pub fn _validate_PhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Result<()> 
 ///   IDENTIFIED BY  29 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_physical_delivery_office_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 29, /* OBJECT_FIELD_SETTING */
@@ -3166,12 +3236,15 @@ pub mod universal_physical_delivery_office_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalPhysicalDeliveryOfficeName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalPhysicalDeliveryOfficeName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalPhysicalDeliveryOfficeName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalPhysicalDeliveryOfficeName(el)
     }
@@ -3184,18 +3257,21 @@ pub mod universal_physical_delivery_office_name {
 /// ```
 pub type UniversalPhysicalDeliveryOfficeName = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalPhysicalDeliveryOfficeName(
     el: &X690Element,
 ) -> ASN1Result<UniversalPhysicalDeliveryOfficeName> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalPhysicalDeliveryOfficeName(
     value_: &UniversalPhysicalDeliveryOfficeName,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalPhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -3208,7 +3284,7 @@ pub fn _validate_UniversalPhysicalDeliveryOfficeName(el: &X690Element) -> ASN1Re
 ///   IDENTIFIED BY  11 }
 /// ```
 ///
-///
+#[inline]
 pub const fn physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 11, /* OBJECT_FIELD_SETTING */
@@ -3219,12 +3295,15 @@ pub mod physical_delivery_office_number {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PhysicalDeliveryOfficeNumber; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PhysicalDeliveryOfficeNumber(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PhysicalDeliveryOfficeNumber(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PhysicalDeliveryOfficeNumber(el)
     }
@@ -3237,18 +3316,21 @@ pub mod physical_delivery_office_number {
 /// ```
 pub type PhysicalDeliveryOfficeNumber = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_PhysicalDeliveryOfficeNumber(
     el: &X690Element,
 ) -> ASN1Result<PhysicalDeliveryOfficeNumber> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_PhysicalDeliveryOfficeNumber(
     value_: &PhysicalDeliveryOfficeNumber,
 ) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_PhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -3261,7 +3343,7 @@ pub fn _validate_PhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1Result<()
 ///   IDENTIFIED BY  30 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_physical_delivery_office_number() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 30, /* OBJECT_FIELD_SETTING */
@@ -3272,12 +3354,15 @@ pub mod universal_physical_delivery_office_number {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalPhysicalDeliveryOfficeNumber; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalPhysicalDeliveryOfficeNumber(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalPhysicalDeliveryOfficeNumber(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalPhysicalDeliveryOfficeNumber(el)
     }
@@ -3290,18 +3375,21 @@ pub mod universal_physical_delivery_office_number {
 /// ```
 pub type UniversalPhysicalDeliveryOfficeNumber = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalPhysicalDeliveryOfficeNumber(
     el: &X690Element,
 ) -> ASN1Result<UniversalPhysicalDeliveryOfficeNumber> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalPhysicalDeliveryOfficeNumber(
     value_: &UniversalPhysicalDeliveryOfficeNumber,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalPhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -3314,7 +3402,7 @@ pub fn _validate_UniversalPhysicalDeliveryOfficeNumber(el: &X690Element) -> ASN1
 ///   IDENTIFIED BY  12 }
 /// ```
 ///
-///
+#[inline]
 pub const fn extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 12, /* OBJECT_FIELD_SETTING */
@@ -3325,12 +3413,15 @@ pub mod extension_OR_address_components {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = ExtensionORAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_ExtensionORAddressComponents(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_ExtensionORAddressComponents(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_ExtensionORAddressComponents(el)
     }
@@ -3343,18 +3434,21 @@ pub mod extension_OR_address_components {
 /// ```
 pub type ExtensionORAddressComponents = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_ExtensionORAddressComponents(
     el: &X690Element,
 ) -> ASN1Result<ExtensionORAddressComponents> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_ExtensionORAddressComponents(
     value_: &ExtensionORAddressComponents,
 ) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_ExtensionORAddressComponents(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -3367,7 +3461,7 @@ pub fn _validate_ExtensionORAddressComponents(el: &X690Element) -> ASN1Result<()
 ///   IDENTIFIED BY  31 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_extension_OR_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 31, /* OBJECT_FIELD_SETTING */
@@ -3378,12 +3472,15 @@ pub mod universal_extension_OR_address_components {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalExtensionORAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalExtensionORAddressComponents(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalExtensionORAddressComponents(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalExtensionORAddressComponents(el)
     }
@@ -3396,18 +3493,21 @@ pub mod universal_extension_OR_address_components {
 /// ```
 pub type UniversalExtensionORAddressComponents = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalExtensionORAddressComponents(
     el: &X690Element,
 ) -> ASN1Result<UniversalExtensionORAddressComponents> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalExtensionORAddressComponents(
     value_: &UniversalExtensionORAddressComponents,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalExtensionORAddressComponents(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -3420,7 +3520,7 @@ pub fn _validate_UniversalExtensionORAddressComponents(el: &X690Element) -> ASN1
 ///   IDENTIFIED BY  13 }
 /// ```
 ///
-///
+#[inline]
 pub const fn physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 13, /* OBJECT_FIELD_SETTING */
@@ -3431,12 +3531,15 @@ pub mod physical_delivery_personal_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PhysicalDeliveryPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PhysicalDeliveryPersonalName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PhysicalDeliveryPersonalName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PhysicalDeliveryPersonalName(el)
     }
@@ -3449,18 +3552,21 @@ pub mod physical_delivery_personal_name {
 /// ```
 pub type PhysicalDeliveryPersonalName = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_PhysicalDeliveryPersonalName(
     el: &X690Element,
 ) -> ASN1Result<PhysicalDeliveryPersonalName> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_PhysicalDeliveryPersonalName(
     value_: &PhysicalDeliveryPersonalName,
 ) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_PhysicalDeliveryPersonalName(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -3473,7 +3579,7 @@ pub fn _validate_PhysicalDeliveryPersonalName(el: &X690Element) -> ASN1Result<()
 ///   IDENTIFIED BY  32 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_physical_delivery_personal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 32, /* OBJECT_FIELD_SETTING */
@@ -3484,12 +3590,15 @@ pub mod universal_physical_delivery_personal_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalPhysicalDeliveryPersonalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalPhysicalDeliveryPersonalName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalPhysicalDeliveryPersonalName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalPhysicalDeliveryPersonalName(el)
     }
@@ -3502,18 +3611,21 @@ pub mod universal_physical_delivery_personal_name {
 /// ```
 pub type UniversalPhysicalDeliveryPersonalName = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalPhysicalDeliveryPersonalName(
     el: &X690Element,
 ) -> ASN1Result<UniversalPhysicalDeliveryPersonalName> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalPhysicalDeliveryPersonalName(
     value_: &UniversalPhysicalDeliveryPersonalName,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalPhysicalDeliveryPersonalName(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -3526,7 +3638,7 @@ pub fn _validate_UniversalPhysicalDeliveryPersonalName(el: &X690Element) -> ASN1
 ///   IDENTIFIED BY  14 }
 /// ```
 ///
-///
+#[inline]
 pub const fn physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 14, /* OBJECT_FIELD_SETTING */
@@ -3537,12 +3649,15 @@ pub mod physical_delivery_organization_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PhysicalDeliveryOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PhysicalDeliveryOrganizationName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PhysicalDeliveryOrganizationName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PhysicalDeliveryOrganizationName(el)
     }
@@ -3555,18 +3670,21 @@ pub mod physical_delivery_organization_name {
 /// ```
 pub type PhysicalDeliveryOrganizationName = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_PhysicalDeliveryOrganizationName(
     el: &X690Element,
 ) -> ASN1Result<PhysicalDeliveryOrganizationName> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_PhysicalDeliveryOrganizationName(
     value_: &PhysicalDeliveryOrganizationName,
 ) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_PhysicalDeliveryOrganizationName(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -3579,7 +3697,7 @@ pub fn _validate_PhysicalDeliveryOrganizationName(el: &X690Element) -> ASN1Resul
 ///   IDENTIFIED BY  33 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_physical_delivery_organization_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 33, /* OBJECT_FIELD_SETTING */
@@ -3590,12 +3708,15 @@ pub mod universal_physical_delivery_organization_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalPhysicalDeliveryOrganizationName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalPhysicalDeliveryOrganizationName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalPhysicalDeliveryOrganizationName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalPhysicalDeliveryOrganizationName(el)
     }
@@ -3608,18 +3729,21 @@ pub mod universal_physical_delivery_organization_name {
 /// ```
 pub type UniversalPhysicalDeliveryOrganizationName = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalPhysicalDeliveryOrganizationName(
     el: &X690Element,
 ) -> ASN1Result<UniversalPhysicalDeliveryOrganizationName> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalPhysicalDeliveryOrganizationName(
     value_: &UniversalPhysicalDeliveryOrganizationName,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalPhysicalDeliveryOrganizationName(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -3632,7 +3756,7 @@ pub fn _validate_UniversalPhysicalDeliveryOrganizationName(el: &X690Element) -> 
 ///   IDENTIFIED BY  15 }
 /// ```
 ///
-///
+#[inline]
 pub const fn extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 15, /* OBJECT_FIELD_SETTING */
@@ -3643,12 +3767,15 @@ pub mod extension_physical_delivery_address_components {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = ExtensionPhysicalDeliveryAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_ExtensionPhysicalDeliveryAddressComponents(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_ExtensionPhysicalDeliveryAddressComponents(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_ExtensionPhysicalDeliveryAddressComponents(el)
     }
@@ -3661,18 +3788,21 @@ pub mod extension_physical_delivery_address_components {
 /// ```
 pub type ExtensionPhysicalDeliveryAddressComponents = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_ExtensionPhysicalDeliveryAddressComponents(
     el: &X690Element,
 ) -> ASN1Result<ExtensionPhysicalDeliveryAddressComponents> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_ExtensionPhysicalDeliveryAddressComponents(
     value_: &ExtensionPhysicalDeliveryAddressComponents,
 ) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_ExtensionPhysicalDeliveryAddressComponents(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -3685,7 +3815,7 @@ pub fn _validate_ExtensionPhysicalDeliveryAddressComponents(el: &X690Element) ->
 ///   IDENTIFIED BY  34 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_extension_physical_delivery_address_components() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 34, /* OBJECT_FIELD_SETTING */
@@ -3696,12 +3826,15 @@ pub mod universal_extension_physical_delivery_address_components {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalExtensionPhysicalDeliveryAddressComponents; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalExtensionPhysicalDeliveryAddressComponents(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalExtensionPhysicalDeliveryAddressComponents(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalExtensionPhysicalDeliveryAddressComponents(el)
     }
@@ -3714,18 +3847,21 @@ pub mod universal_extension_physical_delivery_address_components {
 /// ```
 pub type UniversalExtensionPhysicalDeliveryAddressComponents = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalExtensionPhysicalDeliveryAddressComponents(
     el: &X690Element,
 ) -> ASN1Result<UniversalExtensionPhysicalDeliveryAddressComponents> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalExtensionPhysicalDeliveryAddressComponents(
     value_: &UniversalExtensionPhysicalDeliveryAddressComponents,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalExtensionPhysicalDeliveryAddressComponents(
     el: &X690Element,
 ) -> ASN1Result<()> {
@@ -3740,7 +3876,7 @@ pub fn _validate_UniversalExtensionPhysicalDeliveryAddressComponents(
 ///   IDENTIFIED BY  16 }
 /// ```
 ///
-///
+#[inline]
 pub const fn unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 16, /* OBJECT_FIELD_SETTING */
@@ -3751,12 +3887,15 @@ pub mod unformatted_postal_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UnformattedPostalAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UnformattedPostalAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UnformattedPostalAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UnformattedPostalAddress(el)
     }
@@ -3777,6 +3916,7 @@ pub struct UnformattedPostalAddress {
     pub teletex_string: OPTIONAL<TeletexString>,
 }
 impl UnformattedPostalAddress {
+    #[inline]
     pub fn new(
         printable_address: OPTIONAL<Vec<PrintableString>>,
         teletex_string: OPTIONAL<TeletexString>,
@@ -3788,6 +3928,7 @@ impl UnformattedPostalAddress {
     }
 }
 impl Default for UnformattedPostalAddress {
+    #[inline]
     fn default() -> Self {
         UnformattedPostalAddress {
             printable_address: None,
@@ -3797,6 +3938,7 @@ impl Default for UnformattedPostalAddress {
 }
 impl TryFrom<&X690Element> for UnformattedPostalAddress {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UnformattedPostalAddress(el)
     }
@@ -3948,7 +4090,7 @@ pub fn _validate_UnformattedPostalAddress(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  35 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_unformatted_postal_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 35, /* OBJECT_FIELD_SETTING */
@@ -3959,12 +4101,15 @@ pub mod universal_unformatted_postal_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalUnformattedPostalAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalUnformattedPostalAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalUnformattedPostalAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalUnformattedPostalAddress(el)
     }
@@ -3978,18 +4123,21 @@ pub mod universal_unformatted_postal_address {
 /// ```
 pub type UniversalUnformattedPostalAddress = UniversalOrBMPString; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalUnformattedPostalAddress(
     el: &X690Element,
 ) -> ASN1Result<UniversalUnformattedPostalAddress> {
     _decode_UniversalOrBMPString(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalUnformattedPostalAddress(
     value_: &UniversalUnformattedPostalAddress,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalOrBMPString(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalUnformattedPostalAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalOrBMPString(&el)
 }
@@ -4002,7 +4150,7 @@ pub fn _validate_UniversalUnformattedPostalAddress(el: &X690Element) -> ASN1Resu
 ///   IDENTIFIED BY  17 }
 /// ```
 ///
-///
+#[inline]
 pub const fn street_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 17, /* OBJECT_FIELD_SETTING */
@@ -4013,12 +4161,15 @@ pub mod street_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = StreetAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_StreetAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_StreetAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_StreetAddress(el)
     }
@@ -4031,14 +4182,17 @@ pub mod street_address {
 /// ```
 pub type StreetAddress = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_StreetAddress(el: &X690Element) -> ASN1Result<StreetAddress> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_StreetAddress(value_: &StreetAddress) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_StreetAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -4051,7 +4205,7 @@ pub fn _validate_StreetAddress(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  36 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_street_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 36, /* OBJECT_FIELD_SETTING */
@@ -4062,12 +4216,15 @@ pub mod universal_street_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalStreetAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalStreetAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalStreetAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalStreetAddress(el)
     }
@@ -4080,14 +4237,17 @@ pub mod universal_street_address {
 /// ```
 pub type UniversalStreetAddress = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalStreetAddress(el: &X690Element) -> ASN1Result<UniversalStreetAddress> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalStreetAddress(value_: &UniversalStreetAddress) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalStreetAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -4100,7 +4260,7 @@ pub fn _validate_UniversalStreetAddress(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  18 }
 /// ```
 ///
-///
+#[inline]
 pub const fn post_office_box_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 18, /* OBJECT_FIELD_SETTING */
@@ -4111,12 +4271,15 @@ pub mod post_office_box_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PostOfficeBoxAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PostOfficeBoxAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PostOfficeBoxAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PostOfficeBoxAddress(el)
     }
@@ -4129,14 +4292,17 @@ pub mod post_office_box_address {
 /// ```
 pub type PostOfficeBoxAddress = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_PostOfficeBoxAddress(el: &X690Element) -> ASN1Result<PostOfficeBoxAddress> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_PostOfficeBoxAddress(value_: &PostOfficeBoxAddress) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_PostOfficeBoxAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -4149,7 +4315,7 @@ pub fn _validate_PostOfficeBoxAddress(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  37 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_post_office_box_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 37, /* OBJECT_FIELD_SETTING */
@@ -4160,12 +4326,15 @@ pub mod universal_post_office_box_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalPostOfficeBoxAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalPostOfficeBoxAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalPostOfficeBoxAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalPostOfficeBoxAddress(el)
     }
@@ -4178,18 +4347,21 @@ pub mod universal_post_office_box_address {
 /// ```
 pub type UniversalPostOfficeBoxAddress = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalPostOfficeBoxAddress(
     el: &X690Element,
 ) -> ASN1Result<UniversalPostOfficeBoxAddress> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalPostOfficeBoxAddress(
     value_: &UniversalPostOfficeBoxAddress,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalPostOfficeBoxAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -4202,7 +4374,7 @@ pub fn _validate_UniversalPostOfficeBoxAddress(el: &X690Element) -> ASN1Result<(
 ///   IDENTIFIED BY  19 }
 /// ```
 ///
-///
+#[inline]
 pub const fn poste_restante_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 19, /* OBJECT_FIELD_SETTING */
@@ -4213,12 +4385,15 @@ pub mod poste_restante_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = PosteRestanteAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_PosteRestanteAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_PosteRestanteAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_PosteRestanteAddress(el)
     }
@@ -4231,14 +4406,17 @@ pub mod poste_restante_address {
 /// ```
 pub type PosteRestanteAddress = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_PosteRestanteAddress(el: &X690Element) -> ASN1Result<PosteRestanteAddress> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_PosteRestanteAddress(value_: &PosteRestanteAddress) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_PosteRestanteAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -4251,7 +4429,7 @@ pub fn _validate_PosteRestanteAddress(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  38 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_poste_restante_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 38, /* OBJECT_FIELD_SETTING */
@@ -4262,12 +4440,15 @@ pub mod universal_poste_restante_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalPosteRestanteAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalPosteRestanteAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalPosteRestanteAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalPosteRestanteAddress(el)
     }
@@ -4280,18 +4461,21 @@ pub mod universal_poste_restante_address {
 /// ```
 pub type UniversalPosteRestanteAddress = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalPosteRestanteAddress(
     el: &X690Element,
 ) -> ASN1Result<UniversalPosteRestanteAddress> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalPosteRestanteAddress(
     value_: &UniversalPosteRestanteAddress,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalPosteRestanteAddress(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -4304,7 +4488,7 @@ pub fn _validate_UniversalPosteRestanteAddress(el: &X690Element) -> ASN1Result<(
 ///   IDENTIFIED BY  20 }
 /// ```
 ///
-///
+#[inline]
 pub const fn unique_postal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 20, /* OBJECT_FIELD_SETTING */
@@ -4315,12 +4499,15 @@ pub mod unique_postal_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniquePostalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniquePostalName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniquePostalName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniquePostalName(el)
     }
@@ -4333,14 +4520,17 @@ pub mod unique_postal_name {
 /// ```
 pub type UniquePostalName = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniquePostalName(el: &X690Element) -> ASN1Result<UniquePostalName> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniquePostalName(value_: &UniquePostalName) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniquePostalName(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -4353,7 +4543,7 @@ pub fn _validate_UniquePostalName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  39 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_unique_postal_name() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 39, /* OBJECT_FIELD_SETTING */
@@ -4364,12 +4554,15 @@ pub mod universal_unique_postal_name {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalUniquePostalName; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalUniquePostalName(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalUniquePostalName(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalUniquePostalName(el)
     }
@@ -4382,18 +4575,21 @@ pub mod universal_unique_postal_name {
 /// ```
 pub type UniversalUniquePostalName = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalUniquePostalName(
     el: &X690Element,
 ) -> ASN1Result<UniversalUniquePostalName> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalUniquePostalName(
     value_: &UniversalUniquePostalName,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalUniquePostalName(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -4406,7 +4602,7 @@ pub fn _validate_UniversalUniquePostalName(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  21 }
 /// ```
 ///
-///
+#[inline]
 pub const fn local_postal_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 21, /* OBJECT_FIELD_SETTING */
@@ -4417,12 +4613,15 @@ pub mod local_postal_attributes {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = LocalPostalAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_LocalPostalAttributes(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_LocalPostalAttributes(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_LocalPostalAttributes(el)
     }
@@ -4435,14 +4634,17 @@ pub mod local_postal_attributes {
 /// ```
 pub type LocalPostalAttributes = PDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_LocalPostalAttributes(el: &X690Element) -> ASN1Result<LocalPostalAttributes> {
     _decode_PDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_LocalPostalAttributes(value_: &LocalPostalAttributes) -> ASN1Result<X690Element> {
     _encode_PDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_LocalPostalAttributes(el: &X690Element) -> ASN1Result<()> {
     _validate_PDSParameter(&el)
 }
@@ -4455,7 +4657,7 @@ pub fn _validate_LocalPostalAttributes(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  40 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_local_postal_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 40, /* OBJECT_FIELD_SETTING */
@@ -4466,12 +4668,15 @@ pub mod universal_local_postal_attributes {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalLocalPostalAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalLocalPostalAttributes(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalLocalPostalAttributes(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalLocalPostalAttributes(el)
     }
@@ -4484,18 +4689,21 @@ pub mod universal_local_postal_attributes {
 /// ```
 pub type UniversalLocalPostalAttributes = UniversalPDSParameter; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalLocalPostalAttributes(
     el: &X690Element,
 ) -> ASN1Result<UniversalLocalPostalAttributes> {
     _decode_UniversalPDSParameter(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalLocalPostalAttributes(
     value_: &UniversalLocalPostalAttributes,
 ) -> ASN1Result<X690Element> {
     _encode_UniversalPDSParameter(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalLocalPostalAttributes(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalPDSParameter(&el)
 }
@@ -4514,6 +4722,7 @@ pub struct PDSParameter {
     pub teletex_string: OPTIONAL<TeletexString>,
 }
 impl PDSParameter {
+    #[inline]
     pub fn new(
         printable_string: OPTIONAL<PrintableString>,
         teletex_string: OPTIONAL<TeletexString>,
@@ -4525,6 +4734,7 @@ impl PDSParameter {
     }
 }
 impl Default for PDSParameter {
+    #[inline]
     fn default() -> Self {
         PDSParameter {
             printable_string: None,
@@ -4534,6 +4744,7 @@ impl Default for PDSParameter {
 }
 impl TryFrom<&X690Element> for PDSParameter {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PDSParameter(el)
     }
@@ -4630,14 +4841,17 @@ pub fn _validate_PDSParameter(el: &X690Element) -> ASN1Result<()> {
 /// ```
 pub type UniversalPDSParameter = UniversalOrBMPString; // DefinedType
 
+#[inline]
 pub fn _decode_UniversalPDSParameter(el: &X690Element) -> ASN1Result<UniversalPDSParameter> {
     _decode_UniversalOrBMPString(&el)
 }
 
+#[inline]
 pub fn _encode_UniversalPDSParameter(value_: &UniversalPDSParameter) -> ASN1Result<X690Element> {
     _encode_UniversalOrBMPString(&value_)
 }
 
+#[inline]
 pub fn _validate_UniversalPDSParameter(el: &X690Element) -> ASN1Result<()> {
     _validate_UniversalOrBMPString(&el)
 }
@@ -4650,7 +4864,7 @@ pub fn _validate_UniversalPDSParameter(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  22 }
 /// ```
 ///
-///
+#[inline]
 pub const fn extended_network_address() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 22, /* OBJECT_FIELD_SETTING */
@@ -4661,12 +4875,15 @@ pub mod extended_network_address {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = ExtendedNetworkAddress; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_ExtendedNetworkAddress(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_ExtendedNetworkAddress(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_ExtendedNetworkAddress(el)
     }
@@ -4690,6 +4907,7 @@ pub enum ExtendedNetworkAddress {
 
 impl TryFrom<&X690Element> for ExtendedNetworkAddress {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtendedNetworkAddress(el)
     }
@@ -4758,7 +4976,7 @@ pub fn _validate_ExtendedNetworkAddress(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  23 }
 /// ```
 ///
-///
+#[inline]
 pub const fn terminal_type() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 23, /* OBJECT_FIELD_SETTING */
@@ -4769,12 +4987,15 @@ pub mod terminal_type {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = TerminalType; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_TerminalType(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_TerminalType(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_TerminalType(el)
     }
@@ -4801,14 +5022,17 @@ pub const TerminalType_ia5_terminal: TerminalType = 7; /* LONG_NAMED_INTEGER_VAL
 
 pub const TerminalType_videotex: TerminalType = 8; /* LONG_NAMED_INTEGER_VALUE */
 
+#[inline]
 pub fn _decode_TerminalType(el: &X690Element) -> ASN1Result<TerminalType> {
     BER.decode_u16(el)
 }
 
+#[inline]
 pub fn _encode_TerminalType(value_: &TerminalType) -> ASN1Result<X690Element> {
     BER.encode_u16(*value_)
 }
 
+#[inline]
 pub fn _validate_TerminalType(el: &X690Element) -> ASN1Result<()> {
     BER.validate_u16(el)
 }
@@ -4821,7 +5045,7 @@ pub fn _validate_TerminalType(el: &X690Element) -> ASN1Result<()> {
 ///   IDENTIFIED BY  6 }
 /// ```
 ///
-///
+#[inline]
 pub const fn teletex_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 6, /* OBJECT_FIELD_SETTING */
@@ -4832,12 +5056,15 @@ pub mod teletex_domain_defined_attributes {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = TeletexDomainDefinedAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_TeletexDomainDefinedAttributes(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_TeletexDomainDefinedAttributes(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_TeletexDomainDefinedAttributes(el)
     }
@@ -4913,12 +5140,14 @@ pub struct TeletexDomainDefinedAttribute {
     pub value: TeletexString,
 }
 impl TeletexDomainDefinedAttribute {
+    #[inline]
     pub fn new(type_: TeletexString, value: TeletexString) -> Self {
         TeletexDomainDefinedAttribute { type_, value }
     }
 }
 impl TryFrom<&X690Element> for TeletexDomainDefinedAttribute {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_TeletexDomainDefinedAttribute(el)
     }
@@ -4963,7 +5192,7 @@ pub fn _decode_TeletexDomainDefinedAttribute(
         _eal_components_for_TeletexDomainDefinedAttribute,
         _rctl2_components_for_TeletexDomainDefinedAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut type__: OPTIONAL<TeletexString> = None;
     let mut value_: OPTIONAL<TeletexString> = None;
@@ -5017,7 +5246,7 @@ pub fn _validate_TeletexDomainDefinedAttribute(el: &X690Element) -> ASN1Result<(
         _eal_components_for_TeletexDomainDefinedAttribute,
         _rctl2_components_for_TeletexDomainDefinedAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5046,7 +5275,7 @@ pub fn _validate_TeletexDomainDefinedAttribute(el: &X690Element) -> ASN1Result<(
 ///   IDENTIFIED BY  28 }
 /// ```
 ///
-///
+#[inline]
 pub const fn universal_domain_defined_attributes() -> EXTENSION_ATTRIBUTE {
     EXTENSION_ATTRIBUTE {
         id: 28, /* OBJECT_FIELD_SETTING */
@@ -5057,12 +5286,15 @@ pub mod universal_domain_defined_attributes {
     /* OBJECT_TYPES */
     use super::*;
     pub type Type = UniversalDomainDefinedAttributes; /* OBJECT_FIELD_SETTING OBJECT_TYPE_FIELD_SETTING */
+    #[inline]
     pub fn _decode_Type(el: &X690Element) -> ASN1Result<Type> {
         _decode_UniversalDomainDefinedAttributes(el)
     }
+    #[inline]
     pub fn _encode_Type(value_: &Type) -> ASN1Result<X690Element> {
         _encode_UniversalDomainDefinedAttributes(value_)
     }
+    #[inline]
     pub fn _validate_Type(el: &X690Element) -> ASN1Result<()> {
         _validate_UniversalDomainDefinedAttributes(el)
     }
@@ -5139,6 +5371,7 @@ pub struct UniversalDomainDefinedAttribute {
     pub value: UniversalOrBMPString,
 }
 impl UniversalDomainDefinedAttribute {
+    #[inline]
     pub fn new(type_: UniversalOrBMPString, value: UniversalOrBMPString) -> Self {
         UniversalDomainDefinedAttribute { type_, value }
     }
@@ -5189,7 +5422,7 @@ pub fn _decode_UniversalDomainDefinedAttribute(
         _eal_components_for_UniversalDomainDefinedAttribute,
         _rctl2_components_for_UniversalDomainDefinedAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut type__: OPTIONAL<UniversalOrBMPString> = None;
     let mut value_: OPTIONAL<UniversalOrBMPString> = None;
@@ -5243,7 +5476,7 @@ pub fn _validate_UniversalDomainDefinedAttribute(el: &X690Element) -> ASN1Result
         _eal_components_for_UniversalDomainDefinedAttribute,
         _rctl2_components_for_UniversalDomainDefinedAttribute,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -5547,6 +5780,7 @@ pub enum UniversalOrBMPString_character_encoding {
 
 impl TryFrom<&X690Element> for UniversalOrBMPString_character_encoding {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_UniversalOrBMPString_character_encoding(el)
     }
@@ -5571,6 +5805,7 @@ pub fn _decode_UniversalOrBMPString_character_encoding(
     }
 }
 
+#[inline]
 pub fn _encode_UniversalOrBMPString_character_encoding(
     value_: &UniversalOrBMPString_character_encoding,
 ) -> ASN1Result<X690Element> {
@@ -5605,6 +5840,7 @@ pub struct ExtendedNetworkAddress_e163_4_address {
     pub sub_address: OPTIONAL<NumericString>,
 }
 impl ExtendedNetworkAddress_e163_4_address {
+    #[inline]
     pub fn new(number: NumericString, sub_address: OPTIONAL<NumericString>) -> Self {
         ExtendedNetworkAddress_e163_4_address {
             number,
@@ -5614,6 +5850,7 @@ impl ExtendedNetworkAddress_e163_4_address {
 }
 impl TryFrom<&X690Element> for ExtendedNetworkAddress_e163_4_address {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_ExtendedNetworkAddress_e163_4_address(el)
     }
@@ -5658,7 +5895,7 @@ pub fn _decode_ExtendedNetworkAddress_e163_4_address(
         _eal_components_for_ExtendedNetworkAddress_e163_4_address,
         _rctl2_components_for_ExtendedNetworkAddress_e163_4_address,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     let mut number_: OPTIONAL<NumericString> = None;
     let mut sub_address_: OPTIONAL<NumericString> = None;
@@ -5732,7 +5969,7 @@ pub fn _validate_ExtendedNetworkAddress_e163_4_address(el: &X690Element) -> ASN1
         _eal_components_for_ExtendedNetworkAddress_e163_4_address,
         _rctl2_components_for_ExtendedNetworkAddress_e163_4_address,
     )
-    .into_iter();
+    ;
     let mut _i: usize = 0;
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
