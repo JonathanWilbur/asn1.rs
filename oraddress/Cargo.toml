@@ -1,0 +1,20 @@
+[package]
+name = "oraddress"
+version = "1.0.0"
+edition = "2024"
+authors = [
+    "Jonathan M. Wilbur <jonathan@wilbur.space>",
+    "Wildboar Software <jonathan.wilbur@wildboarsoftware.com>",
+]
+description = "X.400 Message Handling System (MHS) Originator-Recipient (O/R) Address"
+readme = "README.md"
+repository = "https://github.com/JonathanWilbur/asn1.rs/tree/master/oraddress"
+license = "MIT"
+keywords = ["x400", "mhs", "oraddress", "mts", "ipm"]
+categories = ["network-programming"]
+
+[dependencies]
+wildboar-asn1 = { version = "3", path = "../asn1" }
+x690 = { version = "1", path = "../x690" }
+teletex = { version = "1", path = "../teletex" }
+presentation-address = { version = "1", path = "../presentation-address", features = ["x690"] }

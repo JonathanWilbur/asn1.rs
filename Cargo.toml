@@ -29,7 +29,9 @@ members = [
     "pki-stub",
     "x520-stringprep",
     "ldappostaladdr",
-    "idm-frame", "oraddress", "presaddress",
+    "idm-frame",
+    "oraddress",
+    "presentation-address",
 ]
 
 [workspace.dependencies]

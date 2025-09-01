@@ -338,6 +338,7 @@ dependencies = [
  "ldappostaladdr",
  "libfuzzer-sys",
  "nsap-address",
+ "presentation-address",
  "teletex",
  "wildboar-asn1",
  "x520-stringprep",
@@ -1794,6 +1795,7 @@ checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
 name = "oraddress"
 version = "1.0.0"
 dependencies = [
+ "presentation-address",
  "teletex",
  "wildboar-asn1",
  "x690",
@@ -2086,8 +2088,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "presaddress"
-version = "0.1.0"
+name = "presentation-address"
+version = "1.0.1"
+dependencies = [
+ "faster-hex",
+ "nsap-address",
+ "wildboar-asn1",
+ "x690",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -3508,13 +3516,8 @@ dependencies = [
 name = "x500dsa"
 version = "0.1.0"
 dependencies = [
- "async-trait",
- "idm",
- "thiserror",
- "tokio-stream",
  "wildboar-asn1",
  "wildboar-ldap",
- "x500",
  "x690",
 ]
 

@@ -245,14 +245,12 @@ which control how these elements are encoded.
     - Transform constructed elements into `Serialized` variant, or
     - Write elements to a buffer backwards, which some ASN.1 libraries do.
 - [ ] Where possible, replace `deconstruct` with `X690Element::deconstruction_iter()`.
-- [x] `teletex`
+- [x] `nsap-address`
+- [x] `presaddress`
 - [ ] `oraddress`
 - [ ] `pki-stub`
-- [x] `idm-frame`
 - [ ] `gser`
-- [ ] `nsap-address`
 - [ ] `ldap-schema-parsers`
-- [x] `tpkt`
 - [ ] `x500`
 - [ ] `x500-client`
 - [ ] `x690dump`
