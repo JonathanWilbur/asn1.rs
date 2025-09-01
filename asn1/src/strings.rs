@@ -113,7 +113,7 @@ pub fn is_tstring (s: &str) -> bool {
 }
 
 /// Normalize a `NumericString` by removing the spaces.
-pub fn normalize_num_bytes (mut input: &[u8]) -> Cow<[u8]> {
+pub fn normalize_num_bytes<'a>(mut input: &'a [u8]) -> Cow<'a, [u8]> {
     while input.get(0) == Some(&b' ') {
         input = &input[1..];
     }
