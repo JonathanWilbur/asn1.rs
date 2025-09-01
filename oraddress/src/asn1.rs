@@ -21,6 +21,7 @@
 //!
 use wildboar_asn1::*;
 use std::sync::Arc;
+use std::fmt::Write;
 use x690::*;
 use std::str::FromStr;
 use crate::country::x121_dcc_country_code_to_iso_3166;
@@ -202,7 +203,7 @@ pub fn _validate_ORAddress(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct BuiltInStandardAttributes {
-    pub country_name: OPTIONAL<CountryName>, // TODO: heapless
+    pub country_name: OPTIONAL<CountryName>,
     pub administration_domain_name: OPTIONAL<AdministrationDomainName>, // TODO: heapless
     pub network_address: OPTIONAL<NetworkAddress>,
     pub terminal_identifier: OPTIONAL<TerminalIdentifier>,
@@ -585,8 +586,8 @@ pub fn _validate_BuiltInStandardAttributes(el: &X690Element) -> ASN1Result<()> {
 /// ```
 #[derive(Debug, Clone, Eq)]
 pub enum CountryName {
-    x121_dcc_code(NumericString),
-    iso_3166_alpha2_code(PrintableString),
+    x121_dcc_code(u16),
+    iso_3166_alpha2_code([u8; 2]),
 }
 
 impl PartialEq for CountryName {
@@ -594,28 +595,16 @@ impl PartialEq for CountryName {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (CountryName::x121_dcc_code(a), CountryName::x121_dcc_code(b)) => a == b,
-            (CountryName::iso_3166_alpha2_code(a), CountryName::iso_3166_alpha2_code(b)) => a.eq_ignore_ascii_case(b),
-            (CountryName::x121_dcc_code(a), CountryName::iso_3166_alpha2_code(b)) => {
-                let dcc = match u16::from_str(a.as_str()) {
-                    Ok(d) => d,
-                    Err(_) => return false,
-                };
-                let iso_cc = match x121_dcc_country_code_to_iso_3166(dcc) {
-                    Some(d) => d,
+            (CountryName::iso_3166_alpha2_code(a), CountryName::iso_3166_alpha2_code(b)) =>
+                a[0].eq_ignore_ascii_case(&b[0])
+                && a[1].eq_ignore_ascii_case(&b[1]),
+            (CountryName::x121_dcc_code(dcc), CountryName::iso_3166_alpha2_code(isocc1))
+            | (CountryName::iso_3166_alpha2_code(isocc1), CountryName::x121_dcc_code(dcc)) => {
+                let isocc2 = match x121_dcc_country_code_to_iso_3166(*dcc) {
+                    Some(isocc2) => isocc2,
                     None => return false,
                 };
-                iso_cc == b.as_str()
-            },
-            (CountryName::iso_3166_alpha2_code(a), CountryName::x121_dcc_code(b)) => {
-                let dcc = match u16::from_str(b.as_str()) {
-                    Ok(d) => d,
-                    Err(_) => return false,
-                };
-                let iso_cc = match x121_dcc_country_code_to_iso_3166(dcc) {
-                    Some(d) => d,
-                    None => return false,
-                };
-                a.as_str() == iso_cc
+                CountryName::iso_3166_alpha2_code(*isocc1) == CountryName::iso_3166_alpha2_code(isocc2)
             },
         }
     }
@@ -631,38 +620,84 @@ impl TryFrom<&X690Element> for CountryName {
 }
 
 pub fn _decode_CountryName(el: &X690Element) -> ASN1Result<CountryName> {
-    |el: &X690Element| -> ASN1Result<CountryName> {
-        Ok(|el: &X690Element| -> ASN1Result<CountryName> {
-            match (el.tag.tag_class, el.tag.tag_number) {
-                (TagClass::UNIVERSAL, 18) => {
-                    Ok(CountryName::x121_dcc_code(BER.decode_numeric_string(&el)?))
-                }
-                (TagClass::UNIVERSAL, 19) => Ok(CountryName::iso_3166_alpha2_code(
-                    BER.decode_printable_string(&el)?,
-                )),
-                _ => {
-                    return Err(el.to_asn1_err_named(
-                        ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                        "CountryName",
-                    ))
-                }
+    let el = el.inner()?;
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => {
+            let decon = deconstruct(&el)?;
+            if decon.as_ref().len() != 3 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::constraint_violation,
+                    "x121-dcc-code",
+                ));
             }
-        }(&el.inner()?)?)
-    }(&el)
+            let maybe_invalid = decon.as_ref().iter().position(|b| !is_numeric_char(*b));
+            if let Some(invalid) = maybe_invalid {
+                let code = ASN1ErrorCode::prohibited_character(
+                    decon.as_ref()[invalid] as u32,
+                    invalid,
+                );
+                return Err(el.to_asn1_err_named(code, "x121-dcc-code"));
+            }
+            let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+            let dcc = u16::from_str(s)
+                .map_err(|_| el.to_asn1_err_named(
+                    ASN1ErrorCode::constraint_violation,
+                    "x121-dcc-code",
+                ))?;
+            Ok(CountryName::x121_dcc_code(dcc))
+        }
+        (TagClass::UNIVERSAL, 19) => {
+            let decon = deconstruct(&el)?;
+            if decon.as_ref().len() != 2 {
+                return Err(el.to_asn1_err_named(
+                    ASN1ErrorCode::constraint_violation,
+                    "iso-3166-alpha2-code",
+                ));
+            }
+            let maybe_invalid = decon.as_ref().iter().position(|b| !is_printable_char(*b));
+            if let Some(invalid) = maybe_invalid {
+                let code = ASN1ErrorCode::prohibited_character(
+                    decon.as_ref()[invalid] as u32,
+                    invalid,
+                );
+                return Err(el.to_asn1_err_named(code, "iso-3166-alpha2-code"));
+            }
+            let isoccbytes = decon.as_ref();
+            debug_assert_eq!(isoccbytes.len(), 2);
+            let isocc: [u8; 2] = [ isoccbytes[0], isoccbytes[1] ];
+            Ok(CountryName::iso_3166_alpha2_code(isocc))
+        },
+        _ => {
+            return Err(el.to_asn1_err_named(
+                ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+                "CountryName",
+            ))
+        }
+    }
 }
 
 pub fn _encode_CountryName(value_: &CountryName) -> ASN1Result<X690Element> {
-    |v_1: &CountryName| -> ASN1Result<X690Element> {
-        Ok(X690Element::new(
-            Tag::new(TagClass::APPLICATION, 1),
-            X690Value::from_explicit(|value_: &CountryName| -> ASN1Result<X690Element> {
-                match value_ {
-                    CountryName::x121_dcc_code(v) => BER.encode_numeric_string(&v),
-                    CountryName::iso_3166_alpha2_code(v) => BER.encode_printable_string(&v),
-                }
-            }(&v_1)?),
-        ))
-    }(&value_)
+    let inner = match value_ {
+        CountryName::x121_dcc_code(v) => {
+            let mut dcc: heapless::String<3, u8> = heapless::String::new();
+            write!(&mut dcc, "{:03}", v)
+                .map_err(|_| ASN1Error::new(
+                    ASN1ErrorCode::constraint_violation,
+                ).with_component_name("x121-dcc-code"))?;
+            BER.encode_numeric_string(dcc.as_str())?
+        },
+        CountryName::iso_3166_alpha2_code(v) => {
+            let s = str::from_utf8(v.as_slice())
+                .map_err(|_| ASN1Error::new(
+                    ASN1ErrorCode::constraint_violation,
+                ).with_component_name("iso-3166-alpha2-code"))?;
+            BER.encode_printable_string(s)?
+        },
+    };
+    Ok(X690Element::new(
+        Tag::new(TagClass::APPLICATION, 1),
+        X690Value::from_explicit(inner),
+    ))
 }
 
 pub fn _validate_CountryName(el: &X690Element) -> ASN1Result<()> {
