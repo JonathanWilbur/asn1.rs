@@ -204,14 +204,14 @@ pub fn _validate_ORAddress(el: &X690Element) -> ASN1Result<()> {
 #[derive(Debug, Clone)]
 pub struct BuiltInStandardAttributes {
     pub country_name: OPTIONAL<CountryName>,
-    pub administration_domain_name: OPTIONAL<AdministrationDomainName>, // TODO: heapless
+    pub administration_domain_name: OPTIONAL<AdministrationDomainName>,
     pub network_address: OPTIONAL<NetworkAddress>,
     pub terminal_identifier: OPTIONAL<TerminalIdentifier>,
-    pub private_domain_name: OPTIONAL<PrivateDomainName>, // TODO: heapless
+    pub private_domain_name: OPTIONAL<PrivateDomainName>,
     pub organization_name: OPTIONAL<OrganizationName>,
     pub numeric_user_identifier: OPTIONAL<NumericUserIdentifier>,
-    pub personal_name: OPTIONAL<PersonalName>, // TODO: heapless
-    pub organizational_unit_names: OPTIONAL<OrganizationalUnitNames>, // TODO: heapless
+    pub personal_name: OPTIONAL<PersonalName>,
+    pub organizational_unit_names: OPTIONAL<OrganizationalUnitNames>,
 }
 impl BuiltInStandardAttributes {
     #[inline]
@@ -701,23 +701,18 @@ pub fn _encode_CountryName(value_: &CountryName) -> ASN1Result<X690Element> {
 }
 
 pub fn _validate_CountryName(el: &X690Element) -> ASN1Result<()> {
-    |el: &X690Element| -> ASN1Result<()> {
-        if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
-            return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "CountryName"));
-        }
-        Ok(|el: &X690Element| -> ASN1Result<()> {
-            match (el.tag.tag_class, el.tag.tag_number) {
-                (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
-                (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
-                _ => {
-                    return Err(el.to_asn1_err_named(
-                        ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
-                        "CountryName",
-                    ))
-                }
-            }
-        }(&el.inner()?)?)
-    }(&el)
+    if el.tag.tag_class != TagClass::APPLICATION || el.tag.tag_number != 1 {
+        return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "CountryName"));
+    }
+    let el = el.inner()?;
+    match (el.tag.tag_class, el.tag.tag_number) {
+        (TagClass::UNIVERSAL, 18) => BER.validate_numeric_string(&el),
+        (TagClass::UNIVERSAL, 19) => BER.validate_printable_string(&el),
+        _ => return Err(el.to_asn1_err_named(
+            ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
+            "CountryName",
+        )),
+    }
 }
 
 /// ### ASN.1 Definition:
@@ -727,53 +722,31 @@ pub fn _validate_CountryName(el: &X690Element) -> ASN1Result<()> {
 ///   numeric    NumericString(SIZE (0..ub-domain-name-length)),
 ///   printable  PrintableString(SIZE (0..ub-domain-name-length)) }
 /// ```
-#[derive(Debug, Clone, Eq)]
-pub enum AdministrationDomainName {
-    numeric(NumericString),
-    printable(PrintableString),
-}
-
-impl AsRef<str> for AdministrationDomainName {
-
-    #[inline]
-    fn as_ref(&self) -> &str {
-        match self {
-            AdministrationDomainName::numeric(s) => s,
-            AdministrationDomainName::printable(s) => s,
-        }
-    }
-
-}
-
-impl PartialEq for AdministrationDomainName {
-
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (AdministrationDomainName::numeric(a), AdministrationDomainName::numeric(b)) => compare_numeric_string(a, b),
-            _ => self.as_ref().trim().eq_ignore_ascii_case(other.as_ref().trim()),
-        }
-    }
-
-}
-
-impl TryFrom<&X690Element> for AdministrationDomainName {
-    type Error = ASN1Error;
-    #[inline]
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_AdministrationDomainName(el)
-    }
-}
+pub type AdministrationDomainName = heapless::String<ub_domain_name_length, u8>;
 
 pub fn _decode_AdministrationDomainName(el: &X690Element) -> ASN1Result<AdministrationDomainName> {
     let el = el.inner()?;
     match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 18) => Ok(AdministrationDomainName::numeric(
-            BER.decode_numeric_string(&el)?,
-        )),
-        (TagClass::UNIVERSAL, 19) => Ok(AdministrationDomainName::printable(
-            BER.decode_printable_string(&el)?,
-        )),
+        (TagClass::UNIVERSAL, UNIV_TAG_NUMERIC_STRING)
+        | (TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING) => {
+            let decon = deconstruct(&el)?;
+            let maybe_invalid = if el.tag.tag_number == UNIV_TAG_NUMERIC_STRING {
+                decon.as_ref().iter().position(|b| !is_numeric_char(*b))
+            } else {
+                decon.as_ref().iter().position(|b| !is_printable_char(*b))
+            };
+            if let Some(invalid) = maybe_invalid {
+                let code = ASN1ErrorCode::prohibited_character(
+                    decon.as_ref()[invalid] as u32,
+                    invalid,
+                );
+                return Err(el.to_asn1_err_named(code, "AdministrationDomainName"));
+            }
+            let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+            let ret: heapless::String<ub_domain_name_length, u8> = heapless::String::try_from(s)
+                .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "AdministrationDomainName"))?;
+            Ok(ret)
+        },
         _ => {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
@@ -786,9 +759,10 @@ pub fn _decode_AdministrationDomainName(el: &X690Element) -> ASN1Result<Administ
 pub fn _encode_AdministrationDomainName(
     value_: &AdministrationDomainName,
 ) -> ASN1Result<X690Element> {
-    let inner = match value_ {
-        AdministrationDomainName::numeric(v) => BER.encode_numeric_string(&v)?,
-        AdministrationDomainName::printable(v) => BER.encode_printable_string(&v)?,
+    let inner = if value_.bytes().all(|b| is_numeric_char(b)) {
+        BER.encode_numeric_string(value_.as_str())?
+    } else {
+        BER.encode_printable_string(value_.as_str())?
     };
     Ok(X690Element::new(
         Tag::new(TagClass::APPLICATION, 2),
@@ -909,52 +883,31 @@ pub fn _validate_TerminalIdentifier(el: &X690Element) -> ASN1Result<()> {
 ///   numeric    NumericString(SIZE (1..ub-domain-name-length)),
 ///   printable  PrintableString(SIZE (1..ub-domain-name-length)) }
 /// ```
-#[derive(Debug, Clone, Eq)]
-pub enum PrivateDomainName {
-    numeric(NumericString),
-    printable(PrintableString),
-}
-
-impl AsRef<str> for PrivateDomainName {
-
-    #[inline]
-    fn as_ref(&self) -> &str {
-        match self {
-            PrivateDomainName::numeric(s) => s,
-            PrivateDomainName::printable(s) => s,
-        }
-    }
-
-}
-
-impl PartialEq for PrivateDomainName {
-
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (PrivateDomainName::numeric(a), PrivateDomainName::numeric(b)) => compare_numeric_string(a, b),
-            _ => self.as_ref().trim().eq_ignore_ascii_case(other.as_ref().trim()),
-        }
-    }
-
-}
-
-impl TryFrom<&X690Element> for PrivateDomainName {
-    type Error = ASN1Error;
-    #[inline]
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_PrivateDomainName(el)
-    }
-}
+///
+pub type PrivateDomainName = heapless::String<ub_domain_name_length, u8>;
 
 pub fn _decode_PrivateDomainName(el: &X690Element) -> ASN1Result<PrivateDomainName> {
     match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::UNIVERSAL, 18) => {
-            Ok(PrivateDomainName::numeric(BER.decode_numeric_string(&el)?))
-        }
-        (TagClass::UNIVERSAL, 19) => Ok(PrivateDomainName::printable(
-            BER.decode_printable_string(&el)?,
-        )),
+        (TagClass::UNIVERSAL, UNIV_TAG_NUMERIC_STRING)
+        | (TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING) => {
+            let decon = deconstruct(&el)?;
+            let maybe_invalid = if el.tag.tag_number == UNIV_TAG_NUMERIC_STRING {
+                decon.as_ref().iter().position(|b| !is_numeric_char(*b))
+            } else {
+                decon.as_ref().iter().position(|b| !is_printable_char(*b))
+            };
+            if let Some(invalid) = maybe_invalid {
+                let code = ASN1ErrorCode::prohibited_character(
+                    decon.as_ref()[invalid] as u32,
+                    invalid,
+                );
+                return Err(el.to_asn1_err_named(code, "PrivateDomainName"));
+            }
+            let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+            let ret: heapless::String<ub_domain_name_length, u8> = heapless::String::try_from(s)
+                .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, "PrivateDomainName"))?;
+            Ok(ret)
+        },
         _ => {
             return Err(el.to_asn1_err_named(
                 ASN1ErrorCode::unrecognized_alternative_in_inextensible_choice,
@@ -966,9 +919,10 @@ pub fn _decode_PrivateDomainName(el: &X690Element) -> ASN1Result<PrivateDomainNa
 
 #[inline]
 pub fn _encode_PrivateDomainName(value_: &PrivateDomainName) -> ASN1Result<X690Element> {
-    match value_ {
-        PrivateDomainName::numeric(v) => BER.encode_numeric_string(&v),
-        PrivateDomainName::printable(v) => BER.encode_printable_string(&v),
+    if value_.bytes().all(|b| is_numeric_char(b)) {
+        BER.encode_numeric_string(value_.as_str())
+    } else {
+        BER.encode_printable_string(value_.as_str())
     }
 }
 
@@ -1062,17 +1016,18 @@ pub fn _validate_NumericUserIdentifier(el: &X690Element) -> ASN1Result<()> {
 ///
 #[derive(Debug, Clone)]
 pub struct PersonalName {
-    pub surname: PrintableString,
-    pub given_name: OPTIONAL<PrintableString>,
-    pub initials: OPTIONAL<PrintableString>,
-    pub generation_qualifier: OPTIONAL<PrintableString>,
+    pub surname: heapless::String<ub_surname_length, u8>,
+    pub given_name: OPTIONAL<heapless::String<ub_given_name_length, u8>>,
+    pub initials: OPTIONAL<heapless::String<ub_initials_length, u8>>,
+    pub generation_qualifier: OPTIONAL<heapless::String<ub_generation_qualifier_length, u8>>,
 }
 impl PersonalName {
+    #[inline]
     pub fn new(
-        surname: PrintableString,
-        given_name: OPTIONAL<PrintableString>,
-        initials: OPTIONAL<PrintableString>,
-        generation_qualifier: OPTIONAL<PrintableString>,
+        surname: heapless::String<ub_surname_length, u8>,
+        given_name: OPTIONAL<heapless::String<ub_given_name_length, u8>>,
+        initials: OPTIONAL<heapless::String<ub_initials_length, u8>>,
+        generation_qualifier: OPTIONAL<heapless::String<ub_generation_qualifier_length, u8>>,
     ) -> Self {
         PersonalName {
             surname,
@@ -1084,6 +1039,7 @@ impl PersonalName {
 }
 impl TryFrom<&X690Element> for PersonalName {
     type Error = ASN1Error;
+    #[inline]
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
         _decode_PersonalName(el)
     }
@@ -1136,20 +1092,19 @@ pub fn _decode_PersonalName(el: &X690Element) -> ASN1Result<PersonalName> {
         _rctl2_components_for_PersonalName,
         40,
     )?;
-    let surname_ = BER.decode_printable_string(&_components.get("surname").unwrap().inner()?)?;
-    let given_name_: OPTIONAL<PrintableString> = match _components.get("given-name") {
-        Some(c_) => Some(BER.decode_printable_string(&c_.inner()?)?),
+    let surname_ = decode_heapless_ps(&_components.get("surname").unwrap().inner()?, "surname")?;
+    let given_name_ = match _components.get("given-name") {
+        Some(c_) => Some(decode_heapless_ps(&c_.inner()?, "given-name")?),
         _ => None,
     };
-    let initials_: OPTIONAL<PrintableString> = match _components.get("initials") {
-        Some(c_) => Some(BER.decode_printable_string(&c_.inner()?)?),
+    let initials_ = match _components.get("initials") {
+        Some(c_) => Some(decode_heapless_ps(&c_.inner()?, "initials")?),
         _ => None,
     };
-    let generation_qualifier_: OPTIONAL<PrintableString> =
-        match _components.get("generation-qualifier") {
-            Some(c_) => Some(BER.decode_printable_string(&c_.inner()?)?),
-            _ => None,
-        };
+    let generation_qualifier_ = match _components.get("generation-qualifier") {
+        Some(c_) => Some(decode_heapless_ps(&c_.inner()?, "generation-qualifier")?),
+        _ => None,
+    };
     Ok(PersonalName {
         surname: surname_,
         given_name: given_name_,
@@ -1162,24 +1117,24 @@ pub fn _encode_PersonalName(value_: &PersonalName) -> ASN1Result<X690Element> {
     let mut components_: Vec<X690Element> = Vec::with_capacity(9);
     components_.push(X690Element::new(
         Tag::new(TagClass::CONTEXT, 0),
-        X690Value::from_explicit(BER.encode_printable_string(&value_.surname)?),
+        X690Value::from_explicit(BER.encode_printable_string(value_.surname.as_str())?),
     ));
     if let Some(v_) = &value_.given_name {
         components_.push(X690Element::new(
             Tag::new(TagClass::CONTEXT, 1),
-            X690Value::from_explicit(BER.encode_printable_string(&v_)?),
+            X690Value::from_explicit(BER.encode_printable_string(v_.as_str())?),
         ));
     }
     if let Some(v_) = &value_.initials {
         components_.push(X690Element::new(
             Tag::new(TagClass::CONTEXT, 2),
-            X690Value::from_explicit(BER.encode_printable_string(&v_)?),
+            X690Value::from_explicit(BER.encode_printable_string(v_.as_str())?),
         ));
     }
     if let Some(v_) = &value_.generation_qualifier {
         components_.push(X690Element::new(
             Tag::new(TagClass::CONTEXT, 3),
-            X690Value::from_explicit(BER.encode_printable_string(&v_)?),
+            X690Value::from_explicit(BER.encode_printable_string(v_.as_str())?),
         ));
     }
     Ok(X690Element::new(
@@ -6035,4 +5990,38 @@ pub fn _validate_ExtendedNetworkAddress_e163_4_address(el: &X690Element) -> ASN1
         }
     }
     Ok(())
+}
+
+/// Decode a `PrintableString` into a `heapless::String`
+fn decode_heapless_ps<const N: usize>(el: &X690Element, component_name: &'static str) -> ASN1Result<heapless::String<N, u8>> {
+    let decon = deconstruct(&el)?;
+    let maybe_invalid = decon.as_ref().iter().position(|b| !is_printable_char(*b));
+    if let Some(invalid) = maybe_invalid {
+        let code = ASN1ErrorCode::prohibited_character(
+            decon.as_ref()[invalid] as u32,
+            invalid,
+        );
+        return Err(el.to_asn1_err_named(code, component_name));
+    }
+    let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+    let ret: heapless::String<N, u8> = heapless::String::try_from(s)
+        .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, component_name))?;
+    Ok(ret)
+}
+
+/// Decode a `NumericString` into a `heapless::String`
+fn decode_heapless_ns<const N: usize>(el: &X690Element, component_name: &'static str) -> ASN1Result<heapless::String<N, u8>> {
+    let decon = deconstruct(&el)?;
+    let maybe_invalid = decon.as_ref().iter().position(|b| !is_numeric_char(*b));
+    if let Some(invalid) = maybe_invalid {
+        let code = ASN1ErrorCode::prohibited_character(
+            decon.as_ref()[invalid] as u32,
+            invalid,
+        );
+        return Err(el.to_asn1_err_named(code, component_name));
+    }
+    let s = unsafe { str::from_utf8_unchecked(decon.as_ref()) };
+    let ret: heapless::String<N, u8> = heapless::String::try_from(s)
+        .map_err(|e| el.to_asn1_err_named(ASN1ErrorCode::constraint_violation, component_name))?;
+    Ok(ret)
 }
