@@ -624,7 +624,9 @@ impl PartialEq for DURATION_EQUIVALENT {
         let selfn = self.normalize();
         let othern = other.normalize();
 
-        selfn.weeks == othern.weeks
+        selfn.years == othern.years
+            && selfn.months == othern.months
+            && selfn.weeks == othern.weeks
             && selfn.days == othern.days
             && selfn.hours == othern.hours
             && selfn.minutes == othern.minutes
