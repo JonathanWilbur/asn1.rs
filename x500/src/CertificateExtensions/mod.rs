@@ -27,6 +27,20 @@ use crate::UsefulDefinitions::*;
 use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;
+pub use pki_stub::{
+    GeneralName,
+    GeneralNames,
+    EDIPartyName,
+    _decode_GeneralName,
+    _decode_GeneralNames,
+    _decode_EDIPartyName,
+    _encode_GeneralName,
+    _encode_GeneralNames,
+    _encode_EDIPartyName,
+    _validate_GeneralName,
+    _validate_GeneralNames,
+    _validate_EDIPartyName,
+};
 
 /// ### ASN.1 Definition:
 ///
@@ -1425,405 +1439,6 @@ pub mod subjectAltName {
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
-/// GeneralNames  ::=  SEQUENCE SIZE (1..MAX) OF GeneralName
-/// ```
-pub type GeneralNames = Vec<GeneralName>; // SequenceOfType
-
-pub fn _decode_GeneralNames(el: &X690Element) -> ASN1Result<GeneralNames> {
-    let elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "GeneralNames")),
-    };
-    let mut items: SEQUENCE_OF<GeneralName> = Vec::with_capacity(elements.len());
-    for el in elements.iter() {
-        items.push(_decode_GeneralName(el)?);
-    }
-    Ok(items)
-}
-
-pub fn _encode_GeneralNames(value_: &GeneralNames) -> ASN1Result<X690Element> {
-    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-    for v in value_ {
-        children.push(_encode_GeneralName(&v)?);
-    }
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
-        X690Value::Constructed(Arc::new(children)),
-    ))
-}
-
-pub fn _validate_GeneralNames(el: &X690Element) -> ASN1Result<()> {
-    match &el.value {
-        X690Value::Constructed(subs) => {
-            for sub in subs.iter() {
-                _validate_GeneralName(&sub)?;
-            }
-            Ok(())
-        }
-        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "GeneralNames")),
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// GeneralName  ::=  CHOICE {
-///   otherName                  [0]  INSTANCE OF OTHER-NAME,
-///   rfc822Name                 [1]  IA5String,
-///   dNSName                    [2]  IA5String,
-///   x400Address                [3]  ORAddress,
-///   directoryName              [4]  Name,
-///   ediPartyName               [5]  EDIPartyName,
-///   uniformResourceIdentifier  [6]  IA5String,
-///   iPAddress                  [7]  OCTET STRING,
-///   registeredID               [8]  OBJECT IDENTIFIER,
-///   ... }
-/// ```
-#[derive(Debug, Clone)]
-pub enum GeneralName {
-    otherName(INSTANCE_OF),
-    rfc822Name(IA5String),
-    dNSName(IA5String),
-    x400Address(ORAddress),
-    directoryName(Name),
-    ediPartyName(EDIPartyName),
-    uniformResourceIdentifier(IA5String),
-    iPAddress(OCTET_STRING),
-    registeredID(OBJECT_IDENTIFIER),
-    _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
-}
-
-impl TryFrom<&X690Element> for GeneralName {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_GeneralName(el)
-    }
-}
-
-pub fn _decode_GeneralName(el: &X690Element) -> ASN1Result<GeneralName> {
-    match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::CONTEXT, 0) => Ok(GeneralName::otherName(BER.decode_instance_of(&el)?)),
-        (TagClass::CONTEXT, 1) => Ok(GeneralName::rfc822Name(BER.decode_ia5_string(&el)?)),
-        (TagClass::CONTEXT, 2) => Ok(GeneralName::dNSName(BER.decode_ia5_string(&el)?)),
-        (TagClass::CONTEXT, 3) => Ok(GeneralName::x400Address(_decode_ORAddress(&el)?)),
-        (TagClass::CONTEXT, 4) => Ok(GeneralName::directoryName(
-            |el: &X690Element| -> ASN1Result<Name> { Ok(_decode_Name(&el.inner()?)?) }(&el)?,
-        )),
-        (TagClass::CONTEXT, 5) => Ok(GeneralName::ediPartyName(_decode_EDIPartyName(&el)?)),
-        (TagClass::CONTEXT, 6) => Ok(GeneralName::uniformResourceIdentifier(
-            BER.decode_ia5_string(&el)?,
-        )),
-        (TagClass::CONTEXT, 7) => Ok(GeneralName::iPAddress(BER.decode_octet_string(&el)?)),
-        (TagClass::CONTEXT, 8) => Ok(GeneralName::registeredID(
-            BER.decode_object_identifier(&el)?,
-        )),
-        _ => Ok(GeneralName::_unrecognized(el.clone())),
-    }
-}
-
-pub fn _encode_GeneralName(value_: &GeneralName) -> ASN1Result<X690Element> {
-    match value_ {
-        GeneralName::otherName(v) => |v_1: &INSTANCE_OF| -> ASN1Result<X690Element> {
-            let mut el_1 = BER.encode_instance_of(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 0;
-            Ok(el_1)
-        }(&v),
-        GeneralName::rfc822Name(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
-            let mut el_1 = BER.encode_ia5_string(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 1;
-            Ok(el_1)
-        }(&v),
-        GeneralName::dNSName(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
-            let mut el_1 = BER.encode_ia5_string(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 2;
-            Ok(el_1)
-        }(&v),
-        GeneralName::x400Address(v) => |v_1: &ORAddress| -> ASN1Result<X690Element> {
-            let mut el_1 = _encode_ORAddress(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 3;
-            Ok(el_1)
-        }(&v),
-        GeneralName::directoryName(v) => |v_1: &Name| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 4),
-                X690Value::from_explicit(_encode_Name(&v_1)?),
-            ))
-        }(&v),
-        GeneralName::ediPartyName(v) => |v_1: &EDIPartyName| -> ASN1Result<X690Element> {
-            let mut el_1 = _encode_EDIPartyName(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 5;
-            Ok(el_1)
-        }(&v),
-        GeneralName::uniformResourceIdentifier(v) => |v_1: &IA5String| -> ASN1Result<X690Element> {
-            let mut el_1 = BER.encode_ia5_string(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 6;
-            Ok(el_1)
-        }(&v),
-        GeneralName::iPAddress(v) => |v_1: &OCTET_STRING| -> ASN1Result<X690Element> {
-            let mut el_1 = BER.encode_octet_string(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 7;
-            Ok(el_1)
-        }(&v),
-        GeneralName::registeredID(v) => |v_1: &OBJECT_IDENTIFIER| -> ASN1Result<X690Element> {
-            let mut el_1 = BER.encode_object_identifier(&v_1)?;
-            el_1.tag.tag_class = TagClass::CONTEXT;
-            el_1.tag.tag_number = 8;
-            Ok(el_1)
-        }(&v),
-        GeneralName::_unrecognized(el) => Ok(el.clone()),
-    }
-}
-
-pub fn _validate_GeneralName(el: &X690Element) -> ASN1Result<()> {
-    match (el.tag.tag_class, el.tag.tag_number) {
-        (TagClass::CONTEXT, 0) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
-                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "otherName"));
-            }
-            Ok(BER.validate_external(&el)?)
-        }(&el),
-        (TagClass::CONTEXT, 1) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
-                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "rfc822Name"));
-            }
-            Ok(BER.validate_ia5_string(&el)?)
-        }(&el),
-        (TagClass::CONTEXT, 2) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 2 {
-                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "dNSName"));
-            }
-            Ok(BER.validate_ia5_string(&el)?)
-        }(&el),
-        (TagClass::CONTEXT, 3) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 3 {
-                return Err(
-                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "x400Address")
-                );
-            }
-            Ok(_validate_ORAddress(&el)?)
-        }(&el),
-        (TagClass::CONTEXT, 4) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 4 {
-                return Err(
-                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "directoryName")
-                );
-            }
-            Ok(_validate_Name(&el.inner()?)?)
-        }(&el),
-        (TagClass::CONTEXT, 5) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 5 {
-                return Err(
-                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "ediPartyName")
-                );
-            }
-            Ok(_validate_EDIPartyName(&el)?)
-        }(&el),
-        (TagClass::CONTEXT, 6) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 6 {
-                return Err(el.to_asn1_err_named(
-                    ASN1ErrorCode::invalid_construction,
-                    "uniformResourceIdentifier",
-                ));
-            }
-            Ok(BER.validate_ia5_string(&el)?)
-        }(&el),
-        (TagClass::CONTEXT, 7) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 7 {
-                return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "iPAddress"));
-            }
-            Ok(BER.validate_octet_string(&el)?)
-        }(&el),
-        (TagClass::CONTEXT, 8) => |el: &X690Element| -> ASN1Result<()> {
-            if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 8 {
-                return Err(
-                    el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "registeredID")
-                );
-            }
-            Ok(BER.validate_object_identifier(&el)?)
-        }(&el),
-        _ => Ok(()),
-    }
-}
-
-pub type OTHER_NAME = TYPE_IDENTIFIER;
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// EDIPartyName ::= SEQUENCE {
-///   nameAssigner  [0]  UnboundedDirectoryString OPTIONAL,
-///   partyName     [1]  UnboundedDirectoryString,
-///   ... }
-/// ```
-///
-#[derive(Debug, Clone)]
-pub struct EDIPartyName {
-    pub nameAssigner: OPTIONAL<UnboundedDirectoryString>,
-    pub partyName: UnboundedDirectoryString,
-    pub _unrecognized: Vec<X690Element>,
-}
-impl EDIPartyName {
-    pub fn new(
-        nameAssigner: OPTIONAL<UnboundedDirectoryString>,
-        partyName: UnboundedDirectoryString,
-        _unrecognized: Vec<X690Element>,
-    ) -> Self {
-        EDIPartyName {
-            nameAssigner,
-            partyName,
-            _unrecognized,
-        }
-    }
-}
-impl TryFrom<&X690Element> for EDIPartyName {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_EDIPartyName(el)
-    }
-}
-
-pub const _rctl1_components_for_EDIPartyName: &[ComponentSpec; 2] = &[
-    ComponentSpec::new(
-        "nameAssigner",
-        true,
-        TagSelector::tag((TagClass::CONTEXT, 0)),
-        None,
-        None,
-    ),
-    ComponentSpec::new(
-        "partyName",
-        false,
-        TagSelector::tag((TagClass::CONTEXT, 1)),
-        None,
-        None,
-    ),
-];
-
-pub const _rctl2_components_for_EDIPartyName: &[ComponentSpec; 0] = &[];
-
-pub const _eal_components_for_EDIPartyName: &[ComponentSpec; 0] = &[];
-
-pub fn _decode_EDIPartyName(el: &X690Element) -> ASN1Result<EDIPartyName> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "EDIPartyName")),
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_EDIPartyName,
-        _eal_components_for_EDIPartyName,
-        _rctl2_components_for_EDIPartyName,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    let mut nameAssigner_: OPTIONAL<UnboundedDirectoryString> = None;
-    let mut partyName_: OPTIONAL<UnboundedDirectoryString> = None;
-    let mut _unrecognized: Vec<X690Element> = vec![];
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "nameAssigner" => {
-                nameAssigner_ = Some(|el: &X690Element| -> ASN1Result<UnboundedDirectoryString> {
-                    Ok(_decode_UnboundedDirectoryString(&el.inner()?)?)
-                }(_el)?)
-            }
-            "partyName" => {
-                partyName_ = Some(|el: &X690Element| -> ASN1Result<UnboundedDirectoryString> {
-                    Ok(_decode_UnboundedDirectoryString(&el.inner()?)?)
-                }(_el)?)
-            }
-            _ => _unrecognized.push(_el.clone()),
-        }
-    }
-    Ok(EDIPartyName {
-        nameAssigner: nameAssigner_,
-        partyName: partyName_.unwrap(),
-        _unrecognized,
-    })
-}
-
-pub fn _encode_EDIPartyName(value_: &EDIPartyName) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-    if let Some(v_) = &value_.nameAssigner {
-        components_.push(
-            |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
-                Ok(X690Element::new(
-                    Tag::new(TagClass::CONTEXT, 0),
-                    X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
-                ))
-            }(&v_)?,
-        );
-    }
-    components_.push(
-        |v_1: &UnboundedDirectoryString| -> ASN1Result<X690Element> {
-            Ok(X690Element::new(
-                Tag::new(TagClass::CONTEXT, 1),
-                X690Value::from_explicit(_encode_UnboundedDirectoryString(&v_1)?),
-            ))
-        }(&value_.partyName)?,
-    );
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
-        X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
-        )),
-    ))
-}
-
-pub fn _validate_EDIPartyName(el: &X690Element) -> ASN1Result<()> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "EDIPartyName")),
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_EDIPartyName,
-        _eal_components_for_EDIPartyName,
-        _rctl2_components_for_EDIPartyName,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "nameAssigner" => |el: &X690Element| -> ASN1Result<()> {
-                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 0 {
-                    return Err(
-                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "nameAssigner")
-                    );
-                }
-                Ok(_validate_UnboundedDirectoryString(&el.inner()?)?)
-            }(_el)?,
-            "partyName" => |el: &X690Element| -> ASN1Result<()> {
-                if el.tag.tag_class != TagClass::CONTEXT || el.tag.tag_number != 1 {
-                    return Err(
-                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "partyName")
-                    );
-                }
-                Ok(_validate_UnboundedDirectoryString(&el.inner()?)?)
-            }(_el)?,
-            _ => (),
-        }
-    }
-    Ok(())
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
 /// issuerAltName EXTENSION ::= {
 ///   SYNTAX         GeneralNames
 ///   IDENTIFIED BY  id-ce-issuerAltName }
@@ -1996,16 +1611,16 @@ pub mod basicConstraints {
 ///   ... }
 /// ```
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BasicConstraintsSyntax {
     pub cA: OPTIONAL<BOOLEAN>,
-    pub pathLenConstraint: OPTIONAL<INTEGER>,
+    pub pathLenConstraint: OPTIONAL<u32>,
     pub _unrecognized: Vec<X690Element>,
 }
 impl BasicConstraintsSyntax {
     pub fn new(
         cA: OPTIONAL<BOOLEAN>,
-        pathLenConstraint: OPTIONAL<INTEGER>,
+        pathLenConstraint: OPTIONAL<u32>,
         _unrecognized: Vec<X690Element>,
     ) -> Self {
         BasicConstraintsSyntax {
@@ -2074,7 +1689,7 @@ pub fn _decode_BasicConstraintsSyntax(el: &X690Element) -> ASN1Result<BasicConst
     .into_iter();
     let mut _i: usize = 0;
     let mut cA_: OPTIONAL<BOOLEAN> = None;
-    let mut pathLenConstraint_: OPTIONAL<INTEGER> = None;
+    let mut pathLenConstraint_: OPTIONAL<u32> = None;
     let mut _unrecognized: Vec<X690Element> = vec![];
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -2083,7 +1698,7 @@ pub fn _decode_BasicConstraintsSyntax(el: &X690Element) -> ASN1Result<BasicConst
         let _el = _maybe_el.unwrap();
         match _component_name {
             "cA" => cA_ = Some(BER.decode_boolean(_el)?),
-            "pathLenConstraint" => pathLenConstraint_ = Some(BER.decode_integer(_el)?),
+            "pathLenConstraint" => pathLenConstraint_ = Some(BER.decode_u32(_el)?),
             _ => _unrecognized.push(_el.clone()),
         }
     }
@@ -2102,7 +1717,7 @@ pub fn _encode_BasicConstraintsSyntax(value_: &BasicConstraintsSyntax) -> ASN1Re
         }
     }
     if let Some(v_) = &value_.pathLenConstraint {
-        components_.push(BER.encode_integer(&v_)?);
+        components_.push(BER.encode_u32(*v_)?);
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -2137,7 +1752,7 @@ pub fn _validate_BasicConstraintsSyntax(el: &X690Element) -> ASN1Result<()> {
         let _el = _maybe_el.unwrap();
         match _component_name {
             "cA" => BER.validate_boolean(_el)?,
-            "pathLenConstraint" => BER.validate_integer(_el)?,
+            "pathLenConstraint" => BER.validate_u32(_el)?,
             _ => (),
         }
     }

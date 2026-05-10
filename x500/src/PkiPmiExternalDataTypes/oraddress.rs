@@ -122,7 +122,8 @@ pub const id_extended_network_address: i64 =
     crate::PkiPmiExternalDataTypes::extended_network_address().id;
 pub const id_terminal_type: i64 = crate::PkiPmiExternalDataTypes::terminal_type().id;
 
-pub fn term_type_to_str(tt: u16) -> &'static str {
+#[inline]
+pub(crate) const fn term_type_to_str(tt: u16) -> &'static str {
     match tt {
         TerminalType_g3_facsimile => "g3fax",
         TerminalType_g4_facsimile => "g4fax",
@@ -134,7 +135,8 @@ pub fn term_type_to_str(tt: u16) -> &'static str {
     }
 }
 
-pub fn term_type_from_str(tt: &str) -> Option<TerminalType> {
+#[inline]
+pub(crate) const fn term_type_from_str(tt: &str) -> Option<TerminalType> {
     match tt {
         "g3fax" => Some(TerminalType_g3_facsimile),
         "g4fax" => Some(TerminalType_g4_facsimile),
@@ -1010,9 +1012,10 @@ fn case_ignore_compare_str(a: &str, b: &str) -> bool {
 }
 
 /// This function does not consider diacritics.
-fn case_ignore_compare_opt_str(a: &Option<String>, b: &Option<String>) -> bool {
+#[inline]
+fn case_ignore_compare_opt_str(a: Option<&str>, b: Option<&str>) -> bool {
     match (a, b) {
-        (Some(a_str), Some(b_str)) => case_ignore_compare_str(&a_str, &b_str),
+        (Some(a_str), Some(b_str)) => case_ignore_compare_str(a_str, b_str),
         (None, None) => true,
         _ => false,
     }
@@ -1069,7 +1072,7 @@ impl PartialEq for ORAddressInfo {
         }
         self.personal_name == other.personal_name
         && self.country == other.country
-        && case_ignore_compare_opt_str(&self.prmd, &other.prmd)
+        && case_ignore_compare_opt_str(self.prmd.as_ref(), other.prmd.as_ref())
         && ( // See ITU-T Rec. X.402 (1999), Section 18.3.1, First NOTE.
             self.admd.as_ref().is_some_and(|admd| admd.as_str() == " ")
             || other.admd.as_ref().is_some_and(|admd| admd.as_str() == " ")
@@ -1797,6 +1800,7 @@ impl Display for UnformattedPostalAddress {
     }
 }
 
+// FIXME: Should be case insensitive
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 pub struct DomainDefinedAttribute {
     pub type_: String,

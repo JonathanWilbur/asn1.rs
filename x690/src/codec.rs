@@ -871,7 +871,7 @@ pub trait X690Codec {
     fn encode_bit_string(&self, value: &BIT_STRING) -> ASN1Result<X690Element>;
 
     /// Encode an `OCTET STRING` value into an X.690 encoding
-    fn encode_octet_string(&self, value: &OCTET_STRING) -> ASN1Result<X690Element>;
+    fn encode_octet_string(&self, value: &[u8]) -> ASN1Result<X690Element>;
 
     /// Encode a `NULL` value into an X.690 encoding
     fn encode_null(&self, _value: &NULL) -> ASN1Result<X690Element> {

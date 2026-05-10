@@ -78,7 +78,7 @@ impl ERROR {}
 ///   global  OBJECT IDENTIFIER,
 ///   ... }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Code {
     local(i64),
     global(OBJECT_IDENTIFIER),

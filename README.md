@@ -239,6 +239,8 @@ which control how these elements are encoded.
 - [ ] ASN.1 Compiler
   - [ ] Avoid `.concat()`
   - [ ] Get rid of so many closures
+- [ ] `teletex`
+  - [ ] Unicode-in-place: modify a mutable u8 slice in place
 - [ ] Review `size_hint()`: I am not sure my implementations reflect iterations _remaining_
 - [ ] `x690`: I think the recursive calls to `.len()` in `x690_write_len()` could be a problem.
   - It seems like the solution is either:
@@ -272,6 +274,12 @@ which control how these elements are encoded.
   - [ ] `.inner_data()` for `OPTIONALLY-PROTECTED` types.
   - [ ] Preserve bytes of `SIGNED`
   - [ ] Validate the size and length constraints in an ORAddress
+
+## Regrets
+
+- I think maybe I should have used the [`const-oid`](https://crates.io/crates/const-oid)
+crate instead of defining my own object identifier type.
+- I wish I had implemented X.690 decoding as an extremely lazy iterator
 
 ## Licensing
 

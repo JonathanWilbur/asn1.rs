@@ -19,6 +19,7 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+use crate::bac::ACDFTuplesIterator;
 use crate::DirectoryAbstractService::*;
 use crate::InformationFramework::*;
 use crate::SelectedAttributeTypes::*;
@@ -116,6 +117,11 @@ impl ACIItem {
             itemOrUserFirst,
             _unrecognized,
         }
+    }
+
+    /// Get an iterator over the ACDF tuples for this `ACIItem`
+    pub fn tuples<'a>(&'a self) -> ACDFTuplesIterator<'a> {
+        ACDFTuplesIterator::new(self)
     }
 }
 impl TryFrom<&X690Element> for ACIItem {
@@ -3012,14 +3018,14 @@ pub fn _validate_AuthenticationLevel_basicLevels_level(el: &X690Element) -> ASN1
 #[derive(Debug, Clone)]
 pub struct AuthenticationLevel_basicLevels {
     pub level: AuthenticationLevel_basicLevels_level,
-    pub localQualifier: OPTIONAL<INTEGER>,
+    pub localQualifier: OPTIONAL<u32>,
     pub signed: OPTIONAL<BOOLEAN>,
     pub _unrecognized: Vec<X690Element>,
 }
 impl AuthenticationLevel_basicLevels {
     pub fn new(
         level: AuthenticationLevel_basicLevels_level,
-        localQualifier: OPTIONAL<INTEGER>,
+        localQualifier: OPTIONAL<u32>,
         signed: OPTIONAL<BOOLEAN>,
         _unrecognized: Vec<X690Element>,
     ) -> Self {
@@ -3032,6 +3038,25 @@ impl AuthenticationLevel_basicLevels {
     }
     pub fn _default_value_for_signed() -> BOOLEAN {
         false
+    }
+
+    /// Whether this authentication level (acting as a requirement) is met by
+    /// another asserted authentication level.
+    pub fn is_met_by(&self, other: &Self) -> bool {
+        if self.level > other.level {
+            return false;
+        }
+        if self.localQualifier > other.localQualifier {
+            return false;
+        }
+        let self_signed = self.signed
+            .unwrap_or(AuthenticationLevel_basicLevels::_default_value_for_signed());
+        let other_signed = other.signed
+            .unwrap_or(AuthenticationLevel_basicLevels::_default_value_for_signed());
+        if self_signed && !other_signed {
+            return false;
+        }
+        true
     }
 }
 impl TryFrom<&X690Element> for AuthenticationLevel_basicLevels {
@@ -3090,7 +3115,7 @@ pub fn _decode_AuthenticationLevel_basicLevels(
     .into_iter();
     let mut _i: usize = 0;
     let mut level_: OPTIONAL<AuthenticationLevel_basicLevels_level> = None;
-    let mut localQualifier_: OPTIONAL<INTEGER> = None;
+    let mut localQualifier_: OPTIONAL<u32> = None;
     let mut signed_: OPTIONAL<BOOLEAN> = None;
     let mut _unrecognized: Vec<X690Element> = vec![];
     for _fallible_component_name in _seq_iter {
@@ -3100,7 +3125,7 @@ pub fn _decode_AuthenticationLevel_basicLevels(
         let _el = _maybe_el.unwrap();
         match _component_name {
             "level" => level_ = Some(_decode_AuthenticationLevel_basicLevels_level(_el)?),
-            "localQualifier" => localQualifier_ = Some(BER.decode_integer(_el)?),
+            "localQualifier" => localQualifier_ = Some(BER.decode_u32(_el)?),
             "signed" => signed_ = Some(BER.decode_boolean(_el)?),
             _ => _unrecognized.push(_el.clone()),
         }
@@ -3121,7 +3146,7 @@ pub fn _encode_AuthenticationLevel_basicLevels(
         &value_.level,
     )?);
     if let Some(v_) = &value_.localQualifier {
-        components_.push(BER.encode_integer(&v_)?);
+        components_.push(BER.encode_u32(*v_)?);
     }
     if let Some(v_) = &value_.signed {
         if *v_ != AuthenticationLevel_basicLevels::_default_value_for_signed() {
@@ -3161,7 +3186,7 @@ pub fn _validate_AuthenticationLevel_basicLevels(el: &X690Element) -> ASN1Result
         let _el = _maybe_el.unwrap();
         match _component_name {
             "level" => _validate_AuthenticationLevel_basicLevels_level(_el)?,
-            "localQualifier" => BER.validate_integer(_el)?,
+            "localQualifier" => BER.validate_u32(_el)?,
             "signed" => BER.validate_boolean(_el)?,
             _ => (),
         }

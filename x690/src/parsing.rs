@@ -13,18 +13,6 @@ use std::sync::Arc;
 use crate::utils::unlikely;
 use std::iter::FusedIterator;
 
-/// A function type for handling components during parsing.
-///
-/// Returns `true` if successfully handled; `false` if error.
-/// Parsing will not continue if `false` is returned.
-pub type ComponentHandler<'a> = &'a dyn FnMut(&X690Element) -> bool;
-
-/// A mapping of component names to their handler functions.
-pub type ComponentHandlers<'a> = HashMap<&'a str, ComponentHandler<'a>>;
-
-/// A mapping of tags to component names and their handler functions for alternative parsing.
-pub type AlternativeHandlers<'a> = HashMap<Tag, (&'a str, ComponentHandler<'a>)>;
-
 /// A function type for decoding ASN.1 elements into a specific type.
 pub type Decoder<T> = fn(el: &X690Element) -> ASN1Result<T>;
 

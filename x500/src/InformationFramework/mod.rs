@@ -25,238 +25,56 @@ use crate::ServiceAdministration::*;
 use crate::UsefulDefinitions::*;
 use wildboar_asn1::*;
 use std::sync::Arc;
+use std::u64;
 use x690::*;
 mod name;
 pub use name::*;
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// Attribute {ATTRIBUTE:SupportedAttributes} ::= SEQUENCE {
-///   type                ATTRIBUTE.&id({SupportedAttributes}),
-///   values              SET SIZE (0..MAX) OF ATTRIBUTE.&Type({SupportedAttributes}{@type}),
-///   valuesWithContext   SET SIZE (1..MAX) OF SEQUENCE {
-///     value               ATTRIBUTE.&Type({SupportedAttributes}{@type}),
-///     contextList         SET SIZE (1..MAX) OF Context,
-///     ...} OPTIONAL,
-///   ... }
-/// ```
-///
-#[derive(Debug, Clone)]
-pub struct Attribute {
-    pub type_: OBJECT_IDENTIFIER,
-    pub values: Vec<X690Element>,
-    pub valuesWithContext: OPTIONAL<Vec<Attribute_valuesWithContext_Item>>,
-    pub _unrecognized: Vec<X690Element>,
-}
-impl Attribute {
-    pub fn new(
-        type_: OBJECT_IDENTIFIER,
-        values: Vec<X690Element>,
-        valuesWithContext: OPTIONAL<Vec<Attribute_valuesWithContext_Item>>,
-        _unrecognized: Vec<X690Element>,
-    ) -> Self {
-        Attribute {
-            type_,
-            values,
-            valuesWithContext,
-            _unrecognized,
-        }
-    }
-}
-impl TryFrom<&X690Element> for Attribute {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_Attribute(el)
-    }
-}
-
-pub const _rctl1_components_for_Attribute: &[ComponentSpec; 3] = &[
-    ComponentSpec::new(
-        "type",
-        false,
-        TagSelector::tag((TagClass::UNIVERSAL, 6)),
-        None,
-        None,
-    ),
-    ComponentSpec::new(
-        "values",
-        false,
-        TagSelector::tag((TagClass::UNIVERSAL, 17)),
-        None,
-        None,
-    ),
-    ComponentSpec::new(
-        "valuesWithContext",
-        true,
-        TagSelector::tag((TagClass::UNIVERSAL, 17)),
-        None,
-        None,
-    ),
-];
-
-pub const _rctl2_components_for_Attribute: &[ComponentSpec; 0] = &[];
-
-pub const _eal_components_for_Attribute: &[ComponentSpec; 0] = &[];
-
-pub fn _decode_Attribute(el: &X690Element) -> ASN1Result<Attribute> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Attribute")),
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_Attribute,
-        _eal_components_for_Attribute,
-        _rctl2_components_for_Attribute,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    let mut type__: OPTIONAL<OBJECT_IDENTIFIER> = None;
-    let mut values_: OPTIONAL<Vec<X690Element>> = None;
-    let mut valuesWithContext_: OPTIONAL<Vec<Attribute_valuesWithContext_Item>> = None;
-    let mut _unrecognized: Vec<X690Element> = vec![];
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "type" => type__ = Some(BER.decode_object_identifier(_el)?),
-            "values" => {
-                values_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<X690Element>> {
-                    let elements = match &el.value {
-                        X690Value::Constructed(children) => children,
-                        _ => {
-                            return Err(
-                                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "values")
-                            )
-                        }
-                    };
-                    let mut items: SET_OF<X690Element> = Vec::with_capacity(elements.len());
-                    for el in elements.iter() {
-                        items.push(x690_identity(el)?);
-                    }
-                    Ok(items)
-                }(_el)?)
-            }
-            "valuesWithContext" => {
-                valuesWithContext_ = Some(|el: &X690Element| -> ASN1Result<
-                    SET_OF<Attribute_valuesWithContext_Item>,
-                > {
-                    let elements = match &el.value {
-                        X690Value::Constructed(children) => children,
-                        _ => {
-                            return Err(el.to_asn1_err_named(
-                                ASN1ErrorCode::invalid_construction,
-                                "valuesWithContext",
-                            ))
-                        }
-                    };
-                    let mut items: SET_OF<Attribute_valuesWithContext_Item> =
-                        Vec::with_capacity(elements.len());
-                    for el in elements.iter() {
-                        items.push(_decode_Attribute_valuesWithContext_Item(el)?);
-                    }
-                    Ok(items)
-                }(_el)?)
-            }
-            _ => _unrecognized.push(_el.clone()),
-        }
-    }
-    Ok(Attribute {
-        type_: type__.unwrap(),
-        values: values_.unwrap(),
-        valuesWithContext: valuesWithContext_,
-        _unrecognized,
-    })
-}
-
-pub fn _encode_Attribute(value_: &Attribute) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-    components_.push(BER.encode_object_identifier(&value_.type_)?);
-    components_.push(|value_: &SET_OF<X690Element>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(x690_identity(&v)?);
-        }
-        Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-            X690Value::Constructed(Arc::new(children)),
-        ))
-    }(&value_.values)?);
-    if let Some(v_) = &value_.valuesWithContext {
-        components_.push(
-            |value_: &SET_OF<Attribute_valuesWithContext_Item>| -> ASN1Result<X690Element> {
-                let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-                for v in value_ {
-                    children.push(_encode_Attribute_valuesWithContext_Item(&v)?);
-                }
-                Ok(X690Element::new(
-                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-                    X690Value::Constructed(Arc::new(children)),
-                ))
-            }(&v_)?,
-        );
-    }
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
-        X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
-        )),
-    ))
-}
-
-pub fn _validate_Attribute(el: &X690Element) -> ASN1Result<()> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Attribute")),
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_Attribute,
-        _eal_components_for_Attribute,
-        _rctl2_components_for_Attribute,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "type" => BER.validate_object_identifier(_el)?,
-            "values" => |el: &X690Element| -> ASN1Result<()> {
-                match &el.value {
-                    X690Value::Constructed(subs) => {
-                        for sub in subs.iter() {
-                            BER.validate_any(&sub)?;
-                        }
-                        Ok(())
-                    }
-                    _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "values")),
-                }
-            }(_el)?,
-            "valuesWithContext" => |el: &X690Element| -> ASN1Result<()> {
-                match &el.value {
-                    X690Value::Constructed(subs) => {
-                        for sub in subs.iter() {
-                            _validate_Attribute_valuesWithContext_Item(&sub)?;
-                        }
-                        Ok(())
-                    }
-                    _ => Err(el.to_asn1_err_named(
-                        ASN1ErrorCode::invalid_construction,
-                        "valuesWithContext",
-                    )),
-                }
-            }(_el)?,
-            _ => (),
-        }
-    }
-    Ok(())
-}
+use std::iter::{Iterator, FusedIterator, ExactSizeIterator};
+use std::collections::HashSet;
+pub use pki_stub::{
+    Attribute,
+    AttributeTypeAndValue,
+    RelativeDistinguishedName,
+    RDNSequence,
+    DistinguishedName,
+    Attribute_valuesWithContext_Item,
+    Context,
+    AttributeUsage,
+    AttributeUsage_userApplications,
+    AttributeUsage_directoryOperation,
+    AttributeUsage_dSAOperation,
+    AttributeUsage_distributedOperation,
+    AttributeValue,
+    _encode_Attribute,
+    _encode_AttributeTypeAndValue,
+    _encode_RelativeDistinguishedName,
+    _encode_RDNSequence,
+    _encode_DistinguishedName,
+    _encode_Attribute_valuesWithContext_Item,
+    _encode_Context,
+    _encode_AttributeUsage,
+    _encode_AttributeValue,
+    _decode_Attribute,
+    _decode_AttributeTypeAndValue,
+    _decode_RelativeDistinguishedName,
+    _decode_RDNSequence,
+    _decode_DistinguishedName,
+    _decode_Attribute_valuesWithContext_Item,
+    _decode_Context,
+    _decode_AttributeUsage,
+    _decode_AttributeValue,
+    _validate_Attribute,
+    _validate_AttributeTypeAndValue,
+    _validate_RelativeDistinguishedName,
+    _validate_RDNSequence,
+    _validate_DistinguishedName,
+    _validate_Attribute_valuesWithContext_Item,
+    _validate_Context,
+    _validate_AttributeUsage,
+    _validate_AttributeValue,
+    ATTRIBUTE,
+    MATCHING_RULE,
+};
 
 /// ### ASN.1 Definition:
 ///
@@ -275,216 +93,6 @@ pub fn _encode_AttributeType(value_: &AttributeType) -> ASN1Result<X690Element> 
 
 pub fn _validate_AttributeType(el: &X690Element) -> ASN1Result<()> {
     BER.validate_object_identifier(&el)
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// AttributeValue  ::=  ATTRIBUTE.&Type
-/// ```
-pub type AttributeValue = X690Element; // ObjectClassFieldType
-
-pub fn _decode_AttributeValue(el: &X690Element) -> ASN1Result<AttributeValue> {
-    x690_identity(&el)
-}
-
-pub fn _encode_AttributeValue(value_: &AttributeValue) -> ASN1Result<X690Element> {
-    x690_identity(&value_)
-}
-
-pub fn _validate_AttributeValue(el: &X690Element) -> ASN1Result<()> {
-    BER.validate_any(&el)
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// Context ::= SEQUENCE {
-///   contextType    CONTEXT.&id({SupportedContexts}),
-///   contextValues
-///     SET SIZE (1..MAX) OF CONTEXT.&Type({SupportedContexts}{@contextType}),
-///   fallback       BOOLEAN DEFAULT FALSE,
-///   ... }
-/// ```
-///
-#[derive(Debug, Clone)]
-pub struct Context {
-    pub contextType: OBJECT_IDENTIFIER,
-    pub contextValues: Vec<X690Element>,
-    pub fallback: OPTIONAL<BOOLEAN>,
-    pub _unrecognized: Vec<X690Element>,
-}
-impl Context {
-    pub fn new(
-        contextType: OBJECT_IDENTIFIER,
-        contextValues: Vec<X690Element>,
-        fallback: OPTIONAL<BOOLEAN>,
-        _unrecognized: Vec<X690Element>,
-    ) -> Self {
-        Context {
-            contextType,
-            contextValues,
-            fallback,
-            _unrecognized,
-        }
-    }
-    pub fn _default_value_for_fallback() -> BOOLEAN {
-        false
-    }
-}
-impl TryFrom<&X690Element> for Context {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_Context(el)
-    }
-}
-
-pub const _rctl1_components_for_Context: &[ComponentSpec; 3] = &[
-    ComponentSpec::new(
-        "contextType",
-        false,
-        TagSelector::tag((TagClass::UNIVERSAL, 6)),
-        None,
-        None,
-    ),
-    ComponentSpec::new(
-        "contextValues",
-        false,
-        TagSelector::tag((TagClass::UNIVERSAL, 17)),
-        None,
-        None,
-    ),
-    ComponentSpec::new(
-        "fallback",
-        true,
-        TagSelector::tag((TagClass::UNIVERSAL, 1)),
-        None,
-        None,
-    ),
-];
-
-pub const _rctl2_components_for_Context: &[ComponentSpec; 0] = &[];
-
-pub const _eal_components_for_Context: &[ComponentSpec; 0] = &[];
-
-pub fn _decode_Context(el: &X690Element) -> ASN1Result<Context> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context")),
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_Context,
-        _eal_components_for_Context,
-        _rctl2_components_for_Context,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    let mut contextType_: OPTIONAL<OBJECT_IDENTIFIER> = None;
-    let mut contextValues_: OPTIONAL<Vec<X690Element>> = None;
-    let mut fallback_: OPTIONAL<BOOLEAN> = None;
-    let mut _unrecognized: Vec<X690Element> = vec![];
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "contextType" => contextType_ = Some(BER.decode_object_identifier(_el)?),
-            "contextValues" => {
-                contextValues_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<X690Element>> {
-                    let elements = match &el.value {
-                        X690Value::Constructed(children) => children,
-                        _ => {
-                            return Err(el.to_asn1_err_named(
-                                ASN1ErrorCode::invalid_construction,
-                                "contextValues",
-                            ))
-                        }
-                    };
-                    let mut items: SET_OF<X690Element> = Vec::with_capacity(elements.len());
-                    for el in elements.iter() {
-                        items.push(x690_identity(el)?);
-                    }
-                    Ok(items)
-                }(_el)?)
-            }
-            "fallback" => fallback_ = Some(BER.decode_boolean(_el)?),
-            _ => _unrecognized.push(_el.clone()),
-        }
-    }
-    Ok(Context {
-        contextType: contextType_.unwrap(),
-        contextValues: contextValues_.unwrap(),
-        fallback: fallback_,
-        _unrecognized,
-    })
-}
-
-pub fn _encode_Context(value_: &Context) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(13);
-    components_.push(BER.encode_object_identifier(&value_.contextType)?);
-    components_.push(|value_: &SET_OF<X690Element>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(x690_identity(&v)?);
-        }
-        Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-            X690Value::Constructed(Arc::new(children)),
-        ))
-    }(&value_.contextValues)?);
-    if let Some(v_) = &value_.fallback {
-        if *v_ != Context::_default_value_for_fallback() {
-            components_.push(BER.encode_boolean(&v_)?);
-        }
-    }
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
-        X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
-        )),
-    ))
-}
-
-pub fn _validate_Context(el: &X690Element) -> ASN1Result<()> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "Context")),
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_Context,
-        _eal_components_for_Context,
-        _rctl2_components_for_Context,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "contextType" => BER.validate_object_identifier(_el)?,
-            "contextValues" => |el: &X690Element| -> ASN1Result<()> {
-                match &el.value {
-                    X690Value::Constructed(subs) => {
-                        for sub in subs.iter() {
-                            BER.validate_any(&sub)?;
-                        }
-                        Ok(())
-                    }
-                    _ => Err(
-                        el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "contextValues")
-                    ),
-                }
-            }(_el)?,
-            "fallback" => BER.validate_boolean(_el)?,
-            _ => (),
-        }
-    }
-    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -1029,252 +637,6 @@ pub fn SupportedAttributes() -> Vec<ATTRIBUTE> {
 ///
 pub fn SupportedContexts() -> Vec<CONTEXT> {
     Vec::new()
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// RDNSequence  ::=  SEQUENCE OF RelativeDistinguishedName
-/// ```
-pub type RDNSequence = Vec<RelativeDistinguishedName>; // SequenceOfType
-
-pub fn _decode_RDNSequence(el: &X690Element) -> ASN1Result<RDNSequence> {
-    let elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => return Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "RDNSequence")),
-    };
-    let mut items: SEQUENCE_OF<RelativeDistinguishedName> = Vec::with_capacity(elements.len());
-    for el in elements.iter() {
-        items.push(_decode_RelativeDistinguishedName(el)?);
-    }
-    Ok(items)
-}
-
-pub fn _encode_RDNSequence(value_: &RDNSequence) -> ASN1Result<X690Element> {
-    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-    for v in value_ {
-        children.push(_encode_RelativeDistinguishedName(&v)?);
-    }
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE_OF),
-        X690Value::Constructed(Arc::new(children)),
-    ))
-}
-
-pub fn _validate_RDNSequence(el: &X690Element) -> ASN1Result<()> {
-    match &el.value {
-        X690Value::Constructed(subs) => {
-            for sub in subs.iter() {
-                _validate_RelativeDistinguishedName(&sub)?;
-            }
-            Ok(())
-        }
-        _ => Err(el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "RDNSequence")),
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// DistinguishedName  ::=  RDNSequence
-/// ```
-pub type DistinguishedName = RDNSequence; // DefinedType
-
-pub fn _decode_DistinguishedName(el: &X690Element) -> ASN1Result<DistinguishedName> {
-    _decode_RDNSequence(&el)
-}
-
-pub fn _encode_DistinguishedName(value_: &DistinguishedName) -> ASN1Result<X690Element> {
-    _encode_RDNSequence(&value_)
-}
-
-pub fn _validate_DistinguishedName(el: &X690Element) -> ASN1Result<()> {
-    _validate_RDNSequence(&el)
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// RelativeDistinguishedName  ::=  SET SIZE (1..MAX) OF AttributeTypeAndValue
-/// ```
-pub type RelativeDistinguishedName = Vec<AttributeTypeAndValue>; // SetOfType
-
-pub fn _decode_RelativeDistinguishedName(
-    el: &X690Element,
-) -> ASN1Result<RelativeDistinguishedName> {
-    let elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => {
-            return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::invalid_construction,
-                "RelativeDistinguishedName",
-            ))
-        }
-    };
-    let mut items: SET_OF<AttributeTypeAndValue> = Vec::with_capacity(elements.len());
-    for el in elements.iter() {
-        items.push(_decode_AttributeTypeAndValue(el)?);
-    }
-    Ok(items)
-}
-
-pub fn _encode_RelativeDistinguishedName(
-    value_: &RelativeDistinguishedName,
-) -> ASN1Result<X690Element> {
-    let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-    for v in value_ {
-        children.push(_encode_AttributeTypeAndValue(&v)?);
-    }
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-        X690Value::Constructed(Arc::new(children)),
-    ))
-}
-
-pub fn _validate_RelativeDistinguishedName(el: &X690Element) -> ASN1Result<()> {
-    match &el.value {
-        X690Value::Constructed(subs) => {
-            for sub in subs.iter() {
-                _validate_AttributeTypeAndValue(&sub)?;
-            }
-            Ok(())
-        }
-        _ => Err(el.to_asn1_err_named(
-            ASN1ErrorCode::invalid_construction,
-            "RelativeDistinguishedName",
-        )),
-    }
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// AttributeTypeAndValue ::= SEQUENCE {
-///   type                  ATTRIBUTE.&id({SupportedAttributes}),
-///   value                 ATTRIBUTE.&Type({SupportedAttributes}{@type}),
-///   ... }
-/// ```
-///
-#[derive(Debug, Clone)]
-pub struct AttributeTypeAndValue {
-    pub type_: OBJECT_IDENTIFIER,
-    pub value: X690Element,
-    pub _unrecognized: Vec<X690Element>,
-}
-impl AttributeTypeAndValue {
-    pub fn new(
-        type_: OBJECT_IDENTIFIER,
-        value: X690Element,
-        _unrecognized: Vec<X690Element>,
-    ) -> Self {
-        AttributeTypeAndValue {
-            type_,
-            value,
-            _unrecognized,
-        }
-    }
-}
-impl TryFrom<&X690Element> for AttributeTypeAndValue {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_AttributeTypeAndValue(el)
-    }
-}
-
-pub const _rctl1_components_for_AttributeTypeAndValue: &[ComponentSpec; 2] = &[
-    ComponentSpec::new(
-        "type",
-        false,
-        TagSelector::tag((TagClass::UNIVERSAL, 6)),
-        None,
-        None,
-    ),
-    ComponentSpec::new("value", false, TagSelector::any, None, None),
-];
-
-pub const _rctl2_components_for_AttributeTypeAndValue: &[ComponentSpec; 0] = &[];
-
-pub const _eal_components_for_AttributeTypeAndValue: &[ComponentSpec; 0] = &[];
-
-pub fn _decode_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<AttributeTypeAndValue> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => {
-            return Err(
-                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeTypeAndValue")
-            )
-        }
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_AttributeTypeAndValue,
-        _eal_components_for_AttributeTypeAndValue,
-        _rctl2_components_for_AttributeTypeAndValue,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    let mut type__: OPTIONAL<OBJECT_IDENTIFIER> = None;
-    let mut value_: OPTIONAL<X690Element> = None;
-    let mut _unrecognized: Vec<X690Element> = vec![];
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "type" => type__ = Some(BER.decode_object_identifier(_el)?),
-            "value" => value_ = Some(x690_identity(_el)?),
-            _ => _unrecognized.push(_el.clone()),
-        }
-    }
-    Ok(AttributeTypeAndValue {
-        type_: type__.unwrap(),
-        value: value_.unwrap(),
-        _unrecognized,
-    })
-}
-
-pub fn _encode_AttributeTypeAndValue(value_: &AttributeTypeAndValue) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-    components_.push(BER.encode_object_identifier(&value_.type_)?);
-    components_.push(x690_identity(&value_.value)?);
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
-        X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
-        )),
-    ))
-}
-
-pub fn _validate_AttributeTypeAndValue(el: &X690Element) -> ASN1Result<()> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => {
-            return Err(
-                el.to_asn1_err_named(ASN1ErrorCode::invalid_construction, "AttributeTypeAndValue")
-            )
-        }
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_AttributeTypeAndValue,
-        _eal_components_for_AttributeTypeAndValue,
-        _rctl2_components_for_AttributeTypeAndValue,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "type" => BER.validate_object_identifier(_el)?,
-            "value" => BER.validate_any(_el)?,
-            _ => (),
-        }
-    }
-    Ok(())
 }
 
 /// ### ASN.1 Definition:
@@ -2032,6 +1394,128 @@ pub enum Refinement {
     _unrecognized(X690Element), /* CHOICE_ALT_UNRECOGNIZED_EXT */
 }
 
+impl Refinement {
+
+    /// Check if a slice of `OBJECT-CLASS` identifiers match this `Refinement`
+    ///
+    /// This extended function allows the caller to control the recursion
+    /// limits.
+    ///
+    /// Returns `None` if it recurses too deeply, or if an unrecognized
+    /// Refinement type is encountered; otherwise, returns `Some(_)` containing
+    /// `true` if the object classes match and `false` otherwise.
+    pub fn matches_slice_ex(
+        &self,
+        obj_classes: &[OBJECT_IDENTIFIER],
+        depth: usize,
+        recursion_limit: usize,
+    ) -> Option<bool> {
+        use crate::internal_macros::filter_impl;
+        filter_impl!(
+            self,
+            depth,
+            recursion_limit,
+            matches_slice_ex,
+            obj_classes,
+            |b| obj_classes.iter().any(|a| a == b)
+        )
+    }
+
+    /// Check if a slice of `OBJECT-CLASS` identifiers match this `Refinement`
+    ///
+    /// Returns `None` if it recurses too deeply, or if an unrecognized
+    /// Refinement type is encountered; otherwise, returns `Some(_)` containing
+    /// `true` if the object classes match and `false` otherwise.
+    #[inline]
+    pub fn matches_slice(&self, obj_classes: &[OBJECT_IDENTIFIER]) -> Option<bool> {
+        self.matches_slice_ex(obj_classes, 0, 100)
+    }
+
+    /// Check if a pre-sorted slice of `OBJECT-CLASS` identifiers match this `Refinement`
+    ///
+    /// This function exists as an optimization over [Self::matches_slice_ex]:
+    /// by using a pre-sorted slice of `OBJECT_IDENTIFIER`, we can use a binary
+    /// search to look up object identifiers, instead of iterating through the
+    /// whole slice each time.
+    ///
+    /// This extended function allows the caller to control the recursion
+    /// limits.
+    ///
+    /// Returns `None` if it recurses too deeply, or if an unrecognized
+    /// Refinement type is encountered; otherwise, returns `Some(_)` containing
+    /// `true` if the object classes match and `false` otherwise.
+    pub fn matches_presorted_slice_ex(
+        &self,
+        obj_classes: &[OBJECT_IDENTIFIER],
+        depth: usize,
+        recursion_limit: usize,
+    ) -> Option<bool> {
+        use crate::internal_macros::filter_impl;
+        filter_impl!(
+            self,
+            depth,
+            recursion_limit,
+            matches_presorted_slice_ex,
+            obj_classes,
+            |b| obj_classes.binary_search(b).is_ok()
+        )
+    }
+
+    /// Check if a pre-sorted slice of `OBJECT-CLASS` identifiers match this `Refinement`
+    ///
+    /// This function exists as an optimization over [Self::matches_slice]:
+    /// by using a pre-sorted slice of `OBJECT_IDENTIFIER`, we can use a binary
+    /// search to look up object identifiers, instead of iterating through the
+    /// whole slice each time.
+    ///
+    /// Returns `None` if it recurses too deeply, or if an unrecognized
+    /// Refinement type is encountered; otherwise, returns `Some(_)` containing
+    /// `true` if the object classes match and `false` otherwise.
+    #[inline]
+    pub fn matches_presorted_slice(&self, obj_classes: &[OBJECT_IDENTIFIER]) -> Option<bool> {
+        self.matches_presorted_slice_ex(obj_classes, 0, 100)
+    }
+
+    /// Check if a `HashSet` of `OBJECT-CLASS` identifiers match this `Refinement`
+    ///
+    /// This extended function allows the caller to control the recursion
+    /// limits.
+    ///
+    /// Returns `None` if it recurses too deeply, or if an unrecognized
+    /// Refinement type is encountered; otherwise, returns `Some(_)` containing
+    /// `true` if the object classes match and `false` otherwise.
+    pub fn matches_hashset_ex(
+        &self,
+        obj_classes: &HashSet<OBJECT_IDENTIFIER>,
+        depth: usize,
+        recursion_limit: usize,
+    ) -> Option<bool> {
+        use crate::internal_macros::filter_impl;
+        filter_impl!(
+            self,
+            depth,
+            recursion_limit,
+            matches_hashset_ex,
+            obj_classes,
+            |b| obj_classes.contains(b)
+        )
+    }
+
+    /// Check if a `HashSet` of `OBJECT-CLASS` identifiers match this `Refinement`
+    ///
+    /// Returns `None` if it recurses too deeply, or if an unrecognized
+    /// Refinement type is encountered; otherwise, returns `Some(_)` containing
+    /// `true` if the object classes match and `false` otherwise.
+    #[inline]
+    pub fn matches_hashset(&self, obj_classes: &HashSet<OBJECT_IDENTIFIER>) -> Option<bool> {
+        self.matches_hashset_ex(obj_classes, 0, 100)
+    }
+
+    // Not implemented for BTreeSet, since it just doesn't make sense to use
+    // that data structure for this.
+
+}
+
 impl TryFrom<&X690Element> for Refinement {
     type Error = ASN1Error;
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
@@ -2363,95 +1847,6 @@ pub mod child {
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
-/// ATTRIBUTE ::= CLASS {
-///   &derivation               ATTRIBUTE OPTIONAL,
-///   &Type                     OPTIONAL, -- either &Type or &derivation required
-///   &equality-match           MATCHING-RULE OPTIONAL,
-///   &ordering-match           MATCHING-RULE OPTIONAL,
-///   &substrings-match         MATCHING-RULE OPTIONAL,
-///   &single-valued            BOOLEAN DEFAULT FALSE,
-///   &collective               BOOLEAN DEFAULT FALSE,
-///   &dummy                    BOOLEAN DEFAULT FALSE,
-///   -- operational extensions
-///   &no-user-modification     BOOLEAN DEFAULT FALSE,
-///   &usage                    AttributeUsage DEFAULT userApplications,
-///   &ldapSyntax               SYNTAX-NAME.&id OPTIONAL,
-///   &ldapName                 SEQUENCE SIZE(1..MAX) OF UTF8String OPTIONAL,
-///   &ldapDesc                 UTF8String OPTIONAL,
-///   &obsolete                 BOOLEAN DEFAULT FALSE,
-///   &id                       OBJECT IDENTIFIER UNIQUE }
-/// WITH SYNTAX {
-///   [SUBTYPE OF               &derivation]
-///   [WITH SYNTAX              &Type]
-///   [EQUALITY MATCHING RULE   &equality-match]
-///   [ORDERING MATCHING RULE   &ordering-match]
-///   [SUBSTRINGS MATCHING RULE &substrings-match]
-///   [SINGLE VALUE             &single-valued]
-///   [COLLECTIVE               &collective]
-///   [DUMMY                    &dummy]
-///   [NO USER MODIFICATION     &no-user-modification]
-///   [USAGE                    &usage]
-///   [LDAP-SYNTAX              &ldapSyntax]
-///   [LDAP-NAME                &ldapName]
-///   [LDAP-DESC                &ldapDesc]
-///   [OBSOLETE                 &obsolete]
-///   ID                        &id }
-/// ```
-///
-#[derive(Debug, Clone)]
-pub struct ATTRIBUTE {
-    pub derivation: OPTIONAL<Box<ATTRIBUTE>>,
-    pub equality_match: OPTIONAL<Box<MATCHING_RULE>>,
-    pub ordering_match: OPTIONAL<Box<MATCHING_RULE>>,
-    pub substrings_match: OPTIONAL<Box<MATCHING_RULE>>,
-    pub single_valued: OPTIONAL<BOOLEAN>,
-    pub collective: OPTIONAL<BOOLEAN>,
-    pub dummy: OPTIONAL<BOOLEAN>,
-    pub no_user_modification: OPTIONAL<BOOLEAN>,
-    pub usage: OPTIONAL<AttributeUsage>,
-    pub ldapSyntax: OPTIONAL<OBJECT_IDENTIFIER>,
-    pub ldapName: OPTIONAL<Vec<UTF8String>>,
-    pub ldapDesc: OPTIONAL<UTF8String>,
-    pub obsolete: OPTIONAL<BOOLEAN>,
-    pub id: OBJECT_IDENTIFIER,
-}
-impl ATTRIBUTE {}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// AttributeUsage  ::=  ENUMERATED {
-///   userApplications     (0),
-///   directoryOperation   (1),
-///   distributedOperation (2),
-///   dSAOperation         (3),
-///   ... }
-/// ```
-pub type AttributeUsage = ENUMERATED;
-
-pub const AttributeUsage_userApplications: AttributeUsage = 0; /* LONG_NAMED_ENUMERATED_VALUE */
-
-pub const AttributeUsage_directoryOperation: AttributeUsage = 1; /* LONG_NAMED_ENUMERATED_VALUE */
-
-pub const AttributeUsage_distributedOperation: AttributeUsage = 2; /* LONG_NAMED_ENUMERATED_VALUE */
-
-pub const AttributeUsage_dSAOperation: AttributeUsage = 3; /* LONG_NAMED_ENUMERATED_VALUE */
-
-pub fn _decode_AttributeUsage(el: &X690Element) -> ASN1Result<AttributeUsage> {
-    BER.decode_enumerated(&el)
-}
-
-pub fn _encode_AttributeUsage(value_: &AttributeUsage) -> ASN1Result<X690Element> {
-    BER.encode_enumerated(&value_)
-}
-
-pub fn _validate_AttributeUsage(el: &X690Element) -> ASN1Result<()> {
-    BER.validate_enumerated(&el)
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
 /// objectClass ATTRIBUTE ::= {
 ///   WITH SYNTAX             OBJECT IDENTIFIER
 ///   EQUALITY MATCHING RULE  objectIdentifierMatch
@@ -2541,38 +1936,6 @@ pub mod aliasedEntryName {
         _validate_DistinguishedName(el)
     }
 }
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
-/// MATCHING-RULE ::= CLASS {
-///   &ParentMatchingRules    MATCHING-RULE OPTIONAL,
-///   &AssertionType          OPTIONAL,
-///   &uniqueMatchIndicator   ATTRIBUTE OPTIONAL,
-///   &ldapSyntax             SYNTAX-NAME.&id OPTIONAL,
-///   &ldapName               SEQUENCE SIZE(1..MAX) OF UTF8String OPTIONAL,
-///   &ldapDesc               UTF8String OPTIONAL,
-///   &id                     OBJECT IDENTIFIER UNIQUE }
-/// WITH SYNTAX {
-///   [PARENT                 &ParentMatchingRules]
-///   [SYNTAX                 &AssertionType]
-///   [UNIQUE-MATCH-INDICATOR &uniqueMatchIndicator]
-///   [LDAP-SYNTAX            &ldapSyntax]
-///   [LDAP-NAME              &ldapName]
-///   [LDAP-DESC              &ldapDesc]
-///   ID                      &id }
-/// ```
-///
-#[derive(Debug, Clone)]
-pub struct MATCHING_RULE {
-    pub ParentMatchingRules: OPTIONAL<Vec<MATCHING_RULE>>,
-    pub uniqueMatchIndicator: OPTIONAL<ATTRIBUTE>,
-    pub ldapSyntax: OPTIONAL<OBJECT_IDENTIFIER>,
-    pub ldapName: OPTIONAL<Vec<UTF8String>>,
-    pub ldapDesc: OPTIONAL<UTF8String>,
-    pub id: OBJECT_IDENTIFIER,
-}
-impl MATCHING_RULE {}
 
 /// ### ASN.1 Definition:
 ///
@@ -6699,179 +6062,6 @@ pub fn id_ar_pwdAdminSpecificArea () -> OBJECT_IDENTIFIER {
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
-/// Attribute-valuesWithContext-Item ::= SEQUENCE { -- REMOVED_FROM_UNNESTING -- }
-/// ```
-///
-#[derive(Debug, Clone)]
-pub struct Attribute_valuesWithContext_Item {
-    pub value: X690Element,
-    pub contextList: Vec<Context>,
-    pub _unrecognized: Vec<X690Element>,
-}
-impl Attribute_valuesWithContext_Item {
-    pub fn new(
-        value: X690Element,
-        contextList: Vec<Context>,
-        _unrecognized: Vec<X690Element>,
-    ) -> Self {
-        Attribute_valuesWithContext_Item {
-            value,
-            contextList,
-            _unrecognized,
-        }
-    }
-}
-impl TryFrom<&X690Element> for Attribute_valuesWithContext_Item {
-    type Error = ASN1Error;
-    fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
-        _decode_Attribute_valuesWithContext_Item(el)
-    }
-}
-
-pub const _rctl1_components_for_Attribute_valuesWithContext_Item: &[ComponentSpec; 2] = &[
-    ComponentSpec::new("value", false, TagSelector::any, None, None),
-    ComponentSpec::new(
-        "contextList",
-        false,
-        TagSelector::tag((TagClass::UNIVERSAL, 17)),
-        None,
-        None,
-    ),
-];
-
-pub const _rctl2_components_for_Attribute_valuesWithContext_Item: &[ComponentSpec; 0] = &[];
-
-pub const _eal_components_for_Attribute_valuesWithContext_Item: &[ComponentSpec; 0] = &[];
-
-pub fn _decode_Attribute_valuesWithContext_Item(
-    el: &X690Element,
-) -> ASN1Result<Attribute_valuesWithContext_Item> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => {
-            return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::invalid_construction,
-                "Attribute-valuesWithContext-Item",
-            ))
-        }
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_Attribute_valuesWithContext_Item,
-        _eal_components_for_Attribute_valuesWithContext_Item,
-        _rctl2_components_for_Attribute_valuesWithContext_Item,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    let mut value_: OPTIONAL<X690Element> = None;
-    let mut contextList_: OPTIONAL<Vec<Context>> = None;
-    let mut _unrecognized: Vec<X690Element> = vec![];
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "value" => value_ = Some(x690_identity(_el)?),
-            "contextList" => {
-                contextList_ = Some(|el: &X690Element| -> ASN1Result<SET_OF<Context>> {
-                    let elements = match &el.value {
-                        X690Value::Constructed(children) => children,
-                        _ => {
-                            return Err(el.to_asn1_err_named(
-                                ASN1ErrorCode::invalid_construction,
-                                "contextList",
-                            ))
-                        }
-                    };
-                    let mut items: SET_OF<Context> = Vec::with_capacity(elements.len());
-                    for el in elements.iter() {
-                        items.push(_decode_Context(el)?);
-                    }
-                    Ok(items)
-                }(_el)?)
-            }
-            _ => _unrecognized.push(_el.clone()),
-        }
-    }
-    Ok(Attribute_valuesWithContext_Item {
-        value: value_.unwrap(),
-        contextList: contextList_.unwrap(),
-        _unrecognized,
-    })
-}
-
-pub fn _encode_Attribute_valuesWithContext_Item(
-    value_: &Attribute_valuesWithContext_Item,
-) -> ASN1Result<X690Element> {
-    let mut components_: Vec<X690Element> = Vec::with_capacity(12);
-    components_.push(x690_identity(&value_.value)?);
-    components_.push(|value_: &SET_OF<Context>| -> ASN1Result<X690Element> {
-        let mut children: Vec<X690Element> = Vec::with_capacity(value_.len());
-        for v in value_ {
-            children.push(_encode_Context(&v)?);
-        }
-        Ok(X690Element::new(
-            Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SET_OF),
-            X690Value::Constructed(Arc::new(children)),
-        ))
-    }(&value_.contextList)?);
-    Ok(X690Element::new(
-        Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
-        X690Value::Constructed(Arc::new(
-            [components_, value_._unrecognized.clone()].concat(),
-        )),
-    ))
-}
-
-pub fn _validate_Attribute_valuesWithContext_Item(el: &X690Element) -> ASN1Result<()> {
-    let _elements = match &el.value {
-        X690Value::Constructed(children) => children,
-        _ => {
-            return Err(el.to_asn1_err_named(
-                ASN1ErrorCode::invalid_construction,
-                "Attribute-valuesWithContext-Item",
-            ))
-        }
-    };
-    let _seq_iter = X690StructureIterator::new(
-        _elements.as_slice(),
-        _rctl1_components_for_Attribute_valuesWithContext_Item,
-        _eal_components_for_Attribute_valuesWithContext_Item,
-        _rctl2_components_for_Attribute_valuesWithContext_Item,
-    )
-    .into_iter();
-    let mut _i: usize = 0;
-    for _fallible_component_name in _seq_iter {
-        let _component_name = _fallible_component_name?;
-        let _maybe_el = _elements.get(_i);
-        _i += 1;
-        let _el = _maybe_el.unwrap();
-        match _component_name {
-            "value" => BER.validate_any(_el)?,
-            "contextList" => {
-                |el: &X690Element| -> ASN1Result<()> {
-                    match &el.value {
-                        X690Value::Constructed(subs) => {
-                            for sub in subs.iter() {
-                                _validate_Context(&sub)?;
-                            }
-                            Ok(())
-                        }
-                        _ => Err(el
-                            .to_asn1_err_named(ASN1ErrorCode::invalid_construction, "contextList")),
-                    }
-                }(_el)?
-            }
-            _ => (),
-        }
-    }
-    Ok(())
-}
-
-/// ### ASN.1 Definition:
-///
-/// ```asn1
 /// AttributeValueAssertion-assertedContexts ::= CHOICE { -- REMOVED_FROM_UNNESTING -- }
 /// ```
 #[derive(Debug, Clone)]
@@ -6995,4 +6185,45 @@ pub fn _validate_AttributeValueAssertion_assertedContexts(el: &X690Element) -> A
             ))
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::{Attribute, Attribute_valuesWithContext_Item, Refinement};
+    use crate::SelectedAttributeTypes::id_at_commonName;
+    use wildboar_asn1::{Tag, TagClass, UNIV_TAG_PRINTABLE_STRING, oid, OBJECT_IDENTIFIER};
+    use x690::{X690Element, X690Value};
+    use bytes::Bytes;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_refinement_match() {
+        let refinement = Refinement::or(vec![
+            Refinement::item(oid!(2,4,6,8)),
+            Refinement::and(vec![
+                Refinement::not(Box::new(Refinement::item(oid!(1,3,5,1)))),
+                Refinement::item(oid!(2,1,2,1)),
+            ]),
+        ]);
+        let oids_1 = vec![ oid!(2,1,2,1) ];
+        let oids_2 = vec![ oid!(2,4,6,8) ];
+        let oids_3 = vec![ oid!(1,3,5,1), oid!(2,1,2,1) ];
+        assert!(refinement.matches_slice(oids_1.as_slice()).unwrap());
+        assert!(refinement.matches_slice(oids_2.as_slice()).unwrap());
+        assert!(!refinement.matches_slice(oids_3.as_slice()).unwrap());
+
+        assert!(refinement.matches_presorted_slice(oids_1.as_slice()).unwrap());
+        assert!(refinement.matches_presorted_slice(oids_2.as_slice()).unwrap());
+        assert!(!refinement.matches_presorted_slice(oids_3.as_slice()).unwrap());
+
+        let oidset1: HashSet<OBJECT_IDENTIFIER> = oids_1.iter().cloned().collect();
+        let oidset2: HashSet<OBJECT_IDENTIFIER> = oids_2.iter().cloned().collect();
+        let oidset3: HashSet<OBJECT_IDENTIFIER> = oids_3.iter().cloned().collect();
+
+        assert!(refinement.matches_hashset(&oidset1).unwrap());
+        assert!(refinement.matches_hashset(&oidset2).unwrap());
+        assert!(!refinement.matches_hashset(&oidset3).unwrap());
+    }
+
 }

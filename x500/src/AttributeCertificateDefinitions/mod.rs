@@ -4046,16 +4046,16 @@ pub mod basicAttConstraints {
 ///   ... }
 /// ```
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BasicAttConstraintsSyntax {
     pub authority: OPTIONAL<BOOLEAN>,
-    pub pathLenConstraint: OPTIONAL<INTEGER>,
+    pub pathLenConstraint: OPTIONAL<u32>,
     pub _unrecognized: Vec<X690Element>,
 }
 impl BasicAttConstraintsSyntax {
     pub fn new(
         authority: OPTIONAL<BOOLEAN>,
-        pathLenConstraint: OPTIONAL<INTEGER>,
+        pathLenConstraint: OPTIONAL<u32>,
         _unrecognized: Vec<X690Element>,
     ) -> Self {
         BasicAttConstraintsSyntax {
@@ -4126,7 +4126,7 @@ pub fn _decode_BasicAttConstraintsSyntax(
     .into_iter();
     let mut _i: usize = 0;
     let mut authority_: OPTIONAL<BOOLEAN> = None;
-    let mut pathLenConstraint_: OPTIONAL<INTEGER> = None;
+    let mut pathLenConstraint_: OPTIONAL<u32> = None;
     let mut _unrecognized: Vec<X690Element> = vec![];
     for _fallible_component_name in _seq_iter {
         let _component_name = _fallible_component_name?;
@@ -4135,7 +4135,7 @@ pub fn _decode_BasicAttConstraintsSyntax(
         let _el = _maybe_el.unwrap();
         match _component_name {
             "authority" => authority_ = Some(BER.decode_boolean(_el)?),
-            "pathLenConstraint" => pathLenConstraint_ = Some(BER.decode_integer(_el)?),
+            "pathLenConstraint" => pathLenConstraint_ = Some(BER.decode_u32(_el)?),
             _ => _unrecognized.push(_el.clone()),
         }
     }
@@ -4156,7 +4156,7 @@ pub fn _encode_BasicAttConstraintsSyntax(
         }
     }
     if let Some(v_) = &value_.pathLenConstraint {
-        components_.push(BER.encode_integer(&v_)?);
+        components_.push(BER.encode_u32(*v_)?);
     }
     Ok(X690Element::new(
         Tag::new(TagClass::UNIVERSAL, UNIV_TAG_SEQUENCE),
@@ -4191,7 +4191,7 @@ pub fn _validate_BasicAttConstraintsSyntax(el: &X690Element) -> ASN1Result<()> {
         let _el = _maybe_el.unwrap();
         match _component_name {
             "authority" => BER.validate_boolean(_el)?,
-            "pathLenConstraint" => BER.validate_integer(_el)?,
+            "pathLenConstraint" => BER.validate_u32(_el)?,
             _ => (),
         }
     }

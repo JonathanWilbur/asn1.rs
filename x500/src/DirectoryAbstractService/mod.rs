@@ -19,6 +19,7 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
+use std::iter::{Iterator, FusedIterator, ExactSizeIterator};
 use crate::AttributeCertificateDefinitions::*;
 use crate::AuthenticationFramework::*;
 use crate::CommonProtocolSpecification::*;
@@ -36,7 +37,7 @@ use crate::SpkmGssTokens::{
 };
 use crate::UsefulDefinitions::*;
 use wildboar_asn1::*;
-use ldap::{LDAPMessage, _decode_LDAPMessage, _encode_LDAPMessage, _validate_LDAPMessage};
+use wildboar_ldap::{LDAPMessage, _decode_LDAPMessage, _encode_LDAPMessage, _validate_LDAPMessage};
 use std::sync::Arc;
 use x690::*;
 
@@ -2416,18 +2417,20 @@ impl EntryInformationSelection {
         }
     }
 }
+
 impl Default for EntryInformationSelection {
     fn default() -> Self {
         EntryInformationSelection {
-            attributes: None,
-            infoTypes: None,
+            attributes: Some(EntryInformationSelection::_default_value_for_attributes()),
+            infoTypes: Some(EntryInformationSelection::_default_value_for_infoTypes()),
             extraAttributes: None,
             contextSelection: None,
-            returnContexts: None,
-            familyReturn: None,
+            returnContexts: Some(EntryInformationSelection::_default_value_for_returnContexts()),
+            familyReturn: Some(EntryInformationSelection::_default_value_for_familyReturn()),
         }
     }
 }
+
 impl PartialEq for EntryInformationSelection {
     /// EntryInformationSelection ::= SET {
     ///   attributes                     CHOICE {
@@ -2481,6 +2484,7 @@ impl PartialEq for EntryInformationSelection {
         true
     }
 }
+
 impl TryFrom<&X690Element> for EntryInformationSelection {
     type Error = ASN1Error;
     fn try_from(el: &X690Element) -> Result<Self, Self::Error> {
@@ -3896,6 +3900,36 @@ pub fn _validate_FamilyEntry(el: &X690Element) -> ASN1Result<()> {
     }
     Ok(())
 }
+
+pub struct FilterItemsIterator<'a> {
+    filter: &'a Filter,
+    i: usize,
+    child: Option<Box<FilterItemsIterator<'a>>>,
+}
+
+impl <'a> FilterItemsIterator<'a> {
+
+    pub fn new (filter: &'a Filter) -> Self {
+        FilterItemsIterator{
+            filter,
+            i: 0,
+            child: None,
+        }
+    }
+
+}
+
+impl <'a> Iterator for FilterItemsIterator<'a> {
+    type Item = &'a FilterItem;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // FIXME:
+        None
+    }
+
+}
+
+// TODO: Iterator, FusedIterator, ExactSizeIterator
 
 /// ### ASN.1 Definition:
 ///
@@ -10827,6 +10861,192 @@ pub fn _validate_ListResult(el: &X690Element) -> ASN1Result<()> {
     _validate_OPTIONALLY_PROTECTED::<ListResultData>(_validate_ListResultData, el)
 }
 
+impl ListResult {
+
+    /// Iterate over the `ListResult`s within a `ListResult`
+    ///
+    /// No guarantees are made as to the ordering of `ListResult`s returned.
+    pub fn sets(&self) -> ListResultSetIterator <'_> {
+        ListResultSetIterator{
+            result_set: self,
+            active_child: None,
+            next_result_set: 0,
+            recursion_depth: 0,
+            recursion_limit: 100,
+        }
+    }
+
+    /// Iterate over the subordinates within a `ListResult`
+    ///
+    /// This implementation recurses into nested `ListResult`s if there are any.
+    ///
+    /// No guarantees are made as to the ordering of subordinates returned.
+    pub fn entries(&self) -> ListResultEntryIterator <'_> {
+        ListResultEntryIterator{
+            set_iter: self.sets(),
+            active_child: None,
+            current_entry: 0,
+        }
+    }
+}
+
+/// Iterator over the `ListResult`s within a `ListResult`
+///
+/// No guarantees are made as to the ordering of `ListResult`s returned.
+#[derive(Debug, Clone)]
+pub struct ListResultSetIterator <'a> {
+    result_set: &'a ListResult,
+    active_child: Option<Box<ListResultSetIterator<'a>>>,
+    next_result_set: usize,
+    recursion_depth: usize,
+    pub recursion_limit: usize,
+}
+
+impl <'a> Iterator for ListResultSetIterator<'a> {
+    type Item = &'a ListResult;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.recursion_depth > self.recursion_limit {
+            return None;
+        }
+        if let Some(active_child) = self.active_child.as_mut() {
+            if let Some(next) = active_child.next() {
+                return Some(next);
+            }
+        }
+
+        let unsigned = self.result_set.get_unsigned();
+        match unsigned {
+            ListResultData::uncorrelatedListInfo(list_results) => {
+                while let Some(result_set) = list_results.get(self.next_result_set) {
+                    self.next_result_set += 1;
+                    let mut child_iter = ListResultSetIterator{
+                        result_set,
+                        active_child: None,
+                        next_result_set: 0,
+                        recursion_depth: self.recursion_depth + 1,
+                        recursion_limit: self.recursion_limit,
+                    };
+                    if let Some(child_result) = child_iter.next() {
+                        self.active_child = Some(Box::new(child_iter));
+                        return Some(child_result);
+                    }
+                }
+            },
+            _ => (),
+        };
+        self.recursion_depth = usize::MAX;
+        Some(self.result_set)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        if self.recursion_depth > self.recursion_limit {
+            return (0, Some(0));
+        }
+        let mut remaining: usize = 0;
+        if let Some(active_child) = &self.active_child {
+            remaining += active_child.len();
+        }
+        let mut next_result_set = self.next_result_set;
+        let unsigned = self.result_set.get_unsigned();
+        match unsigned {
+            ListResultData::uncorrelatedListInfo(list_results) => {
+                while let Some(result_set) = list_results.get(next_result_set) {
+                    next_result_set += 1;
+                    let child_iter = ListResultSetIterator{
+                        result_set,
+                        active_child: None,
+                        next_result_set: 0,
+                        recursion_depth: self.recursion_depth + 1,
+                        recursion_limit: self.recursion_limit,
+                    };
+                    remaining += child_iter.len();
+                }
+            },
+            _ => (),
+        };
+        remaining += 1;
+        (remaining, Some(remaining))
+    }
+
+}
+
+impl FusedIterator for ListResultSetIterator<'_> {}
+
+impl ExactSizeIterator for ListResultSetIterator<'_> {}
+
+/// Iterator over the subordinates within a `ListResult`
+///
+/// This implementation recurses into nested `ListResult`s if there are any.
+///
+/// No guarantees are made as to the ordering of subordinates returned.
+///
+/// Each reference to a subordinate is also returned alongside a reference to
+/// the result set in which it was found.
+#[derive(Debug, Clone)]
+pub struct ListResultEntryIterator <'a> {
+    set_iter: ListResultSetIterator <'a>,
+    active_child: Option<&'a ListResult>,
+    current_entry: usize,
+}
+
+impl <'a> Iterator for ListResultEntryIterator<'a> {
+    type Item = (&'a ListResult, &'a ListSubordinate);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.active_child.is_none() {
+            self.active_child = self.set_iter.next();
+        }
+        while let Some(active_child) = self.active_child {
+            let unsigned = active_child.get_unsigned();
+            match unsigned {
+                ListResultData::listInfo(list_info) => {
+                    if let Some(sub) = list_info.subordinates.get(self.current_entry) {
+                        self.current_entry += 1;
+                        return Some((active_child, sub));
+                    }
+                },
+                _ => (),
+            };
+            self.active_child = self.set_iter.next();
+            self.current_entry = 0;
+        }
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let mut remaining: usize = 0;
+        if self.active_child.is_none() {
+            let clone = self.set_iter.clone();
+            for set in clone {
+                let unsigned = set.get_unsigned();
+                match unsigned {
+                    ListResultData::listInfo(list_info) => {
+                        remaining += list_info.subordinates.len();
+                    },
+                    _ => (),
+                };
+            }
+            return (remaining, Some(remaining));
+        }
+        if let Some(active_child) = self.active_child {
+            let unsigned = active_child.get_unsigned();
+            match unsigned {
+                ListResultData::listInfo(list_info) => {
+                    remaining += list_info.subordinates.len();
+                },
+                _ => (),
+            };
+        }
+        (remaining, Some(remaining))
+    }
+
+}
+
+impl FusedIterator for ListResultEntryIterator<'_> {}
+
+impl ExactSizeIterator for ListResultEntryIterator<'_> {}
+
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -13474,6 +13694,192 @@ pub fn _encode_SearchResult(value_: &SearchResult) -> ASN1Result<X690Element> {
 pub fn _validate_SearchResult(el: &X690Element) -> ASN1Result<()> {
     _validate_OPTIONALLY_PROTECTED::<SearchResultData>(_validate_SearchResultData, el)
 }
+
+impl SearchResult {
+
+    /// Iterate over the `SearchResult`s within a `SearchResult`
+    ///
+    /// No guarantees are made as to the ordering of `SearchResult`s returned.
+    pub fn sets(&self) -> SearchResultSetIterator <'_> {
+        SearchResultSetIterator{
+            result_set: self,
+            active_child: None,
+            next_result_set: 0,
+            recursion_depth: 0,
+            recursion_limit: 100,
+        }
+    }
+
+    /// Iterate over the entries within a `SearchResult`
+    ///
+    /// This implementation recurses into nested `SearchResult`s if there are any.
+    ///
+    /// No guarantees are made as to the ordering of entries returned.
+    pub fn entries(&self) -> SearchResultEntryIterator <'_> {
+        SearchResultEntryIterator{
+            set_iter: self.sets(),
+            active_child: None,
+            current_entry: 0,
+        }
+    }
+}
+
+/// Iterator over the `SearchResult`s within a `SearchResult`
+///
+/// No guarantees are made as to the ordering of `SearchResult`s returned.
+#[derive(Debug, Clone)]
+pub struct SearchResultSetIterator <'a> {
+    result_set: &'a SearchResult,
+    active_child: Option<Box<SearchResultSetIterator<'a>>>,
+    next_result_set: usize,
+    recursion_depth: usize,
+    pub recursion_limit: usize,
+}
+
+impl <'a> Iterator for SearchResultSetIterator<'a> {
+    type Item = &'a SearchResult;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.recursion_depth > self.recursion_limit {
+            return None;
+        }
+        if let Some(active_child) = self.active_child.as_mut() {
+            if let Some(next) = active_child.next() {
+                return Some(next);
+            }
+        }
+
+        let unsigned = self.result_set.get_unsigned();
+        match unsigned {
+            SearchResultData::uncorrelatedSearchInfo(search_results) => {
+                while let Some(result_set) = search_results.get(self.next_result_set) {
+                    self.next_result_set += 1;
+                    let mut child_iter = SearchResultSetIterator{
+                        result_set,
+                        active_child: None,
+                        next_result_set: 0,
+                        recursion_depth: self.recursion_depth + 1,
+                        recursion_limit: self.recursion_limit,
+                    };
+                    if let Some(child_result) = child_iter.next() {
+                        self.active_child = Some(Box::new(child_iter));
+                        return Some(child_result);
+                    }
+                }
+            },
+            _ => (),
+        };
+        self.recursion_depth = usize::MAX;
+        Some(self.result_set)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        if self.recursion_depth > self.recursion_limit {
+            return (0, Some(0));
+        }
+        let mut remaining: usize = 0;
+        if let Some(active_child) = &self.active_child {
+            remaining += active_child.len();
+        }
+        let mut next_result_set = self.next_result_set;
+        let unsigned = self.result_set.get_unsigned();
+        match unsigned {
+            SearchResultData::uncorrelatedSearchInfo(search_results) => {
+                while let Some(result_set) = search_results.get(next_result_set) {
+                    next_result_set += 1;
+                    let child_iter = SearchResultSetIterator{
+                        result_set,
+                        active_child: None,
+                        next_result_set: 0,
+                        recursion_depth: self.recursion_depth + 1,
+                        recursion_limit: self.recursion_limit,
+                    };
+                    remaining += child_iter.len();
+                }
+            },
+            _ => (),
+        };
+        remaining += 1;
+        (remaining, Some(remaining))
+    }
+
+}
+
+impl FusedIterator for SearchResultSetIterator<'_> {}
+
+impl ExactSizeIterator for SearchResultSetIterator<'_> {}
+
+/// Iterator over the entries within a `SearchResult`
+///
+/// This implementation recurses into nested `SearchResult`s if there are any.
+///
+/// No guarantees are made as to the ordering of entries returned.
+///
+/// Each reference to an entry is also returned alongside a reference to
+/// the result set in which it was found.
+#[derive(Debug, Clone)]
+pub struct SearchResultEntryIterator <'a> {
+    set_iter: SearchResultSetIterator <'a>,
+    active_child: Option<&'a SearchResult>,
+    current_entry: usize,
+}
+
+impl <'a> Iterator for SearchResultEntryIterator<'a> {
+    type Item = (&'a SearchResult, &'a EntryInformation);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.active_child.is_none() {
+            self.active_child = self.set_iter.next();
+        }
+        while let Some(active_child) = self.active_child {
+            let unsigned = active_child.get_unsigned();
+            match unsigned {
+                SearchResultData::searchInfo(search_info) => {
+                    if let Some(sub) = search_info.entries.get(self.current_entry) {
+                        self.current_entry += 1;
+                        return Some((active_child, sub));
+                    }
+                },
+                _ => (),
+            };
+            self.active_child = self.set_iter.next();
+            self.current_entry = 0;
+        }
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let mut remaining: usize = 0;
+        if self.active_child.is_none() {
+            let clone = self.set_iter.clone();
+            for set in clone {
+                let unsigned = set.get_unsigned();
+                match unsigned {
+                    SearchResultData::searchInfo(search_info) => {
+                        remaining += search_info.entries.len();
+                    },
+                    _ => (),
+                };
+            }
+            return (remaining, Some(remaining));
+        }
+        if let Some(active_child) = self.active_child {
+            let unsigned = active_child.get_unsigned();
+            match unsigned {
+                SearchResultData::searchInfo(search_info) => {
+                    remaining += search_info.entries.len();
+                },
+                _ => (),
+            };
+        }
+        (remaining, Some(remaining))
+    }
+
+}
+
+impl FusedIterator for SearchResultEntryIterator<'_> {}
+
+impl ExactSizeIterator for SearchResultEntryIterator<'_> {}
 
 /// ### ASN.1 Definition:
 ///
@@ -26938,6 +27344,7 @@ pub struct ListResultData_listInfo_subordinates_Item {
     pub fromEntry: OPTIONAL<BOOLEAN>,
     pub _unrecognized: Vec<X690Element>,
 }
+pub type ListSubordinate = ListResultData_listInfo_subordinates_Item;
 impl ListResultData_listInfo_subordinates_Item {
     pub fn new(
         rdn: RelativeDistinguishedName,
@@ -28410,4 +28817,274 @@ pub fn _validate_UpdateErrorData_attributeInfo_Item(el: &X690Element) -> ASN1Res
         (TagClass::UNIVERSAL, 16) => _validate_Attribute(&el),
         _ => Ok(()),
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::EnhancedSecurity::OPTIONALLY_PROTECTED;
+    use crate::InformationFramework::AttributeTypeAndValue;
+    use crate::SelectedAttributeTypes::id_at_commonName;
+    use wildboar_asn1::{Tag, TagClass, UNIV_TAG_PRINTABLE_STRING};
+    use x690::{X690Element, X690Value};
+    use bytes::Bytes;
+
+    fn create_test_list(size: usize, start: usize) -> ListResult {
+        let mut subordinates: Vec<ListSubordinate> = Vec::with_capacity(size);
+        for i in 0..size {
+            let num = start + i;
+            let num = num.to_string();
+            let atav = AttributeTypeAndValue::new(
+                id_at_commonName(),
+                X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING),
+                    X690Value::Primitive(Bytes::from(num))
+                ),
+                vec![],
+            );
+            let subordinate = ListSubordinate::new(
+                vec![atav],
+                None,
+                None,
+                vec![],
+            );
+            subordinates.push(subordinate);
+        }
+
+        OPTIONALLY_PROTECTED::unsigned(ListResultData::listInfo(ListResultData_listInfo::new(
+            None,
+            subordinates,
+            None,
+            vec![],
+            None,
+            None,
+            None,
+            None,
+        )))
+    }
+
+    #[test]
+    fn list_result_iter_1() {
+        let result_0: ListResult = OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![
+            create_test_list(3, 0),
+            create_test_list(2, 3),
+            create_test_list(1, 7),
+        ]));
+        assert_eq!(result_0.sets().size_hint(), (4, Some(4)));
+        assert_eq!(result_0.entries().size_hint(), (6, Some(6)));
+        assert_eq!(result_0.sets().len(), 4);
+        assert_eq!(result_0.entries().len(), 6);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 4);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 6);
+    }
+
+    #[test]
+    fn list_result_iter_2() {
+        let result_0: ListResult = OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![]));
+        assert_eq!(result_0.sets().size_hint(), (1, Some(1)));
+        assert_eq!(result_0.entries().size_hint(), (0, Some(0)));
+        assert_eq!(result_0.sets().len(), 1);
+        assert_eq!(result_0.entries().len(), 0);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 1);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 0);
+    }
+
+    #[test]
+    fn list_result_iter_3() {
+        let result_0: ListResult = OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![
+            OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![
+                create_test_list(3, 0),
+                create_test_list(2, 3),
+                create_test_list(1, 7),
+            ])),
+            OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![
+                OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![
+
+                ])),
+                OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![
+                    create_test_list(3, 0),
+                    create_test_list(2, 3),
+                    create_test_list(1, 7),
+                ])),
+            ])),
+            OPTIONALLY_PROTECTED::unsigned(ListResultData::uncorrelatedListInfo(vec![
+                create_test_list(3, 0),
+                create_test_list(2, 3),
+                create_test_list(1, 7),
+            ])),
+        ]));
+        assert_eq!(result_0.sets().size_hint(), (15, Some(15)));
+        assert_eq!(result_0.entries().size_hint(), (18, Some(18)));
+        assert_eq!(result_0.sets().len(), 15);
+        assert_eq!(result_0.entries().len(), 18);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 15);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 18);
+    }
+
+    #[test]
+    fn list_result_iter_4() {
+        let result_0: ListResult = create_test_list(7, 0);
+        assert_eq!(result_0.sets().size_hint(), (1, Some(1)));
+        assert_eq!(result_0.entries().size_hint(), (7, Some(7)));
+        assert_eq!(result_0.sets().len(), 1);
+        assert_eq!(result_0.entries().len(), 7);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 1);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 7);
+    }
+
+    fn create_test_search(size: usize, start: usize) -> SearchResult {
+        let mut entries: Vec<EntryInformation> = Vec::with_capacity(size);
+        for i in 0..size {
+            let num = start + i;
+            let num = num.to_string();
+            let atav = AttributeTypeAndValue::new(
+                id_at_commonName(),
+                X690Element::new(
+                    Tag::new(TagClass::UNIVERSAL, UNIV_TAG_PRINTABLE_STRING),
+                    X690Value::Primitive(Bytes::from(num))
+                ),
+                vec![],
+            );
+            let entry = EntryInformation::new(
+                Name::rdnSequence(vec![vec![atav]]),
+                None,
+                None,
+                None,
+                None,
+                None,
+                vec![],
+            );
+            entries.push(entry);
+        }
+
+        OPTIONALLY_PROTECTED::unsigned(SearchResultData::searchInfo(SearchResultData_searchInfo::new(
+            None,
+            entries,
+            None,
+            None,
+            vec![],
+            None,
+            None,
+            None,
+            None,
+        )))
+    }
+
+    #[test]
+    fn search_result_iter_1() {
+        let result_0: SearchResult = OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![
+            create_test_search(3, 0),
+            create_test_search(2, 3),
+            create_test_search(1, 7),
+        ]));
+        assert_eq!(result_0.sets().size_hint(), (4, Some(4)));
+        assert_eq!(result_0.entries().size_hint(), (6, Some(6)));
+        assert_eq!(result_0.sets().len(), 4);
+        assert_eq!(result_0.entries().len(), 6);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 4);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 6);
+    }
+
+    #[test]
+    fn search_result_iter_2() {
+        let result_0: SearchResult = OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![]));
+        assert_eq!(result_0.sets().size_hint(), (1, Some(1)));
+        assert_eq!(result_0.entries().size_hint(), (0, Some(0)));
+        assert_eq!(result_0.sets().len(), 1);
+        assert_eq!(result_0.entries().len(), 0);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 1);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 0);
+    }
+
+    #[test]
+    fn search_result_iter_3() {
+        let result_0: SearchResult = OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![
+            OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![
+                create_test_search(3, 0),
+                create_test_search(2, 3),
+                create_test_search(1, 7),
+            ])),
+            OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![
+                OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![
+
+                ])),
+                OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![
+                    create_test_search(3, 0),
+                    create_test_search(2, 3),
+                    create_test_search(1, 7),
+                ])),
+            ])),
+            OPTIONALLY_PROTECTED::unsigned(SearchResultData::uncorrelatedSearchInfo(vec![
+                create_test_search(3, 0),
+                create_test_search(2, 3),
+                create_test_search(1, 7),
+            ])),
+        ]));
+        assert_eq!(result_0.sets().size_hint(), (15, Some(15)));
+        assert_eq!(result_0.entries().size_hint(), (18, Some(18)));
+        assert_eq!(result_0.sets().len(), 15);
+        assert_eq!(result_0.entries().len(), 18);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 15);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 18);
+    }
+
+    #[test]
+    fn search_result_iter_4() {
+        let result_0: SearchResult = create_test_search(7, 0);
+        assert_eq!(result_0.sets().size_hint(), (1, Some(1)));
+        assert_eq!(result_0.entries().size_hint(), (7, Some(7)));
+        assert_eq!(result_0.sets().len(), 1);
+        assert_eq!(result_0.entries().len(), 7);
+        let sets = result_0
+            .sets()
+            .collect::<Vec<_>>();
+        assert_eq!(sets.len(), 1);
+        let result_0 = result_0
+            .entries()
+            .collect::<Vec<_>>();
+        assert_eq!(result_0.len(), 7);
+    }
+
 }

@@ -40,6 +40,31 @@ pub enum OPTIONALLY_PROTECTED<Type> {
     signed(SIGNED<Type>),
 }
 
+impl <Type> OPTIONALLY_PROTECTED<Type> {
+
+    pub fn into_unsigned(self) -> Type {
+        match self {
+            OPTIONALLY_PROTECTED::signed(s) => s.toBeSigned,
+            OPTIONALLY_PROTECTED::unsigned(t) => t,
+        }
+    }
+
+    pub fn get_unsigned(&self) -> &Type {
+        match self {
+            OPTIONALLY_PROTECTED::signed(s) => &s.toBeSigned,
+            OPTIONALLY_PROTECTED::unsigned(t) => t,
+        }
+    }
+
+    pub fn get_unsigned_mut(&mut self) -> &Type {
+        match self {
+            OPTIONALLY_PROTECTED::signed(s) => &mut s.toBeSigned,
+            OPTIONALLY_PROTECTED::unsigned(t) => t,
+        }
+    }
+
+}
+
 pub fn _decode_OPTIONALLY_PROTECTED<Type: 'static>(
     _decode_Type: fn(&X690Element) -> ASN1Result<Type>,
     el: &X690Element,

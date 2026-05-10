@@ -823,7 +823,7 @@ impl X690Codec for BasicEncodingRules {
     }
 
     #[inline]
-    fn encode_octet_string(&self, value: &OCTET_STRING) -> ASN1Result<X690Element> {
+    fn encode_octet_string(&self, value: &[u8]) -> ASN1Result<X690Element> {
         // Slight optimization to skip all this.
         // let mut out: Bytes = Vec::with_capacity(value.len());
         // x690_write_octet_string_value(&mut out, &value)?;

@@ -1,25 +1,26 @@
+mod dsae;
 use wildboar_asn1::{OBJECT_IDENTIFIER, ASN1Error, OPTIONAL, UTF8String, BOOLEAN, ASN1Result, SEQUENCE_OF};
-use x500::{InformationFramework::{
-    ObjectClassKind,
-    AttributeUsage,
-    AttributeType,
-    RelativeDistinguishedName,
-    Attribute,
-    DistinguishedName,
-    AttributeValueAssertion,
-    AttributeTypeAndValue,
-}, DirectoryAbstractService::FamilyReturn_memberSelect};
-use ldap::AttributeValue as LDAPAttributeValue;
+// use x500::{InformationFramework::{
+//     ObjectClassKind,
+//     AttributeUsage,
+//     AttributeType,
+//     RelativeDistinguishedName,
+//     Attribute,
+//     DistinguishedName,
+//     AttributeValueAssertion,
+//     AttributeTypeAndValue,
+// }, DirectoryAbstractService::FamilyReturn_memberSelect};
+use wildboar_ldap::AttributeValue as LDAPAttributeValue;
 use x690::X690Element;
-use thiserror::Error;
+// use thiserror::Error;
 use std::{io::Error as IoError, collections::{HashSet, HashMap}};
-use async_trait::async_trait;
-use x500::DirectoryAbstractService::{
-    EntryInformationSelection,
-    EntryInformation_information_Item as EntryInfoItem,
-    EntryModification,
-};
-use tokio_stream::Stream;
+// use async_trait::async_trait;
+// use x500::DirectoryAbstractService::{
+//     EntryInformationSelection,
+//     EntryInformation_information_Item as EntryInfoItem,
+//     EntryModification,
+// };
+// use tokio_stream::Stream;
 
 // MAPPING-BASED-MATCHING
 //     {SelectedBy, BOOLEAN:combinable, MappingResult, OBJECT IDENTIFIER:matchingRule} ::=
@@ -58,218 +59,6 @@ use tokio_stream::Stream;
 //     SYNTAX        &ExtnType
 //     IDENTIFIED BY &id }
 
-// pub trait X500SchemaKnowledgeBase <X500ValueType: Sized, LDAPCodecError: std::error::Error>
-//     where Self: Sized {
-//     fn get_object_class_by_id (id: OBJECT_IDENTIFIER) -> Option<ObjectClassInfo>;
-//     fn get_object_class_by_name (name: &str) -> Option<ObjectClassInfo>;
-//     fn get_name_form_by_id (id: OBJECT_IDENTIFIER) -> Option<NameFormInfo>;
-//     fn get_name_form_by_name (name: &str) -> Option<NameFormInfo>;
-//     fn get_attribute_type_by_id (id: OBJECT_IDENTIFIER) -> Option<AttributeTypeInfo<Self, X500ValueType, X500ValueType>>;
-//     fn get_attribute_type_by_name (name: &str) -> Option<AttributeTypeInfo<Self, X500ValueType, X500ValueType>>;
-//     fn get_equality_matching_rule_by_id (id: OBJECT_IDENTIFIER) -> Option<MatchingRuleInfo<Self, X500ValueType, X500ValueType, EqualityMatcher<Self, X500ValueType, X500ValueType>>>;
-//     fn get_equality_matching_rule_by_name (name: &str) -> Option<MatchingRuleInfo<Self, X500ValueType, X500ValueType, EqualityMatcher<Self, X500ValueType, X500ValueType>>>;
-//     fn get_ordering_matching_rule_by_id (id: OBJECT_IDENTIFIER) -> Option<MatchingRuleInfo<Self, X500ValueType, X500ValueType, OrderingMatcher<Self, X500ValueType, X500ValueType>>>;
-//     fn get_ordering_matching_rule_by_name (name: &str) -> Option<MatchingRuleInfo<Self, X500ValueType, X500ValueType, OrderingMatcher<Self, X500ValueType, X500ValueType>>>;
-//     fn get_substring_matching_rule_by_id (id: OBJECT_IDENTIFIER) -> Option<MatchingRuleInfo<Self, X500ValueType, X500ValueType, SubstringsMatcher<Self, X500ValueType, X500ValueType>>>;
-//     fn get_substring_matching_rule_by_name (name: &str) -> Option<MatchingRuleInfo<Self, X500ValueType, X500ValueType, SubstringsMatcher<Self, X500ValueType, X500ValueType>>>;
-//     fn get_context_type_by_id (id: OBJECT_IDENTIFIER) -> Option<ContextTypeInfo<Self, X500ValueType, X500ValueType>>;
-//     fn get_ldap_syntax_by_id (id: OBJECT_IDENTIFIER) -> Option<LdapSyntaxInfo<Self, X500ValueType, LDAPCodecError>>;
-//     fn get_ldap_syntax_by_name (name: &str) -> Option<LdapSyntaxInfo<Self, X500ValueType, LDAPCodecError>>;
-// }
-
-// #[derive(Debug)]
-// pub enum MatchingError {
-//     InvalidAssertion(ASN1Error),
-//     InvalidValue(ASN1Error),
-//     IoError(std::io::Error),
-// }
-
-// // TODO:
-// // impl std::error::Error for MatchingError {}
-
-// // TODO: Is this being this generic really worth it?
-// pub type EqualityMatcher <S, A, V> = fn(S, A, V) -> Result<Option<bool>, MatchingError>;
-// pub type OrderingMatcher <S, A, V> = fn(S, A, V) -> Result<Option<u64>, MatchingError>;
-// pub type SubstringsMatcher <S, A, V> = fn(S, A, V) -> Result<bool, MatchingError>;
-// pub type ApproxMatcher <S, A, V> = fn(S, A, V, u8) -> Result<Option<bool>, MatchingError>; // TODO: IDK if this makes sense.
-// pub type ValueValidator <V> = fn(V) -> ASN1Result<()>;
-// pub type ContextValueMatcher <S, A, V> = fn(S, A, V) -> Result<Option<bool>, MatchingError>;
-
-// #[derive(Debug, Clone)]
-// pub struct ObjectClassInfo {
-//     pub superclasses: OPTIONAL<Vec<ObjectClassInfo>>,
-//     pub kind: ObjectClassKind,
-//     pub mandatory_attributes: OPTIONAL<Vec<AttributeType>>,
-//     pub optional_attributes: OPTIONAL<Vec<AttributeType>>,
-//     pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-//     pub ldap_desc: OPTIONAL<UTF8String>,
-//     pub id: OBJECT_IDENTIFIER,
-// }
-
-// pub struct MatchingRuleInfo <S : X500SchemaKnowledgeBase<V>, A: Sized, V: Sized, MatcherType> {
-//     pub parent_matching_rules: OPTIONAL<Vec<MatchingRuleInfo<S, A, V, MatcherType>>>,
-//     pub unique_match_indicator: OPTIONAL<AttributeTypeInfo<S, A, V>>,
-//     pub ldap_syntax: OPTIONAL<OBJECT_IDENTIFIER>,
-//     pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-//     pub ldap_desc: OPTIONAL<UTF8String>,
-//     pub id: OBJECT_IDENTIFIER,
-//     pub matcher: MatcherType,
-// }
-
-// pub struct AttributeTypeInfo <S : X500SchemaKnowledgeBase<Type>, A: Sized, Type: Sized> {
-//     pub derivation: OPTIONAL<Box<AttributeTypeInfo<S, A, Type>>>,
-//     pub equality_match: OPTIONAL<Box<MatchingRuleInfo<S, A, Type, EqualityMatcher<S, A, Type>>>>,
-//     pub ordering_match: OPTIONAL<Box<MatchingRuleInfo<S, A, Type, OrderingMatcher<S, A, Type>>>>,
-//     pub substrings_match: OPTIONAL<Box<MatchingRuleInfo<S, A, Type, SubstringsMatcher<S, A, Type>>>>,
-//     pub single_valued: BOOLEAN,
-//     pub collective: BOOLEAN,
-//     pub dummy: BOOLEAN,
-//     pub no_user_modification: BOOLEAN,
-//     pub usage: AttributeUsage,
-//     pub ldap_syntax: OPTIONAL<OBJECT_IDENTIFIER>,
-//     pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-//     pub ldap_desc: OPTIONAL<UTF8String>,
-//     pub obsolete: BOOLEAN,
-//     pub id: OBJECT_IDENTIFIER,
-
-//     /// A function that takes a value of this type and returns Ok(()) if it is syntatically valid.
-//     pub validator: OPTIONAL<ValueValidator<Type>>,
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct NameFormInfo {
-//     pub named_object_class: OBJECT_IDENTIFIER,
-//     pub mandatory_attributes: Vec<AttributeType>,
-//     pub optional_attributes: OPTIONAL<Vec<AttributeType>>,
-//     pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-//     pub ldap_desc: OPTIONAL<UTF8String>,
-//     pub id: OBJECT_IDENTIFIER,
-// }
-
-// pub struct ContextTypeInfo <S : X500SchemaKnowledgeBase<Type>, Assertion: Sized, Type: Sized> {
-//     pub absent_match: BOOLEAN,
-//     pub id: OBJECT_IDENTIFIER,
-//     pub matcher: ContextValueMatcher<S, Assertion, Type>,
-//     pub default_value: OPTIONAL<fn() -> Type>,
-//     pub normalize: OPTIONAL<fn(Type) -> Type>,
-// }
-
-// pub struct LdapSyntaxInfo <S : X500SchemaKnowledgeBase<X500ValueType>, X500ValueType: Sized, E> {
-//     pub ldap_desc: UTF8String,
-//     pub id: OBJECT_IDENTIFIER,
-//     pub convert_x500_value_to_ldap_value: fn(S, X500ValueType) -> Result<LDAPAttributeValue, E>,
-//     pub convert_ldap_value_to_x500_value: fn(S, LDAPAttributeValue) -> Result<X500ValueType, E>,
-// }
-
-
-
-
-pub trait X500SchemaKnowledgeBase
-    where Self: Sized {
-    fn get_object_class_by_id (id: OBJECT_IDENTIFIER) -> Option<ObjectClassInfo>;
-    fn get_object_class_by_name (name: &str) -> Option<ObjectClassInfo>;
-    fn get_name_form_by_id (id: OBJECT_IDENTIFIER) -> Option<NameFormInfo>;
-    fn get_name_form_by_name (name: &str) -> Option<NameFormInfo>;
-    fn get_attribute_type_by_id (id: OBJECT_IDENTIFIER) -> Option<AttributeTypeInfo<Self>>;
-    fn get_attribute_type_by_name (name: &str) -> Option<AttributeTypeInfo<Self>>;
-    fn get_equality_matching_rule_by_id (id: OBJECT_IDENTIFIER) -> Option<MatchingRuleInfo<Self, EqualityMatcher<Self>>>;
-    fn get_equality_matching_rule_by_name (name: &str) -> Option<MatchingRuleInfo<Self, EqualityMatcher<Self>>>;
-    fn get_ordering_matching_rule_by_id (id: OBJECT_IDENTIFIER) -> Option<MatchingRuleInfo<Self, OrderingMatcher<Self>>>;
-    fn get_ordering_matching_rule_by_name (name: &str) -> Option<MatchingRuleInfo<Self, OrderingMatcher<Self>>>;
-    fn get_substring_matching_rule_by_id (id: OBJECT_IDENTIFIER) -> Option<MatchingRuleInfo<Self, SubstringsMatcher<Self>>>;
-    fn get_substring_matching_rule_by_name (name: &str) -> Option<MatchingRuleInfo<Self, SubstringsMatcher<Self>>>;
-    fn get_context_type_by_id (id: OBJECT_IDENTIFIER) -> Option<ContextTypeInfo<Self>>;
-    fn get_ldap_syntax_by_id (id: OBJECT_IDENTIFIER) -> Option<LdapSyntaxInfo<Self>>;
-    fn get_ldap_syntax_by_name (name: &str) -> Option<LdapSyntaxInfo<Self>>;
-}
-
-#[derive(Debug)]
-pub enum MatchingError {
-    InvalidAssertion(ASN1Error),
-    InvalidValue(ASN1Error),
-    IoError(std::io::Error),
-}
-
-// TODO:
-// impl std::error::Error for MatchingError {}
-
-// TODO: Should you define an alias for X690Element, such as `DirectoryValue`?
-
-pub type EqualityMatcher <S> = fn(S, X690Element, X690Element) -> Result<Option<bool>, MatchingError>;
-pub type OrderingMatcher <S> = fn(S, X690Element, X690Element) -> Result<Option<u64>, MatchingError>;
-pub type SubstringsMatcher <S> = fn(S, X690Element, X690Element) -> Result<bool, MatchingError>;
-pub type ApproxMatcher <S> = fn(S, u8) -> Result<Option<bool>, MatchingError>; // TODO: IDK if this makes sense.
-pub type ValueValidator <V> = fn(V) -> ASN1Result<()>;
-pub type ContextValueMatcher <S> = fn(S, X690Element, X690Element) -> Result<Option<bool>, MatchingError>;
-
-#[derive(Debug, Clone)]
-pub struct ObjectClassInfo {
-    pub superclasses: OPTIONAL<Vec<ObjectClassInfo>>,
-    pub kind: ObjectClassKind,
-    pub mandatory_attributes: OPTIONAL<Vec<AttributeType>>,
-    pub optional_attributes: OPTIONAL<Vec<AttributeType>>,
-    pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-    pub ldap_desc: OPTIONAL<UTF8String>,
-    pub id: OBJECT_IDENTIFIER,
-}
-
-pub struct MatchingRuleInfo <S : X500SchemaKnowledgeBase, MatcherType> {
-    pub parent_matching_rules: OPTIONAL<Vec<MatchingRuleInfo<S, MatcherType>>>,
-    pub unique_match_indicator: OPTIONAL<AttributeTypeInfo<S>>,
-    pub ldap_syntax: OPTIONAL<OBJECT_IDENTIFIER>,
-    pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-    pub ldap_desc: OPTIONAL<UTF8String>,
-    pub id: OBJECT_IDENTIFIER,
-    pub matcher: MatcherType,
-}
-
-pub struct AttributeTypeInfo <S : X500SchemaKnowledgeBase> {
-    pub derivation: OPTIONAL<Box<AttributeTypeInfo<S>>>,
-    pub equality_match: OPTIONAL<Box<MatchingRuleInfo<S, EqualityMatcher<S>>>>,
-    pub ordering_match: OPTIONAL<Box<MatchingRuleInfo<S, OrderingMatcher<S>>>>,
-    pub substrings_match: OPTIONAL<Box<MatchingRuleInfo<S, SubstringsMatcher<S>>>>,
-    pub single_valued: BOOLEAN,
-    pub collective: BOOLEAN,
-    pub dummy: BOOLEAN,
-    pub no_user_modification: BOOLEAN,
-    pub usage: AttributeUsage,
-    pub ldap_syntax: OPTIONAL<OBJECT_IDENTIFIER>,
-    pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-    pub ldap_desc: OPTIONAL<UTF8String>,
-    pub obsolete: BOOLEAN,
-    pub id: OBJECT_IDENTIFIER,
-
-    /// A function that takes a value of this type and returns Ok(()) if it is syntatically valid.
-    pub validator: OPTIONAL<ValueValidator<X690Element>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct NameFormInfo {
-    pub named_object_class: OBJECT_IDENTIFIER,
-    pub mandatory_attributes: Vec<AttributeType>,
-    pub optional_attributes: OPTIONAL<Vec<AttributeType>>,
-    pub ldap_name: OPTIONAL<Vec<UTF8String>>,
-    pub ldap_desc: OPTIONAL<UTF8String>,
-    pub id: OBJECT_IDENTIFIER,
-}
-
-pub struct ContextTypeInfo <S : X500SchemaKnowledgeBase> {
-    pub absent_match: BOOLEAN,
-    pub id: OBJECT_IDENTIFIER,
-    pub matcher: ContextValueMatcher<S>,
-    pub default_value: OPTIONAL<fn() -> X690Element>,
-    pub normalize: OPTIONAL<fn(X690Element) -> X690Element>,
-}
-
-pub struct LdapSyntaxInfo <S : X500SchemaKnowledgeBase> {
-    pub ldap_desc: UTF8String,
-    pub id: OBJECT_IDENTIFIER,
-
-    // TODO: Are these really the best error types for this purpose?
-    pub convert_x500_value_to_ldap_value: fn(S, X690Element) -> Result<LDAPAttributeValue, ASN1Error>,
-    pub convert_ldap_value_to_x500_value: fn(S, LDAPAttributeValue) -> Result<X690Element, ASN1Error>,
-}
-
 pub struct Vertex<T> {
     pub superior: Option<T>,
     pub item: T,
@@ -280,24 +69,19 @@ pub struct RefVertex<'a, T> {
     pub item: &'a T,
 }
 
-pub type DseDatabaseId = u32;
+pub type DseDatabaseId = u64;
 
-pub struct DSE {
-    pub id: DseDatabaseId,
-    pub rdn: RelativeDistinguishedName,
-}
+// pub struct DSE {
+//     pub id: DseDatabaseId,
+//     pub rdn: RelativeDistinguishedName,
+// }
 
-pub type DITVertex = Vertex<DSE>;
+// pub type DITVertex = Vertex<DSE>;
 
-#[derive(Error, Debug)]
+#[derive(Debug)]
 pub enum DSAStorageDriverError {
-    #[error("IO error")]
     IoError(IoError),
-
-    #[error("corrupted")]
     Corrupted,
-
-    #[error("DSE already exists")]
     AlreadyExists,
 }
 
@@ -312,13 +96,13 @@ pub const STORAGE_DRIVER_MEMORY: DSAStorageDriverType = 2;
 pub const STORAGE_DRIVER_EDB: DSAStorageDriverType = 3;
 pub const STORAGE_DRIVER_GIT: DSAStorageDriverType = 4;
 
-pub struct DSEInformation {
-    pub info: Vec<EntryInfoItem>,
-    pub shadow_subordinates_complete: bool,
-    pub shadow_attributes_complete: bool,
-    pub shadow_attribute_values_incomplete: Vec<AttributeType>,
-    pub subordinates_storage_driver: DSAStorageDriverType,
-}
+// pub struct DSEInformation {
+//     pub info: Vec<EntryInfoItem>,
+//     pub shadow_subordinates_complete: bool,
+//     pub shadow_attributes_complete: bool,
+//     pub shadow_attribute_values_incomplete: Vec<AttributeType>,
+//     pub subordinates_storage_driver: DSAStorageDriverType,
+// }
 
 pub struct BaseStorageDriverRequest <Arg> {
     pub time_limit: TimeLimit,
@@ -326,17 +110,17 @@ pub struct BaseStorageDriverRequest <Arg> {
     pub arg: Arg,
 }
 
-pub struct DITWriteRequest <Arg> {
-    pub target: DseDatabaseId,
-    pub time_limit: TimeLimit,
-    pub priority: Priority,
-    pub arg: Arg,
-}
+// pub struct DITWriteRequest <Arg> {
+//     pub target: DseDatabaseId,
+//     pub time_limit: TimeLimit,
+//     pub priority: Priority,
+//     pub arg: Arg,
+// }
 
-pub struct NewDSE <'a> {
-    pub rdn: &'a [AttributeTypeAndValue],
-    pub info: &'a [Attribute],
-}
+// pub struct NewDSE <'a> {
+//     pub rdn: &'a [AttributeTypeAndValue],
+//     pub info: &'a [Attribute],
+// }
 
 pub type OidKey = Vec<u8>;
 pub type AttributeTypeKey = OidKey;
@@ -372,17 +156,17 @@ pub enum ContextAssertions {
 
 
 
-pub struct Selection {
-    pub attributes: HashSet<OidKey>,
-    pub types_only: bool,
-    pub all_user_attrs: bool,
-    pub all_op_attrs: bool,
-    pub select_all_contexts: bool,
-    pub selected_contexts: HashMap<AttributeTypeKey, ContextAssertions>,
-    pub return_contexts: bool,
-    pub member_select: FamilyReturn_memberSelect,
-    pub family_select: HashSet<ObjectClassTypeKey>,
-}
+// pub struct Selection {
+//     pub attributes: HashSet<OidKey>,
+//     pub types_only: bool,
+//     pub all_user_attrs: bool,
+//     pub all_op_attrs: bool,
+//     pub select_all_contexts: bool,
+//     pub selected_contexts: HashMap<AttributeTypeKey, ContextAssertions>,
+//     pub return_contexts: bool,
+//     pub member_select: FamilyReturn_memberSelect,
+//     pub family_select: HashSet<ObjectClassTypeKey>,
+// }
 
 // export
 // interface ReadValuesOptions {
@@ -484,125 +268,125 @@ pub const ATTR_VALUE_CONTEXT_CONFIDENCE: AttrValueFlags = 1 << 10;
 pub const ATTR_VALUE_CONTEXT_SOURCE: AttrValueFlags = 1 << 11;
 pub const ATTR_VALUE_CONTEXT_NOTES: AttrValueFlags = 1 << 12;
 
-pub enum DseDeletionType {
-    HardDeleteAll,
-    HardDeleteAttributes,
-    SoftDelete,
-}
+// pub enum DseDeletionType {
+//     HardDeleteAll,
+//     HardDeleteAttributes,
+//     SoftDelete,
+// }
 
-pub struct NextSubordinateRequest {
-    pub last_id: DseDatabaseId,
-    pub flags: DSEFlags,
-}
+// pub struct NextSubordinateRequest {
+//     pub last_id: DseDatabaseId,
+//     pub flags: DSEFlags,
+// }
 
-pub struct FindRDN <'a> {
-    pub superior_id: DseDatabaseId,
-    pub rdn: &'a [AttributeTypeAndValue],
-}
+// pub struct FindRDN <'a> {
+//     pub superior_id: DseDatabaseId,
+//     pub rdn: &'a [AttributeTypeAndValue],
+// }
 
-pub struct FindDN <'a> {
-    pub rdn: &'a [RelativeDistinguishedName],
-}
+// pub struct FindDN <'a> {
+//     pub rdn: &'a [RelativeDistinguishedName],
+// }
 
-pub struct FindID {
-    pub id: DseDatabaseId,
-    pub superior: Option<DseDatabaseId>,
-}
+// pub struct FindID {
+//     pub id: DseDatabaseId,
+//     pub superior: Option<DseDatabaseId>,
+// }
 
-#[async_trait]
+// #[async_trait]
 pub trait DSAStorageDriver {
 
     // TODO: priority, sizeLimit, timeLimit, manageDSAITPlaneRef?, attributeSizeLimit
     // TODO: I think you'll have to pass in name knowledge and other things.
 
-    async fn find_rdn <'a> (
-        &self,
-        req: BaseStorageDriverRequest<FindRDN<'a>>,
-    ) -> DSAStorageDriverResult<Option<DseDatabaseId>>;
+    // async fn find_rdn <'a> (
+    //     &self,
+    //     req: BaseStorageDriverRequest<FindRDN<'a>>,
+    // ) -> DSAStorageDriverResult<Option<DseDatabaseId>>;
 
-    async fn find_dn <'a> (
-        &self,
-        req: BaseStorageDriverRequest<FindDN<'a>>,
-    ) -> DSAStorageDriverResult<Option<DseDatabaseId>> {
-        // TODO: Naive implementation that calls find_rdn recursively.
-        todo!()
-    }
+    // async fn find_dn <'a> (
+    //     &self,
+    //     req: BaseStorageDriverRequest<FindDN<'a>>,
+    // ) -> DSAStorageDriverResult<Option<DseDatabaseId>> {
+    //     // TODO: Naive implementation that calls find_rdn recursively.
+    //     todo!()
+    // }
 
-    async fn get_rdn <'a> (
-        &self,
-        req: BaseStorageDriverRequest<FindID>,
-    ) -> DSAStorageDriverResult<Option<RelativeDistinguishedName>>;
+    // async fn get_rdn <'a> (
+    //     &self,
+    //     req: BaseStorageDriverRequest<FindID>,
+    // ) -> DSAStorageDriverResult<Option<RelativeDistinguishedName>>;
 
-    async fn get_dn <'a> (
-        &self,
-        req: BaseStorageDriverRequest<FindID>,
-    ) -> DSAStorageDriverResult<Option<DistinguishedName>>;
+    // async fn get_dn <'a> (
+    //     &self,
+    //     req: BaseStorageDriverRequest<FindID>,
+    // ) -> DSAStorageDriverResult<Option<DistinguishedName>>;
 
-    async fn get_next_subordinate_dse (
-        &self,
-        req: BaseStorageDriverRequest<DseDatabaseId>,
-        // target: DseDatabaseId,
-        // time_limit: TimeLimit,
-        // priority: Priority,
-        // last: DseDatabaseId,
-        // TODO: BloomFilter
-    ) -> DSAStorageDriverResult<Option<DITVertex>>;
+    // async fn get_next_subordinate_dse (
+    //     &self,
+    //     req: BaseStorageDriverRequest<DseDatabaseId>,
+    //     // target: DseDatabaseId,
+    //     // time_limit: TimeLimit,
+    //     // priority: Priority,
+    //     // last: DseDatabaseId,
+    //     // TODO: BloomFilter
+    // ) -> DSAStorageDriverResult<Option<DITVertex>>;
 
-    async fn read_dse <'a> (
-        &self,
-        target: DseDatabaseId,
-        time_limit: TimeLimit,
-        selection: &'a Selection,
-    ) -> DSAStorageDriverResult<DSEInformation>;
+    // async fn read_dse <'a> (
+    //     &self,
+    //     target: DseDatabaseId,
+    //     time_limit: TimeLimit,
+    //     selection: &'a Selection,
+    // ) -> DSAStorageDriverResult<DSEInformation>;
 
-    async fn add_dse <'a> (
-        &self,
-        req: &DITWriteRequest<NewDSE<'a>>,
-    ) -> DSAStorageDriverResult<DseDatabaseId>;
+    // async fn add_dse <'a> (
+    //     &self,
+    //     req: &DITWriteRequest<NewDSE<'a>>,
+    // ) -> DSAStorageDriverResult<DseDatabaseId>;
 
-    async fn modify_dse <'a> (
-        &self,
-        req: &DITWriteRequest<&'a [EntryModification]>,
-    ) -> DSAStorageDriverResult<()>;
+    // async fn modify_dse <'a> (
+    //     &self,
+    //     req: &DITWriteRequest<&'a [EntryModification]>,
+    // ) -> DSAStorageDriverResult<()>;
 
-    async fn remove_dse (
-        &self,
-        req: &DITWriteRequest<()>,
-    ) -> DSAStorageDriverResult<()>;
+    // async fn remove_dse (
+    //     &self,
+    //     req: &DITWriteRequest<()>,
+    // ) -> DSAStorageDriverResult<()>;
 
-    async fn modify_rdn <'a> (
-        &self,
-        req: &DITWriteRequest<&'a [AttributeTypeAndValue]>,
-    ) -> DSAStorageDriverResult<()>;
+    // async fn modify_rdn <'a> (
+    //     &self,
+    //     req: &DITWriteRequest<&'a [AttributeTypeAndValue]>,
+    // ) -> DSAStorageDriverResult<()>;
 
-    async fn move_dse <'a> (
-        &self,
-        req: &DITWriteRequest<&'a [RelativeDistinguishedName]>, // DN of the new immediate superior
-    ) -> DSAStorageDriverResult<()>;
+    // async fn move_dse <'a> (
+    //     &self,
+    //     req: &DITWriteRequest<&'a [RelativeDistinguishedName]>, // DN of the new immediate superior
+    // ) -> DSAStorageDriverResult<()>;
 
-    // Naive implementation for when transactions are not supported.
-    async fn modify_dn <'a> (
-        &self,
-        req: &DITWriteRequest<&'a [RelativeDistinguishedName]>,
-    ) -> DSAStorageDriverResult<()> {
-        let len = req.arg.len();
-        if let Some(rdn) = req.arg.last() {
-            self.modify_rdn(&DITWriteRequest{
-                arg: &rdn.as_slice(),
-                priority: req.priority,
-                target: req.target,
-                time_limit: req.time_limit,
-            }).await?;
-            self.move_dse(&DITWriteRequest{
-                arg: &req.arg[0..len - 1],
-                priority: req.priority,
-                target: req.target,
-                time_limit: req.time_limit,
-            }).await
-        } else {
-            Err(DSAStorageDriverError::AlreadyExists)
-        }
-    }
+    // // Naive implementation for when transactions are not supported.
+    // async fn modify_dn <'a> (
+    //     &self,
+    //     req: &DITWriteRequest<&'a [RelativeDistinguishedName]>,
+    // ) -> DSAStorageDriverResult<()> {
+    //     let len = req.arg.len();
+    //     if let Some(rdn) = req.arg.last() {
+    //         self.modify_rdn(&DITWriteRequest{
+    //             arg: &rdn.as_slice(),
+    //             priority: req.priority,
+    //             target: req.target,
+    //             time_limit: req.time_limit,
+    //         }).await?;
+    //         self.move_dse(&DITWriteRequest{
+    //             arg: &req.arg[0..len - 1],
+    //             priority: req.priority,
+    //             target: req.target,
+    //             time_limit: req.time_limit,
+    //         }).await
+    //     } else {
+    //         Err(DSAStorageDriverError::AlreadyExists)
+    //     }
+    // }
 
     // TODO: load_operational_bindings
     // TODO: save_operational_bindings

@@ -32,6 +32,8 @@ use presentation_address::asn1::{
     _validate_PresentationAddress,
 };
 
+/// X.400 Message Handling System (MHS) Originator-Recipient (O/R) Address
+///
 /// ### ASN.1 Definition:
 ///
 /// ```asn1
@@ -186,6 +188,14 @@ pub fn _validate_ORAddress(el: &X690Element) -> ASN1Result<()> {
     Ok(())
 }
 
+/// Built-in Standard Attributes for an X.400 O/R Address
+///
+/// Note that a lot of these have been converted to use `heapless::String`,
+/// because they have well-defined size limits, and this data structure is
+/// innately pretty large. This conversion reduced the size of this data
+/// structure by about 80-100 bytes and now, it uses far fewer heap allocations
+/// to decode an O/R address.
+///
 /// ### ASN.1 Definition:
 ///
 /// ```asn1

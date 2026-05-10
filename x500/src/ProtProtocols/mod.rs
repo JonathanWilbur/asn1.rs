@@ -21,7 +21,7 @@
 //!
 use crate::AVL_management::*;
 use crate::CaSubscription::*;
-use crate::PKI_Stub::*;
+use pki_stub::*;
 use crate::TrustBroker::*;
 use crate::Wrapper::*;
 use wildboar_asn1::*;

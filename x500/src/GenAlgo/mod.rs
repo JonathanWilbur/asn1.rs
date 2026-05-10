@@ -19,7 +19,7 @@
 //! the `From<X690Element` and `From<&'a X690Element>` traits for some
 //! types.
 //!
-use crate::PKI_Stub::*;
+use pki_stub::*;
 use wildboar_asn1::*;
 use std::sync::Arc;
 use x690::*;

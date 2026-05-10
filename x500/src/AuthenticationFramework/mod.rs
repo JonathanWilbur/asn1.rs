@@ -21,7 +21,7 @@
 //!
 use crate::CertificateExtensions::*;
 use crate::InformationFramework::*;
-pub use crate::PKI_Stub::{
+pub use pki_stub::{
     FingerPrint, PKCertIdentifier, ScopeRestrictions, _decode_FingerPrint, _decode_HASH,
     _decode_PKCertIdentifier, _decode_SIGNED, _decode_ScopeRestrictions, _encode_FingerPrint,
     _encode_HASH, _encode_PKCertIdentifier, _encode_SIGNED, _encode_ScopeRestrictions,
@@ -211,9 +211,11 @@ pub fn _validate_ENCRYPTED_HASH(el: &X690Element) -> ASN1Result<()> {
 /// ```asn1
 /// ALGORITHM ::= CLASS {
 ///   &Type          OPTIONAL,
+///   &DynParms      OPTIONAL,
 ///   &id            OBJECT IDENTIFIER UNIQUE }
 /// WITH SYNTAX {
 ///   [PARMS         &Type]
+///   [DYN-PARMS     &DynParms]
 ///   IDENTIFIED BY  &id }
 /// ```
 ///
@@ -232,7 +234,7 @@ impl ALGORITHM {}
 ///   ... }
 /// ```
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AlgorithmIdentifier {
     pub algorithm: OBJECT_IDENTIFIER,
     pub parameters: OPTIONAL<X690Element>,
