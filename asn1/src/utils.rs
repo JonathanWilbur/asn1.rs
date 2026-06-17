@@ -21,7 +21,7 @@ use crate::ByteSlice;
 pub fn read_i64(bytes: ByteSlice) -> Option<i64> {
     let len = bytes.len();
     match len {
-        1 => Some(bytes[0] as i64),
+        1 => Some(bytes[0] as i8 as i64),
         2 => Some(i16::from_be_bytes([bytes[0], bytes[1]]) as i64),
         3 => Some(i32::from_be_bytes([
             if bytes[0] & 0b1000_0000 > 0 {
@@ -35,7 +35,8 @@ pub fn read_i64(bytes: ByteSlice) -> Option<i64> {
         ]) as i64),
         4 => Some(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as i64),
         5..=8 => {
-            let mut buf: [u8; 8] = [0; 8];
+            let fill = if bytes[0] & 0x80 != 0 { 0xFF } else { 0x00 };
+            let mut buf: [u8; 8] = [fill; 8];
             buf[8 - len..].copy_from_slice(bytes);
             Some(i64::from_be_bytes(buf))
         }
@@ -55,7 +56,7 @@ pub fn read_i64(bytes: ByteSlice) -> Option<i64> {
 pub fn read_i128(bytes: ByteSlice) -> Option<i128> {
     let len = bytes.len();
     match len {
-        1 => Some(bytes[0] as i128),
+        1 => Some(bytes[0] as i8 as i128),
         2 => Some(i16::from_be_bytes([bytes[0], bytes[1]]) as i128),
         3 => Some(i32::from_be_bytes([
             if bytes[0] & 0b1000_0000 > 0 {
@@ -69,7 +70,8 @@ pub fn read_i128(bytes: ByteSlice) -> Option<i128> {
         ]) as i128),
         4 => Some(i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as i128),
         5..=16 => {
-            let mut buf: [u8; 16] = [0; 16];
+            let fill = if bytes[0] & 0x80 != 0 { 0xFF } else { 0x00 };
+            let mut buf: [u8; 16] = [fill; 16];
             buf[16 - len..].copy_from_slice(bytes);
             Some(i128::from_be_bytes(buf))
         }
@@ -169,4 +171,44 @@ pub(crate) const fn likely (expr: bool) -> bool {
 #[inline]
 pub(crate) const fn unlikely (expr: bool) -> bool {
     expr
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_i64_single_byte_negative() {
+        // 0xFF should be -1, not 255
+        assert_eq!(read_i64(&[0xFF]), Some(-1));
+        assert_eq!(read_i64(&[0x80]), Some(-128));
+        assert_eq!(read_i64(&[0x7F]), Some(127));
+    }
+
+    #[test]
+    fn test_read_i64_multibyte_negative() {
+        // 5-byte encoding of -1
+        assert_eq!(read_i64(&[0xFF, 0xFF, 0xFF, 0xFF, 0xFF]), Some(-1));
+        // 6-byte encoding of -256
+        assert_eq!(read_i64(&[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00]), Some(-256));
+        // 8-byte maximum negative
+        assert_eq!(read_i64(&[0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), Some(i64::MIN));
+    }
+
+    #[test]
+    fn test_read_i128_single_byte_negative() {
+        // 0xFF should be -1, not 255
+        assert_eq!(read_i128(&[0xFF]), Some(-1));
+        assert_eq!(read_i128(&[0x80]), Some(-128));
+        assert_eq!(read_i128(&[0x7F]), Some(127));
+    }
+
+    #[test]
+    fn test_read_i128_multibyte_negative() {
+        // 5-byte encoding of -1
+        assert_eq!(read_i128(&[0xFF, 0xFF, 0xFF, 0xFF, 0xFF]), Some(-1));
+        // 16-byte maximum negative
+        let min_bytes = [0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        assert_eq!(read_i128(&min_bytes), Some(i128::MIN));
+    }
 }
