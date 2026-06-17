@@ -368,7 +368,8 @@ impl X690Codec for DistinguishedEncodingRules {
                             // Mantissa too big..
                             return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                         }
-                        exponent = i32::from_be_bytes([0, 0, value_bytes[1], value_bytes[2]]);
+                        let sign = if value_bytes[1] & 0x80 != 0 { 0xFF } else { 0x00 };
+                        exponent = i32::from_be_bytes([sign, sign, value_bytes[1], value_bytes[2]]);
                         if exponent > -128 && exponent < 128 {
                             // Could have been encoded using the 1-octet format.
                             return Err(ASN1Error::new(ASN1ErrorCode::real_format_prohibited));

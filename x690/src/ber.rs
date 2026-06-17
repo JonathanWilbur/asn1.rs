@@ -462,7 +462,8 @@ impl X690Codec for BasicEncodingRules {
                             // Mantissa too big..
                             return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                         }
-                        exponent = i32::from_be_bytes([0, 0, value_bytes[1], value_bytes[2]]);
+                        let sign = if value_bytes[1] & 0x80 != 0 { 0xFF } else { 0x00 };
+                        exponent = i32::from_be_bytes([sign, sign, value_bytes[1], value_bytes[2]]);
                         mantissa = x690_read_var_length_u64(&value_bytes[3..])
                             .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
@@ -474,8 +475,9 @@ impl X690Codec for BasicEncodingRules {
                             // Mantissa too big.
                             return Err(ASN1Error::new(ASN1ErrorCode::field_too_big));
                         }
+                        let sign = if value_bytes[1] & 0x80 != 0 { 0xFF } else { 0x00 };
                         exponent =
-                            i32::from_be_bytes([0, value_bytes[1], value_bytes[2], value_bytes[3]]);
+                            i32::from_be_bytes([sign, value_bytes[1], value_bytes[2], value_bytes[3]]);
                         mantissa = x690_read_var_length_u64(&value_bytes[4..])
                             .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                     }
@@ -500,7 +502,8 @@ impl X690Codec for BasicEncodingRules {
                                 return Err(ASN1Error::new(ASN1ErrorCode::value_too_short));
                             }
                             // The exponent must have length 2.
-                            exponent = i32::from_be_bytes([0, 0, value_bytes[2], value_bytes[3]]);
+                            let sign = if value_bytes[2] & 0x80 != 0 { 0xFF } else { 0x00 };
+                            exponent = i32::from_be_bytes([sign, sign, value_bytes[2], value_bytes[3]]);
                             mantissa = x690_read_var_length_u64(&value_bytes[4..])
                                 .ok_or(ASN1Error::new(ASN1ErrorCode::value_too_big))?;
                         }
